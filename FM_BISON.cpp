@@ -3,8 +3,6 @@
 	FM. BISON hybrid FM synthesis
 	(C) visualizers.nl & bipolar audio
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
-
-	visualizers.nl is a subsidiary of Studio Redmond (http://www.studioredmond.nl -- TBA)
 */
 
 // Shut it, MSVC (alrex1ady defined by JUCE)

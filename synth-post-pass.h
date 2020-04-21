@@ -41,7 +41,7 @@ namespace SFM
 		           float cpRate, float cpWet, bool isChorus,
 		           float delayInSec, float delayWet, float delayFeedback, float delayFeedbackCutoff,
 		           float postCutoff, float postQ, float postDrivedB, float postWet,
-				   float avgVelocity /* <- [0..1] */, float tubeDistort, float tubeDrivedB,
+		           float avgVelocity /* <- [0..1] */, float tubeDistort, float tubeDrivedB,
 		           float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
 		           float compThresholddB, float compRatio, float compAttack, float compRelease,
 		           float masterVol,
