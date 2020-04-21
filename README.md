@@ -2,16 +2,19 @@
 
 FM. BISON 0.9 - A hybrid FM synthesis engine.
 
-# IMPORTANT 
+# IMPORTANT ISSUES 
 
 - Documentation is being written.
 - A Github issue list is being transplanted so you can follow our progress.
 
 # WHAT IS FM. BISON?
 
-Our goal is to create fast & high quality synthesizer software.
+Combining proven entrepreneurial skills and over 2 decades of programming experience
+we dipped our toes in synthesis and offer this first draft of our technology.
 
-What inspired FM. BISON is the 1980s digital revolution often based upon frequency modulation,
+Our goal is to create world-class efficient & high-fidelity synthesizer software.
+
+What inspired FM. BISON is the 1980s digital revolution chiefly based on frequency modulation (or 'FM'),
 as discovered by accident by John Chowning in 1967. This type of synthesis yields a very distinct
 sound that helped artists like Prince, Phil Collins, Whitney Houston, Brian Eno and many others
 to define their new sound, mostly using the Yamaha DX7.
