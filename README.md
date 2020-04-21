@@ -2,6 +2,13 @@
 
 FM.BISON 0.9 - A hybrid FM synthesis engine.
 
+# IMPORTANT 
+
+- Documentation is being written.
+- A Github issue list is being transplanted so you can follow our progress.
+
+# WHAT IS FM. BISON?
+
 Our goal is to create fast & high quality synthesizer software.
 
 What inspired FM. BISON is the 1980s digital revolution often based upon frequency modulation,
