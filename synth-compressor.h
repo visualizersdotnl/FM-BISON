@@ -128,19 +128,23 @@ namespace SFM
 ,			m_detectorR(sampleRate)
 ,			m_gainDyn(sampleRate, kDefCompAttack, kDefCompRelease)
 		{
-			SetParameters(kDefCompThresholddB, kDefCompRatio, kDefCompAttack, kDefCompRelease);
+			SetParameters(kDefCompThresholddB, kDefCompKneedB, kDefCompLookaheadMS, kDefCompRatio, kDefCompAttack, kDefCompRelease);
 		}
 
 		~Compressor() {}
 
-		SFM_INLINE void SetParameters(float thresholddB, float ratio, float attack, float release)
+		SFM_INLINE void SetParameters(float thresholddB, float kneedB, float lookaheadMS, float ratio, float attack, float release)
 		{
 			SFM_ASSERT(thresholddB >= kMinCompThresholdB && thresholddB <= kMaxCompThresholdB);
+			SFM_ASSERT(kneedB >= kMinCompKneedB && kneedB <= kMaxComKneedB);
+			SFM_ASSERT(lookaheadMS >= kMinCompLookaheadMS && lookaheadMS <= kMaxCompLookaheadMS);
 			SFM_ASSERT(ratio >= kMinCompRatio && ratio <= kMaxCompRatio);
 			SFM_ASSERT(attack >= kMinCompAttack && attack <= kMaxCompAttack);
 			SFM_ASSERT(release >= kMinCompRelease && attack <= kMaxCompRelease);
 
 			m_thresholddB = thresholddB;
+			m_kneedB = kneedB;
+			m_lookaheadMS = lookaheadMS;
 			m_ratio = ratio;
 
 			m_gainDyn.SetAttack(attack);
@@ -154,16 +158,22 @@ namespace SFM
 			m_peakSum = (m_peakOutL+m_peakOutR)*0.5f;
 			m_peakSumdB = GainTodB(m_peakSum);
 			
-			// FIXME: soft knee
+			float gaindB;
+			float kneeBlend;
 			if (m_peakSumdB < m_thresholddB)
 			{
-				m_gaindB = 0.f;
+				gaindB = 0.f;
+				kneeBlend = 0.f;
 			}
 			else
 			{
 				SFM_ASSERT(0.f != m_ratio);
-				m_gaindB = -(m_peakSumdB-m_thresholddB) * (1.f - 1.f/m_ratio);
+				gaindB = -(m_peakSumdB-m_thresholddB) * (1.f - 1.f/m_ratio);
+				kneeBlend = std::min<float>(m_peakSumdB-m_thresholddB, m_kneedB);
 			}
+
+			SFM_ASSERT(kneeBlend >= 0.f && kneeBlend <= m_kneedB);
+			m_gaindB = lerpf<float>(0.f, gaindB, smoothstepf(kneeBlend/m_kneedB));
 
 			m_gaindB = m_gainDyn.Apply(m_gaindB);
 			m_gain   = dBToGain(m_gaindB);
@@ -183,6 +193,8 @@ namespace SFM
 
 		// Local parameters
 		float m_thresholddB;
+		float m_kneedB;
+		float m_lookaheadMS;
 		float m_ratio;
 	};
 }

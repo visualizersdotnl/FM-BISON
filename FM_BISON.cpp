@@ -62,7 +62,7 @@ namespace SFM
 
 		/*
 			IMPORTANT: at this point it is still necessary to call SetSamplingProperties(), which the VST plug-in will take
-			           care of for now.
+					   care of for now.
 		*/	
 	}
 
@@ -1845,6 +1845,8 @@ namespace SFM
 						  m_reverbPreDelayPF.Apply(m_patch.reverbPreDelay),
 						  /* Compressor (FIXME: ParameterFilter?) */
 						  m_patch.compThresholddB,
+						  m_patch.compKneedB,
+						  m_patch.compLookaheadMS,
 						  m_patch.compRatio,
 						  m_patch.compAttack,
 						  m_patch.compRelease,

@@ -7,8 +7,8 @@
 
 #pragma once
 
-// Include JUCE (we depend on it for now, so just as well)
-#include "../JuceLibraryCode/JuceHeader.h"
+// Include JUCE
+// #include "../JuceLibraryCode/JuceHeader.h"
 
 #ifndef _DEBUG
 	#ifdef _WIN32
@@ -176,6 +176,12 @@ namespace SFM
 	const float kMinCompThresholdB   = kMinVolumedB;
 	const float kMaxCompThresholdB   =   1.f;
 	const float kDefCompThresholddB  =  -6.f;
+	const float kMinCompKneedB       =   1.f;
+	const float kMaxCompKneedB       = -24.f;
+	const float kDefCompKneedB       =   3.f;
+	const float kMinCompLookaheadMS  =   0.f;
+	const float kMaxCompLookaheadMS  =  10.f;
+	const float kDefCompLookaheadMS  =   1.f;
 	const float kMinCompRatio        =   1.f;
 	const float kMaxCompRatio        =  20.f;
 	const float kDefCompRatio        =   1.f;

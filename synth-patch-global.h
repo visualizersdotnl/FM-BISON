@@ -94,6 +94,8 @@ namespace SFM
 
 		// Compressor settings (see synth-global.h for ranges)
 		float compThresholddB;
+		float compKneedB;
+		float compLookaheadMS;
 		float compRatio;
 		float compAttack;
 		float compRelease;
@@ -211,6 +213,8 @@ namespace SFM
 
 			// Default compression
 			compThresholddB = kDefCompThresholddB;
+			compKneedB = kDefCompKneedB;
+			compLookaheadMS = kDefCompLookaheadMS;
 			compRatio = kDefCompRatio;
 			compAttack = kDefCompAttack;
 			compRelease = kDefCompRelease;
