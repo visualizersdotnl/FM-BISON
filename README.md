@@ -1,6 +1,6 @@
 # FM-BISON
 
-FM.BISON 0.9 - A hybrid FM synthesis engine.
+FM. BISON 0.9 - A hybrid FM synthesis engine.
 
 # IMPORTANT 
 
