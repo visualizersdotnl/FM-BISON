@@ -8,7 +8,7 @@
 // - Added a few smaller update functions for specific filter types
 //
 // FIXME:
-// - try using fast(er) trig. functions (stress test filter stability before using permanently)
+// - Try using the fast(er) trig. functions (stress test filter stability before using permanently)
 //
 
 //  SvfLinearTrapOptimised2.hpp

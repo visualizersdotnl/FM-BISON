@@ -122,7 +122,7 @@ namespace SFM
 		juce::dsp::Oversampling<float> m_oversamplingL;
 		juce::dsp::Oversampling<float> m_oversamplingR;
 
-		// Post filter & it's  interpolated parameters
+		// Post filter & it's interpolated parameters
 		KrajeskiMoog m_postFilter;
 		InterpolatedParameter<kLinInterpolate> m_curPostCutoff;
 		InterpolatedParameter<kLinInterpolate> m_curPostQ;

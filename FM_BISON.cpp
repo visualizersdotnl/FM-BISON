@@ -5,8 +5,10 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 */
 
-// Shut it, MSVC (alrex1ady defined by JUCE)
-// #define _CRT_SECURE_NO_WARNINGS
+// Shut it, MSVC
+#ifndef _CRT_SECURE_NO_WARNINGS
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
 
 // C++11
 #include <mutex>
@@ -60,7 +62,7 @@ namespace SFM
 
 		/*
 			IMPORTANT: at this point it is still necessary to call SetSamplingProperties(), which the VST plug-in will take
-					   care of for now.
+			           care of for now.
 		*/	
 	}
 
