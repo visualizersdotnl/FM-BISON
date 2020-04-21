@@ -7,8 +7,8 @@
 
 #pragma once
 
-// Include JUCE
-// #include "../JuceLibraryCode/JuceHeader.h"
+// Include JUCE (we depend on it for now, so just as well)
+#include "../JuceLibraryCode/JuceHeader.h"
 
 #ifndef _DEBUG
 	#ifdef _WIN32
