@@ -145,13 +145,12 @@ namespace SFM
 			m_thresholddB = thresholddB;
 			m_kneedB = kneedB;
 			m_ratio = ratio;
-			m_gaindB = gaindB;
+			m_postGain = dBToGain(gaindB);
 
 			m_gainDyn.SetAttack(attack);
 			m_gainDyn.SetRelease(release);
 		}
 
-		// FIXME: optimize!
 		SFM_INLINE void Apply(float &left, float &right)
 		{
 			// Detect peak
@@ -183,9 +182,8 @@ namespace SFM
 			const float gain = dBToGain(gaindB);
 			
 			// Apply w/gain
-			const float postGain = dBToGain(m_gaindB);
-			left  = (left*gain)  * postGain;
-			right = (right*gain) * postGain;
+			left  = (left*gain)  * m_postGain;
+			right = (right*gain) * m_postGain;
 		}
 
 	private:
@@ -194,10 +192,10 @@ namespace SFM
 		PeakDetector m_detectorL, m_detectorR;
 		Gain m_gainDyn;
 
-		// Local parameters
+		// Parameters
 		float m_thresholddB;
 		float m_kneedB;
 		float m_ratio;
-		float m_gaindB;
+		float m_postGain;
 	};
 }
