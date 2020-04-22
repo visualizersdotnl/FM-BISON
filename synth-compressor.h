@@ -225,7 +225,7 @@ namespace SFM
 			{
 				SFM_ASSERT(0.f != m_ratio);
 				gaindB = -(sumdB-m_thresholddB) * (1.f - 1.f/m_ratio);
-				kneeBlend = std::min<float>(peakSumdB-m_thresholddB, m_kneedB);
+				kneeBlend = std::min<float>(sumdB-m_thresholddB, m_kneedB);
 			}
 
 			SFM_ASSERT(kneeBlend >= 0.f && kneeBlend <= m_kneedB);
