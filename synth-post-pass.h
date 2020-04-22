@@ -43,7 +43,7 @@ namespace SFM
 		           float postCutoff, float postQ, float postDrivedB, float postWet,
 		           float avgVelocity /* <- [0..1] */, float tubeDistort, float tubeDrivedB,
 		           float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
-		           float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease,
+		           float compPeakToRMS, float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease,
 		           float masterVol,
 		           const float *pLeftIn, const float *pRightIn, float *pLeftOut, float *pRightOut);
 
@@ -144,6 +144,7 @@ namespace SFM
 
 		// Compressor
 		Compressor m_compressor;
+		InterpolatedParameter<kLinInterpolate> m_curCompPeakToRMS;
 		InterpolatedParameter<kLinInterpolate> m_curCompThresholddB;
 		InterpolatedParameter<kLinInterpolate> m_curCompKneedB;
 		InterpolatedParameter<kLinInterpolate> m_curCompRatio;

@@ -173,6 +173,7 @@ namespace SFM
 	const float kDefReverbPreDelay = 0.001f; //  10ms
 
 	// Compressor range & defaults
+	const float kDefCompPeakToRMS    =   0.f;
 	const float kMinCompThresholdB   = kMinVolumedB;
 	const float kMaxCompThresholdB   = kMaxVolumedB;
 	const float kDefCompThresholddB  =   0.f;

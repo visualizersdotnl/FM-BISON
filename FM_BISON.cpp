@@ -1845,6 +1845,7 @@ namespace SFM
 						  m_reverbHP_PF.Apply(m_patch.reverbHP),
 						  m_reverbPreDelayPF.Apply(m_patch.reverbPreDelay),
 						  /* Compressor (FIXME: ParameterFilter?) */
+						  m_patch.compPeakToRMS,
 						  m_patch.compThresholddB,
 						  m_patch.compKneedB,
 						  m_patch.compRatio,

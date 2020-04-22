@@ -76,6 +76,7 @@ namespace SFM
 
 		// Compressor impl.
 ,		m_compressor(sampleRate)
+,		m_curCompPeakToRMS(kDefCompPeakToRMS, sampleRate, kDefParameterLatency)
 ,		m_curCompThresholddB(kDefCompThresholddB, sampleRate, kDefParameterLatency)
 ,		m_curCompKneedB(kDefCompKneedB, sampleRate, kDefParameterLatency)
 ,		m_curCompRatio(kDefCompRatio, sampleRate, kDefParameterLatency)
@@ -119,12 +120,12 @@ namespace SFM
 	                     float postCutoff, float postQ, float postDrivedB, float postWet,
 						 float avgVelocity, float tubeDistort, float tubeDrivedB,
 	                     float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
-	                     float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease,
+	                     float compPeakToRMS, float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease,
 	                     float masterVol,
 	                     const float *pLeftIn, const float *pRightIn, float *pLeftOut, float *pRightOut)
 	{
 		// Other parameters are checked in functions they're passed to?
-		// FIXME: is this lsit complete?
+		// FIXME: is this complete?
 		SFM_ASSERT(nullptr != pLeftIn  && nullptr != pRightIn);
 		SFM_ASSERT(nullptr != pLeftOut && nullptr != pRightOut);
 		SFM_ASSERT(numSamples > 0);
@@ -407,6 +408,7 @@ namespace SFM
 		 ------------------------------------------------------------------------------------------------------ */
 
 		// Set compressor parameters
+		m_curCompPeakToRMS.SetTarget(compPeakToRMS);
 		m_curCompThresholddB.SetTarget(compThresholddB);
 		m_curCompKneedB.SetTarget(compKneedB);
 		m_curCompRatio.SetTarget(compRatio);
@@ -428,6 +430,7 @@ namespace SFM
 			m_lowCutFilter.Apply(sampleL, sampleR);
 
 			m_compressor.SetParameters(
+				m_curCompPeakToRMS.Sample(),
 				m_curCompThresholddB.Sample(),
 				m_curCompKneedB.Sample(),
 				m_curCompRatio.Sample(),

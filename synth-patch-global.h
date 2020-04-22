@@ -94,6 +94,7 @@ namespace SFM
 		float reverbHP;
 
 		// Compressor settings (see synth-global.h)
+		float compPeakToRMS;
 		float compThresholddB;
 		float compKneedB;
 		float compRatio;
@@ -213,6 +214,7 @@ namespace SFM
 			reverbPreDelay = kDefReverbPreDelay;
 
 			// Default compression
+			compPeakToRMS = kDefCompPeakToRMS;
 			compThresholddB = kDefCompThresholddB;
 			compKneedB = kDefCompKneedB;
 			compRatio = kDefCompRatio;

@@ -174,16 +174,18 @@ namespace SFM
 			m_sampleRate(sampleRate)
 ,			m_detectorL(sampleRate)
 ,			m_detectorR(sampleRate)
-//,			m_RMSDetector(sampleRate, 0.05f /* 50MS: http://replaygain.hydrogenaud.io/proposal/rms_energy.html */)
+//,			m_RMSDetector(sampleRate, 0.05f  /* 50MS: http://replaygain.hydrogenaud.io/proposal/rms_energy.html */)
+,			m_RMSDetector(sampleRate, 0.005f /*  5MS: Reaper's compressor default                               */)
 ,			m_gainDyn(sampleRate, kDefCompAttack, kDefCompRelease)
 		{
- 			SetParameters(kDefCompThresholddB, kDefCompKneedB, kDefCompRatio, kDefCompGaindB, kDefCompAttack, kDefCompRelease);
+ 			SetParameters(kDefCompPeakToRMS, kDefCompThresholddB, kDefCompKneedB, kDefCompRatio, kDefCompGaindB, kDefCompAttack, kDefCompRelease);
 		}
 
 		~Compressor() {}
 
-		SFM_INLINE void SetParameters(float thresholddB, float kneedB, float ratio, float gaindB, float attack, float release)
+		SFM_INLINE void SetParameters(float peakToRMS, float thresholddB, float kneedB, float ratio, float gaindB, float attack, float release)
 		{
+			SFM_ASSERT(peakToRMS >= 0.f && peakToRMS <= 1.f);
 			SFM_ASSERT(thresholddB >= kMinCompThresholdB && thresholddB <= kMaxCompThresholdB);
 			SFM_ASSERT(kneedB >= kMinCompKneedB && kneedB <= kMaxCompKneedB);
 			SFM_ASSERT(ratio >= kMinCompRatio && ratio <= kMaxCompRatio);
@@ -191,6 +193,7 @@ namespace SFM
 			SFM_ASSERT(attack >= kMinCompAttack && attack <= kMaxCompAttack);
 			SFM_ASSERT(release >= kMinCompRelease && attack <= kMaxCompRelease);
 
+			m_peakToRMS = peakToRMS;
 			m_thresholddB = thresholddB;
 			m_kneedB = kneedB;
 			m_ratio = ratio;
@@ -207,12 +210,13 @@ namespace SFM
 			const float peakOutR  = m_detectorR.Apply(right);
 			const float peakSum   = fast_tanhf(peakOutL+peakOutR)*0.5f; // Soft clip peak sum sounds *good*
 			const float peakSumdB = GainTodB(peakSum);
-//			const float peakSumdB = m_RMSDetector.Run(left, right);
+			const float meanSumdB = m_RMSDetector.Run(left, right);
+			const float sumdB     = lerpf<float>(peakSumdB, meanSumdB, m_peakToRMS);
 
 			// Crush it!
 			float gaindB;
 			float kneeBlend;
-			if (peakSumdB < m_thresholddB)
+			if (sumdB < m_thresholddB)
 			{
 				gaindB = 0.f;
 				kneeBlend = 0.f;
@@ -220,7 +224,7 @@ namespace SFM
 			else
 			{
 				SFM_ASSERT(0.f != m_ratio);
-				gaindB = -(peakSumdB-m_thresholddB) * (1.f - 1.f/m_ratio);
+				gaindB = -(sumdB-m_thresholddB) * (1.f - 1.f/m_ratio);
 				kneeBlend = std::min<float>(peakSumdB-m_thresholddB, m_kneedB);
 			}
 
@@ -240,10 +244,11 @@ namespace SFM
 		const unsigned m_sampleRate;
 
 		PeakDetector m_detectorL, m_detectorR;
-//		RMSDetector m_RMSDetector;
+		RMSDetector m_RMSDetector;
 		Gain m_gainDyn;
 
 		// Parameters
+		float m_peakToRMS;
 		float m_thresholddB;
 		float m_kneedB;
 		float m_ratio;
