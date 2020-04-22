@@ -21,7 +21,7 @@ namespace SFM
 	{
 		SFM_ASSERT(parameters.rateMul >= kEnvMulMin && parameters.rateMul <= kEnvMulMax);
 		SFM_ASSERT(keyScaling >= 0.f && keyScaling <= 1.f);
-		SFM_ASSERT(velScaling >= 1.f && velScaling <= 2.f);
+		SFM_ASSERT(velScaling >= 1.f); // && velScaling <= 2.f);
 		SFM_ASSERT(outputOnAttack >= 0.f && outputOnAttack <= 1.f);
 
 		SFM_ASSERT(parameters.attackCurve  >= 0.f && parameters.attackCurve  <= 1.f);
@@ -58,9 +58,9 @@ namespace SFM
 		// Set rates
 		const float rateMul = parameters.rateMul*keyScaling; // For ex. key scaling can make the envelope shorter
 
-		const float attack  = CalcRate(rateMul, parameters.attack, sampleRate);
-		const float decay   = CalcRate(rateMul*velScaling, parameters.decay, sampleRate); // Velocity scaling can lengthen the decay phase
-		const float release = CalcRate(rateMul, parameters.release, sampleRate);
+		const float attack   = CalcRate(rateMul, parameters.attack, sampleRate);
+		const float decay    = CalcRate(rateMul*velScaling, parameters.decay, sampleRate); // Velocity scaling can lengthen the decay phase
+		const float release  = CalcRate(rateMul/velScaling, parameters.release, sampleRate); // Velocity scaling can shorten the attack phase
 
 		m_ADSR.setAttackRate(attack);
 		m_ADSR.setDecayRate(decay);

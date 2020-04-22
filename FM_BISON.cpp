@@ -692,7 +692,7 @@ namespace SFM
 
 		// Envelope velocity scaling: higher velocity *can* mean longer decay phase
 		// This is specifically designed for piano, guitar et cetera
-		const float envVelScaling = 1.f + velocity*m_patch.velocityScaling;
+		const float envVelScaling = 1.f + powf(velocity, 2.f)*m_patch.velocityScaling;
 
 		// Set up voice operators
 		for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
@@ -862,7 +862,7 @@ namespace SFM
 
 		// Envelope velocity scaling: higher velocity *can* mean longer decay phase
 		// This is specifically designed for piano, guitar et cetera
-		const float envVelScaling = 1.f + velocity*m_patch.velocityScaling;
+		const float envVelScaling = 1.f + powf(velocity, 2.f)*m_patch.velocityScaling;
 
 		// Get dry FM patch		
 		FM_Patch &patch = m_patch.patch;
