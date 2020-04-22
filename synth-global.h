@@ -186,11 +186,11 @@ namespace SFM
 	const float kMaxCompGaindB       =  32.f; // Rather arbitrary, but I need to implement automatic gain compensation (FIXME)
 	const float kDefCompGaindB       =   0.f;
 	const float kMinCompAttack       =   0.f;
-	const float kMaxCompAttack       =  1.0f;
-	const float kDefCompAttack       =   0.f; // Sec.
+	const float kMaxCompAttack       =  0.1f;
+	const float kDefCompAttack       = 0.03f; // 30MS, taken from Reaper's compressor
 	const float kMinCompRelease      =   0.f;
-	const float kMaxCompRelease      =   1.f;
-	const float kDefCompRelease      =  0.1f; // Sec.
+	const float kMaxCompRelease      =  0.1f;
+	const float kDefCompRelease      = 0.09f; // 90MS, taken from Reaper's compressor
 	 
 	// Low cut (for post-pass DC blocker)
 	const float kLowCutHz = 40.f;

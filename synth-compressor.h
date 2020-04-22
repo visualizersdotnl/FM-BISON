@@ -68,6 +68,54 @@ namespace SFM
 			float m_peak;
 		};
 
+		// Use RMS to calculate signal dB
+		// FIXME: unused!
+		class RMSDetector
+		{
+		public:
+			RMSDetector(unsigned sampleRate, float lengthInSec) :
+				m_numSamples(unsigned(sampleRate*lengthInSec))
+,				m_buffer((float *) mallocAligned(m_numSamples * sizeof(float), 16))
+,				m_writeIdx(0)
+			{
+				SFM_ASSERT(m_numSamples > 0);
+			}
+
+			~RMSDetector()
+			{
+				freeAligned(m_buffer);
+			}
+
+			float Run(float sampleL, float sampleR)
+			{
+				// Mix down to monaural (non-linear)
+				const float monaural = fast_atanf(sampleL+sampleR)*0.5f;
+				
+				// Raise & write
+				const unsigned index = m_writeIdx % m_numSamples;
+				const float samplePow2 = powf(monaural, 2.f);
+				m_buffer[index] = samplePow2;
+				++m_writeIdx;
+				
+				// Calculate RMS
+				float sum = 0.f;
+				for (unsigned iSample = 0; iSample < m_numSamples; ++iSample)
+					sum += m_buffer[iSample];
+
+				sum /= m_numSamples;
+				const float rootMeanSqr = sqrtf(sum);
+				
+				// Return in dB
+				return GainTodB(rootMeanSqr);
+			}
+
+		private:
+			const unsigned m_numSamples;
+			float *m_buffer;
+
+			unsigned m_writeIdx;
+		};
+
 		class Gain
 		{
 		public:
@@ -126,9 +174,10 @@ namespace SFM
 			m_sampleRate(sampleRate)
 ,			m_detectorL(sampleRate)
 ,			m_detectorR(sampleRate)
+//,			m_RMSDetector(sampleRate, 0.05f /* 50MS: http://replaygain.hydrogenaud.io/proposal/rms_energy.html */)
 ,			m_gainDyn(sampleRate, kDefCompAttack, kDefCompRelease)
 		{
-			SetParameters(kDefCompThresholddB, kDefCompKneedB, kDefCompRatio, kDefCompGaindB, kDefCompAttack, kDefCompRelease);
+ 			SetParameters(kDefCompThresholddB, kDefCompKneedB, kDefCompRatio, kDefCompGaindB, kDefCompAttack, kDefCompRelease);
 		}
 
 		~Compressor() {}
@@ -158,6 +207,7 @@ namespace SFM
 			const float peakOutR  = m_detectorR.Apply(right);
 			const float peakSum   = fast_tanhf(peakOutL+peakOutR)*0.5f; // Soft clip peak sum sounds *good*
 			const float peakSumdB = GainTodB(peakSum);
+//			const float peakSumdB = m_RMSDetector.Run(left, right);
 
 			// Crush it!
 			float gaindB;
@@ -190,6 +240,7 @@ namespace SFM
 		const unsigned m_sampleRate;
 
 		PeakDetector m_detectorL, m_detectorR;
+//		RMSDetector m_RMSDetector;
 		Gain m_gainDyn;
 
 		// Parameters
