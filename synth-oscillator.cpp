@@ -21,7 +21,7 @@ namespace SFM
 		}
 	}
 
-	SFM_INLINE float CalcPolyWidth(float frequency, unsigned sampleRate, float widthRatio)
+	SFM_INLINE static float CalcPolyWidth(float frequency, unsigned sampleRate, float widthRatio)
 	{
 		return frequency/(sampleRate/widthRatio);
 	}
