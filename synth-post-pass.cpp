@@ -5,7 +5,7 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	- Delay
-	- Yamhaha Reface CP-style chorus & phaser
+	- Yamaha Reface CP-style chorus & phaser
 	- Reverb
 	- Post filter (24dB)
 	- Tube amp. distortion
