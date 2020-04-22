@@ -6,6 +6,10 @@
 
 	Ref.: https://www.earlevel.com/main/2012/12/15/a-one-pole-filter/
 	2 filters, a DC blocker and a (MIDI) parameter/control filter.
+
+	There are more single pole filters in this codebase but they usually have a special purpose which
+	makes their implementation a tad different (for example see synth-compressor.h), so I chose not to
+	include those here but rather keep them alongside the code that uses them.
 */
 
 #pragma once
