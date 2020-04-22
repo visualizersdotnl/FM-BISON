@@ -18,7 +18,7 @@ Our goal is to create world-class efficient & high-fidelity synthesizer software
 What inspired FM. BISON is the 1980s digital revolution chiefly based on frequency modulation (or 'FM'),
 as discovered by accident by John Chowning in 1967. This type of synthesis yields a very distinct
 sound that helped artists like Prince, Phil Collins, Whitney Houston, Brian Eno and many others
-to define their new sound, mostly using the Yamaha DX7.
+to define their new sound, often using the Yamaha DX7.
 
 We stand on the shoulders of thousands of creative innovators, engineers, artists *and* the public
 domain and we invite you to profit from the work we are doing to take FM to another level.
