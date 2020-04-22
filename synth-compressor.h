@@ -79,6 +79,9 @@ namespace SFM
 ,				m_writeIdx(0)
 			{
 				SFM_ASSERT(m_numSamples > 0);
+				
+				// Clear buffer
+				memset(m_buffer, 0, m_numSamples * sizeof(float));
 			}
 
 			~RMSDetector()
@@ -88,7 +91,7 @@ namespace SFM
 
 			float Run(float sampleL, float sampleR)
 			{
-				// Mix down to monaural (non-linear)
+				// Mix down to monaural (soft clip)
 				const float monaural = fast_atanf(sampleL+sampleR)*0.5f;
 				
 				// Raise & write
@@ -102,11 +105,9 @@ namespace SFM
 				for (unsigned iSample = 0; iSample < m_numSamples; ++iSample)
 					sum += m_buffer[iSample];
 
-				sum /= m_numSamples;
-				const float rootMeanSqr = sqrtf(sum);
+				const float RMS = sqrtf(sum/m_numSamples);
 				
-				// Return in dB
-				return GainTodB(rootMeanSqr);
+				return RMS;
 			}
 
 		private:
@@ -209,9 +210,9 @@ namespace SFM
 			const float peakOutL  = m_detectorL.Apply(left);
 			const float peakOutR  = m_detectorR.Apply(right);
 			const float peakSum   = fast_tanhf(peakOutL+peakOutR)*0.5f; // Soft clip peak sum sounds *good*
-			const float peakSumdB = GainTodB(peakSum);
-			const float meanSumdB = m_RMSDetector.Run(left, right);
-			const float sumdB     = lerpf<float>(peakSumdB, meanSumdB, m_peakToRMS);
+			const float RMS       = m_RMSDetector.Run(left, right);
+			const float sum       = lerpf<float>(peakSum, RMS, m_peakToRMS);
+			const float sumdB     = (0.f != sum) ? GainTodB(sum) : kMinCompThresholdB;
 
 			// Crush it!
 			float gaindB;
