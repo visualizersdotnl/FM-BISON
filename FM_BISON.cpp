@@ -1016,7 +1016,8 @@ namespace SFM
 
 		if (true == m_modeSwitch || true == m_resetVoices)
 		{
-			Log("Voice mode switch (stealing voices)");
+			if (true == m_modeSwitch)
+				Log("Voice mode switch (stealing voices)");
 
 			// Steal *all* active voices
 			for (unsigned iVoice = 0; iVoice < kMaxVoices; ++iVoice)
@@ -1846,8 +1847,8 @@ namespace SFM
 						  /* Compressor (FIXME: ParameterFilter?) */
 						  m_patch.compThresholddB,
 						  m_patch.compKneedB,
-						  m_patch.compLookaheadMS,
 						  m_patch.compRatio,
+						  m_patch.compGaindB,
 						  m_patch.compAttack,
 						  m_patch.compRelease,
 						  /* Master volume */

@@ -8,7 +8,7 @@
 #pragma once
 
 // Include JUCE
-// #include "../JuceLibraryCode/JuceHeader.h"
+#include "../JuceLibraryCode/JuceHeader.h"
 
 #ifndef _DEBUG
 	#ifdef _WIN32
@@ -174,23 +174,23 @@ namespace SFM
 
 	// Compressor range & defaults
 	const float kMinCompThresholdB   = kMinVolumedB;
-	const float kMaxCompThresholdB   =   1.f;
-	const float kDefCompThresholddB  =  -6.f;
+	const float kMaxCompThresholdB   = kMaxVolumedB;
+	const float kDefCompThresholddB  =   0.f;
 	const float kMinCompKneedB       =   1.f;
-	const float kMaxCompKneedB       = -24.f;
-	const float kDefCompKneedB       =   3.f;
-	const float kMinCompLookaheadMS  =   0.f;
-	const float kMaxCompLookaheadMS  =  10.f;
-	const float kDefCompLookaheadMS  =   1.f;
+	const float kMaxCompKneedB       =  12.f;
+	const float kDefCompKneedB       =   1.f;
 	const float kMinCompRatio        =   1.f;
-	const float kMaxCompRatio        =  20.f;
+	const float kMaxCompRatio        =  16.f;
 	const float kDefCompRatio        =   1.f;
+	const float kMinCompGaindB       = -16.f;
+	const float kMaxCompGaindB       =  32.f; // Rather arbitrary, but I need to implement automatic gain compensation (FIXME)
+	const float kDefCompGaindB       =   0.f;
 	const float kMinCompAttack       =   0.f;
 	const float kMaxCompAttack       =  1.0f;
-	const float kDefCompAttack       =  0.1f; // Sec.
+	const float kDefCompAttack       =   0.f; // Sec.
 	const float kMinCompRelease      =   0.f;
 	const float kMaxCompRelease      =   1.f;
-	const float kDefCompRelease      =  0.3f; // Sec.
+	const float kDefCompRelease      =  0.1f; // Sec.
 	 
 	// Low cut (for post-pass DC blocker)
 	const float kLowCutHz = 40.f;

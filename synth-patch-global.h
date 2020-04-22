@@ -4,7 +4,8 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	I intend to keep most state [0..1] floating point for easy VST integration.
+	I intend to keep most state [0..1] floating point for easy VST integration, however,
+	as of late this practice has been slipping in favor of (well) defined ranges.
 
 	For details see synth-global.h!
 */
@@ -92,11 +93,11 @@ namespace SFM
 		float reverbLP;
 		float reverbHP;
 
-		// Compressor settings (see synth-global.h for ranges)
+		// Compressor settings (see synth-global.h)
 		float compThresholddB;
 		float compKneedB;
-		float compLookaheadMS;
 		float compRatio;
+		float compGaindB;
 		float compAttack;
 		float compRelease;
 
@@ -214,8 +215,8 @@ namespace SFM
 			// Default compression
 			compThresholddB = kDefCompThresholddB;
 			compKneedB = kDefCompKneedB;
-			compLookaheadMS = kDefCompLookaheadMS;
 			compRatio = kDefCompRatio;
+			compGaindB = kDefCompGaindB;
 			compAttack = kDefCompAttack;
 			compRelease = kDefCompRelease;
 			

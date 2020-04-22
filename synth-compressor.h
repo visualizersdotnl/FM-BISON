@@ -5,9 +5,9 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	Source that got me started: https://github.com/buosseph/JuceCompressor
+	Thanks to Tammo Hinrichs for a few good tips!
 
 	FIXME:
-		- Add soft knee (approx. 3dB?)
 		- Create stereo processing loop including interpolation
 		- Read up on compressors to beef up this rather simple implementation (check Will Pirkle's book)
 */
@@ -95,7 +95,7 @@ namespace SFM
 			SFM_INLINE void SetRelease(float release)
 			{
 				m_release = release;
-				m_releaseB0 = 1.f - exp(-1.0 / (m_release*m_sampleRate));
+				m_releaseB0 = 1.0 - exp(-1.0 / (m_release*m_sampleRate));
 			}
 
 			SFM_INLINE float Apply(float gain)
@@ -128,39 +128,42 @@ namespace SFM
 ,			m_detectorR(sampleRate)
 ,			m_gainDyn(sampleRate, kDefCompAttack, kDefCompRelease)
 		{
-			SetParameters(kDefCompThresholddB, kDefCompKneedB, kDefCompLookaheadMS, kDefCompRatio, kDefCompAttack, kDefCompRelease);
+			SetParameters(kDefCompThresholddB, kDefCompKneedB, kDefCompRatio, kDefCompGaindB, kDefCompAttack, kDefCompRelease);
 		}
 
 		~Compressor() {}
 
-		SFM_INLINE void SetParameters(float thresholddB, float kneedB, float lookaheadMS, float ratio, float attack, float release)
+		SFM_INLINE void SetParameters(float thresholddB, float kneedB, float ratio, float gaindB, float attack, float release)
 		{
 			SFM_ASSERT(thresholddB >= kMinCompThresholdB && thresholddB <= kMaxCompThresholdB);
-			SFM_ASSERT(kneedB >= kMinCompKneedB && kneedB <= kMaxComKneedB);
-			SFM_ASSERT(lookaheadMS >= kMinCompLookaheadMS && lookaheadMS <= kMaxCompLookaheadMS);
+			SFM_ASSERT(kneedB >= kMinCompKneedB && kneedB <= kMaxCompKneedB);
 			SFM_ASSERT(ratio >= kMinCompRatio && ratio <= kMaxCompRatio);
+			SFM_ASSERT(gaindB >= kMinCompGaindB && gaindB <= kMaxCompGaindB);
 			SFM_ASSERT(attack >= kMinCompAttack && attack <= kMaxCompAttack);
 			SFM_ASSERT(release >= kMinCompRelease && attack <= kMaxCompRelease);
 
 			m_thresholddB = thresholddB;
 			m_kneedB = kneedB;
-			m_lookaheadMS = lookaheadMS;
 			m_ratio = ratio;
+			m_gaindB = gaindB;
 
 			m_gainDyn.SetAttack(attack);
 			m_gainDyn.SetRelease(release);
 		}
 
+		// FIXME: optimize!
 		SFM_INLINE void Apply(float &left, float &right)
 		{
-			m_peakOutL = m_detectorL.Apply(left);
-			m_peakOutR = m_detectorR.Apply(right);
-			m_peakSum = (m_peakOutL+m_peakOutR)*0.5f;
-			m_peakSumdB = GainTodB(m_peakSum);
-			
+			// Detect peak
+			const float peakOutL  = m_detectorL.Apply(left);
+			const float peakOutR  = m_detectorR.Apply(right);
+			const float peakSum   = fast_tanhf(peakOutL+peakOutR)*0.5f; // Soft clip peak sum sounds *good*
+			const float peakSumdB = GainTodB(peakSum);
+
+			// Crush it!
 			float gaindB;
 			float kneeBlend;
-			if (m_peakSumdB < m_thresholddB)
+			if (peakSumdB < m_thresholddB)
 			{
 				gaindB = 0.f;
 				kneeBlend = 0.f;
@@ -168,33 +171,33 @@ namespace SFM
 			else
 			{
 				SFM_ASSERT(0.f != m_ratio);
-				gaindB = -(m_peakSumdB-m_thresholddB) * (1.f - 1.f/m_ratio);
-				kneeBlend = std::min<float>(m_peakSumdB-m_thresholddB, m_kneedB);
+				gaindB = -(peakSumdB-m_thresholddB) * (1.f - 1.f/m_ratio);
+				kneeBlend = std::min<float>(peakSumdB-m_thresholddB, m_kneedB);
 			}
 
 			SFM_ASSERT(kneeBlend >= 0.f && kneeBlend <= m_kneedB);
-			m_gaindB = lerpf<float>(0.f, gaindB, smoothstepf(kneeBlend/m_kneedB));
+			kneeBlend /= m_kneedB;
+			gaindB = lerpf<float>(0.f, gaindB, kneeBlend*kneeBlend);
 
-			m_gaindB = m_gainDyn.Apply(m_gaindB);
-			m_gain   = dBToGain(m_gaindB);
-
-			left  *= m_gain;
-			right *= m_gain;
+			gaindB = m_gainDyn.Apply(gaindB);
+			const float gain = dBToGain(gaindB);
+			
+			// Apply w/gain
+			const float postGain = dBToGain(m_gaindB);
+			left  = (left*gain)  * postGain;
+			right = (right*gain) * postGain;
 		}
 
 	private:
 		const unsigned m_sampleRate;
 
 		PeakDetector m_detectorL, m_detectorR;
-		float m_peakOutL, m_peakOutR, m_peakSum, m_peakSumdB;
-
 		Gain m_gainDyn;
-		float m_gain, m_gaindB;
 
 		// Local parameters
 		float m_thresholddB;
 		float m_kneedB;
-		float m_lookaheadMS;
 		float m_ratio;
+		float m_gaindB;
 	};
 }
