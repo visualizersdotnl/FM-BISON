@@ -5,7 +5,7 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	- Delay
-	- Yamhaha Reface CP-style chorus & phaser
+	- Yamaha Reface CP-style chorus & phaser
 	- Reverb
 	- Post filter (24dB)
 	- Tube amp. distortion
@@ -76,6 +76,12 @@ namespace SFM
 
 		// Compressor impl.
 ,		m_compressor(sampleRate)
+,		m_curCompThresholddB(kDefCompThresholddB, sampleRate, kDefParameterLatency)
+,		m_curCompKneedB(kDefCompKneedB, sampleRate, kDefParameterLatency)
+,		m_curCompRatio(kDefCompRatio, sampleRate, kDefParameterLatency)
+,		m_curCompGaindB(kDefCompGaindB, sampleRate, kDefParameterLatency)
+,		m_curCompAttack(kDefCompAttack, sampleRate, kDefParameterLatency)
+,		m_curCompRelease(kDefCompRelease, sampleRate, kDefParameterLatency)
 
 		// Delay
 ,		m_curDelay(0.f, sampleRate, kDefParameterLatency)
@@ -400,11 +406,19 @@ namespace SFM
 
 		 ------------------------------------------------------------------------------------------------------ */
 
+		// Set compressor parameters
+		m_curCompThresholddB.SetTarget(compThresholddB);
+		m_curCompKneedB.SetTarget(compKneedB);
+		m_curCompRatio.SetTarget(compRatio);
+		m_curCompGaindB.SetTarget(compGaindB);
+		m_curCompAttack.SetTarget(compAttack);
+		m_curCompRelease.SetTarget(compRelease);
+
 		// Set master volume target
 		m_curMasterVol.SetTarget(masterVol);
 
-		// FIXME: implement interpolation
-		m_compressor.SetParameters(compThresholddB, compKneedB, compRatio, compGaindB, compAttack, compRelease);
+//		m_compressor.SetParameters(compThresholddB, compKneedB, compRatio, compGaindB, compAttack, compRelease);
+		// ^^ This is obviously a tad quicker, but I've explicitly chosen for fully click-free parameters
 
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
@@ -413,6 +427,14 @@ namespace SFM
 
 			m_lowCutFilter.Apply(sampleL, sampleR);
 
+			m_compressor.SetParameters(
+				m_curCompThresholddB.Sample(),
+				m_curCompKneedB.Sample(),
+				m_curCompRatio.Sample(),
+				m_curCompGaindB.Sample(),
+				m_curCompAttack.Sample(),
+				m_curCompRelease.Sample());
+			
 			m_compressor.Apply(sampleL, sampleR);
 
 			const float gain = dBToGain(m_curMasterVol.Sample());

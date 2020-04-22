@@ -144,6 +144,12 @@ namespace SFM
 
 		// Compressor
 		Compressor m_compressor;
+		InterpolatedParameter<kLinInterpolate> m_curCompThresholddB;
+		InterpolatedParameter<kLinInterpolate> m_curCompKneedB;
+		InterpolatedParameter<kLinInterpolate> m_curCompRatio;
+		InterpolatedParameter<kLinInterpolate> m_curCompGaindB;
+		InterpolatedParameter<kLinInterpolate> m_curCompAttack;
+		InterpolatedParameter<kLinInterpolate> m_curCompRelease;
 
 		// Interpolated parameters
 		InterpolatedParameter<kLinInterpolate> m_curDelay;
