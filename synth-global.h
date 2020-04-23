@@ -183,7 +183,7 @@ namespace SFM
 	const float kMinCompRatio        =   1.f;
 	const float kMaxCompRatio        =  16.f;
 	const float kDefCompRatio        =   1.f;
-	const float kMinCompGaindB       = -16.f;
+	const float kMinCompGaindB       =  -6.f;
 	const float kMaxCompGaindB       =  32.f; // Rather arbitrary, but I need to implement automatic gain compensation (FIXME)
 	const float kDefCompGaindB       =   0.f;
 	const float kMinCompAttack       =   0.f;

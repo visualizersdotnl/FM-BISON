@@ -17,6 +17,7 @@
 // #include "3rdparty/SvfLinearTrapOptimised2.hpp"
 
 #include "synth-global.h"
+#include "synth-delay-line.h"
 
 namespace SFM
 {
@@ -171,8 +172,15 @@ namespace SFM
 		};
 
 	public:
+		// 5MS
+		// A page in a book I Googled suggested 4MS, so I chose 5MS, this nicely takes the edge off transient peaks, though
+		// it might have to become a parameter, as it also delays the entire signal paths :-)
+		const float kCompDelay = 0.005f; 
+
 		Compressor(unsigned sampleRate) :
 			m_sampleRate(sampleRate)
+,			m_outDelayL(sampleRate, kCompDelay)
+,			m_outDelayR(sampleRate, kCompDelay)
 ,			m_detectorL(sampleRate)
 ,			m_detectorR(sampleRate)
 //,			m_RMSDetector(sampleRate, 0.05f  /* 50MS: http://replaygain.hydrogenaud.io/proposal/rms_energy.html */)
@@ -206,7 +214,11 @@ namespace SFM
 
 		SFM_INLINE void Apply(float &left, float &right)
 		{
-			// Detect peak
+			// Delay input signal
+			m_outDelayL.Write(left);
+			m_outDelayR.Write(right);
+
+			// Detect peak using non-delayed signal
 			const float peakOutL  = m_detectorL.Apply(left);
 			const float peakOutR  = m_detectorR.Apply(right);
 			const float peakSum   = fast_tanhf(peakOutL+peakOutR)*0.5f; // Soft clip peak sum sounds *good*
@@ -236,14 +248,17 @@ namespace SFM
 			gaindB = m_gainDyn.Apply(gaindB);
 			const float gain = dBToGain(gaindB);
 			
-			// Apply w/gain
-			left  = (left*gain)  * m_postGain;
-			right = (right*gain) * m_postGain;
+			// Apply to delayed signal w/gain
+			const float delayedL = m_outDelayL.ReadNearest(-1);
+			const float delayedR = m_outDelayR.ReadNearest(-1);
+			left  = (delayedL*gain) * m_postGain;
+			right = (delayedR*gain) * m_postGain;
 		}
 
 	private:
 		const unsigned m_sampleRate;
 
+		DelayLine m_outDelayL, m_outDelayR;
 		PeakDetector m_detectorL, m_detectorR;
 		RMSDetector m_RMSDetector;
 		Gain m_gainDyn;

@@ -93,6 +93,13 @@ namespace SFM
 			return value;
 		}
 
+		// Same as above, but without interpolation
+		SFM_INLINE float ReadNearest(int delay)
+		{
+			const size_t index = (m_writeIdx-1-delay) % m_curSize;
+			return m_buffer[index];
+		}
+
 		size_t size() const { return m_size; }
 
 	private:
