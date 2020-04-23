@@ -283,6 +283,7 @@ namespace SFM
 		ParameterFilter m_reverbHP_PF;
 		ParameterFilter m_reverbLP_PF;
 		ParameterFilter m_reverbPreDelayPF;
+		ParameterFilter m_compLookaheadPF;
 		ParameterFilter m_masterVolPF;
 
 		// Per-sample interpolated global parameters

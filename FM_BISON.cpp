@@ -170,6 +170,7 @@ namespace SFM
 		m_reverbHP_PF           = { m_sampleRate };
 		m_reverbLP_PF           = { m_sampleRate };
 		m_reverbPreDelayPF      = { m_sampleRate };
+		m_compLookaheadPF       = { m_sampleRate };
 		m_masterVolPF           = { m_sampleRate };
 
 		m_effectWetPF.Reset(m_patch.cpWet);
@@ -183,7 +184,7 @@ namespace SFM
 		m_postDrivePF.Reset(m_patch.postDrivedB);
 		m_postWetPF.Reset(m_patch.postWet);
 		m_tubeDistPF.Reset(m_patch.tubeDistort);
-		m_avgVelocityPF.Reset(0.f);
+//		m_avgVelocityPF.Reset(0.f);
 		m_reverbWetPF.Reset(m_patch.reverbWet);
 		m_reverbRoomSizePF.Reset(m_patch.reverbRoomSize);
 		m_reverbDampeningPF.Reset(m_patch.reverbDampening);
@@ -191,6 +192,7 @@ namespace SFM
 		m_reverbHP_PF.Reset(m_patch.reverbHP);
 		m_reverbLP_PF.Reset(m_patch.reverbLP);
 		m_reverbPreDelayPF.Reset(m_patch.reverbPreDelay);
+//		m_compLookaheadPF.Reset(0.f);
 		m_masterVolPF.Reset(m_patch.masterVol);
 
 		// Local
@@ -1844,7 +1846,7 @@ namespace SFM
 						  m_reverbLP_PF.Apply(m_patch.reverbLP),
 						  m_reverbHP_PF.Apply(m_patch.reverbHP),
 						  m_reverbPreDelayPF.Apply(m_patch.reverbPreDelay),
-						  /* Compressor (FIXME: ParameterFilter?) */
+						  /* Compressor (FIXME: apply ParameterFilter if audibly necessary) */
 						  m_patch.compPeakToRMS,
 						  m_patch.compThresholddB,
 						  m_patch.compKneedB,
@@ -1852,6 +1854,7 @@ namespace SFM
 						  m_patch.compGaindB,
 						  m_patch.compAttack,
 						  m_patch.compRelease,
+						  m_compLookaheadPF.Apply(m_patch.compLookahead),
 						  /* Master volume */
 						  m_masterVolPF.Apply(m_patch.masterVol),
 						  /* Buffers */

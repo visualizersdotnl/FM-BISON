@@ -43,7 +43,7 @@ namespace SFM
 		           float postCutoff, float postQ, float postDrivedB, float postWet,
 		           float avgVelocity /* <- [0..1] */, float tubeDistort, float tubeDrivedB,
 		           float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
-		           float compPeakToRMS, float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease,
+		           float compPeakToRMS, float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead,
 		           float masterVol,
 		           const float *pLeftIn, const float *pRightIn, float *pLeftOut, float *pRightOut);
 
@@ -151,6 +151,7 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curCompGaindB;
 		InterpolatedParameter<kLinInterpolate> m_curCompAttack;
 		InterpolatedParameter<kLinInterpolate> m_curCompRelease;
+		InterpolatedParameter<kLinInterpolate> m_curCompLookahead;
 
 		// Interpolated parameters
 		InterpolatedParameter<kLinInterpolate> m_curDelay;

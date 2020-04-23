@@ -93,7 +93,7 @@ namespace SFM
 		float reverbLP;
 		float reverbHP;
 
-		// Compressor settings (see synth-global.h)
+		// Compressor settings (see synth-global.h & synth-compressor.h)
 		float compPeakToRMS;
 		float compThresholddB;
 		float compKneedB;
@@ -101,6 +101,7 @@ namespace SFM
 		float compGaindB;
 		float compAttack;
 		float compRelease;
+		float compLookahead;
 
 		// Filter parameters
 		enum FilterType
@@ -221,6 +222,7 @@ namespace SFM
 			compGaindB = kDefCompGaindB;
 			compAttack = kDefCompAttack;
 			compRelease = kDefCompRelease;
+			compLookahead = 0.f; // No lookahead
 			
 			// Little to no filtering
 			filterType = kLowpassFilter;

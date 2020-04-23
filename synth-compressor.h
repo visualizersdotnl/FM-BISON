@@ -70,7 +70,6 @@ namespace SFM
 		};
 
 		// Use RMS to calculate signal dB
-		// FIXME: unused!
 		class RMSDetector
 		{
 		public:
@@ -163,18 +162,17 @@ namespace SFM
 		
 		private:
 			const unsigned m_sampleRate;
-			/* const */ float m_attack;
-			/* const */ float m_release;
+			float m_attack;
+			float m_release;
 			
-			// FIXME
 			float m_outGain;
 			double m_attackB0, m_releaseB0;
 		};
 
 	public:
-		// 5MS
-		// A page in a book I Googled suggested 4MS, so I chose 5MS, this nicely takes the edge off transient peaks, though
-		// it might have to become a parameter, as it also delays the entire signal paths :-)
+		// For now the lookahead's delay is fixed to 5MS, which I picked up from a book, but can't remember which one
+		// It does a decent job, so the parameter I offer fades between the current and the delayed signal, so that a default
+		// compressor does not *always* cause 5MS latency
 		const float kCompDelay = 0.005f; 
 
 		Compressor(unsigned sampleRate) :
@@ -187,12 +185,12 @@ namespace SFM
 ,			m_RMSDetector(sampleRate, 0.005f /*  5MS: Reaper's compressor default                               */)
 ,			m_gainDyn(sampleRate, kDefCompAttack, kDefCompRelease)
 		{
- 			SetParameters(kDefCompPeakToRMS, kDefCompThresholddB, kDefCompKneedB, kDefCompRatio, kDefCompGaindB, kDefCompAttack, kDefCompRelease);
+ 			SetParameters(kDefCompPeakToRMS, kDefCompThresholddB, kDefCompKneedB, kDefCompRatio, kDefCompGaindB, kDefCompAttack, kDefCompRelease, 0.f);
 		}
 
 		~Compressor() {}
 
-		SFM_INLINE void SetParameters(float peakToRMS, float thresholddB, float kneedB, float ratio, float gaindB, float attack, float release)
+		SFM_INLINE void SetParameters(float peakToRMS, float thresholddB, float kneedB, float ratio, float gaindB, float attack, float release, float lookahead)
 		{
 			SFM_ASSERT(peakToRMS >= 0.f && peakToRMS <= 1.f);
 			SFM_ASSERT(thresholddB >= kMinCompThresholdB && thresholddB <= kMaxCompThresholdB);
@@ -201,6 +199,7 @@ namespace SFM
 			SFM_ASSERT(gaindB >= kMinCompGaindB && gaindB <= kMaxCompGaindB);
 			SFM_ASSERT(attack >= kMinCompAttack && attack <= kMaxCompAttack);
 			SFM_ASSERT(release >= kMinCompRelease && attack <= kMaxCompRelease);
+			SFM_ASSERT(lookahead >= 0.f && lookahead <= 0.f);
 
 			m_peakToRMS = peakToRMS;
 			m_thresholddB = thresholddB;
@@ -210,6 +209,8 @@ namespace SFM
 
 			m_gainDyn.SetAttack(attack);
 			m_gainDyn.SetRelease(release);
+
+			m_lookahead = lookahead;
 		}
 
 		SFM_INLINE void Apply(float &left, float &right)
@@ -248,9 +249,9 @@ namespace SFM
 			gaindB = m_gainDyn.Apply(gaindB);
 			const float gain = dBToGain(gaindB);
 			
-			// Apply to delayed signal w/gain
-			const float delayedL = m_outDelayL.ReadNearest(-1);
-			const float delayedR = m_outDelayR.ReadNearest(-1);
+			// Apply to (delayed) signal w/gain
+			const float delayedL = lerpf<float>(left,  m_outDelayL.ReadNearest(-1), m_lookahead);
+			const float delayedR = lerpf<float>(right, m_outDelayR.ReadNearest(-1), m_lookahead);
 			left  = (delayedL*gain) * m_postGain;
 			right = (delayedR*gain) * m_postGain;
 		}
@@ -269,5 +270,6 @@ namespace SFM
 		float m_kneedB;
 		float m_ratio;
 		float m_postGain;
+		float m_lookahead;
 	};
 }
