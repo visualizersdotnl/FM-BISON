@@ -1609,14 +1609,6 @@ namespace SFM
 			filterType1 = SvfLinearTrapOptimised2::BAND_PASS_FILTER;
 			fullCutoff = CutoffToHz(1.f, m_Nyquist);
 			break;
-
-		case Patch::kTameFilter:
-			secondFilterPass = true;
-			secondQOffs = 0.0303f;
-			filterType1 = SvfLinearTrapOptimised2::LOW_PASS_FILTER;
-			filterType2 = SvfLinearTrapOptimised2::NOTCH_FILTER;
-			fullCutoff = CutoffToHz(1.f, m_Nyquist);
-			break;
 		}
 
 		// Switched filter type?

@@ -110,7 +110,6 @@ namespace SFM
 			kLowpassFilter,
 			kHighpassFilter,
 			kBandpassFilter,
-			kTameFilter,
 			kNumFilters
 		} filterType;
 
