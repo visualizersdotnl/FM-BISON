@@ -499,32 +499,36 @@ namespace SFM
 	void PostPass::ApplyPhaser(float sampleL, float sampleR, float &outL, float &outR, float wetness)
 	{
 		// Sweep LFO (lowpassed for pleasing effect)
-		const float sweepMod = m_phaserSweepLPF.Apply(oscTriangle(m_phaserSweep.Sample()));
+		const float sweepMod = m_phaserSweepLPF.Apply(oscSine(m_phaserSweep.Sample()));
 		
 		// Sweep cutoff frequency around center
-		constexpr float rangeMul = 0.33f;
+		constexpr float rangeMul = 0.25f;
 		SFM_ASSERT(rangeMul <= 0.5f);
 		const float range = m_Nyquist*rangeMul;
-		const float cutoff = m_Nyquist*0.5f + range*sweepMod;
+		const float cutoffCentre = m_Nyquist*0.5f + range*sweepMod;
 		
 		// Start with dry sample
 		float filteredL = sampleL;
 		float filteredR = sampleR;
+
+		// Cutoff
+		float curCutoff = cutoffCentre - (range*0.5f);
+		const float cutStep = range/kNumPhaserStages;
 		
 		// Apply cascading filters
-		double curReso = 0.66; // Doesn't sound too edgy, so I'd say it's just right (TM)
+		double curReso = 0.025;
 		for (auto &filter : m_allpassFilters)
 		{
 			// FIXME: replace for simple 6dB filter?
-			filter.updateAllpassCoeff(cutoff, curReso, m_sampleRate);
+			filter.updateAllpassCoeff(curCutoff, curReso, m_sampleRate);
 			filter.tick(filteredL, filteredR);
-			
-			// Slightly up Q (once again going by my gut)
-			curReso += (0.1f*kGoldenRatio)*wetness;
+
+			curCutoff += cutStep;		
+			curReso *= 2.0;
 		}
 		
 		// Mix result with dry signal
-		const float maxWet = dBToGain(kMaxCPWetdB); // FIXME
+		const float maxWet = dBToGain(kMaxCPWetdB);
 		wetness *= maxWet;
 		outL = sampleL + wetness*filteredL;
 		outR = sampleR + wetness*filteredR;
