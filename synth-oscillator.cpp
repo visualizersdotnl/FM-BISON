@@ -61,8 +61,8 @@ namespace SFM
 					const double square = oscPolyPulse(modulated, polyWidth, 0.5f);
 
 					// Leaky integration
-					const double pitch = m_phases[0].GetPitch();
-					signal = float(pitch*square + (1.0-pitch)*m_prevSignal); // FIXME: volume too low, beats?
+					const double pitch = m_phases[0].GetPitch()*2.f*kPI; // Martin Finke uses angular pitch to integrate
+					signal = float(pitch*square + (1.0-pitch)*m_prevSignal);
 				}
 				
 				break;

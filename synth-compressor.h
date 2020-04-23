@@ -228,23 +228,28 @@ namespace SFM
 			const float sumdB     = (0.f != sum) ? GainTodB(sum) : kMinCompThresholdB;
 
 			// Crush it!
+			const float halfKneedB  = m_kneedB*0.5f;
+			const float thresholddB = m_thresholddB-halfKneedB;
+
 			float gaindB;
-			float kneeBlend;
-			if (sumdB < m_thresholddB)
+			if (sumdB < thresholddB)
 			{
 				gaindB = 0.f;
-				kneeBlend = 0.f;
 			}
 			else
 			{
-				SFM_ASSERT(0.f != m_ratio);
-				gaindB = -(sumdB-m_thresholddB) * (1.f - 1.f/m_ratio);
-				kneeBlend = std::min<float>(sumdB-m_thresholddB, m_kneedB);
-			}
+				// Extra assertions (in these cases we'd get divide by zero)
+				SFM_ASSERT(0.f != m_kneedB);
+				SFM_ASSERT(0.f == m_ratio);
 
-			SFM_ASSERT(kneeBlend >= 0.f && kneeBlend <= m_kneedB);
-			kneeBlend /= m_kneedB;
-			gaindB = lerpf<float>(0.f, gaindB, kneeBlend*kneeBlend);
+				const float delta = sumdB-thresholddB;
+				
+				// Blend the ratio from 1 to it's destination along the knee
+				const float kneeBlend = std::min<float>(delta, m_kneedB)/m_kneedB;
+				const float ratio = lerpf<float>(1.f, m_ratio, kneeBlend*kneeBlend);
+
+				gaindB = -delta * (1.f - 1.f/ratio);
+			}
 
 			gaindB = m_gainDyn.Apply(gaindB);
 			const float gain = dBToGain(gaindB);
