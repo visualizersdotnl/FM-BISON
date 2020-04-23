@@ -61,7 +61,7 @@ public:
 	/*!
 	 @class SvfLinearTrapOptimised2
 	 @param gainDb
-		Gain in dB to boost or cut the cutoff point of the Low shelf filter
+		Gain in dB to boost or cut the cutoff point of the Low shelf filter (FIXME: this comment is not right, probably meant BELL_FILTER type)
 	 */
 	void setGain(double gainDb) {
 		_coef.setGain(gainDb);

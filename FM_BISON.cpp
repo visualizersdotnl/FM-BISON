@@ -790,6 +790,8 @@ namespace SFM
 		}
 
 		// Reset filters
+//		voice.m_filterSVF1.setGain(3.0);
+//		voice.m_filterSVF2.setGain(3.0);
 		voice.m_filterSVF1.resetState();
 		voice.m_filterSVF2.resetState();
 
@@ -1566,8 +1568,8 @@ namespace SFM
 		const float resonance = m_resoPF.Apply(m_patch.resonance);
 
 		// Using smoothstepf() to add a little curvature, chiefly intended to appease basic MIDI controls
-		const float cutoff = CutoffToHz(smoothstepf(normCutoff), m_Nyquist);
-		const float Q = ResoToQ(smoothstepf(resonance*m_patch.resonanceLimit));
+		/* const */ float cutoff = CutoffToHz(smoothstepf(normCutoff), m_Nyquist);
+		/* const */ float Q = ResoToQ(smoothstepf(resonance*m_patch.resonanceLimit));
 		
 		m_curCutoff.SetTarget(cutoff);
 		m_curQ.SetTarget(Q);
@@ -1608,12 +1610,11 @@ namespace SFM
 			fullCutoff = CutoffToHz(1.f, m_Nyquist);
 			break;
 
-		case Patch::kLowAndHighFilter:
-			// FIXME: improve
+		case Patch::kTameFilter:
 			secondFilterPass = true;
-			secondQOffs = 0.6f;
-			filterType1 = SvfLinearTrapOptimised2::HIGH_SHELF_FILTER;
-			filterType2 = SvfLinearTrapOptimised2::LOW_PASS_FILTER;
+			secondQOffs = 0.0303f;
+			filterType1 = SvfLinearTrapOptimised2::LOW_PASS_FILTER;
+			filterType2 = SvfLinearTrapOptimised2::NOTCH_FILTER;
 			fullCutoff = CutoffToHz(1.f, m_Nyquist);
 			break;
 		}
