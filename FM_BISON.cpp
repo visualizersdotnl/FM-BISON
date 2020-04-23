@@ -161,8 +161,8 @@ namespace SFM
 		m_postCutoffPF          = { oversamplingRate };
 		m_postResoPF            = { oversamplingRate };
 		m_postDrivePF           = { oversamplingRate };
-		m_postWetPF             = { oversamplingRate, kDefParameterFilterCutHz*0.3f /* Shorter */ };
-		m_avgVelocityPF         = { oversamplingRate, kDefParameterFilterCutHz*0.1f /* Shorter */ };
+		m_postWetPF             = { oversamplingRate, kDefParameterFilterCutHz*0.3f /* Softer */ };
+		m_avgVelocityPF         = { oversamplingRate, kDefParameterFilterCutHz*0.1f /* Softer */ };
 		m_reverbWetPF           = { m_sampleRate };
 		m_reverbRoomSizePF      = { m_sampleRate };
 		m_reverbDampeningPF     = { m_sampleRate };
@@ -170,7 +170,7 @@ namespace SFM
 		m_reverbHP_PF           = { m_sampleRate };
 		m_reverbLP_PF           = { m_sampleRate };
 		m_reverbPreDelayPF      = { m_sampleRate };
-		m_compLookaheadPF       = { m_sampleRate };
+		m_compLookaheadPF       = { m_sampleRate, kDefParameterFilterCutHz*0.5f /* Softer */ };
 		m_masterVolPF           = { m_sampleRate };
 
 		m_effectWetPF.Reset(m_patch.cpWet);

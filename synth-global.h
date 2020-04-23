@@ -194,7 +194,7 @@ namespace SFM
 	const float kDefCompRelease      = 0.09f; // 90MS, taken from Reaper's compressor
 	 
 	// Low cut (for post-pass DC blocker)
-	const float kLowCutHz = 40.f;
+	const float kLowCutHz = 16.f;
 
 	// If a voice is considered to be stolen, this bias [0..1] can pull it down if the voice is
 	// in a release state, which means it's chance of being stolen is higher

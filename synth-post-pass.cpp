@@ -428,8 +428,6 @@ namespace SFM
 			float sampleL = m_pBufL[iSample];
 			float sampleR = m_pBufR[iSample];
 
-			m_lowCutFilter.Apply(sampleL, sampleR);
-
 			m_compressor.SetParameters(
 				m_curCompPeakToRMS.Sample(),
 				m_curCompThresholddB.Sample(),
@@ -441,6 +439,8 @@ namespace SFM
 				m_curCompLookahead.Sample());
 			
 			m_compressor.Apply(sampleL, sampleR);
+
+			m_lowCutFilter.Apply(sampleL, sampleR);
 
 			const float gain = dBToGain(m_curMasterVol.Sample());
 			sampleL *= gain;
