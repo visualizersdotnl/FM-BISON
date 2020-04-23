@@ -29,7 +29,7 @@ namespace SFM
 	}
 
 	/*
-		Ramp, sawtooth, square, triangle & pulse (will alias at higher rates).
+		Ramp, sawtooth, square, triangle & pulse (not bandlimited)
 	*/
 
 	SFM_INLINE static float oscRamp(float phase)
@@ -65,7 +65,7 @@ namespace SFM
 	}
 
 	/*
-		Anti-aliased oscillators (PolyBLEP)
+		Bandlimited oscillators (using PolyBLEP)
 		
 		Source: 
 		- http://www.kvraudio.com/ (lost exact link!)

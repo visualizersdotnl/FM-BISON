@@ -46,7 +46,7 @@ namespace SFM
 		float signal = 0.f;
 		switch (m_form)
 		{
-			/* VCO/LFO */
+			/* Bandlimited (VCO/LFO) */
 
 			case kSine:
 				signal = oscSine(modulated);
@@ -97,7 +97,7 @@ namespace SFM
 				signal = oscPinkNoise(m_pinkState);
 				break;
 
-			/* For low frequencies (LFO) */
+			/* Not bandlimited (LFO) */
 
 			case kRamp:
 				signal = oscRamp(modulated);

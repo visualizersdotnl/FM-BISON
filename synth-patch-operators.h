@@ -103,13 +103,14 @@ namespace SFM
 			// Panning [-1..1] (R)
 			float panning;
 
-			// Level scaling (DX7-style, simplified)
-			unsigned levelScaleBP;              // [0..127]
+			// Level scaling
+			unsigned levelScaleBP;               // [0..127]
 			unsigned levelScaleRange;            // In number of semitones
 			float levelScaleL, levelScaleR;      // [-1..1], where [0..-1] is subtractive & [0..1] is additive
 			bool levelScaleExpL, levelScaleExpR; // Linear or exponential
 
-			// Break point cut: if enabled will cut all output left and/or right of the break point (levelScaleBP)
+			// Break point cut: if enabled will cut all output left or right of the break point (levelScaleBP)
+			// If both are set 'levelScaleBP' means a range of notes starting at the highest C relative to it
 			bool cutLeftOfLSBP;
 			bool cutRightOfLSBP;
 		};
