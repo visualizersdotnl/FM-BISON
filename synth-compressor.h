@@ -4,12 +4,8 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	Source that got me started: https://github.com/buosseph/JuceCompressor
+	Basic impl. that got me started: https://github.com/buosseph/JuceCompressor
 	Thanks to Tammo Hinrichs for a few good tips!
-
-	FIXME:
-		- Create stereo processing loop including interpolation
-		- Read up on compressors to beef up this rather simple implementation (check Will Pirkle's book)
 */
 
 #pragma once
@@ -17,106 +13,13 @@
 // #include "3rdparty/SvfLinearTrapOptimised2.hpp"
 
 #include "synth-global.h"
+#include "synth-followers.h"
 #include "synth-delay-line.h"
 
 namespace SFM
 {
 	class Compressor
 	{
-	private:
-		class PeakDetector
-		{
-		public:
-			PeakDetector(unsigned sampleRate) :
-				m_sampleRate(sampleRate)
-			{
-				Reset();
-			}
-
-			~PeakDetector() {}
-
-			SFM_INLINE float Apply(float sample)
-			{
-				const float sampleAbs = fabsf(sample);
-
-				float B0;
-				if (sampleAbs > m_peak)
-					B0 = m_attackB0;
-				else
-					B0 = m_releaseB0;
-				
-				m_peak += B0*(sampleAbs-m_peak);
-
-				return m_peak;
-			}
-
-		private:
-			SFM_INLINE void Reset()
-			{
-				m_peak = 0.f;
-
-				m_attackB0 = 1.f;
-				m_A1 = expf(-1.f / (m_release*m_sampleRate));
-				m_releaseB0 = 1.f-m_A1;
-			}
-    
-			const unsigned m_sampleRate;
-			const float m_release = 0.1f; // Tenth of a second (fixed)
-			
-			// Set on Reset()
-			float m_attackB0, m_releaseB0, m_A1;
-
-			float m_peak;
-		};
-
-		// Use RMS to calculate signal dB
-		class RMSDetector
-		{
-		public:
-			RMSDetector(unsigned sampleRate, float lengthInSec) :
-				m_numSamples(unsigned(sampleRate*lengthInSec))
-,				m_buffer((float *) mallocAligned(m_numSamples * sizeof(float), 16))
-,				m_writeIdx(0)
-			{
-				SFM_ASSERT(m_numSamples > 0);
-				
-				// Clear buffer
-				memset(m_buffer, 0, m_numSamples * sizeof(float));
-			}
-
-			~RMSDetector()
-			{
-				freeAligned(m_buffer);
-			}
-
-			float Run(float sampleL, float sampleR)
-			{
-				// Mix down to monaural (soft clip)
-				const float monaural = fast_atanf(sampleL+sampleR)*0.5f;
-				
-				// Raise & write
-				const unsigned index = m_writeIdx % m_numSamples;
-				const float samplePow2 = powf(monaural, 2.f);
-				m_buffer[index] = samplePow2;
-				++m_writeIdx;
-				
-				// Calculate RMS
-				float sum = 0.f;
-				for (unsigned iSample = 0; iSample < m_numSamples; ++iSample)
-					sum += m_buffer[iSample];
-
-				const float RMS = sqrtf(sum/m_numSamples);
-				
-				return RMS;
-			}
-
-		private:
-			const unsigned m_numSamples;
-			float *m_buffer;
-
-			unsigned m_writeIdx;
-		};
-
 		class Gain
 		{
 		public:
@@ -170,10 +73,8 @@ namespace SFM
 		};
 
 	public:
-		// For now the lookahead's delay is fixed to 5MS, which I picked up from a book, but can't remember which one
-		// It does a decent job, so the parameter I offer fades between the current and the delayed signal, so that a default
-		// compressor does not *always* cause 5MS latency
-		const float kCompDelay = 0.005f; 
+		// FIXME?
+		const float kCompDelay = 0.01f; 
 
 		Compressor(unsigned sampleRate) :
 			m_sampleRate(sampleRate)
@@ -181,9 +82,8 @@ namespace SFM
 ,			m_outDelayR(sampleRate, kCompDelay)
 ,			m_detectorL(sampleRate)
 ,			m_detectorR(sampleRate)
-//,			m_RMSDetector(sampleRate, 0.05f  /* 50MS: http://replaygain.hydrogenaud.io/proposal/rms_energy.html */)
-,			m_RMSDetector(sampleRate, 0.005f /*  5MS: Reaper's compressor default                               */)
-,			m_gainDyn(sampleRate, kDefCompAttack, kDefCompRelease)
+,			m_RMSDetector(sampleRate, 0.005f /* 5MS: Reaper's compressor default */)
+,			m_gainShaper(sampleRate, kDefCompAttack, kDefCompRelease)
 		{
  			SetParameters(kDefCompPeakToRMS, kDefCompThresholddB, kDefCompKneedB, kDefCompRatio, kDefCompGaindB, kDefCompAttack, kDefCompRelease, 0.f);
 		}
@@ -207,8 +107,8 @@ namespace SFM
 			m_ratio = ratio;
 			m_postGain = dBToGain(gaindB);
 
-			m_gainDyn.SetAttack(attack);
-			m_gainDyn.SetRelease(release);
+			m_gainShaper.SetAttack(attack);
+			m_gainShaper.SetRelease(release);
 
 			m_lookahead = lookahead;
 		}
@@ -225,7 +125,7 @@ namespace SFM
 			const float peakSum   = fast_tanhf(peakOutL+peakOutR)*0.5f; // Soft clip peak sum sounds *good*
 			const float RMS       = m_RMSDetector.Run(left, right);
 			const float sum       = lerpf<float>(peakSum, RMS, m_peakToRMS);
-			const float sumdB     = (0.f != sum) ? GainTodB(sum) : kMinCompThresholdB;
+			const float sumdB     = (0.f != sum) ? GainTodB(sum) : kMinVolumedB;
 
 			// Crush it!
 			const float halfKneedB  = m_kneedB*0.5f;
@@ -251,10 +151,11 @@ namespace SFM
 				gaindB = -delta * (1.f - 1.f/ratio);
 			}
 
-			gaindB = m_gainDyn.Apply(gaindB);
+			gaindB = m_gainShaper.Apply(gaindB);
 			const float gain = dBToGain(gaindB);
 			
 			// Apply to (delayed) signal w/gain
+			// FIXME: it is not correct to interpolate like this, but it sounded better than adjusting the actual delay
 			const float delayedL = lerpf<float>(left,  m_outDelayL.ReadNearest(-1), m_lookahead);
 			const float delayedR = lerpf<float>(right, m_outDelayR.ReadNearest(-1), m_lookahead);
 			left  = (delayedL*gain) * m_postGain;
@@ -267,7 +168,7 @@ namespace SFM
 		DelayLine m_outDelayL, m_outDelayR;
 		PeakDetector m_detectorL, m_detectorR;
 		RMSDetector m_RMSDetector;
-		Gain m_gainDyn;
+		GainShaper m_gainShaper;
 
 		// Parameters
 		float m_peakToRMS;

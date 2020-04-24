@@ -74,7 +74,7 @@ namespace SFM
 		// Reverb impl.
 ,		m_reverb(sampleRate, Nyquist)
 
-		// Compressor impl.
+		// Compressor
 ,		m_compressor(sampleRate)
 ,		m_curCompPeakToRMS(kDefCompPeakToRMS, sampleRate, kDefParameterLatency)
 ,		m_curCompThresholddB(kDefCompThresholddB, sampleRate, kDefParameterLatency)
@@ -83,6 +83,9 @@ namespace SFM
 ,		m_curCompGaindB(kDefCompGaindB, sampleRate, kDefParameterLatency)
 ,		m_curCompAttack(kDefCompAttack, sampleRate, kDefParameterLatency)
 ,		m_curCompRelease(kDefCompRelease, sampleRate, kDefParameterLatency)
+
+		// Wahwah
+,		m_wah(sampleRate, Nyquist)
 
 		// Delay
 ,		m_curDelay(0.f, sampleRate, kDefParameterLatency)
@@ -438,7 +441,8 @@ namespace SFM
 				m_curCompRelease.Sample(),
 				m_curCompLookahead.Sample());
 			
-			m_compressor.Apply(sampleL, sampleR);
+//			m_compressor.Apply(sampleL, sampleR);
+			m_wah.Apply(sampleL, sampleR);
 
 			m_lowCutFilter.Apply(sampleL, sampleR);
 

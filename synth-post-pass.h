@@ -13,6 +13,7 @@
 #pragma once
 
 #include "3rdparty/SvfLinearTrapOptimised2.hpp"
+#include "3rdparty/KrajeskiModel.h"
 
 #include "synth-delay-line.h"
 #include "synth-phase.h"
@@ -20,8 +21,7 @@
 #include "synth-interpolated-parameter.h"
 #include "synth-reverb.h"
 #include "synth-compressor.h"
-
-#include "3rdparty/KrajeskiModel.h"
+#include "synth-auto-wah.h"
 
 // Include JUCE (for up- and downsampling)
 #include "../JuceLibraryCode/JuceHeader.h"
@@ -152,6 +152,9 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curCompAttack;
 		InterpolatedParameter<kLinInterpolate> m_curCompRelease;
 		InterpolatedParameter<kLinInterpolate> m_curCompLookahead;
+
+		// Wahwah
+		AutoWah m_wah;
 
 		// Interpolated parameters
 		InterpolatedParameter<kLinInterpolate> m_curDelay;
