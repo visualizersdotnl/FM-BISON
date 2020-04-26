@@ -4,7 +4,11 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	FIXME: currently working on & testing (see synth-post-pass.cpp) first draft
+	FIXME: 
+		- Currently working on & testing (see synth-post-pass.cpp) first draft
+		- Introduce wetness
+		- Maybe do not use 'lookahead'
+		- Generally: just find the right sound
 */
 
 #pragma once
@@ -14,7 +18,7 @@
 #include "synth-global.h"
 #include "synth-followers.h"
 #include "synth-delay-line.h"
-#include "synth-oscillator.h"
+// #include "synth-oscillator.h"
 
 namespace SFM
 {
@@ -23,11 +27,11 @@ namespace SFM
 	private:
 
 	public:
-		const float kWahDelay = 0.01f; 
-		const float kWahAttack = 0.1f;
-		const float kWahRelease = 0.01f;
-		const float kWahLookahead = 1.f;
-		const float kWahFreq = 0.1f;
+		const float kWahDelay = 0.005f; 
+		const float kWahAttack = 0.01f;
+		const float kWahRelease = 0.1f;
+		const float kWahLookahead = 0.5f;
+//		const float kWahFreq = 0.1f;
 
 		AutoWah(unsigned sampleRate, unsigned Nyquist) :
 			m_sampleRate(sampleRate), m_Nyquist(Nyquist)
@@ -36,10 +40,10 @@ namespace SFM
 ,			m_detectorL(sampleRate)
 ,			m_detectorR(sampleRate)
 ,			m_gainShaper(sampleRate, kWahAttack, kWahRelease)
-,			m_LFO(sampleRate)
+//,			m_LFO(sampleRate)
 ,			m_lookahead(kWahLookahead)
 		{
-			m_LFO.Initialize(Oscillator::kSine, kWahFreq, m_sampleRate, 0.f, 0.f);
+//			m_LFO.Initialize(Oscillator::kSine, kWahFreq, m_sampleRate, 0.f, 0.f);
 		}
 
 		~AutoWah() {}
@@ -65,6 +69,7 @@ namespace SFM
 			m_outDelayR.Write(right);
 
 			// Detect peak using non-delayed signal
+			// FIXME: might it be an idea to share this detection with Compressor?
 			const float peakOutL  = m_detectorL.Apply(left);
 			const float peakOutR  = m_detectorR.Apply(right);
 			const float peakSum   = fast_tanhf(peakOutL+peakOutR)*0.5f; // Soft clip peak sum sounds *good*
@@ -86,7 +91,8 @@ namespace SFM
 			
 			// Filter
 			float filteredL = delayedL, filteredR = delayedR;
-			m_filterLP.updateCoefficients(cutoff, ResoToQ(1.f-clippedGain), SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
+			const float Q = 0.25f + 0.75f*ResoToQ(1.f-clippedGain);
+			m_filterLP.updateCoefficients(cutoff, Q, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
 			m_filterLP.tick(filteredL, filteredR);
 
 			// Add to signal
@@ -102,7 +108,7 @@ namespace SFM
 		DelayLine m_outDelayL, m_outDelayR;
 		PeakDetector m_detectorL, m_detectorR;
 		GainShaper m_gainShaper;
-		Oscillator m_LFO;
+//		Oscillator m_LFO;
 		SvfLinearTrapOptimised2 m_filterLP;
 
 		// Parameters
