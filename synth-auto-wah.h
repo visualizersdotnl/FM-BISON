@@ -82,8 +82,14 @@ namespace SFM
 			const float clippedGain = fast_tanhf(gain);
 			
 			// Grab (delayed) signal
+			
+			// This is *correct*
+//			const auto  delayL   = (m_outDelayL.size() - 1)*m_lookahead;
+//			const auto  delayR   = (m_outDelayR.size() - 1)*m_lookahead; // Just in case R's size differs from L (for whatever reason)
+//			const float delayedL = m_outDelayL.Read(delayL);
+//			const float delayedR = m_outDelayR.Read(delayR);
 
-			// FIXME: this works fine once the buffer has been filled once, but just use a circular buffer instead!
+			// This sounded better for Compressor, test some more! (FIXME)
 			const float delayedL = lerpf<float>(left,  m_outDelayL.ReadNearest(-1), m_lookahead);
 			const float delayedR = lerpf<float>(right, m_outDelayR.ReadNearest(-1), m_lookahead);
 

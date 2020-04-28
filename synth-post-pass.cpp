@@ -64,7 +64,7 @@ namespace SFM
 ,		m_curPostWet(0.f, m_oversamplingRate, kDefParameterLatency)
 		
 		// Tube amp. distort
-,		m_curAvgVelocity(0.f, m_oversamplingRate, kDefParameterLatency*2.f)
+,		m_curAvgVelocity(0.f, m_oversamplingRate, kDefParameterLatency * 2.f /* Slower! */)
 ,		m_curTubeDist(0.f, m_oversamplingRate, kDefParameterLatency)
 ,		m_curTubeDrive(kDefTubeDrivedB, m_oversamplingRate, kDefParameterLatency)
 
@@ -196,7 +196,7 @@ namespace SFM
 			m_delayState = kRunning;
 			
 			m_delayLockBPM = useRateBPM;
-			m_prevDelayLPF.Reset(0.f);
+			m_prevDelayLPF.Reset(delay);
 
 			break;
 
@@ -423,7 +423,7 @@ namespace SFM
 		// Set master volume target
 		m_curMasterVol.SetTarget(masterVol);
 
-//		m_compressor.SetParameters(compThresholddB, compKneedB, compRatio, compGaindB, compAttack, compRelease);
+//		m_compressor.SetParameters(..., compThresholddB, compKneedB, compRatio, compGaindB, compAttack, compRelease);
 		// ^^ This is obviously a tad quicker, but I've explicitly chosen for fully click-free parameters
 
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
