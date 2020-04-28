@@ -8,6 +8,10 @@ FM. BISON (version 0.9) - A hybrid FM synthesis engine.
 - Github issue list is nearly complete.
 - Currently there are 2 dependencies on JUCE 5.4.x! We love JUCE for our VST projects.
 
+# SHORT AUDIO DEMO (24/04/2020)
+
+http://www.visualizers.nl/audio/BISON-24-04.wav
+
 # WHAT IS FM. BISON?
 
 Combining proven entrepreneurial skills and over 2 decades of programming experience
