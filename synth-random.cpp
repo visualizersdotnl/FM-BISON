@@ -5,7 +5,6 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 */
 
-#include "synth-global.h"
 #include "synth-random.h"
 
 /* Include 'Tiny Mersenne-Twister' 32-bit right here, since it's the only place we'll be using it. */

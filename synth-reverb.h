@@ -9,6 +9,7 @@
 
 #include "3rdparty/SvfLinearTrapOptimised2.hpp"
 
+#include "synth-global.h"
 #include "synth-oscillator.h"
 #include "synth-interpolated-parameter.h"
 #include "synth-delay-line.h"

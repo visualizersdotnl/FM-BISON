@@ -14,8 +14,7 @@
 
 #pragma once
 
-#include "../synth-fast-tan.h" 
-#include "../synth-helper.h"
+#include "../synth-global.h"
 
 #ifndef MOOG_PI
 	#define MOOG_PI 3.14159265358979323846264338327950288

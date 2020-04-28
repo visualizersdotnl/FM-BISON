@@ -13,8 +13,10 @@
 
 #pragma once
 
+
 #include "3rdparty/SvfLinearTrapOptimised2.hpp"
 
+#include "synth-global.h"
 #include "synth-oscillator.h"
 #include "synth-patch-global.h"
 #include "synth-envelope.h"

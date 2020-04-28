@@ -11,7 +11,6 @@
 #pragma once
 
 #include "synth-global.h"
-// #include "synth-math.h"
 
 namespace SFM
 {

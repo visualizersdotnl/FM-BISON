@@ -36,8 +36,7 @@
 #ifndef SvfLinearTrapOptimised2_hpp
 #define SvfLinearTrapOptimised2_hpp
 
-// #include "../synth-math.h"   
-#include "../synth-helper.h" // FloatAssert()
+#include "../synth-global.h"
 
 /*!
  @class SvfLinearTrapOptimised2

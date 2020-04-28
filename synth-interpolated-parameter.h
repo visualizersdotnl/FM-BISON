@@ -21,7 +21,7 @@
 // FIXME
 #include "../../JuceLibraryCode/JuceHeader.h"
 
-#include "synth-helper.h"
+#include "synth-global.h"
 
 namespace SFM
 {

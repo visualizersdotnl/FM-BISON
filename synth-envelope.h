@@ -10,6 +10,8 @@
 // Nice public domain implementation by Nigel Redmon (earlevel.com), adapted and modified
 #include "3rdparty/ADSR.h"
 
+#include "synth-global.h"
+
 namespace SFM
 {
 	class Envelope

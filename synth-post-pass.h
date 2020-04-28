@@ -6,7 +6,7 @@
 
 	FIXME:
 		- Almost the entire path is implemented in Apply(), chop this up into smaller pieces?
-		- Write own up- and downsampling routines
+		- Write own (or adapt public domain) up- and downsampling routines
 		- The list of parameters is rather huge, pass through a structure?
 */
 
@@ -15,6 +15,10 @@
 #include "3rdparty/SvfLinearTrapOptimised2.hpp"
 #include "3rdparty/KrajeskiModel.h"
 
+// Include JUCE (for up- and downsampling)
+#include "../JuceLibraryCode/JuceHeader.h"
+
+#include "synth-global.h"
 #include "synth-delay-line.h"
 #include "synth-phase.h"
 #include "synth-one-pole-filters.h"
@@ -22,9 +26,6 @@
 #include "synth-reverb.h"
 #include "synth-compressor.h"
 #include "synth-auto-wah.h"
-
-// Include JUCE (for up- and downsampling)
-#include "../JuceLibraryCode/JuceHeader.h"
 
 namespace SFM
 {

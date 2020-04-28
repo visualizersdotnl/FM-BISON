@@ -5,10 +5,9 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	FIXME: 
-		- Currently working on & testing (see synth-post-pass.cpp) first draft
-		- Introduce wetness
-		- Maybe do not use 'lookahead'
-		- Generally: just find the right sound
+		- Currently working on sound & testing (see synth-post-pass.cpp) first draft
+		- Decide on initial set of parameters & rig them
+		- Vary those vowels a little bit according to, ...?
 */
 
 #pragma once
@@ -18,7 +17,8 @@
 #include "synth-global.h"
 #include "synth-followers.h"
 #include "synth-delay-line.h"
-// #include "synth-oscillator.h"
+#include "synth-vowelizer.h"
+#include "synth-one-pole-filters.h"
 
 namespace SFM
 {
@@ -27,39 +27,46 @@ namespace SFM
 	private:
 
 	public:
-		const float kWahDelay = 0.005f; 
-		const float kWahAttack = 0.01f;
-		const float kWahRelease = 0.01f;
-		const float kWahLookahead = 0.3f;
-//		const float kWahFreq = 0.1f;
+		// I've added possible parameter names (more adventurous than usual!) & ranges
+		const float kWahDelay = 0.003f;                // Constant (for now)
+		const float kWahPeakRelease = 0.01f;           // "Bite"  [0.01..0.1]
+		const float kWahAttack = 0.01f;                // "Speed" [0.01..1.0]
+		const float kWahRelease = 0.0f;                // "Hold"  [0.0..0.1]
+		const float kWahLookahead = kGoldenRatio*0.1f; // Constant (for now)
+		const float kWahQCutoff = 120.f;               // "Slime"
 
 		AutoWah(unsigned sampleRate, unsigned Nyquist) :
 			m_sampleRate(sampleRate), m_Nyquist(Nyquist)
 ,			m_outDelayL(sampleRate, kWahDelay)
 ,			m_outDelayR(sampleRate, kWahDelay)
-,			m_detectorL(sampleRate)
-,			m_detectorR(sampleRate)
+,			m_detectorL(sampleRate, kWahPeakRelease)
+,			m_detectorR(sampleRate, kWahPeakRelease)
 ,			m_gainShaper(sampleRate, kWahAttack, kWahRelease)
-//,			m_LFO(sampleRate)
+,			m_resoLPF(kWahQCutoff/sampleRate)
 ,			m_lookahead(kWahLookahead)
 		{
-//			m_LFO.Initialize(Oscillator::kSine, kWahFreq, m_sampleRate, 0.f, 0.f);
 		}
 
 		~AutoWah() {}
 
-		SFM_INLINE void SetParameters(float attack, float release, float lookahead)
+		SFM_INLINE void SetParameters(float bite, float attack, float release, float slime, float wetness)
 		{
+			// SFM_ASSERT(bite >= kConstant && bite <= kConstant);
+			// SFM_ASSERT(slime >= kConstant && slime <= kConstant);
+			SFM_ASSERT(wetness >= 0.f && wetness <= 1.f);
+
 			// Borrowed compressor's constants:
 			SFM_ASSERT(attack >= kMinCompAttack && attack <= kMaxCompAttack);
 			SFM_ASSERT(release >= kMinCompRelease && attack <= kMaxCompRelease);
 
-			SFM_ASSERT(lookahead >= 0.f && lookahead <= 0.f);
-
 			m_gainShaper.SetAttack(attack);
 			m_gainShaper.SetRelease(release);
 
-			m_lookahead = lookahead;
+			// FIXME
+//			m_resoLPF.SetCutoff(...);
+
+			m_wetness   = wetness;
+			m_lookahead = kWahLookahead;
 		}
 
 		SFM_INLINE void Apply(float &left, float &right)
@@ -93,19 +100,33 @@ namespace SFM
 			const float delayedL = lerpf<float>(left,  m_outDelayL.ReadNearest(-1), m_lookahead);
 			const float delayedR = lerpf<float>(right, m_outDelayR.ReadNearest(-1), m_lookahead);
 
+			float filteredL = delayedL, filteredR = delayedR;
+
+			// Vowel: A
+			const float vowInputA = (delayedL+delayedR)*0.25f*clippedGain;
+			const float vowelA = m_vowelizers[1].Apply(vowInputA, Vowelizer::kA);
+			filteredL += vowelA;
+			filteredR += vowelA;
+
+			// Vowel: U
+//			const float vowInputU = (delayedL+delayedR)*0.25f*clippedGain;
+			const float vowelU = m_vowelizers[0].Apply(vowInputA, Vowelizer::kU);
+			filteredL += vowelU;
+			filteredR += vowelU;
+
 			// Calculate cutoff
 			const float cutoff = CutoffToHz(clippedGain, m_Nyquist);
 			
-			// Filter
-			float filteredL = delayedL, filteredR = delayedR;
-			const float Q = 0.25f + 0.75f*ResoToQ(1.f-clippedGain);
-			m_filterLP.updateCoefficients(cutoff, Q, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
+			// Filter (LP)
+			const float Q = ResoToQ(1.f-clippedGain);
+			const float filteredQ = m_resoLPF.Apply(Q);
+			m_filterLP.updateCoefficients(cutoff, filteredQ, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
 			m_filterLP.tick(filteredL, filteredR);
-
-			// Add to signal
-//			const float mixGain = 0.707; // Approx. -3dB
-			left  = filteredL;
-			right = filteredR;
+			
+			// Mix (FIXME: dry/wet)
+			const float mixGain = 0.707f; // Approx. -3dB
+			left  = filteredL*mixGain;
+			right = filteredR*mixGain;
 		}
 
 	private:
@@ -115,11 +136,12 @@ namespace SFM
 		DelayLine m_outDelayL, m_outDelayR;
 		PeakDetector m_detectorL, m_detectorR;
 		GainShaper m_gainShaper;
-//		Oscillator m_LFO;
+		LowpassFilter m_resoLPF;
 		SvfLinearTrapOptimised2 m_filterLP;
+		Vowelizer m_vowelizers[2];
 
-		// Parameters
+		// Local parameters
+		float m_wetness;
 		float m_lookahead;
 	};
 }
-

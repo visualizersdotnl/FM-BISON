@@ -7,7 +7,6 @@
 	For information on it's shape & target ratios: https://www.youtube.com/watch?v=0oreYmOWgYE
 */
 
-#include "synth-global.h"
 #include "synth-envelope.h"
 
 namespace SFM

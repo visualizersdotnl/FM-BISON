@@ -14,13 +14,26 @@ namespace SFM
 	class PeakDetector
 	{
 	public:
-		PeakDetector(unsigned sampleRate) :
+		PeakDetector(unsigned sampleRate, float release = 0.1f) :
 			m_sampleRate(sampleRate)
+,			m_release(release)
+,			m_attackB0(1.f)
 		{
 			Reset();
+			SetRelease(m_release);
 		}
 
 		~PeakDetector() {}
+
+		SFM_INLINE void SetRelease(float release)
+		{
+			// There's no reason why a release bigger than 1 shouldn't be allowed
+			SFM_ASSERT(release >= 0.f);
+			m_release = release;
+
+			m_releaseB0 = 1.f - expf(-1.f / (m_release*m_sampleRate));
+		}
+
 
 		SFM_INLINE float Apply(float sample)
 		{
@@ -41,17 +54,12 @@ namespace SFM
 		SFM_INLINE void Reset()
 		{
 			m_peak = 0.f;
-
-			m_attackB0 = 1.f;
-			m_A1 = expf(-1.f / (m_release*m_sampleRate));
-			m_releaseB0 = 1.f-m_A1;
 		}
     
 		const unsigned m_sampleRate;
-		const float m_release = 0.1f; // Tenth of a second (fixed)
+		/* const */ float m_release;
 			
-		// Set on Reset()
-		float m_attackB0, m_releaseB0, m_A1;
+		float m_attackB0, m_releaseB0;
 
 		float m_peak;
 	};
@@ -118,7 +126,7 @@ namespace SFM
 
 		SFM_INLINE void Reset(float attack, float release)
 		{    
-			m_outGain = 0.f;
+			m_gain = 0.f;
 			SetAttack(attack);
 			SetRelease(release);
 		}
@@ -138,14 +146,14 @@ namespace SFM
 		SFM_INLINE float Apply(float gain)
 		{
 			double B0;
-			if (gain < m_outGain)
+			if (gain > m_gain)
 				B0 = m_attackB0;
 			else
 				B0 = m_releaseB0;
 				
-			m_outGain += float(B0 * (gain-m_outGain));
+			m_gain += float(B0 * (gain-m_gain));
 
-			return m_outGain;
+			return m_gain;
 		}
 		
 	private:
@@ -153,8 +161,7 @@ namespace SFM
 		float m_attack;
 		float m_release;
 			
-		float m_outGain;
+		float m_gain;
 		double m_attackB0, m_releaseB0;
 	};
 }
-

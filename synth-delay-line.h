@@ -9,7 +9,7 @@
 
 #include "3rdparty/SvfLinearTrapOptimised2.hpp"
 
-// #include "synth-global.h"
+#include "synth-global.h"
 // #include "synth-one-pole-filters.h"
 
 namespace SFM

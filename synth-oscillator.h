@@ -7,9 +7,9 @@
 
 #pragma once
 
+#include "synth-global.h"
 #include "synth-stateless-oscillators.h"
 #include "synth-phase.h"
-#include "synth-helper.h"
 #include "synth-MIDI.h"
 
 namespace SFM

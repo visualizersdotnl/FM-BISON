@@ -10,8 +10,6 @@
 
 #pragma once
 
-// #include "3rdparty/SvfLinearTrapOptimised2.hpp"
-
 #include "synth-global.h"
 #include "synth-followers.h"
 #include "synth-delay-line.h"
@@ -20,66 +18,14 @@ namespace SFM
 {
 	class Compressor
 	{
-		class Gain
-		{
-		public:
-			Gain(unsigned sampleRate, float attack, float release) :
-				m_sampleRate(sampleRate)
-			{
-				Reset(attack, release);
-			}
-
-			~Gain() {}
-
-			SFM_INLINE void Reset(float attack, float release)
-			{    
-				m_outGain = 0.f;
-				SetAttack(attack);
-				SetRelease(release);
-			}
-
-			SFM_INLINE void SetAttack(float attack)
-			{
-				m_attack = attack;
-				m_attackB0 = 1.0 - exp(-1.0 / (m_attack*m_sampleRate));
-			}
-
-			SFM_INLINE void SetRelease(float release)
-			{
-				m_release = release;
-				m_releaseB0 = 1.0 - exp(-1.0 / (m_release*m_sampleRate));
-			}
-
-			SFM_INLINE float Apply(float gain)
-			{
-				double B0;
-				if (gain < m_outGain)
-					B0 = m_attackB0;
-				else
-					B0 = m_releaseB0;
-				
-				m_outGain += float(B0 * (gain-m_outGain));
-
-				return m_outGain;
-			}
-		
-		private:
-			const unsigned m_sampleRate;
-			float m_attack;
-			float m_release;
-			
-			float m_outGain;
-			double m_attackB0, m_releaseB0;
-		};
-
 	public:
-		// FIXME?
-		const float kCompDelay = 0.01f; 
+		// FIXME: parameter?
+		const float kCompMaxDelay = 0.01f; 
 
 		Compressor(unsigned sampleRate) :
 			m_sampleRate(sampleRate)
-,			m_outDelayL(sampleRate, kCompDelay)
-,			m_outDelayR(sampleRate, kCompDelay)
+,			m_outDelayL(sampleRate, kCompMaxDelay)
+,			m_outDelayR(sampleRate, kCompMaxDelay)
 ,			m_detectorL(sampleRate)
 ,			m_detectorR(sampleRate)
 ,			m_RMSDetector(sampleRate, 0.005f /* 5MS: Reaper's compressor default */)
@@ -128,6 +74,7 @@ namespace SFM
 			const float sumdB     = (0.f != sum) ? GainTodB(sum) : kMinVolumedB;
 
 			// Crush it!
+			// I don't feel it's a problem if the knee is larger than the range on either side
 			const float halfKneedB  = m_kneedB*0.5f;
 			const float thresholddB = m_thresholddB-halfKneedB;
 

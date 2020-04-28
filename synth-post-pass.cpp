@@ -14,7 +14,6 @@
 	- DC blocker
 */
 
-#include "synth-global.h"
 #include "synth-post-pass.h"
 #include "synth-stateless-oscillators.h"
 #include "synth-distort.h"

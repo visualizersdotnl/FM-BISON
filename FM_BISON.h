@@ -42,9 +42,19 @@
 	- Research (DX7 LFO LUT) from Sean Bolton's Hexter
 	- Fast cosine approximation by (or at least supplied by) Erik Faye-Lund
 	- A few good bits of JUCE are used (though this has little priority, as we rely on JUCE for our products) (*)
+	- Vowel (formant) filter: contribution to http://www.musicdsp.org by alex@smartelectronix.com
 	- A few other sources were used; these are credited in or close to the implementation
 
 	(*) - Depends on JUCE 5.4.7 or compatible!
+
+	The following files belong to the "Helper" part of the codebase:
+		- synth-aligned-alloc.h
+		- synth-fast-cosine.*
+		- synth-fast-tan.h
+		- synth-helper.h
+		- synth-log.*
+		- synth-math.h
+		- synth-ring-buffer.h
 	
 	Core goals:
 		- Yamaha DX7 style core FM with extensions

@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "synth-global.h"
+
 namespace SFM
 {
 	// Soft clipping without using tanh()
