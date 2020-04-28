@@ -87,8 +87,7 @@ namespace SFM
 			m_buffer[index] = samplePow2;
 			++m_writeIdx;
 				
-			// Calculate RMS
-			// FIXME: use a running sum and subtract m_writeIdx+1!
+			// Calculate RMS (FIXME: just add and subtract from running sum!)
 			float sum = 0.f;
 			for (unsigned iSample = 0; iSample < m_numSamples; ++iSample)
 				sum += m_buffer[iSample];

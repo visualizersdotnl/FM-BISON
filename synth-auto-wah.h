@@ -29,8 +29,8 @@ namespace SFM
 	public:
 		const float kWahDelay = 0.005f; 
 		const float kWahAttack = 0.01f;
-		const float kWahRelease = 0.1f;
-		const float kWahLookahead = 0.5f;
+		const float kWahRelease = 0.01f;
+		const float kWahLookahead = 0.3f;
 //		const float kWahFreq = 0.1f;
 
 		AutoWah(unsigned sampleRate, unsigned Nyquist) :
@@ -82,7 +82,8 @@ namespace SFM
 			const float clippedGain = fast_tanhf(gain);
 			
 			// Grab (delayed) signal
-			// FIXME: it is not correct to interpolate like this, but it sounded better than adjusting the actual delay
+
+			// FIXME: this works fine once the buffer has been filled once, but just use a circular buffer instead!
 			const float delayedL = lerpf<float>(left,  m_outDelayL.ReadNearest(-1), m_lookahead);
 			const float delayedR = lerpf<float>(right, m_outDelayR.ReadNearest(-1), m_lookahead);
 

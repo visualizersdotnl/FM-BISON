@@ -155,9 +155,11 @@ namespace SFM
 			const float gain = dBToGain(gaindB);
 			
 			// Apply to (delayed) signal w/gain
-			// FIXME: it is not correct to interpolate like this, but it sounded better than adjusting the actual delay
+			
+			// FIXME: this works fine once the buffer has been filled once, but just use a circular buffer instead!
 			const float delayedL = lerpf<float>(left,  m_outDelayL.ReadNearest(-1), m_lookahead);
 			const float delayedR = lerpf<float>(right, m_outDelayR.ReadNearest(-1), m_lookahead);
+
 			left  = (delayedL*gain) * m_postGain;
 			right = (delayedR*gain) * m_postGain;
 		}
