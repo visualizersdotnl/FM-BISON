@@ -149,6 +149,26 @@ namespace SFM
 
 		/* ----------------------------------------------------------------------------------------------------
 
+			Auto-wah
+
+		 ------------------------------------------------------------------------------------------------------ */
+
+		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
+		{
+			float sampleL = *pLeftIn++;
+			float sampleR = *pRightIn++;
+//			float sampleL = m_pBufL[iSample];
+//			float sampleR = m_pBufR[iSample];
+
+			// FIXME: set parameters
+			m_wah.Apply(sampleL, sampleR);
+
+			m_pBufL[iSample] = sampleL;
+			m_pBufR[iSample] = sampleR;
+		}
+
+		/* ----------------------------------------------------------------------------------------------------
+
 			Chorus/Phaser + Delay
 
 		 ------------------------------------------------------------------------------------------------------ */
@@ -204,8 +224,10 @@ namespace SFM
 				
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
-			const float sampleL = *pLeftIn++;
-			const float sampleR = *pRightIn++;
+//			const float sampleL = *pLeftIn++;
+//			const float sampleR = *pRightIn++;
+			const float sampleL = m_pBufL[iSample];
+			const float sampleR = m_pBufR[iSample];
 				
 			// Always feed the chorus' delay line
 			// This approach has it's flaws: https://matthewvaneerde.wordpress.com/2010/12/07/downmixing-stereo-to-mono/
@@ -389,8 +411,7 @@ namespace SFM
 				m_curCompRelease.Sample(),
 				m_curCompLookahead.Sample());
 			
-//			m_compressor.Apply(sampleL, sampleR);
-			m_wah.Apply(sampleL, sampleR);
+			m_compressor.Apply(sampleL, sampleR);
 
 			m_lowCutFilter.Apply(sampleL, sampleR);
 
@@ -464,7 +485,7 @@ namespace SFM
 		float filteredR = sampleR;
 
 		// Cutoff
-		float curCutoff = cutoffCentre - (range*0.5f);
+		float curCutoff = cutoffCentre - range*0.5f;
 		const float cutStep = range/kNumPhaserStages;
 		
 		// Apply cascading filters
