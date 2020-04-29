@@ -283,6 +283,7 @@ namespace SFM
 		bool m_sustain;
 	
 		// Parameter filters
+		ParameterFilter m_LFORatePF;
 		ParameterFilter m_cutoffPF, m_resoPF;
 		ParameterFilter m_effectWetPF, m_effectRatePF;
 		ParameterFilter m_delayPF, m_delayWetPF, m_delayFeedbackPF, m_delayFeedbackCutoffPF;

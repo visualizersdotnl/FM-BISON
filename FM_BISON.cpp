@@ -130,7 +130,7 @@ namespace SFM
 
 		// Start global LFO phase
 		m_globalLFO = new Phase(m_sampleRate);
-		const float freqLFO = MIDI_To_LFO_Hz(m_patch.lfoRate);
+		const float freqLFO = MIDI_To_LFO_Hz(m_patch.LFORate);
 		m_globalLFO->Initialize(freqLFO, m_sampleRate);
 
 		// Reset interpolated global parameter(s)
@@ -138,15 +138,17 @@ namespace SFM
 		m_curQ          = { ResoToQ(m_patch.resonance), m_sampleRate, kDefParameterLatency };
 		m_curPitchBend  = { 0.f, m_sampleRate, kDefParameterLatency };
 		m_curAmpBend    = { 0.f, m_sampleRate, kDefParameterLatency };
-		m_curModulation = { 0.f, m_sampleRate, kDefParameterLatency*1.5f /* Longer */ };
-		m_curAftertouch = { 0.f, m_sampleRate, kDefParameterLatency*3.f /* Longer */ };
+		m_curModulation = { 0.f, m_sampleRate, kDefParameterLatency * 1.5f /* Longer */ };
+		m_curAftertouch = { 0.f, m_sampleRate, kDefParameterLatency * 3.f  /* Longer */ };
 
 		// Set parameter filter rates to reduce noise (to default cut Hz, mostly)
 
 		// Local
+		m_LFORatePF             = { m_sampleRate, kDefParameterFilterCutHz * 0.5f /* Softer */ };
 		m_cutoffPF              = { m_sampleRate };
 		m_resoPF                = { m_sampleRate };
 
+		m_LFORatePF.Reset(freqLFO);
 		m_cutoffPF.Reset(m_patch.cutoff);
 		m_resoPF.Reset(m_patch.resonance);
 
@@ -679,7 +681,7 @@ namespace SFM
 		voice.m_fundamentalFreq = fundamentalFreq;
 		
 		// Initialize LFO
-		const float phaseAdj = (true == m_patch.lfoKeySync)
+		const float phaseAdj = (true == m_patch.LFOKeySync)
 			? 0.f // Synchronized 
 			: m_globalLFO->Get(); // Adopt running phase
 
@@ -856,7 +858,7 @@ namespace SFM
 		if (true == reset)
 		{
 			// Initialize LFO
-			const float phaseAdj = (true == m_patch.lfoKeySync) 
+			const float phaseAdj = (true == m_patch.LFOKeySync) 
 				? 0.f // Synchronized 
 				: m_globalLFO->Get(); // Adopt running phase
 
@@ -1532,8 +1534,8 @@ namespace SFM
 		if (false == m_patch.beatSync || m_freqBPM == 0.f)
 		{
 			// Set LFO speed in (DX7) range
-			freqLFO = MIDI_To_LFO_Hz(m_patch.lfoRate /* I could not spot any artifacts, so we'll go without interpolation for now! */);
-			m_globalLFO->SetFrequency(freqLFO);
+			freqLFO = MIDI_To_LFO_Hz(m_patch.LFORate);
+			m_globalLFO->SetFrequency(m_LFORatePF.Apply(freqLFO));
 		}
 		else
 		{
@@ -1542,13 +1544,14 @@ namespace SFM
 
 			if (false == m_resetPhaseBPM)
 			{
-				m_globalLFO->SetFrequency(freqLFO);
+				m_globalLFO->SetFrequency(m_LFORatePF.Apply(freqLFO));
 			}
 			else
 			{
 				// Full reset; likely to be used when (re)starting a track
 				// This *must* be done prior to UpdateVoicesPreRender()
 				m_globalLFO->Initialize(freqLFO, m_sampleRate);
+				m_LFORatePF.Reset(freqLFO); // Reset ParameterFilter
 			}
 		}
 

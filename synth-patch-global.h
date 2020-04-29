@@ -55,8 +55,8 @@ namespace SFM
 		int pitchBendRange; // [0..kMaxPitchBendRange]
 
 		// LFO
-		float lfoRate;    // Range [0.0..127.0]
-		bool  lfoKeySync;  
+		float LFORate;    // Range [0.0..127.0]
+		bool  LFOKeySync;  
 
 		// BPM sync. mode (LFO, chorus/phaser, delay, ...)
 		bool beatSync;
@@ -186,8 +186,8 @@ namespace SFM
 			pitchBendRange = kDefPitchBendRange;
 
 			// LFO
-			lfoRate = 0.f;      // Zero Hz
-			lfoKeySync = false; // No key sync.
+			LFORate = 0.f;      // Zero Hz
+			LFOKeySync = false; // No key sync.
 
 			// BPM sync.
 			beatSync = false;

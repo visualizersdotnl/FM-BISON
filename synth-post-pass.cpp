@@ -459,6 +459,12 @@ namespace SFM
 		m_chorusOrPhaser = isChorus;
 	}
 
+	/* ----------------------------------------------------------------------------------------------------
+
+		Chorus/Phaser impl.
+
+	 ------------------------------------------------------------------------------------------------------ */
+
 	void PostPass::ApplyChorus(float sampleL, float sampleR, float &outL, float &outR, float wetness)
 	{
 		// Sweep modulation LFO
