@@ -4,7 +4,8 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	FIXME: 
+	FIXME:
+		- I've corrected for the high cut a bit so the effect does not diminish too fast, but it's late, and it can probably be done better
 		- Use BPM sync.?
 */
 
@@ -76,7 +77,7 @@ namespace SFM
 			m_LFO.SetFrequency(rate);
 
 			m_vowelize  = smoothstepf(speak);
-			m_hiCut     = cut*0.5f; // Nyquist/2 is more than enough!
+			m_hiCut     = cut*0.125f; // Nyquist/8 is more than enough!
 			m_wetness   = wetness;
 			m_lookahead = kWahLookahead;
 		}
@@ -128,13 +129,13 @@ namespace SFM
 
 			// Run 3 12dB low pass filters in parallel (results in a formant-like timbre)
 			{
-				float curCutoff = 0.1f;
+				float curCutoff = 0.1f + m_hiCut;
 				const float Q = ResoToQ(0.5f - clippedGain*0.5f);
 				
 				// Expand
 				// FIXME: always spread at least a little bit?
 				// FIXME: non-linear?
-				const float spread = 0.3f*clippedGain;
+				const float spread = (0.3f - m_hiCut/3.f)*clippedGain;
 
 				for (unsigned iPre = 0; iPre < 3; ++iPre)
 				{

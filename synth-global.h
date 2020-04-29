@@ -203,15 +203,15 @@ namespace SFM
 	const float kMinWahHold          = 0.f;
 	const float kMaxWahHold          = 0.1f;
 	const float kDefWahHold          = 0.1f;
-	const float kMinWahRate          = 0.f;
-	const float kMaxWahRate          = 3.f;
-	const float kDefWahRate          = 0.435381f; // Taken from synth-DX7-LFO-table.h
+	const float kMinWahRate          = 0.062506f;   // Taken from synth-DX7-LFO-table.h
+	const float kMaxWahRate          = 10.340772f;  // 
+	const float kDefWahRate          = 0.435381f;   //
 
 	// Low cut (for post-pass DC blocker)
 	const float kLowCutHz = 16.f;
 
-	// If a voice is considered to be stolen, this bias [0..1] can pull it down if the voice is
-	// in a release state, which means it's chance of being stolen is higher
+	// If a voice is considered to be stolen, this bias [0..1] is multiplied with the output
+	// of a voice in release state so it's preferred over an equally loud but playing voice
 	const float kVoiceStealReleaseBias = 0.66f;
 
 	// Size of main delay effect's line in seconds
