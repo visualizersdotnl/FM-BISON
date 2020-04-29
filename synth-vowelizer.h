@@ -19,8 +19,8 @@ namespace SFM
 		enum Vowel
 		{
 			kA,
-			kE,
 			kI,
+			kE,
 			kO,
 			kU,
 			kNumVowels
