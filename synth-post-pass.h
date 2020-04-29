@@ -53,8 +53,12 @@ namespace SFM
 			m_delayLineL.Reset();
 			m_delayLineM.Reset();
 			m_delayLineR.Reset();
-
-			m_delayState = kUninitialized;
+			
+			// Reset to zeroes will make delay behave as if this class was freshly constructed
+			m_curDelay.Set(0.f);
+			m_curDelayWet.Set(0.f);
+			m_curDelayFeedback.Set(0.f);
+			m_curDelayFeedbackCutoff.Set(0.f);
 		}
 
 		unsigned GetOversamplingRate() const
@@ -91,19 +95,14 @@ namespace SFM
 		float *m_pBufL = nullptr;
 		float *m_pBufR = nullptr;
 
-		// Delay
-		enum DelayState
-		{
-			kUninitialized,
-			kRunning
-		} m_delayState = kUninitialized;
-
-		bool m_delayLockBPM;
-		LowpassFilter m_prevDelayLPF;
-
+		// Delay lines
 		DelayLine m_delayLineL;
 		DelayLine m_delayLineM;
 		DelayLine m_delayLineR;
+		InterpolatedParameter<kLinInterpolate> m_curDelay;
+		InterpolatedParameter<kLinInterpolate> m_curDelayWet;
+		InterpolatedParameter<kLinInterpolate> m_curDelayFeedback;
+		InterpolatedParameter<kLinInterpolate> m_curDelayFeedbackCutoff;
 		
 		// FIXME: enum. type
 		int m_chorusOrPhaser;
@@ -157,11 +156,7 @@ namespace SFM
 		// Wahwah
 		AutoWah m_wah;
 
-		// Interpolated parameters
-		InterpolatedParameter<kLinInterpolate> m_curDelay;
-		InterpolatedParameter<kLinInterpolate> m_curDelayWet;
-		InterpolatedParameter<kLinInterpolate> m_curDelayFeedback;
-		InterpolatedParameter<kLinInterpolate> m_curDelayFeedbackCutoff;
+		// Misc.
 		InterpolatedParameter<kLinInterpolate> m_curEffectWet;
 		InterpolatedParameter<kLinInterpolate> m_curMasterVol;
 	};

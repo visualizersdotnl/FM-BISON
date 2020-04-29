@@ -6,8 +6,10 @@
 
 	FIXME: 
 		- Currently working on sound & testing (see synth-post-pass.cpp) first draft
-		- Decide on initial set of parameters & rig them
 		- Vary those vowels a little bit according to, ...?
+		- Sweep LFO
+		- Decide on initial set of parameters & rig them
+		- When rigging: make sure it uses BPM sync. as well
 */
 
 #pragma once
@@ -19,6 +21,7 @@
 #include "synth-delay-line.h"
 #include "synth-vowelizer.h"
 #include "synth-one-pole-filters.h"
+#include "synth-oscillator.h"
 
 namespace SFM
 {
@@ -27,12 +30,14 @@ namespace SFM
 	private:
 
 	public:
-		// I've added possible parameter names (more adventurous than usual!) & ranges
+		// Parameters & ranges
 		const float kWahDelay = 0.003f;                // Constant (for now)
+		const float kWahLookahead = kGoldenRatio*0.1f; // 
+		const float kWahLFOFreq = 6.f;                 //
+
 		const float kWahPeakRelease = 0.01f;           // "Bite"  [0.01..0.1]
 		const float kWahAttack = 0.01f;                // "Speed" [0.01..1.0]
 		const float kWahRelease = 0.0f;                // "Hold"  [0.0..0.1]
-		const float kWahLookahead = kGoldenRatio*0.1f; // Constant (for now)
 		const float kWahQCutoff = 120.f;               // "Slime"
 
 		AutoWah(unsigned sampleRate, unsigned Nyquist) :
@@ -45,25 +50,32 @@ namespace SFM
 ,			m_resoLPF(kWahQCutoff/sampleRate)
 ,			m_lookahead(kWahLookahead)
 		{
+			m_LFO.Initialize(Oscillator::Waveform::kSine, kWahLFOFreq, m_sampleRate, 0.f, 0.f);
 		}
 
 		~AutoWah() {}
 
-		SFM_INLINE void SetParameters(float bite, float attack, float release, float slime, float wetness)
+		SFM_INLINE void SetParameters(float bite, float speed, float hold, float slime, float rate, float wetness)
 		{
 			// SFM_ASSERT(bite >= kConstant && bite <= kConstant);
 			// SFM_ASSERT(slime >= kConstant && slime <= kConstant);
+			SFM_ASSERT(rate >= 0.f);
 			SFM_ASSERT(wetness >= 0.f && wetness <= 1.f);
 
 			// Borrowed compressor's constants:
-			SFM_ASSERT(attack >= kMinCompAttack && attack <= kMaxCompAttack);
-			SFM_ASSERT(release >= kMinCompRelease && attack <= kMaxCompRelease);
+			SFM_ASSERT(speed >= kMinCompAttack && speed <= kMaxCompAttack);
+			SFM_ASSERT(hold >= kMinCompRelease && hold <= kMaxCompRelease);
 
-			m_gainShaper.SetAttack(attack);
-			m_gainShaper.SetRelease(release);
+			m_detectorL.SetRelease(bite);
+			m_detectorR.SetRelease(bite);
+
+			m_gainShaper.SetAttack(speed);
+			m_gainShaper.SetRelease(hold);
 
 			// FIXME
 //			m_resoLPF.SetCutoff(...);
+
+			m_LFO.SetFrequency(rate);
 
 			m_wetness   = wetness;
 			m_lookahead = kWahLookahead;
@@ -139,6 +151,7 @@ namespace SFM
 		LowpassFilter m_resoLPF;
 		SvfLinearTrapOptimised2 m_filterLP;
 		Vowelizer m_vowelizers[2];
+		Oscillator m_LFO;
 
 		// Local parameters
 		float m_wetness;

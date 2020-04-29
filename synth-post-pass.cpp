@@ -36,11 +36,14 @@ namespace SFM
 	PostPass::PostPass(unsigned sampleRate, unsigned maxSamplesPerBlock, unsigned Nyquist) :
 		m_sampleRate(sampleRate), m_Nyquist(Nyquist)
 
-		// Delay LPF & delay lines
-,		m_prevDelayLPF((1.f*(60.f/kMainDelayInSec))/sampleRate) // FIXME: parameter?
+		// Delay
 ,		m_delayLineL(unsigned(sampleRate*kMainDelayLineSize))
 ,		m_delayLineM(unsigned(sampleRate*kMainDelayLineSize))
 ,		m_delayLineR(unsigned(sampleRate*kMainDelayLineSize))
+,		m_curDelay(0.f, sampleRate, kDefParameterLatency * 4.f /* Slower */)
+,		m_curDelayWet(0.f, sampleRate, kDefParameterLatency)
+,		m_curDelayFeedback(0.f, sampleRate, kDefParameterLatency)
+,		m_curDelayFeedbackCutoff(1.f, sampleRate, kDefParameterLatency)
 		
 		// CP
 ,		m_chorusOrPhaser(-1)
@@ -85,12 +88,6 @@ namespace SFM
 
 		// Wahwah
 ,		m_wah(sampleRate, Nyquist)
-
-		// Delay
-,		m_curDelay(0.f, sampleRate, kDefParameterLatency)
-,		m_curDelayWet(0.f, sampleRate, kDefParameterLatency)
-,		m_curDelayFeedback(0.f, sampleRate, kDefParameterLatency)
-,		m_curDelayFeedbackCutoff(1.f, sampleRate, kDefParameterLatency)
 		
 		// CP wetness & master volume
 ,		m_curEffectWet(0.f, sampleRate, kDefParameterLatency)
@@ -132,8 +129,8 @@ namespace SFM
 		SFM_ASSERT(nullptr != pLeftOut && nullptr != pRightOut);
 		SFM_ASSERT(numSamples > 0);
 		SFM_ASSERT(rateBPM >= 0.f); // FIXME
-		SFM_ASSERT(cpWet  >= 0.f && cpWet  <= 1.f);
 		SFM_ASSERT(cpRate >= 0.f && cpRate <= 1.f);
+		SFM_ASSERT(cpWet  >= 0.f && cpWet  <= 1.f);
 		SFM_ASSERT(delayInSec >= 0.f);
 		SFM_ASSERT(delayWet >= 0.f && delayWet <= 1.f);
 		SFM_ASSERT(delayFeedback >= 0.f && delayFeedback <= 1.f);
@@ -146,6 +143,9 @@ namespace SFM
 			tubeDrivedB = 16.f;
 
 		SFM_ASSERT(tubeDrivedB >= kMinTubeDrivedB && tubeDrivedB <= kMaxTubeDrivedB);
+
+		// Only adapt the BPM if it fits in the delay line (Ableton does this so why won't we?)
+		const bool useBPM = false == (rateBPM < 1.f/kMainDelayInSec);
 
 		/* ----------------------------------------------------------------------------------------------------
 
@@ -173,80 +173,30 @@ namespace SFM
 		}
 	
 		// Calculate delay & set delay mode
-		// It'll only adapt the BPM if it fits in the delay line (Ableton does this so why won't we?)
-		const bool useRateBPM = false == (rateBPM < 1.f/kMainDelayInSec);
-		const float delay = (false == useRateBPM) ? delayInSec : 1.f/rateBPM;
+		const float delay = (false == useBPM) ? delayInSec : 1.f/rateBPM;
 		SFM_ASSERT(delay >= 0.f && delay <= kMainDelayInSec);
 
-		switch (m_delayState)
-		{
-		case kUninitialized:
-			// Reset delay lines
-			m_delayLineL.Reset();
-			m_delayLineM.Reset();
-			m_delayLineR.Reset();
-
-			// Initialize delay
-			m_curDelay.Set(delay);
-			m_curDelayWet.Set(delayWet);
-			m_curDelayFeedback.Set(delayFeedback);
-			m_curDelayFeedbackCutoff.Set(delayFeedbackCutoff);
-
-			m_delayState = kRunning;
-			
-			m_delayLockBPM = useRateBPM;
-			m_prevDelayLPF.Reset(delay);
-
-			break;
-
-		case kRunning:
-			{
-				if (true == useRateBPM && true == m_delayLockBPM)
-				{
-					// Update delay in BPM lock mode (approach)
-					const float curDelay = m_curDelay.Get();
-					const float rate = m_prevDelayLPF.Apply(delay);
-					m_curDelay.SetRate(m_sampleRate, rate);
- 					m_curDelay.Set(curDelay);
-					m_curDelay.SetTarget(delay);
-				}
-				else
-				{
-					// Update delay in "free" mode (or when switching to BPM lock mode)
-					const float curDelay = m_curDelay.Get();
-					m_curDelay.SetRate(m_sampleRate, kDefParameterLatency*4.f /* Slower! */);
- 					m_curDelay.Set(curDelay);
-					m_curDelay.SetTarget(delay);
-				}
-
-				m_delayLockBPM = useRateBPM;
-			}
-
-			m_curDelayWet.SetTarget(delayWet);
-			m_curDelayFeedback.SetTarget(delayFeedback);
-			m_curDelayFeedbackCutoff.SetTarget(delayFeedbackCutoff);
-
-			m_delayLockBPM = useRateBPM;
-
-			break;
-		}
+		m_curDelay.SetTarget(delay);
+		m_curDelayWet.SetTarget(delayWet);
+		m_curDelayFeedback.SetTarget(delayFeedback);
+		m_curDelayFeedbackCutoff.SetTarget(delayFeedbackCutoff);
 		
 		// Set rate for both effects
-		if (false == m_delayLockBPM) // Sync. to BPM?
+		if (false == useBPM) // Sync. to BPM?
 		{
-			// User adjusted
+			// No, use manual setting
 			SetChorusRate(cpRate, kMaxChorusSpeed);
 			SetPhaserRate(cpRate, kMaxPhaserSpeed);
 		}
 		else
 		{
-			// Locked to BPM, if no 
+			// Locked to BPM
 			SFM_ASSERT(kMaxChorusSpeed >= kMaxPhaserSpeed);
 			SetChorusRate(rateBPM, kMaxChorusSpeed/kMaxPhaserSpeed);
 			SetPhaserRate(rateBPM, 1.f);
 		}
 
-		// Simple loop including 1 function call to apply desired effect & delay
+		// Set up function call to apply desired effect (chorus or phaser)
 		using namespace std::placeholders;
 		const std::function<void(float, float, float&, float&, float)> effectFunc((1 /* Chorus */ == m_chorusOrPhaser)
 			? std::bind(&PostPass::ApplyChorus, this, _1, _2, _3, _4, _5)
@@ -298,7 +248,6 @@ namespace SFM
 
 			const float curFeedbackDry = m_curDelayFeedback.Sample();
 			const float curFeedback    = (curDelay/kMainDelayInSec)*curFeedbackDry*kMaxDelayFeedback;
-//			const float curFeedback    = (delay/kMainDelayInSec)*curFeedbackDry*kMaxDelayFeedback;
 			
 			m_delayLineL.WriteFeedback(finalL, curFeedback);
 			m_delayLineR.WriteFeedback(finalR, curFeedback);

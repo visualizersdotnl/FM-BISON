@@ -1,6 +1,6 @@
 
 /*
-	FM. BISON hybrid FM synthesis -- Peak/RMS detector & gain shaper.
+	FM. BISON hybrid FM synthesis -- Peak/RMS detector & "gain shaper".
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 */
@@ -112,7 +112,7 @@ namespace SFM
 		unsigned m_writeIdx;
 	};
 
-	// Gain (envelope) shaper
+	// Gain shaper (envelopes a signal (AR))
 	class GainShaper
 	{
 	public:

@@ -58,7 +58,7 @@ namespace SFM
 	float Vowelizer::Calculate(float sample, Vowel vowelA, unsigned iRing)
 	{
 		SFM_ASSERT(vowelA < kNumVowels);
-		SFM_ASSERT(iBuf < 2);
+		SFM_ASSERT(iRing < 2);
 
 		double *buffer = m_rings[iRing];
 
