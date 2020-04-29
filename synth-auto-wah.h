@@ -5,9 +5,7 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	FIXME: 
-		- Rig parameters
-		- When rigging: make sure it uses BPM sync. as well?
-		- Idea: use HPF to filter what will be processed, and blend it back with the remainder of the signal
+		- Use BPM sync.?
 */
 
 #pragma once
@@ -28,41 +26,45 @@ namespace SFM
 	private:
 
 	public:
-		// Parameters & ranges
-		const float kWahDelay = 0.010f;                // Constant (for now)
-		const float kWahLookahead = kGoldenRatio*0.1f; // 
-//		const float kWahLookahead = 1.f;               // 
-		const float kWahLFOFreq = kDX7_LFO_To_Hz[4];   //
-		const float kWahWetness = 1.f;                 //
+		// Constant parameters
+		const float kWahDelay = 0.010f;                
+		const float kWahLookahead = kGoldenRatio*0.1f;
 
+/*
 		const float kWahPeakRelease = 0.01f;           // "Slack"  [0.01..0.1] -> How fast (new) peaks are detected
 		const float kWahAttack = 0.01f;                // "Speed"  [0.01..1.0] -> How fast an upwards change in peak gains traction
 		const float kWahRelease = 0.1f;                // "Hold"   [0.0..0.1]  -> How long current peak is held
-		const float kWahVowelize = 1.f;                // "Speak"  [0.0..1.0]  -> Wet/dry of the actual formant filter (last step)
+		const float kWahLFOFreq = kDX7_LFO_To_Hz[4];   // "Rate"               -> LFO rate
+		const float kWahHiCut = 0.05f;                 // "Cut"    [0.0..1.0]  -> High pass cutoff (remainder is carried)
+		const float kWahVowelize = 0.f;                // "Speak"  [0.0..1.0]  -> Wet/dry of the actual formant filter (last step)
+		const float kWahWetness = 1.f;                 // [0..1]
+*/
 
 		AutoWah(unsigned sampleRate, unsigned Nyquist) :
 			m_sampleRate(sampleRate), m_Nyquist(Nyquist)
 ,			m_outDelayL(sampleRate, kWahDelay)
 ,			m_outDelayR(sampleRate, kWahDelay)
-,			m_detectorL(sampleRate, kWahPeakRelease)
-,			m_detectorR(sampleRate, kWahPeakRelease)
-,			m_gainShaper(sampleRate, kWahAttack, kWahRelease)
-,			m_vowelize(kWahVowelize)
-,			m_wetness(kWahWetness)
+,			m_detectorL(sampleRate, kDefWahSlack)
+,			m_detectorR(sampleRate, kDefWahSlack)
+,			m_gainShaper(sampleRate, kDefWahSpeed, kDefWahHold)
+,			m_vowelize(0.f)
+,			m_hiCut(0.f)
+,			m_wetness(0.f)
 ,			m_lookahead(kWahLookahead)
 		{
-			m_LFO.Initialize(Oscillator::Waveform::kSine, kWahLFOFreq, m_sampleRate, 0.f, 0.f);
+			m_LFO.Initialize(Oscillator::Waveform::kSine, kDefWahRate, m_sampleRate, 0.f, 0.f);
 		}
 
 		~AutoWah() {}
 
-		SFM_INLINE void SetParameters(float slack, float speed, float hold, float rate, float speak, float wetness)
+		SFM_INLINE void SetParameters(float slack, float speed, float hold, float rate, float speak, float cut, float wetness)
 		{
-			// SFM_ASSERT(slack >= kConstant && slack <= kConstant);
-			SFM_ASSERT(speed >= kMinCompAttack && speed <= kMaxCompAttack); // Borrowed Compressor constants
-			SFM_ASSERT(hold >= kMinCompRelease && hold <= kMaxCompRelease); //
-			SFM_ASSERT(rate >= 0.f);
+			SFM_ASSERT(slack >= kMinWahSlack && slack <= kMaxWahSlack);
+			SFM_ASSERT(speed >= kMinWahSpeed && speed <= kMaxWahSpeed);
+			SFM_ASSERT(hold >= kMinWahHold && hold <= kMaxWahHold);
+			SFM_ASSERT(rate >= kMinWahRate && rate <= kMaxWahRate);
 			SFM_ASSERT(speak >= 0.f && speak <= 1.f);
+			SFM_ASSERT(cut >= 0.f && cut <= 1.f);
 			SFM_ASSERT(wetness >= 0.f && wetness <= 1.f);
 
 			m_detectorL.SetRelease(slack);
@@ -74,6 +76,7 @@ namespace SFM
 			m_LFO.SetFrequency(rate);
 
 			m_vowelize  = smoothstepf(speak);
+			m_hiCut     = cut*0.5f; // Nyquist/2 is more than enough!
 			m_wetness   = wetness;
 			m_lookahead = kWahLookahead;
 		}
@@ -85,7 +88,6 @@ namespace SFM
 			m_outDelayR.Write(right);
 
 			// Detect peak using non-delayed signal
-			// FIXME: might it be an idea to share this detection with Compressor?
 			const float peakOutL  = m_detectorL.Apply(left);
 			const float peakOutR  = m_detectorR.Apply(right);
 			const float peakSum   = fast_tanhf(peakOutL+peakOutR)*0.5f; // Soft clip peak sum sounds *good*
@@ -108,6 +110,19 @@ namespace SFM
 			// This sounded better for Compressor, test some more! (FIXME)
 			float delayedL = lerpf<float>(left,  m_outDelayL.ReadNearest(-1), m_lookahead);
 			float delayedR = lerpf<float>(right, m_outDelayR.ReadNearest(-1), m_lookahead);
+
+			// Cut off high end and that's what we'll work with
+			float preFilteredL = delayedL, preFilteredR = delayedR;
+			m_preFilterHP.updateCoefficients(CutoffToHz(m_hiCut, m_Nyquist), 0.025, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
+			m_preFilterHP.tick(preFilteredL, preFilteredR);
+
+			// Store remainder to add back into mix
+			const float remainderL = delayedL-preFilteredL;
+			const float remainderR = delayedR-preFilteredR;
+
+			// Replace
+			delayedL = preFilteredL;
+			delayedR = preFilteredR;
 
 			float filteredL = 0.f, filteredR = 0.f;
 
@@ -134,29 +149,36 @@ namespace SFM
 
 					curCutoff += spread;
 				}
-
+				
+				// Normalize
 				filteredL /= 3.f;
 				filteredR /= 3.f;
 			}
 			
 			// Post filter (LP)
-			// FIXME: hardcoded values, I feel a tad unhappy with this, though it can also be regarded as Stijn's credo: make choices
+			// FIXME: hardcoded values, I feel a tad unhappy about this, though it can also be regarded as Stijn's credo: dare to make choices
 			const float LFO = 0.09f*m_LFO.Sample(0.f);
 			const float cutoff = std::max<float>(0.f, clippedGain*0.9f + LFO);
 			const float cutHz = CutoffToHz(cutoff, m_Nyquist);
-			const float Q = ResoToQ(0.8f - (0.2f*m_wetness + clippedGain*0.5f));
+			const float Q = ResoToQ(0.9f - (0.2f*m_wetness + clippedGain*0.5f));
 			m_postFilterLP.updateLowpassCoeff(cutHz, Q, m_sampleRate);
 			m_postFilterLP.tick(filteredL, filteredR);
 
+			// Add (low) remainder to signal
+			const float postFilterL = remainderL+filteredL;
+			const float postFilterR = remainderR+filteredR;
+
 			// Vowelize ("AAH" -> "UUH")
-			const float vowel_L = m_vowelizerL.Apply(filteredL*0.5f, Vowelizer::kA, clippedGain);
-			const float vowel_R = m_vowelizerR.Apply(filteredR*0.5f, Vowelizer::kA, clippedGain);
-			filteredL = lerpf<float>(filteredL, vowel_L, m_vowelize);
-			filteredR = lerpf<float>(filteredR, vowel_R, m_vowelize);
+			const float vowel_L = m_vowelizerL.Apply(postFilterL*0.5f, Vowelizer::kA, clippedGain);
+			const float vowel_R = m_vowelizerR.Apply(postFilterR*0.5f, Vowelizer::kA, clippedGain);
 			
-			// Mix
-			left  = lerpf<float>(left,  filteredL, m_wetness);
-			right = lerpf<float>(right, filteredR, m_wetness);
+			// Blend to final filtered mix
+			const float finalL = lerpf<float>(postFilterL, vowel_L, m_vowelize);
+			const float finalR = lerpf<float>(postFilterR, vowel_R, m_vowelize);
+
+			// Mix with dry signal
+			left  = lerpf<float>(left,  finalL, m_wetness);
+			right = lerpf<float>(right, finalR, m_wetness);
 		}
 
 	private:
@@ -166,6 +188,7 @@ namespace SFM
 		DelayLine m_outDelayL, m_outDelayR;
 		PeakDetector m_detectorL, m_detectorR;
 		GainShaper m_gainShaper;
+		SvfLinearTrapOptimised2 m_preFilterHP;
 		SvfLinearTrapOptimised2 m_preFilterLP[3];
 		SvfLinearTrapOptimised2 m_postFilterLP;
 		Oscillator m_LFO;
@@ -173,6 +196,7 @@ namespace SFM
 
 		// Local parameters
 		float m_vowelize;
+		float m_hiCut;
 		float m_wetness;
 		float m_lookahead;
 	};

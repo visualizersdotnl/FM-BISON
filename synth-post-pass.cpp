@@ -114,6 +114,7 @@ namespace SFM
 
 	void PostPass::Apply(unsigned numSamples,
 	                     float rateBPM,
+	                     float wahSlack, float wahSpeed, float wahHold, float wahRate, float wahSpeak, float wahCut, float wahWet,
 	                     float cpRate, float cpWet, bool isChorus,
 	                     float delayInSec, float delayWet, float delayFeedback, float delayFeedbackCutoff,
 	                     float postCutoff, float postQ, float postDrivedB, float postWet,
@@ -123,7 +124,7 @@ namespace SFM
 	                     float masterVol,
 	                     const float *pLeftIn, const float *pRightIn, float *pLeftOut, float *pRightOut)
 	{
-		// Other parameters are checked in functions they're passed to?
+		// Other parameters are checked in functions they're passed to!
 		// FIXME: is this complete?
 		SFM_ASSERT(nullptr != pLeftIn  && nullptr != pRightIn);
 		SFM_ASSERT(nullptr != pLeftOut && nullptr != pRightOut);
@@ -153,14 +154,31 @@ namespace SFM
 
 		 ------------------------------------------------------------------------------------------------------ */
 
+		m_curWahSlack.SetTarget(wahSlack);
+		m_curWahSpeed.SetTarget(wahSpeed);
+		m_curWahHold.SetTarget(wahHold);
+		m_curWahRate.SetTarget(wahRate);
+		m_curWahSpeak.SetTarget(wahSpeak);
+		m_curWahCut.SetTarget(wahCut);
+		m_curWahWet.SetTarget(wahWet);
+
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
 			float sampleL = *pLeftIn++;
 			float sampleR = *pRightIn++;
 //			float sampleL = m_pBufL[iSample];
 //			float sampleR = m_pBufR[iSample];
+			
+			m_wah.SetParameters(
+				m_curWahSlack.Sample(),
+				m_curWahSpeed.Sample(),
+				m_curWahHold.Sample(),
+				m_curWahRate.Sample(),
+				m_curWahSpeak.Sample(),
+				m_curWahCut.Sample(),
+				m_curWahWet.Sample()
+			);
 
-			// FIXME: set parameters
 			m_wah.Apply(sampleL, sampleR);
 
 			m_pBufL[iSample] = sampleL;
@@ -409,7 +427,8 @@ namespace SFM
 				m_curCompGaindB.Sample(),
 				m_curCompAttack.Sample(),
 				m_curCompRelease.Sample(),
-				m_curCompLookahead.Sample());
+				m_curCompLookahead.Sample()
+			);
 			
 			m_compressor.Apply(sampleL, sampleR);
 

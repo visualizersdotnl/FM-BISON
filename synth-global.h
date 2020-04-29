@@ -192,7 +192,21 @@ namespace SFM
 	const float kMinCompRelease      =   0.f;
 	const float kMaxCompRelease      =  0.1f;
 	const float kDefCompRelease      = 0.03f; // Tested default
-	 
+
+	// Auto-wah range & defaults
+	const float kMinWahSlack         = 0.01f;
+	const float kMaxWahSlack         = 0.1f;
+	const float kDefWahSlack         = kMinWahSlack;
+	const float kMinWahSpeed         = 0.f;
+	const float kMaxWahSpeed         = 1.f;
+	const float kDefWahSpeed         = 0.01f;
+	const float kMinWahHold          = 0.f;
+	const float kMaxWahHold          = 0.1f;
+	const float kDefWahHold          = 0.1f;
+	const float kMinWahRate          = 0.f;
+	const float kMaxWahRate          = 3.f;
+	const float kDefWahRate          = 0.435381f; // Taken from synth-DX7-LFO-table.h
+
 	// Low cut (for post-pass DC blocker)
 	const float kLowCutHz = 16.f;
 

@@ -138,8 +138,10 @@ namespace SFM
 		{
 			if (nullptr != m_postPass)
 			{
-				// Reset delay only, for now
-				m_postPass->ResetDelay();
+				// Create a new instance, that way we won't have to fiddle with details
+				// However, do *not* call this often while rendering
+				delete m_postPass;
+				m_postPass = new PostPass(m_sampleRate, m_samplesPerBlock, m_Nyquist);
 			}
 		}
 		

@@ -39,6 +39,7 @@ namespace SFM
 
 		void Apply(unsigned numSamples,
 		           float rateBPM, /* See impl. for details! */
+				   float wahSlack, float wahSpeed, float wahHold, float wahRate, float wahSpeak, float wahCut, float wahWet,
 		           float cpRate, float cpWet, bool isChorus,
 		           float delayInSec, float delayWet, float delayFeedback, float delayFeedbackCutoff,
 		           float postCutoff, float postQ, float postDrivedB, float postWet,
@@ -47,19 +48,6 @@ namespace SFM
 		           float compPeakToRMS, float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead,
 		           float masterVol,
 		           const float *pLeftIn, const float *pRightIn, float *pLeftOut, float *pRightOut);
-
-		void ResetDelay()
-		{
-			m_delayLineL.Reset();
-			m_delayLineM.Reset();
-			m_delayLineR.Reset();
-			
-			// Reset to zeroes will make delay behave as if this class was freshly constructed
-			m_curDelay.Set(0.f);
-			m_curDelayWet.Set(0.f);
-			m_curDelayFeedback.Set(0.f);
-			m_curDelayFeedbackCutoff.Set(0.f);
-		}
 
 		unsigned GetOversamplingRate() const
 		{
@@ -155,6 +143,13 @@ namespace SFM
 
 		// Wahwah
 		AutoWah m_wah;
+		InterpolatedParameter<kLinInterpolate> m_curWahSlack;
+		InterpolatedParameter<kLinInterpolate> m_curWahSpeed;
+		InterpolatedParameter<kLinInterpolate> m_curWahHold;
+		InterpolatedParameter<kLinInterpolate> m_curWahRate;
+		InterpolatedParameter<kLinInterpolate> m_curWahSpeak;
+		InterpolatedParameter<kLinInterpolate> m_curWahCut;
+		InterpolatedParameter<kLinInterpolate> m_curWahWet;
 
 		// Misc.
 		InterpolatedParameter<kLinInterpolate> m_curEffectWet;

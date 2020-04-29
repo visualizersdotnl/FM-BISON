@@ -1814,6 +1814,14 @@ namespace SFM
 		m_postPass->Apply(numSamples, 
 		                  /* BPM sync. */
 						  m_freqBPM,
+						  /* Auto-wah (FIXME: apply ParameterFilter if audibly necessary) */
+						  m_patch.wahSlack,
+						  m_patch.wahSpeed,
+						  m_patch.wahHold,
+						  m_patch.wahRate,
+						  m_patch.wahSpeak,
+						  m_patch.wahCut,
+						  m_patch.wahWet,
 		                  /* Chorus/Phaser */
 						  m_effectRatePF.Apply(m_patch.cpRate), 
 						  m_effectWetPF.Apply(m_patch.cpWet), 
