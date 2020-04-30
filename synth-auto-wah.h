@@ -5,7 +5,8 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	FIXME:
-		- I've corrected for the high cut a bit so the effect does not diminish too fast, but it's late, and it can probably be done better
+		- I've corrected for the low cut a bit so the effect does not diminish too fast, but it's late, and it can probably be done better
+		- Move hardcoded values to constants on top
 		- Use BPM sync.?
 */
 
@@ -36,7 +37,7 @@ namespace SFM
 		const float kWahAttack = 0.01f;                // "Speed"  [0.01..1.0] -> How fast an upwards change in peak gains traction
 		const float kWahRelease = 0.1f;                // "Hold"   [0.0..0.1]  -> How long current peak is held
 		const float kWahLFOFreq = kDX7_LFO_To_Hz[4];   // "Rate"               -> LFO rate
-		const float kWahHiCut = 0.05f;                 // "Cut"    [0.0..1.0]  -> High pass cutoff (remainder is carried)
+		const float kWahLowCut = 0.05f;                // "Cut"    [0.0..1.0]  -> High pass cutoff (remainder is carried)
 		const float kWahVowelize = 0.f;                // "Speak"  [0.0..1.0]  -> Wet/dry of the actual formant filter (last step)
 		const float kWahWetness = 1.f;                 // [0..1]
 */
@@ -49,7 +50,7 @@ namespace SFM
 ,			m_detectorR(sampleRate, kDefWahSlack)
 ,			m_gainShaper(sampleRate, kDefWahSpeed, kDefWahHold)
 ,			m_vowelize(0.f)
-,			m_hiCut(0.f)
+,			m_lowCut(0.f)
 ,			m_wetness(0.f)
 ,			m_lookahead(kWahLookahead)
 		{
@@ -77,7 +78,7 @@ namespace SFM
 			m_LFO.SetFrequency(rate);
 
 			m_vowelize  = smoothstepf(speak);
-			m_hiCut     = cut*0.125f; // Nyquist/8 is more than enough!
+			m_lowCut    = cut*0.125f; // Nyquist/8 is more than enough!
 			m_wetness   = wetness;
 			m_lookahead = kWahLookahead;
 		}
@@ -114,7 +115,7 @@ namespace SFM
 
 			// Cut off high end and that's what we'll work with
 			float preFilteredL = delayedL, preFilteredR = delayedR;
-			m_preFilterHP.updateCoefficients(CutoffToHz(m_hiCut, m_Nyquist), 0.025, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
+			m_preFilterHP.updateCoefficients(CutoffToHz(m_lowCut, m_Nyquist, 0.f), 0.5, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
 			m_preFilterHP.tick(preFilteredL, preFilteredR);
 
 			// Store remainder to add back into mix
@@ -129,13 +130,13 @@ namespace SFM
 
 			// Run 3 12dB low pass filters in parallel (results in a formant-like timbre)
 			{
-				float curCutoff = 0.1f + m_hiCut;
+				float curCutoff = 0.1f + m_lowCut;
 				const float Q = ResoToQ(0.5f - clippedGain*0.5f);
 				
 				// Expand
 				// FIXME: always spread at least a little bit?
 				// FIXME: non-linear?
-				const float spread = (0.3f - m_hiCut/3.f)*clippedGain;
+				const float spread = (0.3f - m_lowCut/3.f)*(0.01f + (clippedGain-0.01f));
 
 				for (unsigned iPre = 0; iPre < 3; ++iPre)
 				{
@@ -197,7 +198,7 @@ namespace SFM
 
 		// Local parameters
 		float m_vowelize;
-		float m_hiCut;
+		float m_lowCut;
 		float m_wetness;
 		float m_lookahead;
 	};

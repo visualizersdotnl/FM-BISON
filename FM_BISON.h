@@ -292,6 +292,7 @@ namespace SFM
 		ParameterFilter m_postWetPF;
 		ParameterFilter m_tubeDistPF;
 		ParameterFilter m_avgVelocityPF;
+		ParameterFilter m_wahRatePF, m_wahSpeakPF, m_wahCutPF, m_wahWetPF;
 		ParameterFilter m_reverbWetPF;
 		ParameterFilter m_reverbRoomSizePF;
 		ParameterFilter m_reverbDampeningPF;

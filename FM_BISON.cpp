@@ -141,7 +141,8 @@ namespace SFM
 		m_curModulation = { 0.f, m_sampleRate, kDefParameterLatency * 1.5f /* Longer */ };
 		m_curAftertouch = { 0.f, m_sampleRate, kDefParameterLatency * 3.f  /* Longer */ };
 
-		// Set parameter filter rates to reduce noise (to default cut Hz, mostly)
+		// Set parameter filter rates to reduce automation/MIDI noise (to default cut Hz, mostly)
+		// They're kept in this class since they are pretty VST-specific and might need tweaking or another target such as embedded
 
 		// Local
 		m_LFORatePF             = { m_sampleRate, kDefParameterFilterCutHz * 0.5f /* Softer */ };
@@ -165,6 +166,10 @@ namespace SFM
 		m_postDrivePF           = { oversamplingRate };
 		m_postWetPF             = { oversamplingRate, kDefParameterFilterCutHz*0.3f /* Softer */ };
 		m_avgVelocityPF         = { oversamplingRate, kDefParameterFilterCutHz*0.1f /* Softer */ };
+		m_wahRatePF             = { m_sampleRate };
+		m_wahSpeakPF            = { m_sampleRate };
+		m_wahCutPF              = { m_sampleRate };
+		m_wahWetPF              = { m_sampleRate };
 		m_reverbWetPF           = { m_sampleRate };
 		m_reverbRoomSizePF      = { m_sampleRate };
 		m_reverbDampeningPF     = { m_sampleRate };
@@ -187,6 +192,10 @@ namespace SFM
 		m_postWetPF.Reset(m_patch.postWet);
 		m_tubeDistPF.Reset(m_patch.tubeDistort);
 //		m_avgVelocityPF.Reset(0.f);
+		m_wahRatePF.Reset(m_patch.wahRate);
+		m_wahSpeakPF.Reset(m_patch.wahSpeak);
+		m_wahCutPF.Reset(m_patch.wahCut);
+		m_wahWetPF.Reset(m_patch.wahWet);
 		m_reverbWetPF.Reset(m_patch.reverbWet);
 		m_reverbRoomSizePF.Reset(m_patch.reverbRoomSize);
 		m_reverbDampeningPF.Reset(m_patch.reverbDampening);
@@ -1817,14 +1826,14 @@ namespace SFM
 		m_postPass->Apply(numSamples, 
 		                  /* BPM sync. */
 						  m_freqBPM,
-						  /* Auto-wah (FIXME: apply ParameterFilter if audibly necessary) */
+						  /* Auto-wah (FIXME: apply more ParameterFilter if audibly necessary) */
 						  m_patch.wahSlack,
 						  m_patch.wahSpeed,
 						  m_patch.wahHold,
-						  m_patch.wahRate,
-						  m_patch.wahSpeak,
-						  m_patch.wahCut,
-						  m_patch.wahWet,
+						  m_wahRatePF.Apply(m_patch.wahRate),
+						  m_wahSpeakPF.Apply(m_patch.wahSpeak),
+						  m_wahCutPF.Apply(m_patch.wahCut),
+						  m_wahWetPF.Apply(m_patch.wahWet),
 		                  /* Chorus/Phaser */
 						  m_effectRatePF.Apply(m_patch.cpRate), 
 						  m_effectWetPF.Apply(m_patch.cpWet), 
@@ -1850,7 +1859,7 @@ namespace SFM
 						  m_reverbLP_PF.Apply(m_patch.reverbLP),
 						  m_reverbHP_PF.Apply(m_patch.reverbHP),
 						  m_reverbPreDelayPF.Apply(m_patch.reverbPreDelay),
-						  /* Compressor (FIXME: apply ParameterFilter if audibly necessary) */
+						  /* Compressor (FIXME: apply more ParameterFilter if audibly necessary) */
 						  m_patch.compPeakToRMS,
 						  m_patch.compThresholddB,
 						  m_patch.compKneedB,
