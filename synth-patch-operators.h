@@ -81,7 +81,7 @@ namespace SFM
 
 			// Envelopes
 			Envelope::Parameters envParams;
-			float envKeyScale; // Also known as tracking: shortens the envelope (and possivbly attenuates velocity) along the keys (higher)
+			float envKeyScale; // Also known as tracking: shortens the envelope along the keys (higher)
 
 			// Velocity invert (play "louder" for less amplitude/index)
 			bool velocityInvert;
