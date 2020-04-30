@@ -219,9 +219,9 @@ namespace SFM
 
 	// Default piano pedal settings & mul. range
 	const float kDefPianoPedalFalloff = 0.f;    // Slowest
-	const float kDefPianoPedalReleaseMul = 5.f; // A reasonable default
+	const float kDefPianoPedalReleaseMul = 5.f;  // A reasonable default
 	const float kPianoPedalMinReleaseMul = 1.f;
-	const float kPianoPedalMaxReleaseMul = 3.f;
+	const float kPianoPedalMaxReleaseMul = 10.f; // Rather arbitrary, in fact I'm not sure if this should be a feature at all! (FIXME)
 };
 
 #include "synth-random.h"
