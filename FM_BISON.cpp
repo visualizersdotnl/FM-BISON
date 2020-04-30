@@ -1737,8 +1737,7 @@ namespace SFM
 						// - Break this up in smaller loops writing to (sequential) buffers, and lastly store the result,
 						//   as this just can't be fast enough for production quality (release); also keep in mind that
 						//   there might come a point where we might want to render voices in chunks, to quantize MIDI
-						//   events for more accurate playback
-						// - 31/03: do this in VST?
+						//   events for more accurate playback (though I think this is preferably done by the host (VST))
 						// - Test if there are still any over- and/or undershoots
 						// - Should I use smoothstepf() for aftertouch all over?
 						//   When we regard this engine as an actual instrument: *yes*
