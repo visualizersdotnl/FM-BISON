@@ -1739,10 +1739,8 @@ namespace SFM
 						//   there might come a point where we might want to render voices in chunks, to quantize MIDI
 						//   events for more accurate playback (though I think this is preferably done by the host (VST))
 						// - Test if there are still any over- and/or undershoots
-						// - Should I use smoothstepf() for aftertouch all over?
-						//   When we regard this engine as an actual instrument: *yes*
 
-						const float sampMod = std::min<float>(1.f, curModulation.Sample() + smoothstepf(modulationAftertouch*sampAftertouch));
+						const float sampMod = std::min<float>(1.f, curModulation.Sample() + modulationAftertouch*sampAftertouch);
 						
 						// Render dry voice
 						voice.Sample(
@@ -1767,7 +1765,7 @@ namespace SFM
 							float filteredR = right;
 							
 							// Cutoff & Q, finally, for *this* sample
-							/* const */ float sampCutoff = curCutoff.Sample()*(1.f - smoothstepf(cutAfter*kMainCutoffAftertouchRange));
+							/* const */ float sampCutoff = curCutoff.Sample()*(1.f - cutAfter*kMainCutoffAftertouchRange);
 							const float sampQ = curQ.Sample()*qDiv;
 							
 							// Add some sparkle?

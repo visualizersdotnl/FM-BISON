@@ -7,7 +7,7 @@
 	I intend to keep most state [0..1] floating point for easy VST integration, however,
 	as of late this practice has been slipping in favor of (well) defined ranges.
 
-	For details see synth-global.h!
+	For (quite a few) default values & ranges see synth-global.h!
 */
 
 #pragma once

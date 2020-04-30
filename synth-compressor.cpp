@@ -20,6 +20,7 @@ namespace SFM
 			const float peakToRMS = m_curPeakToRMS.Sample();
 			/* const */ float thresholddB = m_curThresholddB.Sample();
 			const float kneedB =  m_curKneedB.Sample();
+			const float ratio = m_curRatio.Sample();
 			const float postGain = dBToGain(m_curGaindB.Sample());
 			const float lookahead = m_curLookahead.Sample();
 
@@ -55,16 +56,16 @@ namespace SFM
 			else
 			{
 				// Extra assertions (in these cases we'd get divide by zero)
-				SFM_ASSERT(0.f != m_kneedB);
-				SFM_ASSERT(0.f == m_ratio);
+				SFM_ASSERT(0.f != kneedB);
+				SFM_ASSERT(0.f == ratio);
 
 				const float delta = sumdB-thresholddB;
 				
 				// Blend the ratio from 1 to it's destination along the knee
 				const float kneeBlend = std::min<float>(delta, kneedB)/kneedB;
-				const float ratio = lerpf<float>(1.f, ratio, kneeBlend*kneeBlend);
+				const float blendRatio = lerpf<float>(1.f, ratio, kneeBlend*kneeBlend);
 
-				gaindB = -delta * (1.f - 1.f/ratio);
+				gaindB = -delta * (1.f - 1.f/blendRatio);
 			}
 
 			gaindB = m_gainShaper.Apply(gaindB);
