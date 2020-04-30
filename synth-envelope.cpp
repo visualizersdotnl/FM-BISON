@@ -75,32 +75,14 @@ namespace SFM
 
 	void Envelope::OnPianoSustain(unsigned sampleRate, double falloff, double releaseRateMul)
 	{	
-		// On piano sustain pedal behaviour:
-		// Source: Wikipedia
-		//
-		// "A sustain pedal or sustaining pedal (also called damper pedal, loud pedal, or open pedal[1]) is the most commonly used pedal in a modern piano. 
-		//  It is typically the rightmost of two or three pedals. When pressed, the sustain pedal "sustains" all the damped strings on the piano by moving all the dampers away 
-		//  from the strings and allowing them to vibrate freely. All notes played will continue to sound until the vibration naturally ceases, or until the pedal is released."
-
-		// On sustain pedal channel pressure:
-		// Source: KVR forum
-		//
-		// "As explained... the typical keyboard sustain pedal (CC#64) only outputs two values: on and off (0 and 127). Been like that forever. 
-		//  What are called half-damper pedals are indeed available, but whether or the intermediate values they output will have any effect on the sound is entirely 
-		//  dependent on how the sound is programmed, and/or whether or not the instrument you're playing is designed to respond to half-damper values 
-		//  (which vary between 0 - 127). There's also a matter of your controller and whether or not it will interpret intermediate values of CC#64 at all.
-		//
-		//  The idea that the amount of pressure on a pedal influences the sustain on a real piano is limited to a very narrow range of effectiveness. 
-		//  As you probably know, the piano pedal determines how far away from the strings the dampers are raised, but since the felt of the dampers are usually rather 
-		//  compact, the amount that you can control the vibrations of the strings with the surface of the felts is very limited."
+		SFM_ASSERT(falloff >= 0.0 && falloff <= 1.0);
+		SFM_ASSERT(releaseRateMul >= kPianoPedalMinReleaseMul && releaseRateMul <= kPianoPedalMaxReleaseMul);
 
 		//
-		// Now what does this implementation do?
-		// - Sustains at current output level unless attack phase is not finished yet
-		// - Sustain has falloff (mimicking decaying strings, parameter)
-		// - Release phase duration in multiplied (parameter)
-		// - Release phase curve is set to be linear
-		// - 2 parameters are available to "fit" patch
+		// - Sustains at current output level
+		// - Sustain falloff defines the curvature (and length) of the sustain phase
+		// - Release phase duration (rate) can be elongated by a parameter
+		// - Release phase curve is set to linear
 		//
 
 		switch (m_ADSR.getState())
@@ -112,14 +94,17 @@ namespace SFM
 		case ADSR::env_decay:
 		case ADSR::env_sustain:
 			{
-				const double falloffRatio = (-1.0 == falloff) ? 0.0 : 0.4 - falloff*0.2; // 4000 to 2000 times Nigel's default; a fine range until some tester complains ;)
+				// Falloff simply means curvature
+				const double adjFalloff = 1.0 - 0.5*falloff; // More faloff means a sharper and quicker decay (range limited because at some point it's just *too* long)
+				const double falloffRatio =  0.001 * (exp(12.0*adjFalloff)-1.0); // Copied from CalcRatio()
 				m_ADSR.pianoSustain(sampleRate, falloffRatio);
 
+				// Equal to longer release rate
 				const double releaseRate = m_ADSR.getReleaseRate();
 				m_ADSR.setReleaseRate(releaseRate*releaseRateMul);
 
-				// *Very* linear release curve (FIXME: *could* be a parameter)
-				m_ADSR.setTargetRatioR(100.f); 
+				// Linear release curve
+				m_ADSR.setTargetRatioR(CalcRatio(0.f)); 
 			}
 
 			break;

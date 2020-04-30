@@ -37,7 +37,7 @@ namespace SFM
 			// In seconds
 			float rateMul; // [kEnvMulMin..kEnvMulMin+kEnvMulRange] (synth-global.h or Arturia DX V manual)
 			
-			// Curvature
+			// Curvature (see https://www.earlevel.com/main/2013/06/23/envelope-generators-adsr-widget/ for a visualization of response)
 			float attackCurve;
 			float decayCurve;
 			float releaseCurve;

@@ -182,7 +182,7 @@ namespace SFM
 	const float kDefCompKneedB       =   1.f;
 	const float kMinCompRatio        =   1.f;
 	const float kMaxCompRatio        =  16.f;
-	const float kDefCompRatio        =   1.f;
+	const float kDefCompRatio        =   1.f; // No compression
 	const float kMinCompGaindB       =  -6.f;
 	const float kMaxCompGaindB       =  32.f; // Rather arbitrary, I want to implement automatic gain compensation (FIXME)
 	const float kDefCompGaindB       =   0.f;
@@ -221,7 +221,7 @@ namespace SFM
 	const float kDefPianoPedalFalloff = 0.f;    // Slowest
 	const float kDefPianoPedalReleaseMul = 5.f; // A reasonable default
 	const float kPianoPedalMinReleaseMul = 1.f;
-	const float kPianoPedalMaxReleaseMul = 100.f; // FIXME: why *this* much?
+	const float kPianoPedalMaxReleaseMul = 3.f;
 };
 
 #include "synth-random.h"
