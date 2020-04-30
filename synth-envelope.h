@@ -106,7 +106,7 @@ namespace SFM
 		}
 
 		// Used to emulate piano-style sustain pedal behaviour (see impl., FM_BISON.cpp & ADSR.h)
-		void OnPianoSustain(unsigned sampleRate, double falloff, double releaseRateMul);
+		void OnPianoSustain(unsigned sampleRate, float falloff, float releaseRateMul);
 
 	private:
 		unsigned m_preAttackSamples;

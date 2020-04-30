@@ -1427,8 +1427,8 @@ namespace SFM
 				Emulation of piano (or CP) behaviour.
 			*/
 
-			const double falloff = m_patch.pianoPedalFalloff;
-			const double relMul  = m_patch.pianoPedalReleaseMul;
+			const float pedalFalloff    = m_patch.pianoPedalFalloff;
+			const float pedalReleaseMul = m_patch.pianoPedalReleaseMul;
 			
 			if (true == state)
 			{
@@ -1441,12 +1441,12 @@ namespace SFM
 						voice.m_sustained = true;
 
 						// Pitch envelope is taken care of in Voice::Sample()
-						voice.m_filterEnvelope.OnPianoSustain(m_sampleRate, falloff, relMul);
+						voice.m_filterEnvelope.OnPianoSustain(m_sampleRate, pedalFalloff, pedalReleaseMul);
 
 						for (auto& voiceOp : voice.m_operators)
 							if (true == voiceOp.enabled && true == voiceOp.isCarrier)
 							{
-								voiceOp.envelope.OnPianoSustain(m_sampleRate, falloff, relMul);
+								voiceOp.envelope.OnPianoSustain(m_sampleRate, pedalFalloff, pedalReleaseMul);
 							}
 
 						Log("Voice sustained (CP): " + std::to_string(iVoice));
@@ -1463,17 +1463,6 @@ namespace SFM
 					{
 						// Voice is no longer sustained, so it can be released
 						voice.m_sustained = false;
-						
-						voice.m_filterEnvelope.OnPianoSustain(m_sampleRate, falloff, relMul);
-
-						for (auto& voiceOp : voice.m_operators)
-							if (true == voiceOp.enabled && true == voiceOp.isCarrier)
-							{
-								voiceOp.envelope.OnPianoSustain(m_sampleRate, falloff, relMul);
-							}
-						
-						// Issue NOTE_OFF
-//						NoteOff(voice.m_key, 0);
 
 						Log("Voice no longer sustained (CP): " + std::to_string(iVoice));
 					}

@@ -73,16 +73,15 @@ namespace SFM
 		m_isInfinite = false == isCarrier && parameters.release == 1.f;
 	}
 
-	void Envelope::OnPianoSustain(unsigned sampleRate, double falloff, double releaseRateMul)
+	void Envelope::OnPianoSustain(unsigned sampleRate, float falloff, float releaseRateMul)
 	{	
-		SFM_ASSERT(falloff >= 0.0 && falloff <= 1.0);
+		SFM_ASSERT(falloff >= 0.f && falloff <= 1.f);
 		SFM_ASSERT(releaseRateMul >= kPianoPedalMinReleaseMul && releaseRateMul <= kPianoPedalMaxReleaseMul);
 
 		//
 		// - Sustains at current output level
 		// - Sustain falloff defines the curvature (and length) of the sustain phase
 		// - Release phase duration (rate) can be elongated by a parameter
-		// - Release phase curve is set to linear
 		//
 
 		switch (m_ADSR.getState())
@@ -94,17 +93,15 @@ namespace SFM
 		case ADSR::env_decay:
 		case ADSR::env_sustain:
 			{
-				// Falloff simply means curvature
-				const double adjFalloff = 1.0 - 0.5*falloff; // More faloff means a sharper and quicker decay (range limited because at some point it's just *too* long)
-				const double falloffRatio =  0.001 * (exp(12.0*adjFalloff)-1.0); // Copied from CalcRatio()
-				m_ADSR.pianoSustain(sampleRate, falloffRatio);
+				// Set curvature (also effects length) of sustain phase
+				m_ADSR.pianoSustain(sampleRate, CalcRatio(0.5f + 0.5f*falloff /* Lower range isn't useful nor realistic */));
 
 				// Equal to longer release rate
 				const double releaseRate = m_ADSR.getReleaseRate();
 				m_ADSR.setReleaseRate(releaseRate*releaseRateMul);
-
-				// Linear release curve
-				m_ADSR.setTargetRatioR(CalcRatio(0.f)); 
+				
+				// At this point I wanted to adjust the release ratio to a fully linear curve, but I later realized it's 
+				// up to the patch to decide how the release of the instrument should behave
 			}
 
 			break;
