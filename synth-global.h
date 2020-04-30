@@ -203,8 +203,8 @@ namespace SFM
 	const float kMinWahHold          = 0.f;
 	const float kMaxWahHold          = 0.1f;
 	const float kDefWahHold          = 0.1f;
-	const float kMinWahRate          = 0.062506f;   // Taken from synth-DX7-LFO-table.h
-	const float kMaxWahRate          = 10.340772f;  // 
+	const float kMinWahRate          = 0.062506f;   // 
+	const float kMaxWahRate          = 47.174400f;  // Taken from synth-DX7-LFO-table.h
 	const float kDefWahRate          = 0.435381f;   //
 
 	// Low cut (for post-pass DC blocker)

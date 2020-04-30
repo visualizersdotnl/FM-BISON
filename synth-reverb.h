@@ -3,6 +3,10 @@
 	FM. BISON hybrid FM synthesis -- Reverb effect based on FreeVerb.
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
+
+	FIXME:
+		- Supply all parameters at once using a single SetParameters() function
+		- Look at Will Pirkle's book for his algorithm and perhaps consider adapting it
 */
 
 #pragma once
@@ -176,6 +180,7 @@ namespace SFM
 			freeAligned(m_buffer);
 		}
 
+	private:
 		SFM_INLINE void Reset()
 		{
 			memset(m_buffer, 0, m_totalBufSize);
@@ -192,7 +197,8 @@ namespace SFM
 			m_curLP.Set(cutHz);
 			m_curHP.Set(cutHz);
 		}
-		
+	
+	public:
 		SFM_INLINE void SetWidth(float width)
 		{
 			SFM_ASSERT(width >= SFM::kMinReverbWidth);
@@ -225,7 +231,6 @@ namespace SFM
 		}
 
 		// Samples are read & written sequentially so one buffer per channel suffices
-		// FIXME: shouldn't I stuff sample rate, Nyquist et cetera in a globally accessible place perhaps?
 		void Apply(float *pLeft, float *pRight, unsigned numSamples, float wet, float lowpass, float highpass);
 
 	private:

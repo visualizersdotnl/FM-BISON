@@ -143,13 +143,6 @@ namespace SFM
 
 		// Wahwah
 		AutoWah m_wah;
-		InterpolatedParameter<kLinInterpolate> m_curWahSlack;
-		InterpolatedParameter<kLinInterpolate> m_curWahSpeed;
-		InterpolatedParameter<kLinInterpolate> m_curWahHold;
-		InterpolatedParameter<kLinInterpolate> m_curWahRate;
-		InterpolatedParameter<kLinInterpolate> m_curWahSpeak;
-		InterpolatedParameter<kLinInterpolate> m_curWahCut;
-		InterpolatedParameter<kLinInterpolate> m_curWahWet;
 
 		// Misc.
 		InterpolatedParameter<kLinInterpolate> m_curEffectWet;

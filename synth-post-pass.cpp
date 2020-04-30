@@ -148,42 +148,19 @@ namespace SFM
 		// Only adapt the BPM if it fits in the delay line (Ableton does this so why won't we?)
 		const bool useBPM = false == (rateBPM < 1.f/kMainDelayInSec);
 
+		// Copy inputs to local buffers
+		const size_t bufSize = numSamples * sizeof(float);
+		memcpy(m_pBufL, pLeftIn, bufSize);
+		memcpy(m_pBufR, pRightIn, bufSize);
+
 		/* ----------------------------------------------------------------------------------------------------
 
 			Auto-wah
 
 		 ------------------------------------------------------------------------------------------------------ */
 
-		m_curWahSlack.SetTarget(wahSlack);
-		m_curWahSpeed.SetTarget(wahSpeed);
-		m_curWahHold.SetTarget(wahHold);
-		m_curWahRate.SetTarget(wahRate);
-		m_curWahSpeak.SetTarget(wahSpeak);
-		m_curWahCut.SetTarget(wahCut);
-		m_curWahWet.SetTarget(wahWet);
-
-		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
-		{
-			float sampleL = *pLeftIn++;
-			float sampleR = *pRightIn++;
-//			float sampleL = m_pBufL[iSample];
-//			float sampleR = m_pBufR[iSample];
-			
-			m_wah.SetParameters(
-				m_curWahSlack.Sample(),
-				m_curWahSpeed.Sample(),
-				m_curWahHold.Sample(),
-				m_curWahRate.Sample(),
-				m_curWahSpeak.Sample(),
-				m_curWahCut.Sample(),
-				m_curWahWet.Sample()
-			);
-
-			m_wah.Apply(sampleL, sampleR);
-
-			m_pBufL[iSample] = sampleL;
-			m_pBufR[iSample] = sampleR;
-		}
+		m_wah.SetParameters(wahSlack, wahSpeed, wahHold, wahRate, wahSpeak, wahCut, wahWet);
+		m_wah.Apply(m_pBufL, m_pBufR, numSamples);
 
 		/* ----------------------------------------------------------------------------------------------------
 
@@ -394,7 +371,7 @@ namespace SFM
 
 		/* ----------------------------------------------------------------------------------------------------
 
-			DC blocker, compressor, master value
+			Compressor, DC blocker, master value
 
 		 ------------------------------------------------------------------------------------------------------ */
 
