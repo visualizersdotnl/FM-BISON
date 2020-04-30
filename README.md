@@ -18,7 +18,7 @@ http://www.visualizers.nl/audio/BISON-24-04.wav
 Combining proven entrepreneurial skills and over 2 decades of programming experience
 we dipped our toes in synthesis and offer this first draft of our technology.
 
-Our goal is to create world-class efficient & high-fidelity synthesizer software.
+Our goal is to create efficient & high-fidelity synthesizer software.
 
 What inspired FM. BISON is the 1980s digital revolution chiefly based on frequency modulation (or 'FM'),
 as discovered by accident by John Chowning in 1967. This type of synthesis yields a very distinct
