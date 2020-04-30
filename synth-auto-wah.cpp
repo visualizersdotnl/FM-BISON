@@ -18,7 +18,7 @@ namespace SFM
 	{
 		for (unsigned iSample = 0; iSample  < numSamples; ++iSample)
 		{
-			// Update parameters
+			// Get/set parameters
 			const float slack = m_curSlack.Sample();
 			m_detectorL.SetRelease(slack);
 			m_detectorR.SetRelease(slack);

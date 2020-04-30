@@ -127,22 +127,10 @@ namespace SFM
 		// Low cut filter (DC blocker)
 		LowBlocker m_lowCutFilter;
 				
-		// Reverb
-		Reverb m_reverb;
-
-		// Compressor
-		Compressor m_compressor;
-		InterpolatedParameter<kLinInterpolate> m_curCompPeakToRMS;
-		InterpolatedParameter<kLinInterpolate> m_curCompThresholddB;
-		InterpolatedParameter<kLinInterpolate> m_curCompKneedB;
-		InterpolatedParameter<kLinInterpolate> m_curCompRatio;
-		InterpolatedParameter<kLinInterpolate> m_curCompGaindB;
-		InterpolatedParameter<kLinInterpolate> m_curCompAttack;
-		InterpolatedParameter<kLinInterpolate> m_curCompRelease;
-		InterpolatedParameter<kLinInterpolate> m_curCompLookahead;
-
-		// Wahwah
+		// External effects
 		AutoWah m_wah;
+		Reverb m_reverb;
+		Compressor m_compressor;
 
 		// Misc.
 		InterpolatedParameter<kLinInterpolate> m_curEffectWet;

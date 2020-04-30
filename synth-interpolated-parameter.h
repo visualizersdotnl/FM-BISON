@@ -13,7 +13,10 @@
 	a bit of an annoyance at times (see synth-post-pass.cpp for example), so in my own
 	rewrite I should address this.
 
-	FIXME: currently I use the JUCE implementation for convenience
+	FIXME: 
+		- Replace JUCE implementation currently used for convenience
+		- I'm not entirely happy with the latter 2 constructors, the top one becomes ambiguous when I set the last
+		  parameter to a default value (kDefParameterLatency), which is the case 99% of the time
 */
 
 #pragma once
@@ -47,7 +50,7 @@ namespace SFM
 			SetRate(sampleRate, time);
 			Set(value);
 		}
-	
+
 		// Initialize at value and initialize rate & time
 		InterpolatedParameter(float value, unsigned numSamples) :
 			m_value(value)

@@ -13,6 +13,7 @@
 #include "synth-global.h"
 #include "synth-followers.h"
 #include "synth-delay-line.h"
+#include "synth-interpolated-parameter.h"
 
 namespace SFM
 {
@@ -28,10 +29,17 @@ namespace SFM
 ,			m_outDelayR(sampleRate, kCompMaxDelay)
 ,			m_detectorL(sampleRate)
 ,			m_detectorR(sampleRate)
-,			m_RMSDetector(sampleRate, 0.005f /* 5MS: Reaper's compressor default */)
+,			m_RMSDetector(sampleRate, 0.01f /* 10MS: Twice Reaper's compressor default */)
 ,			m_gainShaper(sampleRate, kDefCompAttack, kDefCompRelease)
+,			m_curPeakToRMS(kDefCompPeakToRMS, sampleRate, kDefParameterLatency)
+,			m_curThresholddB(kDefCompThresholddB, sampleRate, kDefParameterLatency)
+,			m_curKneedB(kDefCompKneedB, sampleRate, kDefParameterLatency)
+,			m_curRatio(kDefCompRatio, sampleRate, kDefParameterLatency)
+,			m_curGaindB(kDefCompGaindB, sampleRate, kDefParameterLatency)
+,			m_curAttack(kDefCompAttack, sampleRate, kDefParameterLatency)
+,			m_curRelease(kDefCompRelease, sampleRate, kDefParameterLatency)
+,			m_curLookahead(0.f, sampleRate, kDefParameterLatency)
 		{
- 			SetParameters(kDefCompPeakToRMS, kDefCompThresholddB, kDefCompKneedB, kDefCompRatio, kDefCompGaindB, kDefCompAttack, kDefCompRelease, 0.f);
 		}
 
 		~Compressor() {}
@@ -47,75 +55,17 @@ namespace SFM
 			SFM_ASSERT(release >= kMinCompRelease && attack <= kMaxCompRelease);
 			SFM_ASSERT(lookahead >= 0.f && lookahead <= 0.f);
 
-			m_peakToRMS = peakToRMS;
-			m_thresholddB = thresholddB;
-			m_kneedB = kneedB;
-			m_ratio = ratio;
-			m_postGain = dBToGain(gaindB);
-
-			m_gainShaper.SetAttack(attack);
-			m_gainShaper.SetRelease(release);
-
-			m_lookahead = lookahead;
+			m_curPeakToRMS.SetTarget(peakToRMS);
+			m_curThresholddB.SetTarget(thresholddB);
+			m_curKneedB.SetTarget(kneedB);
+			m_curRatio.SetTarget(ratio);
+			m_curGaindB.SetTarget(gaindB);
+			m_curAttack.SetTarget(attack);
+			m_curRelease.SetTarget(release);
+			m_curLookahead.SetTarget(lookahead);
 		}
 
-		SFM_INLINE void Apply(float &left, float &right)
-		{
-			// Delay input signal
-			m_outDelayL.Write(left);
-			m_outDelayR.Write(right);
-
-			// Detect peak using non-delayed signal
-			const float peakOutL  = m_detectorL.Apply(left);
-			const float peakOutR  = m_detectorR.Apply(right);
-			const float peakSum   = fast_tanhf(peakOutL+peakOutR)*0.5f; // Soft clip peak sum sounds *good*
-			const float RMS       = m_RMSDetector.Run(left, right);
-			const float sum       = lerpf<float>(peakSum, RMS, m_peakToRMS);
-			const float sumdB     = (0.f != sum) ? GainTodB(sum) : kMinVolumedB;
-
-			// Crush it!
-			// I don't feel it's a problem if the knee is larger than the range on either side
-			const float halfKneedB  = m_kneedB*0.5f;
-			const float thresholddB = m_thresholddB-halfKneedB;
-
-			float gaindB;
-			if (sumdB < thresholddB)
-			{
-				gaindB = 0.f;
-			}
-			else
-			{
-				// Extra assertions (in these cases we'd get divide by zero)
-				SFM_ASSERT(0.f != m_kneedB);
-				SFM_ASSERT(0.f == m_ratio);
-
-				const float delta = sumdB-thresholddB;
-				
-				// Blend the ratio from 1 to it's destination along the knee
-				const float kneeBlend = std::min<float>(delta, m_kneedB)/m_kneedB;
-				const float ratio = lerpf<float>(1.f, m_ratio, kneeBlend*kneeBlend);
-
-				gaindB = -delta * (1.f - 1.f/ratio);
-			}
-
-			gaindB = m_gainShaper.Apply(gaindB);
-			const float gain = dBToGain(gaindB);
-			
-			// Apply to (delayed) signal w/gain
-			
-			// This is *correct*
-//			const auto  delayL   = (m_outDelayL.size() - 1)*m_lookahead;
-//			const auto  delayR   = (m_outDelayR.size() - 1)*m_lookahead; // Just in case R's size differs from L (for whatever reason)
-//			const float delayedL = m_outDelayL.Read(delayL);
-//			const float delayedR = m_outDelayR.Read(delayR);
-			
-			// This sounded better, test some more! (FIXME)
-			const float delayedL = lerpf<float>(left,  m_outDelayL.ReadNearest(-1), m_lookahead);
-			const float delayedR = lerpf<float>(right, m_outDelayR.ReadNearest(-1), m_lookahead);
-
-			left  = (delayedL*gain) * m_postGain;
-			right = (delayedR*gain) * m_postGain;
-		}
+		void Apply(float *pLeft, float *pRight, unsigned numSamples);
 
 	private:
 		const unsigned m_sampleRate;
@@ -125,12 +75,14 @@ namespace SFM
 		RMSDetector m_RMSDetector;
 		GainShaper m_gainShaper;
 
-		// Parameters
-		float m_peakToRMS;
-		float m_thresholddB;
-		float m_kneedB;
-		float m_ratio;
-		float m_postGain;
-		float m_lookahead;
+		// Interpolated parameters
+		InterpolatedParameter<kLinInterpolate> m_curPeakToRMS;
+		InterpolatedParameter<kLinInterpolate> m_curThresholddB;
+		InterpolatedParameter<kLinInterpolate> m_curKneedB;
+		InterpolatedParameter<kLinInterpolate> m_curRatio;
+		InterpolatedParameter<kLinInterpolate> m_curGaindB;
+		InterpolatedParameter<kLinInterpolate> m_curAttack;
+		InterpolatedParameter<kLinInterpolate> m_curRelease;
+		InterpolatedParameter<kLinInterpolate> m_curLookahead;
 	};
 }
