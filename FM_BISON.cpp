@@ -1825,7 +1825,7 @@ namespace SFM
 		m_postPass->Apply(numSamples, 
 		                  /* BPM sync. */
 						  m_freqBPM,
-						  /* Auto-wah (FIXME: apply more ParameterFilter if audibly necessary) */
+						  /* Auto-wah (FIXME: apply more ParameterFilter if necessary) */
 						  m_patch.wahSlack,
 						  m_patch.wahSpeed,
 						  m_patch.wahHold,
@@ -1858,7 +1858,7 @@ namespace SFM
 						  m_reverbLP_PF.Apply(m_patch.reverbLP),
 						  m_reverbHP_PF.Apply(m_patch.reverbHP),
 						  m_reverbPreDelayPF.Apply(m_patch.reverbPreDelay),
-						  /* Compressor (FIXME: apply more ParameterFilter if audibly necessary) */
+						  /* Compressor (FIXME: apply more ParameterFilter if necessary) */
 						  m_patch.compPeakToRMS,
 						  m_patch.compThresholddB,
 						  m_patch.compKneedB,

@@ -16,6 +16,16 @@ namespace SFM
 		return rateMul*rate*sampleRate;
 	}
 
+	SFM_INLINE static float CalcRatio(float curve)
+	{
+		SFM_ASSERT(curve >= 0.f && curve <= 1.f);
+		
+		curve = 1.f-curve;
+		
+		// Function taken from Nigel's own widget (https://www.earlevel.com/main/2013/06/23/envelope-generators-adsr-widget/)
+		return 0.001f * (expf(12.f*curve)-1.f);
+	}
+
 	void Envelope::Start(const Parameters &parameters, unsigned sampleRate, bool isCarrier, float keyScaling, float velScaling, float outputOnAttack)
 	{
 		SFM_ASSERT(parameters.rateMul >= kEnvMulMin && parameters.rateMul <= kEnvMulMax);
@@ -32,19 +42,9 @@ namespace SFM
 		m_ADSR.reset();
 
 		// Set ratios
-
-		// Nigel's sensible analog-style defaults
-		const float sensibleRatioA = 0.3f;
-		const float sensibleRatioDR = 0.0001f;
-		
-		// Linear ratio (give or take a tiny bit)
-		const float nearLinearRatio = 1.f;
-
-		// Blend ratios from linear to Nigel's analog-style synth. ratios
-		// Smoothstepping the ratios gives a slightly better sense of control at the edges
-		const float ratioA = lerpf<float>(nearLinearRatio, sensibleRatioA,  smoothstepf(parameters.attackCurve));
-		const float ratioD = lerpf<float>(nearLinearRatio, sensibleRatioDR, smoothstepf(parameters.decayCurve));
-		const float ratioR = lerpf<float>(nearLinearRatio, sensibleRatioDR, smoothstepf(parameters.releaseCurve));
+		const float ratioA = CalcRatio(parameters.attackCurve);
+		const float ratioD = CalcRatio(parameters.decayCurve);
+		const float ratioR = CalcRatio(parameters.releaseCurve);
 
 		m_ADSR.setTargetRatioA(ratioA);
 		m_ADSR.setTargetRatioD(ratioD);

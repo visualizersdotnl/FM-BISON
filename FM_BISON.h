@@ -34,7 +34,7 @@
 	- 'SFM' is a legacy prefix & namespace name
 
 	Third party credits (all of them public domain, please contact us if we're mistaken):
-	- ADSR (modified), original by Nigel Redmon (earlevel.com)
+	- ADSR (modified & fixed), original by Nigel Redmon (earlevel.com)
 	- SvfLinearTrapOptimised2.hpp (modified) by Fred Anton Corvest (https://github.com/FredAntonCorvest/Common-DSP)
 	- MOOG-style ladder filter 'KrajeskiModel' (https://github.com/ddiakopoulos/MoogLadders/blob/master/src/)
 	- Reverb based on FreeVerb by Volker Böhm
