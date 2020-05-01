@@ -37,7 +37,7 @@ namespace SFM
 			Reset();
 		}
 
-		void Reset()
+		SFM_INLINE void Reset()
 		{
 			memset(m_rings[0], 0, 10 * sizeof(double));
 			memset(m_rings[1], 0, 10 * sizeof(double));

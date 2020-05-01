@@ -5,8 +5,8 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	FIXME:
-		- I've corrected for the low cut a bit so the effect does not diminish too fast, but it's late, and it can probably be done better
-		- Move hardcoded values to constants on top
+		- Define constant values used in Apply() on top
+		- Use as test for Vowelizer 2.0
 		- Use BPM sync.?
 */
 
@@ -81,14 +81,18 @@ namespace SFM
 
 			// Run 3 12dB low pass filters in parallel (results in a formant-like timbre)
 			{
-				float curCutoff = 0.1f + lowCut;
-				const float Q = ResoToQ(0.5f - clippedGain*0.5f);
-				
-				// Expand
-				const float spread = (0.3f - lowCut/3.f)*(0.01f + (clippedGain-0.01f));
+				float curX = 0.1f + lowCut; // 'lowCut' adds an offset
+				const float delta = (1.f-curX)/3.f;
 
 				for (unsigned iPre = 0; iPre < 3; ++iPre)
 				{
+					const float curCutoff = expf(curX*kPI*0.1f) - 1.f; // Tame slope that should *not* exceed 0.5f within [0..1]
+					SFM_ASSERT(curCutoff <= 0.5f);
+					curX += delta;
+					
+					// More cutoff means less Q
+					const float Q = ResoToQ(1.f - curCutoff*kGoldenRatio);
+
 					const float cutHz = CutoffToHz(curCutoff, m_Nyquist);
 					m_preFilterLP[iPre].updateLowpassCoeff(cutHz, Q, m_sampleRate);
 
@@ -97,15 +101,13 @@ namespace SFM
 
 					filteredL += filterL;
 					filteredR += filterR;
-
-					curCutoff += spread;
 				}
 				
 				// Normalize
 				filteredL /= 3.f;
 				filteredR /= 3.f;
 			}
-			
+		
 			// Post filter (LP)
 			const float LFO = 0.09f*m_LFO.Sample(0.f);
 			const float cutoff = std::max<float>(0.f, clippedGain*0.9f + LFO);
@@ -115,20 +117,20 @@ namespace SFM
 			m_postFilterLP.tick(filteredL, filteredR);
 
 			// Add (low) remainder to signal
-			const float postFilterL = remainderL+filteredL;
-			const float postFilterR = remainderR+filteredR;
+			filteredL += remainderL;
+			filteredR += remainderR;
 
-			// Vowelize ("AAH" -> "UUH")
-			const float vowel_L = m_vowelizerL.Apply(postFilterL*0.5f, Vowelizer::kA, clippedGain);
-			const float vowel_R = m_vowelizerR.Apply(postFilterR*0.5f, Vowelizer::kA, clippedGain);
+			// Vowelize ("AAH")
+			const float vowel_L = m_vowelizerL.Apply(filteredL*0.5f, Vowelizer::kA, clippedGain);
+			const float vowel_R = m_vowelizerR.Apply(filteredR*0.5f, Vowelizer::kA, clippedGain);
+
+			// Mix vowel
+			filteredL = lerpf<float>(filteredL, vowel_L, vowelize);
+			filteredR = lerpf<float>(filteredR, vowel_R, vowelize);
 			
-			// Blend to final filtered mix
-			const float finalL = lerpf<float>(postFilterL, vowel_L, vowelize);
-			const float finalR = lerpf<float>(postFilterR, vowel_R, vowelize);
-
 			// Mix with dry signal
-			pLeft[iSample]  = lerpf<float>(sampleL, finalL, wetness);
-			pRight[iSample] = lerpf<float>(sampleR, finalR, wetness);
+			pLeft[iSample]  = lerpf<float>(sampleL, filteredL, wetness);
+			pRight[iSample] = lerpf<float>(sampleR, filteredR, wetness);
 		}
 	}
 }
