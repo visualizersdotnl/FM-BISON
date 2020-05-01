@@ -127,11 +127,6 @@ namespace SFM
 		SFM_ASSERT(masterVol >= kMinVolumedB && masterVol <= kMaxVolumedB);
 		SFM_ASSERT(avgVelocity >= 0.f && avgVelocity <= 1.f);
 		SFM_ASSERT(tubeDistort >= 0.f && tubeDistort <= 1.f);
-
-		// Hack for 0.9 patches (FIXME!)
-		if (tubeDrivedB < kMinTubeDrivedB)
-			tubeDrivedB = 16.f;
-
 		SFM_ASSERT(tubeDrivedB >= kMinTubeDrivedB && tubeDrivedB <= kMaxTubeDrivedB);
 
 		// Only adapt the BPM if it fits in the delay line (Ableton does this so why won't we?)

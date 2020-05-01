@@ -14,6 +14,11 @@
 
 namespace SFM
 {
+	const double kPreLowCutQ   = 0.5;
+	const float  kResoRange    = 0.9f;
+	const float  kCurveOffs    = 0.1f;  // [0..1]
+	const float  kCutOscRange  = 0.09f; // Keep it small!
+
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples)
 	{
 		for (unsigned iSample = 0; iSample  < numSamples; ++iSample)
@@ -50,7 +55,8 @@ namespace SFM
 			// Calculate gain
 			const float gaindB      = m_gainShaper.Apply(sumdB);
 			const float gain        = dBToGain(gaindB);
-			const float clippedGain = fast_tanhf(gain);
+//			const float clippedGain = fast_tanhf(gain);
+			const float clippedGain = gain;
 			
 			// Grab (delayed) signal
 			
@@ -66,7 +72,7 @@ namespace SFM
 
 			// Cut off high end and that's what we'll work with
 			float preFilteredL = delayedL, preFilteredR = delayedR;
-			m_preFilterHP.updateCoefficients(CutoffToHz(lowCut, m_Nyquist, 0.f), 0.5, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
+			m_preFilterHP.updateCoefficients(CutoffToHz(lowCut, m_Nyquist, 0.f), kPreLowCutQ, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
 			m_preFilterHP.tick(preFilteredL, preFilteredR);
 
 			// Store remainder to add back into mix
@@ -77,11 +83,13 @@ namespace SFM
 			delayedL = preFilteredL;
 			delayedR = preFilteredR;
 
+			const float LFO = m_LFO.Sample(0.f);
+
 			float filteredL = 0.f, filteredR = 0.f;
 
 			// Run 3 12dB low pass filters in parallel (results in a formant-like timbre)
 			{
-				float curX = 0.1f + lowCut; // 'lowCut' adds an offset
+				float curX = kCurveOffs + lowCut; // 'lowCut' adds an offset
 				const float delta = (1.f-curX)/3.f;
 
 				for (unsigned iPre = 0; iPre < 3; ++iPre)
@@ -91,7 +99,7 @@ namespace SFM
 					curX += delta;
 					
 					// More cutoff means less Q
-					const float Q = ResoToQ(1.f - curCutoff*kGoldenRatio);
+					const float Q = ResoToQ(0.5f - curCutoff);
 
 					const float cutHz = CutoffToHz(curCutoff, m_Nyquist);
 					m_preFilterLP[iPre].updateLowpassCoeff(cutHz, Q, m_sampleRate);
@@ -109,10 +117,13 @@ namespace SFM
 			}
 		
 			// Post filter (LP)
-			const float LFO = 0.09f*m_LFO.Sample(0.f);
-			const float cutoff = std::max<float>(0.f, clippedGain*0.9f + LFO);
+			const float base = 1.f - kCutOscRange*2.f;                               // Reserve twice the range so the LFO never closes the filter
+			const float cutoff = kCutOscRange + clippedGain*base + kCutOscRange*LFO; //
 			const float cutHz = CutoffToHz(cutoff, m_Nyquist);
-			const float Q = ResoToQ(0.9f - (0.15f*wetness + clippedGain*0.65f));
+			
+			// Lower signal more Q
+			const float Q = ResoToQ(kResoRange - kResoRange*clippedGain);
+
 			m_postFilterLP.updateLowpassCoeff(cutHz, Q, m_sampleRate);
 			m_postFilterLP.tick(filteredL, filteredR);
 

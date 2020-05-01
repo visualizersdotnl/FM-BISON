@@ -58,8 +58,8 @@ namespace SFM
 		const float rateMul = parameters.rateMul*keyScaling; // For ex. key scaling can make the envelope shorter
 
 		const float attack   = CalcRate(rateMul, parameters.attack, sampleRate);
-		const float decay    = CalcRate(rateMul*velScaling, parameters.decay, sampleRate);   // Velocity scaling can lengthen the decay phase
-		const float release  = CalcRate(rateMul/velScaling, parameters.release, sampleRate); // Velocity scaling can shorten the attack phase
+		const float decay    = CalcRate(rateMul*velScaling, parameters.decay, sampleRate); // Velocity scaling can lengthen the decay phase
+		const float release  = CalcRate(rateMul, parameters.release, sampleRate);
 
 		m_ADSR.setAttackRate(attack);
 		m_ADSR.setDecayRate(decay);
