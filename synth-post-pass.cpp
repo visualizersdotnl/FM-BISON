@@ -190,7 +190,7 @@ namespace SFM
 		else
 		{
 			// Locked to BPM
-			SFM_ASSERT(kMaxChorusSpeed >= kMaxPhaserSpeed);
+			static_assert(kMaxChorusSpeed >= kMaxPhaserSpeed);
 			SetChorusRate(rateBPM, kMaxChorusSpeed/kMaxPhaserSpeed);
 			SetPhaserRate(rateBPM, 1.f);
 		}
@@ -445,7 +445,7 @@ namespace SFM
 		
 		// Sweep cutoff frequency around center
 		constexpr float rangeMul = 0.25f;
-		SFM_ASSERT(rangeMul <= 0.5f);
+		static_assert(rangeMul <= 0.5f);
 		const float range = m_Nyquist*rangeMul;
 		const float cutoffCentre = m_Nyquist*0.5f + range*sweepMod;
 		

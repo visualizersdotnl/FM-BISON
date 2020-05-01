@@ -4,10 +4,11 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	I intend to keep most state [0..1] floating point for easy VST integration, however,
-	as of late this practice has been slipping in favor of (well) defined ranges.
+	This is the parent patch, which contains a set of our FM operators and all parameters for global
+	features.
 
-	For (quite a few) default values & ranges see synth-global.h!
+	In case a parameter does not come with a comment it can be most likely be normalized ([0..1]) range,
+	though in some times it helps to look at synth-global.h; it *should* be documented here so it's a FIXME.
 */
 
 #pragma once
@@ -34,10 +35,10 @@ namespace SFM
 
 	struct Patch
 	{
-		// Dry FM patch
-		FM_Patch patch;
+		// FM operators
+		PatchOperators operators;
 		
-		// Voice mode (FIXME: implement unison)
+		// Voice mode
 		enum VoiceMode
 		{
 			kPoly,   // Pure polyphony
@@ -172,7 +173,7 @@ namespace SFM
 		void ResetToEngineDefaults()
 		{
 			// Reset patch
-			patch.ResetToEngineDefaults();
+			operators.ResetToEngineDefaults();
 			
 			// Polyphonic
 			voiceMode = kPoly;

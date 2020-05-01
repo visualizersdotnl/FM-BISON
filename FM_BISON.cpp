@@ -499,7 +499,7 @@ namespace SFM
 
 	 ------------------------------------------------------------------------------------------------------ */
 
-	SFM_INLINE static float CalcKeyScaling(unsigned key, const FM_Patch::Operator &patchOp)
+	SFM_INLINE static float CalcKeyScaling(unsigned key, const PatchOperators::Operator &patchOp)
 	{
 		SFM_ASSERT(key >= 0 && key <= 127);
 		const float normalizedKey = key/127.f;
@@ -510,7 +510,7 @@ namespace SFM
 //		return patchOp.envKeyScale*normalizedKey;
 	}
 
-	SFM_INLINE static float CalcCutoffScaling(unsigned key, const FM_Patch::Operator &patchOp)
+	SFM_INLINE static float CalcCutoffScaling(unsigned key, const PatchOperators::Operator &patchOp)
 	{
 		SFM_ASSERT(key >= 0 && key <= 127);
 		const float normalizedKey = key/127.f;
@@ -521,7 +521,7 @@ namespace SFM
 //		return patchOp.cutoffKeyScale*normalizedKey;
 	}
 
-	SFM_INLINE static float CalcPanningAngle(const FM_Patch::Operator &patchOp)
+	SFM_INLINE static float CalcPanningAngle(const PatchOperators::Operator &patchOp)
 	{
 		SFM_ASSERT(fabsf(patchOp.panning) <= 1.f);
 		const float panAngle = (patchOp.panning+1.f)*0.5f;
@@ -529,7 +529,7 @@ namespace SFM
 	}
 
 	// Calculate operator frequency
-	float Bison::CalcOpFreq(float fundamentalFreq, const FM_Patch::Operator &patchOp)
+	float Bison::CalcOpFreq(float fundamentalFreq, const PatchOperators::Operator &patchOp)
 	{
 		float frequency;
 		if (true == patchOp.fixed)
@@ -568,7 +568,7 @@ namespace SFM
 	}
 
 	// Calculate operator amplitude, also referred to in FM lingo as (modulation) "index"
-	float Bison::CalcOpIndex(unsigned key, float velocity, const FM_Patch::Operator &patchOp)
+	float Bison::CalcOpIndex(unsigned key, float velocity, const PatchOperators::Operator &patchOp)
 	{ 
 		// Calculate output in linear domain
 		float output = patchOp.output;
@@ -698,7 +698,7 @@ namespace SFM
 		voice.m_LFO.Initialize(Oscillator::kSine, m_globalLFO->GetFrequency(), m_sampleRate, phaseAdj+phaseJitter, 0.f); // FIXME: more forms!
 
 		// Get dry FM patch		
-		FM_Patch &patch = m_patch.patch;
+		PatchOperators &patchOps = m_patch.operators;
 
 		// Default glide (in case frequency is manipulated whilst playing)
 		voice.freqGlide = kDefPolyFreqGlide;
@@ -710,7 +710,7 @@ namespace SFM
 		// Set up voice operators
 		for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
 		{
-			const FM_Patch::Operator &patchOp = patch.operators[iOp];
+			const PatchOperators::Operator &patchOp = patchOps.operators[iOp];
 			Voice::Operator &voiceOp = voice.m_operators[iOp];
 
 			voiceOp.enabled   = patchOp.enabled;
@@ -731,20 +731,20 @@ namespace SFM
 				
 				switch (patchOp.filterType)
 				{
-				case FM_Patch::Operator::kNoFilter:
+				case PatchOperators::Operator::kNoFilter:
 					// FIXME: this just passes everything through, but I should perhaps add a full pass-through to the SVF impl.
 					voiceOp.filterSVF.updateCoefficients(CutoffToHz(1.f, m_Nyquist), ResoToQ(0.f), SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
 					break;
 
-				case FM_Patch::Operator::kLowpassFilter:
+				case PatchOperators::Operator::kLowpassFilter:
 					voiceOp.filterSVF.updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
 					break;
 
-				case FM_Patch::Operator::kHighpassFilter:
+				case PatchOperators::Operator::kHighpassFilter:
 					voiceOp.filterSVF.updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
 					break;
 
-				case FM_Patch::Operator::kBandpassFilter:
+				case PatchOperators::Operator::kBandpassFilter:
 					voiceOp.filterSVF.updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
 					break;
 						
@@ -879,8 +879,8 @@ namespace SFM
 		// This is specifically designed for piano, guitar et cetera
 		const float envVelScaling = 1.f + powf(velocity, 2.f)*m_patch.velocityScaling;
 
-		// Get dry FM patch		
-		FM_Patch &patch = m_patch.patch;
+		// Get patch operators		
+		PatchOperators &patchOps = m_patch.operators;
 
 		// Calc. attenuated glide (using new velocity, feels more natural)
 		float monoGlide = m_patch.monoGlide;
@@ -890,7 +890,7 @@ namespace SFM
 		// Set up voice operators
 		for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
 		{
-			const FM_Patch::Operator &patchOp = patch.operators[iOp];
+			const PatchOperators::Operator &patchOp = patchOps.operators[iOp];
 			Voice::Operator &voiceOp = voice.m_operators[iOp];
 
 			voiceOp.enabled   = patchOp.enabled;
@@ -913,20 +913,20 @@ namespace SFM
 				
 					switch (patchOp.filterType)
 					{
-					case FM_Patch::Operator::kNoFilter:
+					case PatchOperators::Operator::kNoFilter:
 						// FIXME: this just passes everything through, but I should perhaps add a full pass-through to the SVF impl.
 						voiceOp.filterSVF.updateCoefficients(CutoffToHz(1.f, m_Nyquist), ResoToQ(0.f), SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
 						break;
 
-					case FM_Patch::Operator::kLowpassFilter:
+					case PatchOperators::Operator::kLowpassFilter:
 						voiceOp.filterSVF.updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
 						break;
 
-					case FM_Patch::Operator::kHighpassFilter:
+					case PatchOperators::Operator::kHighpassFilter:
 						voiceOp.filterSVF.updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
 						break;
 
-					case FM_Patch::Operator::kBandpassFilter:
+					case PatchOperators::Operator::kBandpassFilter:
 						voiceOp.filterSVF.updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
 						break;
 						
@@ -1135,7 +1135,7 @@ namespace SFM
 								if (true == voiceOp.enabled)
 								{
 									const float fundamentalFreq = voice.m_fundamentalFreq;
-									const FM_Patch::Operator &patchOp = m_patch.patch.operators[iOp];
+									const PatchOperators::Operator &patchOp = m_patch.operators.operators[iOp];
 
 									// Operator velocity
 									const float opVelocity = (false == patchOp.velocityInvert) ? voice.m_velocity : 1.f-voice.m_velocity;
@@ -1562,7 +1562,7 @@ namespace SFM
 		SvfLinearTrapOptimised2::FLT_TYPE filterType1; // Actually the *second* step if 'secondFilterpass' is true, and the only if it's false
 		SvfLinearTrapOptimised2::FLT_TYPE filterType2 = SvfLinearTrapOptimised2::NO_FLT_TYPE;
 		
-		SFM_ASSERT(16.f >= kMaxFilterResonance);
+		static_assert(16.f >= kMaxFilterResonance);
 		
 		// Set target cutoff (Hz) & Q
 		const float normCutoff = m_cutoffPF.Apply(m_patch.cutoff);
@@ -1580,7 +1580,6 @@ namespace SFM
 		float secondQOffs = 0.f;            // Offset on Q for second BISON stage
 		float qDiv = 1.f;                   // Divider on Q to tame the resonance range (main stage only, tweaked for 16!)
 		float fullCutoff;                   // Full cutoff used to apply VCF
-//		bool isLowAndHigh = false;          // Used to limit LOW_PASS_FILTER range
 
 		switch (m_patch.filterType)
 		{

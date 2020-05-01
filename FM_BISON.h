@@ -222,8 +222,8 @@ namespace SFM
 		void FreeVoice(int index);    // Free voice
 		void StealVoice(int index);   // Steal voice
 
-		float CalcOpFreq(float fundamentalFreq, const FM_Patch::Operator &patchOp);
-		float CalcOpIndex(unsigned key, float velocity, const FM_Patch::Operator &patchOp);
+		float CalcOpFreq(float fundamentalFreq, const PatchOperators::Operator &patchOp);
+		float CalcOpIndex(unsigned key, float velocity, const PatchOperators::Operator &patchOp);
 
 		void InitializeVoice(const VoiceRequest &request, unsigned iVoice);
 		void InitializeMonoVoice(const VoiceRequest &request);

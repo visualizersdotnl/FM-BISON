@@ -84,9 +84,9 @@ namespace SFM
 	
 					for (unsigned iSaw = 0; iSaw < kNumPolySupersaws; ++iSaw)
 					{
-						auto &phase = m_phases[iSaw];
-						const float subPolyWidth = polyWidthScale*CalcPolyWidth(phase.GetFrequency(), sampleRate, polyWidthRatio);
-						signal += oscPolySaw(phase.Sample(), subPolyWidth)*subGain;
+						auto &phaseObj = m_phases[iSaw];
+						const float subPolyWidth = polyWidthScale*CalcPolyWidth(phaseObj.GetFrequency(), sampleRate, polyWidthRatio);
+						signal += oscPolySaw(phaseObj.Sample(), subPolyWidth)*subGain;
 					}
 				}
 
