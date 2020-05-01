@@ -28,7 +28,7 @@ namespace SFM
 			m_detectorL.SetRelease(slack);
 			m_detectorR.SetRelease(slack);
 
-			m_gainShaper.SetAttack(m_curSpeed.Sample());
+			m_gainShaper.SetAttack(m_curAttack.Sample());
 			m_gainShaper.SetRelease(m_curHold.Sample());
 
 			m_LFO.SetFrequency(m_curRate.Sample());

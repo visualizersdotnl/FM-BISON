@@ -197,9 +197,9 @@ namespace SFM
 	const float kMinWahSlack         = 0.01f;
 	const float kMaxWahSlack         = 0.1f;
 	const float kDefWahSlack         = kMinWahSlack;
-	const float kMinWahSpeed         = 0.f;
-	const float kMaxWahSpeed         = 0.1f;
-	const float kDefWahSpeed         = 0.02f;
+	const float kMinWahAttack        = 0.f;
+	const float kMaxWahAttack        = 0.1f;
+	const float kDefWahAttack        = kGoldenRatio*0.1f;
 	const float kMinWahHold          = 0.f;
 	const float kMaxWahHold          = 0.1f;
 	const float kDefWahHold          = 0.1f;

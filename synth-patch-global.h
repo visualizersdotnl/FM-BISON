@@ -84,7 +84,7 @@ namespace SFM
 
 		// Auto-wah settings (see synth-global.h & synth-auto-wah.h for non-normalized parameters)
 		float wahSlack;
-		float wahSpeed;
+		float wahAttack;
 		float wahHold;
 		float wahRate;
 		float wahSpeak;
@@ -215,7 +215,7 @@ namespace SFM
 
 			// Default auto-wah, 100% dry
 			wahSlack = kDefWahSlack;
-			wahSpeed = kDefWahSpeed;
+			wahAttack = kDefWahAttack;
 			wahHold = kDefWahHold;
 			wahRate = kDefWahRate;
 			wahSpeak = 0.f;

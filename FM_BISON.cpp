@@ -1814,7 +1814,7 @@ namespace SFM
 						  m_freqBPM,
 						  /* Auto-wah (FIXME: apply more ParameterFilter if necessary) */
 						  m_patch.wahSlack,
-						  m_patch.wahSpeed,
+						  m_patch.wahAttack,
 						  m_patch.wahHold,
 						  m_wahRatePF.Apply(m_patch.wahRate),
 						  m_wahSpeakPF.Apply(m_patch.wahSpeak),

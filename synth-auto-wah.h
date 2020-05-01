@@ -35,9 +35,9 @@ namespace SFM
 ,			m_outDelayR(sampleRate, kWahDelay)
 ,			m_detectorL(sampleRate, kDefWahSlack)
 ,			m_detectorR(sampleRate, kDefWahSlack)
-,			m_gainShaper(sampleRate, kDefWahSpeed, kDefWahHold)
+,			m_gainShaper(sampleRate, kDefWahAttack, kDefWahHold)
 ,			m_curSlack(kDefWahSlack, sampleRate, kDefParameterLatency)
-,			m_curSpeed(kDefWahSpeed, sampleRate, kDefParameterLatency)
+,			m_curAttack(kDefWahAttack, sampleRate, kDefParameterLatency)
 ,			m_curHold(kDefWahHold, sampleRate, kDefParameterLatency)
 ,			m_curRate(kDefWahRate, sampleRate, kDefParameterLatency)
 ,			m_curSpeak(0.f, sampleRate, kDefParameterLatency)
@@ -50,10 +50,10 @@ namespace SFM
 
 		~AutoWah() {}
 
-		SFM_INLINE void SetParameters(float slack, float speed, float hold, float rate, float speak, float cut, float wetness)
+		SFM_INLINE void SetParameters(float slack, float attack, float hold, float rate, float speak, float cut, float wetness)
 		{
 			SFM_ASSERT(slack >= kMinWahSlack && slack <= kMaxWahSlack);
-			SFM_ASSERT(speed >= kMinWahSpeed && speed <= kMaxWahSpeed);
+			SFM_ASSERT(attack >= kMinWahAttack && attack <= kMaxWahAttack);
 			SFM_ASSERT(hold >= kMinWahHold && hold <= kMaxWahHold);
 			SFM_ASSERT(rate >= kMinWahRate && rate <= kMaxWahRate);
 			SFM_ASSERT(speak >= 0.f && speak <= 1.f);
@@ -61,7 +61,7 @@ namespace SFM
 			SFM_ASSERT(wetness >= 0.f && wetness <= 1.f);
 
 			m_curSlack.SetTarget(slack);
-			m_curSpeed.SetTarget(speed);
+			m_curAttack.SetTarget(attack);
 			m_curHold.SetTarget(hold);
 			m_curRate.SetTarget(rate);
 			m_curSpeak.SetTarget(speak);
@@ -86,7 +86,7 @@ namespace SFM
 		
 		// Interpolated parameters
 		InterpolatedParameter<kLinInterpolate> m_curSlack;
-		InterpolatedParameter<kLinInterpolate> m_curSpeed;
+		InterpolatedParameter<kLinInterpolate> m_curAttack;
 		InterpolatedParameter<kLinInterpolate> m_curHold;
 		InterpolatedParameter<kLinInterpolate> m_curRate;
 		InterpolatedParameter<kLinInterpolate> m_curSpeak;

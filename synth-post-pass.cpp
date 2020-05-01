@@ -103,7 +103,7 @@ namespace SFM
 
 	void PostPass::Apply(unsigned numSamples,
 	                     float rateBPM,
-	                     float wahSlack, float wahSpeed, float wahHold, float wahRate, float wahSpeak, float wahCut, float wahWet,
+	                     float wahSlack, float wahAttack, float wahHold, float wahRate, float wahSpeak, float wahCut, float wahWet,
 	                     float cpRate, float cpWet, bool isChorus,
 	                     float delayInSec, float delayWet, float delayFeedback, float delayFeedbackCutoff,
 	                     float postCutoff, float postQ, float postDrivedB, float postWet,
@@ -143,7 +143,7 @@ namespace SFM
 
 		 ------------------------------------------------------------------------------------------------------ */
 
-		m_wah.SetParameters(wahSlack, wahSpeed, wahHold, wahRate, wahSpeak, wahCut, wahWet);
+		m_wah.SetParameters(wahSlack, wahAttack, wahHold, wahRate, wahSpeak, wahCut, wahWet);
 		m_wah.Apply(m_pBufL, m_pBufR, numSamples);
 
 		/* ----------------------------------------------------------------------------------------------------
