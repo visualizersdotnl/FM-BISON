@@ -18,8 +18,8 @@ namespace SFM
 	public:
 		enum Vowel
 		{
-			kA,
 			kI,
+			kA,
 			kE,
 			kO,
 			kU,
@@ -45,10 +45,8 @@ namespace SFM
 
 		/*
 			Notes:
-
-			- Comment @ http:://www.musicdsp.org by Stefan Hallen, verbatim:
-			  "Yeah, morphing lineary between the coefficients works just fine. The distortion I only get when not lowering the amplitude of the input. So I lower it :) Larsby, you can approximate filter curves quite easily, check your dsp literature :)"
-			- Do not mix both Apply() functions without calling Reset() first!
+				- Do not mix both Apply() functions without calling Reset() first!
+				- Reduce input signal by approx. -3dB (quirky coefficients)
 		*/
 
 		SFM_INLINE float Apply(float sample, Vowel vowel)
@@ -57,8 +55,11 @@ namespace SFM
 		}
 
 		// Interpolates towards the next vowel (wraps around)
-		SFM_INLINE float Apply(float sample, Vowel vowelA, float delta)
+		SFM_INLINE float Apply(float sample, unsigned vowel, float delta)
 		{
+			SFM_ASSERT(delta >= 0.f && delta <= 1.f);
+
+			const Vowel vowelA = Vowel( vowel % kNumVowels );
 			const Vowel vowelB = Vowel( (vowelA+1) % kNumVowels );
 			const float result = lerpf<float>(Calculate(sample, vowelA, 0), Calculate(sample, vowelB, 1), delta);
 			return result;

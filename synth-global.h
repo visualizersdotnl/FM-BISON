@@ -196,15 +196,15 @@ namespace SFM
 	// Auto-wah range & defaults
 	constexpr float kMinWahSlack         = 0.01f;
 	constexpr float kMaxWahSlack         = 0.1f;
-	constexpr float kDefWahSlack         = kMinWahSlack;
+	constexpr float kDefWahSlack         = 0.05f; // Not too harsh (lower values cause a peak ripple, something you'd have to *want* instead of have)
 	constexpr float kMinWahAttack        = 0.f;
 	constexpr float kMaxWahAttack        = 0.1f;
-	constexpr float kDefWahAttack        = kGoldenRatio*0.1f;
+	constexpr float kDefWahAttack        = 0.025f;
 	constexpr float kMinWahHold          = 0.f;
 	constexpr float kMaxWahHold          = 0.1f;
 	constexpr float kDefWahHold          = 0.1f;
-	constexpr float kMinWahRate          = 0.062506f;  // 
-	constexpr float kMaxWahRate          = 1.284220f;  // Taken from synth-DX7-LFO-table.h (first 8 values)
+	constexpr float kMinWahRate          = 0.f; 
+	constexpr float kMaxWahRate          = 1.284220f;  // Taken from synth-DX7-LFO-table.h
 	constexpr float kDefWahRate          = 0.435381f;  //
 
 	// Low cut (for post-pass DC blocker)

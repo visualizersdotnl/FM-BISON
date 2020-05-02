@@ -25,8 +25,8 @@ namespace SFM
 
 	public:
 		// Constant parameters
-		const float kWahDelay = 0.005f; // 5MS             
-		const float kWahLookahead = kGoldenRatio*0.1f; // Arbitrary guess, sounds OK
+		constexpr float kWahDelay = 0.01f; // 10MS             
+		constexpr float kWahLookahead = kGoldenRatio*0.1f; // Arbitrary, sounds OK
 
 		AutoWah(unsigned sampleRate, unsigned Nyquist) :
 			m_sampleRate(sampleRate), m_Nyquist(Nyquist)
@@ -44,7 +44,7 @@ namespace SFM
 ,			m_curWet(0.f, sampleRate, kDefParameterLatency)
 ,			m_lookahead(kWahLookahead)
 		{
-			m_LFO.Initialize(Oscillator::Waveform::kTriangle, kDefWahRate, m_sampleRate, 0.f, 0.f);
+			m_LFO.Initialize(Oscillator::Waveform::kSine, kDefWahRate, m_sampleRate, 0.f, 0.f);
 		}
 
 		~AutoWah() {}

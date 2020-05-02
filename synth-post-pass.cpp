@@ -141,6 +141,8 @@ namespace SFM
 
 			Auto-wah
 
+			Can cause latency, but only if in use (i.e. wet).
+
 		 ------------------------------------------------------------------------------------------------------ */
 
 		m_wah.SetParameters(wahSlack, wahAttack, wahHold, wahRate, wahSpeak, wahCut, wahWet);
@@ -149,6 +151,8 @@ namespace SFM
 		/* ----------------------------------------------------------------------------------------------------
 
 			Chorus/Phaser + Delay
+
+			Should not introduce any latency.
 
 		 ------------------------------------------------------------------------------------------------------ */
 
@@ -244,7 +248,7 @@ namespace SFM
 			// Feed back
 			const float curCutoff = CutoffToHz(m_curDelayFeedbackCutoff.Sample(), m_Nyquist);
 			m_delayLineL.SetFeedbackCutoff(curCutoff, m_sampleRate);
-			m_delayLineM.SetFeedbackCutoff(curCutoff, m_sampleRate);
+//			m_delayLineM.SetFeedbackCutoff(curCutoff, m_sampleRate);
 			m_delayLineR.SetFeedbackCutoff(curCutoff, m_sampleRate);
 
 			const float curFeedbackDry = m_curDelayFeedback.Sample();
@@ -262,6 +266,13 @@ namespace SFM
 		/* ----------------------------------------------------------------------------------------------------
 
 			Oversampled: 24dB ladder filter, tube amp. distortion
+
+			JUCE says:
+			" Choose between FIR or IIR filtering depending on your needs in term of latency and phase 
+			  distortion. With FIR filters, the phase is linear but the latency is maximised. With IIR 
+			  filtering, the phase is compromised around the Nyquist frequency but the latency is minimised. "
+
+			Currently we use the IIR version for minimal latency.
 
 		 ------------------------------------------------------------------------------------------------------ */
 
@@ -344,6 +355,8 @@ namespace SFM
 
 			Reverb
 
+			Should not introduce any unwarranted latency.
+
 		 ------------------------------------------------------------------------------------------------------ */
 
 		// Apply reverb (after post filter to avoid muddy sound)
@@ -356,6 +369,8 @@ namespace SFM
 		/* ----------------------------------------------------------------------------------------------------
 
 			Compressor
+
+			Introduces latency when 'compLookahead' is larger than zero.
 
 		 ------------------------------------------------------------------------------------------------------ */
 

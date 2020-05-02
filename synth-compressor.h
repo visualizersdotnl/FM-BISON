@@ -53,7 +53,7 @@ namespace SFM
 			SFM_ASSERT(gaindB >= kMinCompGaindB && gaindB <= kMaxCompGaindB);
 			SFM_ASSERT(attack >= kMinCompAttack && attack <= kMaxCompAttack);
 			SFM_ASSERT(release >= kMinCompRelease && attack <= kMaxCompRelease);
-			SFM_ASSERT(lookahead >= 0.f && lookahead <= 0.f);
+			SFM_ASSERT(lookahead >= 0.f && lookahead <= 1.f);
 
 			m_curPeakToRMS.SetTarget(peakToRMS);
 			m_curThresholddB.SetTarget(thresholddB);
