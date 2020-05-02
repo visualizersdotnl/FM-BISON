@@ -5,18 +5,13 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	Source: see synth-vowelizer.h
-
-	Notes:
-	- It's monaural.
-	- Coarse way of implementing a formant filter (which usually consists of multiple carefully tuned band pass filters).
-	- Effective enough for adding a bit of flair to effects.
 */
 
 #include "synth-vowelizer.h"
 
 namespace SFM
 {
-	alignas(16) static const double kVowelCoeffs[Vowelizer::kNumVowels][11]= 
+	alignas(16) static const double kVowelCoeffs[Vowelizer::kNumVowels][11] = 
 	{
 		// I
 		{ 

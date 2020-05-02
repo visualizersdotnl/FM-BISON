@@ -15,6 +15,7 @@
 #include "synth-oscillator.h"
 #include "synth-DX7-LFO-table.h"
 #include "synth-vowelizer.h"
+#include "synth-vowelizer-V2.h"
 #include "synth-interpolated-parameter.h"
 
 namespace SFM
@@ -25,8 +26,8 @@ namespace SFM
 
 	public:
 		// Constant parameters
-		constexpr float kWahDelay = 0.01f; // 10MS             
-		constexpr float kWahLookahead = kGoldenRatio*0.1f; // Arbitrary, sounds OK
+		float kWahDelay = 0.01f; // 10MS             
+		float kWahLookahead = kGoldenRatio*0.1f; // Arbitrary, sounds OK
 
 		AutoWah(unsigned sampleRate, unsigned Nyquist) :
 			m_sampleRate(sampleRate), m_Nyquist(Nyquist)

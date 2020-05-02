@@ -4,6 +4,12 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
+	Notes:
+		- It's monaural
+		- Coarse way of implementing a formant filter (which usually consists of multiple carefully tuned band pass filters)
+		- Effective enough for adding a bit of flair to effects
+		- Not equal 
+
 	Source: a contribution to http://www.musicdsp.org by alex@smartelectronix.com
 */
 

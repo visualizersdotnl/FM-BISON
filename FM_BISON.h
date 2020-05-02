@@ -58,6 +58,7 @@
 
 	Unused components:
 		- RingBuffer
+		- VowelizerV2
 	
 	Core goals:
 		- Yamaha DX7 style core FM with extensions

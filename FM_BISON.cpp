@@ -87,7 +87,7 @@ namespace SFM
 		m_samplesPerBlock  = samplesPerBlock;
 		
 		// Sample rates higher than a certain value just give us headroom and nothing else
-		m_Nyquist          = std::min<unsigned>(sampleRate>>1, unsigned(kAudibleHighHz));
+		m_Nyquist = std::min<unsigned>(sampleRate>>1, unsigned(kAudibleHighHz));
 
 		/* 
 			Reset sample rate dependent global objects:

@@ -6,7 +6,7 @@
 
 	FIXME:
 		- Use as test for Vowelizer 2.0
-		- Use BPM sync.?
+		- Use BPM sync.
 */
 
 #include "synth-auto-wah.h"
@@ -15,10 +15,7 @@
 namespace SFM
 {
 	constexpr double kPreLowCutQ      = 0.5;
-	constexpr float  kResoRange       = 0.8f;   // Paul requested this parameter to be exposed, but I think he heard a loud popping artifact that has since been fixed
-	constexpr float  kCurveOffs       = 0.1f;   // [0..1]
-	constexpr float  kCutOscRange     = 0.11f;  // Frequency (normalized) / Prime number
-	constexpr float  kPostCutoffOffs  = 0.05f;  //
+	constexpr float  kPostMaxQ        = 0.8f;   // Paul requested this parameter to be exposed, but I think he heard a loud popping artifact that has since been fixed
 	constexpr float  kVowelGain       = 0.707f; // -3dB (see synth-vowelizer.h)
 
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples)
@@ -73,8 +70,6 @@ namespace SFM
 			// Calculate gain
 			const float gaindB      = m_gainShaper.Apply(sumdB);
 			const float gain        = dBToGain(gaindB);
-			const float clippedGain = fast_tanhf(gain);
-//			const float clippedGain = gain;
 			
 			// Grab (delayed) signal
 			
@@ -100,46 +95,21 @@ namespace SFM
 			// LFO, but only proportional to gain
 			const float LFO =  m_LFO.Sample(0.f);
 
-			float filteredL = 0.f, filteredR = 0.f;
+			float filteredL = preFilteredL, filteredR = preFilteredR;
 
-			// Run 3 12dB low pass filters in parallel (results in a formant-like timbre, Maarten van Strien's idea)
-			{
-				float curX = kCurveOffs + lowCut; // 'lowCut' adds an offset
-				const float delta = (1.f-curX)/3.f;
-
-				for (unsigned iPre = 0; iPre < 3; ++iPre)
-				{
-					const float curCutoff = expf(curX*kPI*0.1f) - 1.f; // Tame slope that should *not* exceed 0.5f within [0..1]
-					SFM_ASSERT(curCutoff <= 0.5f);
-					curX += delta;
-					
-					// More cutoff means less Q
-					const float Q = ResoToQ(0.5f - curCutoff);
-
-					const float cutHz = CutoffToHz(curCutoff, m_Nyquist);
-					m_preFilterLP[iPre].updateLowpassCoeff(cutHz, Q, m_sampleRate);
-
-					float filterL = preFilteredL, filterR = preFilteredR;
-					m_preFilterLP[iPre].tick(filterL, filterR);
-
-					filteredL += filterL;
-					filteredR += filterR;
-				}
-				
-				// Normalize
-				filteredL /= 3.f;
-				filteredR /= 3.f;
-			}
+			// Vowelize (simple "IIH-AAH", using legacy Vowelizer)
+			const float vowBlend = gain;
+			const float vowelL = m_vowelizerL.Apply(filteredL*kVowelGain, Vowelizer::kI, vowBlend);
+			const float vowelR = m_vowelizerR.Apply(filteredR*kVowelGain, Vowelizer::kI, vowBlend);
+			filteredL = lerpf<float>(filteredL, vowelL, vowelize);
+			filteredR = lerpf<float>(filteredR, vowelR, vowelize);
 		
 			// Post filter (LP)
-			const float cutRoom = kPostCutoffOffs+kCutOscRange;
-			/* const */ float cutoff = cutRoom + clippedGain*(1.f-cutRoom);
-			cutoff += kCutOscRange*LFO;
-
+			const float cutoff = 0.01f + gain*(1.f-0.01f) + 0.005f*LFO;
 			const float cutHz = CutoffToHz(cutoff, m_Nyquist);
 			
-			// Lower signal more Q
-			const float Q = ResoToQ(kResoRange - kResoRange*clippedGain);
+			// Lower signal, more Q
+			const float Q = ResoToQ(kPostMaxQ - kPostMaxQ*gain);
 
 			m_postFilterLP.updateLowpassCoeff(cutHz, Q, m_sampleRate);
 			m_postFilterLP.tick(filteredL, filteredR);
@@ -148,13 +118,6 @@ namespace SFM
 			filteredL += remainderL;
 			filteredR += remainderR;
 
-			// Vowelize (simple "IIH-AAH")
-			const float vowBlend = clippedGain;
-			const float vowel_L = m_vowelizerL.Apply(filteredL*kVowelGain, Vowelizer::kI, vowBlend);
-			const float vowel_R = m_vowelizerR.Apply(filteredR*kVowelGain, Vowelizer::kI, vowBlend);
-			filteredL = lerpf<float>(filteredL, vowel_L, vowelize);
-			filteredR = lerpf<float>(filteredR, vowel_R, vowelize);
-			
 			// Mix with dry (delayed) signal
 			pLeft[iSample]  = lerpf<float>(delayedL, filteredL, wetness);
 			pRight[iSample] = lerpf<float>(delayedR, filteredR, wetness);

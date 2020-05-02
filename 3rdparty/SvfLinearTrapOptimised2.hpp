@@ -128,8 +128,7 @@ public:
 		left  = v0_left;
 		right = v0_right;
 
-		// Check if filter hasn't blown up; maybe SampleAssert() would be more correct here but I'm not sure
-		// if that strict range applies or even has to apply here (FIXME)
+		// Check if filter hasn't blown up (using SampleAssert() feels too strict)
 		SFM::FloatAssert(left);
 		SFM::FloatAssert(right);
 	}
