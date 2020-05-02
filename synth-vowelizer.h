@@ -59,16 +59,14 @@ namespace SFM
 		{
 			return Calculate(sample, vowel, 0);	
 		}
-
-		// Interpolates towards the next vowel (wraps around)
-		SFM_INLINE float Apply(float sample, unsigned vowel, float delta)
+		
+		// Interpolates to next vowel (wraps around)
+		SFM_INLINE float Apply(float sample, Vowel vowelA, float delta)
 		{
 			SFM_ASSERT(delta >= 0.f && delta <= 1.f);
 
-			const Vowel vowelA = Vowel( vowel % kNumVowels );
-			const Vowel vowelB = Vowel( (vowelA+1) % kNumVowels );
-			const float result = lerpf<float>(Calculate(sample, vowelA, 0), Calculate(sample, vowelB, 1), delta);
-			return result;
+			const Vowel vowelB = Vowel((vowelA+1) % kNumVowels);
+			return lerpf<float>(Calculate(sample, vowelA, 0), Calculate(sample, vowelB, 1), delta);
 		}
 	};
 }

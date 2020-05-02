@@ -68,8 +68,8 @@ namespace SFM
 			const float sumdB     = (0.f != sum) ? GainTodB(sum) : kMinVolumedB;
 
 			// Calculate gain
-			const float gaindB      = m_gainShaper.Apply(sumdB);
-			const float gain        = dBToGain(gaindB);
+			const float gaindB = m_gainShaper.Apply(sumdB);
+			const float gain   = dBToGain(gaindB);
 			
 			// Grab (delayed) signal
 			
