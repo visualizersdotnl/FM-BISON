@@ -8,7 +8,7 @@
 		- It's monaural
 		- Coarse way of implementing a formant filter (which usually consists of multiple carefully tuned band pass filters)
 		- Effective enough for adding a bit of flair to effects
-		- Not equal 
+		- I've started on a new version (see synth-vowelizer-V2.*)
 
 	Source: a contribution to http://www.musicdsp.org by alex@smartelectronix.com
 */
@@ -26,9 +26,9 @@ namespace SFM
 		{
 			kI,
 			kA,
+			kU,
 			kE,
 			kO,
-			kU,
 			kNumVowels
 		};
 
@@ -52,7 +52,7 @@ namespace SFM
 		/*
 			Notes:
 				- Do not mix both Apply() functions without calling Reset() first!
-				- Reduce input signal by approx. -3dB (quirky coefficients)
+s				- Reduce input signal by approx. -3dB (or 0.707; quirky coefficients)
 		*/
 
 		SFM_INLINE float Apply(float sample, Vowel vowel)

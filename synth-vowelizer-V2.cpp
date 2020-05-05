@@ -46,7 +46,7 @@ namespace SFM
 			const double frequency = kVowelFrequencies[vowel][iFormant];
 			
 			// The filter's documentation says that Q may not exceed 40.0, but so far so good :)
-			// FIXME: this ain't right!
+			// FIXME: figure out a formula of sorts to calculate this ratio to satisfaction (perhaps one that accentuates the middle band)
 			const double Q = frequency/halfBandWidth;
 
 			m_filterBP[iFormant].updateCoefficients(frequency, Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);

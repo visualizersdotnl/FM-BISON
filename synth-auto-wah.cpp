@@ -17,6 +17,7 @@ namespace SFM
 	constexpr double kPreLowCutQ      = 0.5;
 	constexpr float  kPostMaxQ        = 0.8f;   // Paul requested this parameter to be exposed, but I think he heard a loud popping artifact that has since been fixed
 	constexpr float  kVowelGain       = 0.707f; // -3dB (see synth-vowelizer.h)
+	constexpr float  kLFODepth        = 0.01f;  // In normalized freq.
 
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples)
 	{
@@ -92,12 +93,12 @@ namespace SFM
 			const float remainderL = delayedL-preFilteredL;
 			const float remainderR = delayedR-preFilteredR;
 			
-			// LFO, but only proportional to gain
+			// LFO (shall I proportion this to gain?)
 			const float LFO =  m_LFO.Sample(0.f);
 
 			float filteredL = preFilteredL, filteredR = preFilteredR;
 
-			// Vowelize (simple "IIH-AAH", using legacy Vowelizer)
+			// Vowelize (using legacy Vowelizer)
 			const float vowBlend = gain;
 			const float vowelL = m_vowelizerL.Apply(filteredL*kVowelGain, Vowelizer::kI, vowBlend);
 			const float vowelR = m_vowelizerR.Apply(filteredR*kVowelGain, Vowelizer::kI, vowBlend);
@@ -105,7 +106,7 @@ namespace SFM
 			filteredR = lerpf<float>(filteredR, vowelR, vowelize);
 		
 			// Post filter (LP)
-			const float cutoff = 0.01f + gain*(1.f-0.01f) + 0.005f*LFO;
+			const float cutoff = kLFODepth + gain*(1.f-kLFODepth) + 0.5f*kLFODepth*LFO;
 			const float cutHz = CutoffToHz(cutoff, m_Nyquist);
 			
 			// Lower signal, more Q
