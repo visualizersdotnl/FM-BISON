@@ -23,16 +23,11 @@ namespace SFM
 		/* A  */ { 660.0, 1700.0, 2400.0 }
 	};
 
-	SFM_INLINE static double RatioCurve(double x)
-	{
-		return 0.5*log((tanh(x*kPI)/(x+x))*0.1*kPI)+1.0;
-	}
-
 	void VowelizerV2::Apply(float &left, float &right, Vowel vowel)
 	{
 		SFM_ASSERT(vowel < kNumVowels);
 
-		const double bandWidth = 100.0; // 100.0, according to the article (link on top) is the avg. male voice
+		const double bandWidth = 150.0; // 100.0, according to the article (link on top) is the avg. male voice
 		const double halfBandWidth = bandWidth/2.0;
 
 		// Filter and store lower frequencies (below half band width)
@@ -57,17 +52,17 @@ namespace SFM
 			// Grab frequency
 			const double frequency = frequencies[iFormant];
 			
-			// Map this frequency along the curve to get Q; for most frequency sets this means
-			// that the middle frequency is boosted, and according to the article this happens to be
-			// the frequency that deviates/oscillates the most (so I figured why not boost it)
-			// However, it does not always map like that (for ex. Vowel::kOO)
-			const double curve = RatioCurve(-0.5 + frequency/magnitude);
-			const double Q = curve*frequency/bandWidth;
+			// So we'll map the normalized frequency on a curve, and then
+			// multiply it by frequency to bandwidth ratio; this is even worse
+			// than regarding the 3 frequencies as a 3D vector I guess
+			const double normalized = frequency/magnitude;
+			const double curve = 1.0 + 0.5*tanh(sin(normalized*kPI));
+			const double Q = curve*(frequency/bandWidth);
 
 			// The filter's documentation says that Q may not exceed 40.0, but so far so good :)
 			m_filterBP[iFormant].updateCoefficients(frequency, Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
 
-			float filterL = left, filterR = right;
+			float filterL = preL, filterR = preR;
 			m_filterBP[iFormant].tick(filterL, filterR);
 
 			filteredL += filterL;

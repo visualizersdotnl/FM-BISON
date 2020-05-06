@@ -18,7 +18,6 @@ namespace SFM
 	constexpr float  kPostMaxQ        = 0.8f;   // Paul requested this parameter to be exposed, but I think he heard a loud popping artifact that has since been fixed
 //	constexpr float  kVowelGain       = 0.707f; // -3dB (see synth-vowelizer.h, only works with current configuration)
 	constexpr float  kLFODepth        = 0.01f;  // In normalized freq.
-	constexpr float  kVowLFODepth     = 0.07f;  // Arbitrary prime number (7)
 
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples)
 	{
@@ -93,14 +92,16 @@ namespace SFM
 //			filteredR = lerpf<float>(filteredR, vowelR, vowelize);
 
 			// Vowelize (V2)
+			const VowelizerV2::Vowel vowelA = VowelizerV2::kA;
+			const VowelizerV2::Vowel vowelB = VowelizerV2::kU;
+			const float vowBlend = PaulCurve(gain, 1.f);
+
 			float vowelL_1 = filteredL, vowelR_1 = filteredR;
-			m_vowelizerV2_1.Apply(vowelL_1, vowelR_1, VowelizerV2::kOO);
+			m_vowelizerV2_1.Apply(vowelL_1, vowelR_1, vowelA);
 
 			float vowelL_2 = filteredL, vowelR_2 = filteredR;
-			m_vowelizerV2_1.Apply(vowelL_2, vowelR_2, VowelizerV2::kA);
-
-			const float vowBlendLin = kVowLFODepth + gain*(1.f-kVowLFODepth) + 0.5f*kVowLFODepth*LFO;
-			const float vowBlend = powf(vowBlendLin, 3.f);
+			m_vowelizerV2_1.Apply(vowelL_2, vowelR_2, vowelB);
+			
 			const float vowelL = lerpf<float>(vowelL_1, vowelL_2, vowBlend);
 			const float vowelR = lerpf<float>(vowelR_1, vowelR_2, vowBlend);
 
