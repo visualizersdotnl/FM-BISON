@@ -62,7 +62,7 @@ namespace SFM
 
 		/*
 			IMPORTANT: at this point it is still necessary to call SetSamplingProperties(), which the VST plug-in will take
-			           care of for now.
+		               care of for now.
 		*/	
 	}
 
