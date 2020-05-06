@@ -62,7 +62,7 @@ namespace SFM
 
 		/*
 			IMPORTANT: at this point it is still necessary to call SetSamplingProperties(), which the VST plug-in will take
-		    care of for now.
+			           care of for now.
 		*/	
 	}
 
@@ -574,7 +574,7 @@ namespace SFM
 		float output = patchOp.output;
 		SFM_ASSERT(output >= 0.f && output <= 1.f);
 
-		// Factor in velocity (exponential)
+		// Factor in velocity
 		output = lerpf<float>(output, output*velocity, patchOp.velSens);
 		
 		// Apply L/R breakpoint cut & level scaling (subtractive/additive & linear/exponential, like the DX7)
@@ -796,7 +796,7 @@ namespace SFM
 				voiceOp.panAngle = { CalcPanningAngle(patchOp), m_sampleRate, kDefParameterLatency };
 
 				// Distortion
-				voiceOp.drive = { patchOp.drive, m_sampleRate, kDefParameterLatency };
+				voiceOp.drive = { patchOp.drive*opVelocity, m_sampleRate, kDefParameterLatency };
 			}
 		}
 
@@ -987,7 +987,7 @@ namespace SFM
 				voiceOp.panAngle = { CalcPanningAngle(patchOp), m_sampleRate, kDefParameterLatency };
 
 				// Distortion
-				voiceOp.drive = { patchOp.drive, m_sampleRate, kDefParameterLatency };
+				voiceOp.drive = { patchOp.drive*opVelocity, m_sampleRate, kDefParameterLatency };
 			}
 		}
 
@@ -996,7 +996,7 @@ namespace SFM
 			// Reset filters
 			voice.m_filterSVF1.resetState();
 			voice.m_filterSVF2.resetState();
-
+			
 			// Start filter envelope
 			voice.m_filterEnvelope.Start(m_patch.filterEnvParams, m_sampleRate, false, 1.f, envVelScaling, 0.f);
 
@@ -1154,7 +1154,7 @@ namespace SFM
 									voiceOp.amplitude.SetTarget(amplitude);
 
 									// Distortion
-									voiceOp.drive.SetTarget(patchOp.drive);
+									voiceOp.drive.SetTarget(patchOp.drive*opVelocity);
 
 									// Feedback amount
 									voiceOp.feedbackAmt.SetTarget(patchOp.feedbackAmt);
