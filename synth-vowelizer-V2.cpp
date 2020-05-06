@@ -32,7 +32,7 @@ namespace SFM
 	{
 		SFM_ASSERT(vowel < kNumVowels);
 
-		const double bandWidth = 200.0; // 100.0, according to the article (link on top) is the avg. male voice
+		const double bandWidth = 100.0; // 100.0, according to the article (link on top) is the avg. male voice
 		const double halfBandWidth = bandWidth/2.0;
 
 		// Filter and store lower frequencies (below half band width)
@@ -62,7 +62,7 @@ namespace SFM
 			// the frequency that deviates/oscillates the most (so I figured why not boost it)
 			// However, it does not always map like that (for ex. Vowel::kOO)
 			const double curve = RatioCurve(-0.5 + frequency/magnitude);
-			const double Q = curve*(frequency/bandWidth);
+			const double Q = curve*frequency/bandWidth;
 
 			// The filter's documentation says that Q may not exceed 40.0, but so far so good :)
 			m_filterBP[iFormant].updateCoefficients(frequency, Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
@@ -75,7 +75,7 @@ namespace SFM
 		}
 
 		// Mix low end with normalized result
-		left  = lowL + filteredL/3.f;
-		right = lowR + filteredR/3.f;
+		left  = lowL + filteredL;
+		right = lowR + filteredR;
 	}
 }

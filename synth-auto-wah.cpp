@@ -16,8 +16,9 @@ namespace SFM
 {
 	constexpr double kPreLowCutQ      = 0.5;
 	constexpr float  kPostMaxQ        = 0.8f;   // Paul requested this parameter to be exposed, but I think he heard a loud popping artifact that has since been fixed
-	constexpr float  kVowelGain       = 0.707f; // -3dB (see synth-vowelizer.h)
+//	constexpr float  kVowelGain       = 0.707f; // -3dB (see synth-vowelizer.h, only works with current configuration)
 	constexpr float  kLFODepth        = 0.01f;  // In normalized freq.
+	constexpr float  kVowLFODepth     = 0.07f;  // Arbitrary prime number (7)
 
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples)
 	{
@@ -85,9 +86,24 @@ namespace SFM
 			float filteredL = preFilteredL, filteredR = preFilteredR;
 
 			// Vowelize (using legacy Vowelizer)
-			const float vowBlend = gain;
-			const float vowelL = m_vowelizerL.Apply(filteredL*kVowelGain, Vowelizer::kI, vowBlend);
-			const float vowelR = m_vowelizerR.Apply(filteredR*kVowelGain, Vowelizer::kI, vowBlend);
+//			const float vowBlend = gain;
+//			const float vowelL = m_vowelizerL.Apply(filteredL*kVowelGain, Vowelizer::kI, vowBlend);
+//			const float vowelR = m_vowelizerR.Apply(filteredR*kVowelGain, Vowelizer::kI, vowBlend);
+//			filteredL = lerpf<float>(filteredL, vowelL, vowelize);
+//			filteredR = lerpf<float>(filteredR, vowelR, vowelize);
+
+			// Vowelize (V2)
+			float vowelL_1 = filteredL, vowelR_1 = filteredR;
+			m_vowelizerV2_1.Apply(vowelL_1, vowelR_1, VowelizerV2::kOO);
+
+			float vowelL_2 = filteredL, vowelR_2 = filteredR;
+			m_vowelizerV2_1.Apply(vowelL_2, vowelR_2, VowelizerV2::kA);
+
+			const float vowBlendLin = kVowLFODepth + gain*(1.f-kVowLFODepth) + 0.5f*kVowLFODepth*LFO;
+			const float vowBlend = powf(vowBlendLin, 3.f);
+			const float vowelL = lerpf<float>(vowelL_1, vowelL_2, vowBlend);
+			const float vowelR = lerpf<float>(vowelR_1, vowelR_2, vowBlend);
+
 			filteredL = lerpf<float>(filteredL, vowelL, vowelize);
 			filteredR = lerpf<float>(filteredR, vowelR, vowelize);
 
@@ -104,11 +120,6 @@ namespace SFM
 			// Add (low) remainder to signal
 			filteredL += remainderL;
 			filteredR += remainderR;
-
-//			float vowelL = filteredL, vowelR = filteredR;
-//			m_vowelizerV2.Apply(vowelL, vowelR, VowelizerV2::kEE);
-//			filteredL = lerpf<float>(filteredL, vowelL, vowelize);
-//			filteredR = lerpf<float>(filteredR, vowelR, vowelize);
 
 			// Mix with dry (delayed) signal
 			pLeft[iSample]  = lerpf<float>(delayedL, filteredL, wetness);
