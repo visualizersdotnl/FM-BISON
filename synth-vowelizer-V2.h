@@ -3,9 +3,6 @@
 	FM. BISON hybrid FM synthesis -- A vowel (formant) filter.
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
-
-	FIXME:
-		- Under construction: I have to deduce a proper formula to calculate Q for each formant frequency
 */
 
 #pragma once

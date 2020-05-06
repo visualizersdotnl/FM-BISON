@@ -36,6 +36,9 @@ namespace SFM
 ,			m_detectorL(sampleRate, kDefWahSlack)
 ,			m_detectorR(sampleRate, kDefWahSlack)
 ,			m_gainShaper(sampleRate, kDefWahAttack, kDefWahHold)
+
+,			m_vowelizerV2(sampleRate)
+
 ,			m_curSlack(kDefWahSlack, sampleRate, kDefParameterLatency)
 ,			m_curAttack(kDefWahAttack, sampleRate, kDefParameterLatency)
 ,			m_curHold(kDefWahHold, sampleRate, kDefParameterLatency)
@@ -83,6 +86,7 @@ namespace SFM
 		SvfLinearTrapOptimised2 m_postFilterLP;
 		Oscillator m_LFO;
 		Vowelizer m_vowelizerL, m_vowelizerR;
+		VowelizerV2 m_vowelizerV2;
 		
 		// Interpolated parameters
 		InterpolatedParameter<kLinInterpolate> m_curSlack;

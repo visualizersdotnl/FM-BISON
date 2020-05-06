@@ -21,22 +21,6 @@ namespace SFM
 
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples)
 	{
-		if (0.f == m_curWet.Get() && 0.f == m_curWet.GetTarget())
-		{
-			// This effect can introduce a pronounced delay, so if it is not in use, skip it
-			// and continue without any latency
-
-			m_curSlack.Skip(numSamples);
-			m_curAttack.Skip(numSamples);
-			m_curHold.Skip(numSamples);
-			m_curRate.Skip(numSamples);
-			m_curSpeak.Skip(numSamples);
-			m_curCut.Skip(numSamples);
-			m_curWet.Skip(numSamples);
-
-			return;
-		}
-
 		for (unsigned iSample = 0; iSample  < numSamples; ++iSample)
 		{
 			// Get/set parameters
@@ -80,7 +64,9 @@ namespace SFM
 //			const float delayedL = m_outDelayL.Read(delayL);
 //			const float delayedR = m_outDelayR.Read(delayR);
 
-			// This sounded better for Compressor, test some more! (FIXME)
+			// This sounded better for Compressor, though here we factor in wetness so the signal
+			// ain't delayed when we're running dry, which is 100% nonsense pseudo-logic (FIXME)
+			const float lookahead = m_lookahead*wetness;
 			float delayedL = lerpf<float>(sampleL, m_outDelayL.ReadNearest(-1), m_lookahead);
 			float delayedR = lerpf<float>(sampleR, m_outDelayR.ReadNearest(-1), m_lookahead);
 
@@ -104,7 +90,7 @@ namespace SFM
 			const float vowelR = m_vowelizerR.Apply(filteredR*kVowelGain, Vowelizer::kI, vowBlend);
 			filteredL = lerpf<float>(filteredL, vowelL, vowelize);
 			filteredR = lerpf<float>(filteredR, vowelR, vowelize);
-		
+
 			// Post filter (LP)
 			const float cutoff = kLFODepth + gain*(1.f-kLFODepth) + 0.5f*kLFODepth*LFO;
 			const float cutHz = CutoffToHz(cutoff, m_Nyquist);
@@ -118,6 +104,11 @@ namespace SFM
 			// Add (low) remainder to signal
 			filteredL += remainderL;
 			filteredR += remainderR;
+
+//			float vowelL = filteredL, vowelR = filteredR;
+//			m_vowelizerV2.Apply(vowelL, vowelR, VowelizerV2::kEE);
+//			filteredL = lerpf<float>(filteredL, vowelL, vowelize);
+//			filteredR = lerpf<float>(filteredR, vowelR, vowelize);
 
 			// Mix with dry (delayed) signal
 			pLeft[iSample]  = lerpf<float>(delayedL, filteredL, wetness);

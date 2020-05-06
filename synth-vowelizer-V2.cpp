@@ -23,11 +23,16 @@ namespace SFM
 		/* A  */ { 660.0, 1700.0, 2400.0 }
 	};
 
+	SFM_INLINE static double RatioCurve(double x)
+	{
+		return 0.5*log((tanh(x*kPI)/(x+x))*0.1*kPI)+1.0;
+	}
+
 	void VowelizerV2::Apply(float &left, float &right, Vowel vowel)
 	{
 		SFM_ASSERT(vowel < kNumVowels);
 
-		const double bandWidth = 100.0; // 100.0, accorrding to the article (link on top) is the avg. male voice
+		const double bandWidth = 200.0; // 100.0, according to the article (link on top) is the avg. male voice
 		const double halfBandWidth = bandWidth/2.0;
 
 		// Filter and store lower frequencies (below half band width)
@@ -38,20 +43,31 @@ namespace SFM
 		const float lowL = left-preL;
 		const float lowR = right-preR;
 
+		const double *frequencies = kVowelFrequencies[vowel];
+
+		// Calculate magnitude of frequencies as if it were a 3D vector
+		// We're knee deep in pseudo-science from this point onward :-)
+		const float magnitude = sqrtf(frequencies[0]*frequencies[0] + frequencies[1]*frequencies[1] + frequencies[2]*frequencies[2]);
+
 		// Apply 3 parallel band passes
 		float filteredL = 0.f, filteredR = 0.f;
 
 		for (unsigned iFormant = 0; iFormant < 3; ++iFormant)
 		{
-			const double frequency = kVowelFrequencies[vowel][iFormant];
+			// Grab frequency
+			const double frequency = frequencies[iFormant];
 			
-			// The filter's documentation says that Q may not exceed 40.0, but so far so good :)
-			// FIXME: figure out a formula of sorts to calculate this ratio to satisfaction (perhaps one that accentuates the middle band)
-			const double Q = frequency/halfBandWidth;
+			// Map this frequency along the curve to get Q; for most frequency sets this means
+			// that the middle frequency is boosted, and according to the article this happens to be
+			// the frequency that deviates/oscillates the most (so I figured why not boost it)
+			// However, it does not always map like that (for ex. Vowel::kOO)
+			const double curve = RatioCurve(-0.5 + frequency/magnitude);
+			const double Q = curve*(frequency/bandWidth);
 
+			// The filter's documentation says that Q may not exceed 40.0, but so far so good :)
 			m_filterBP[iFormant].updateCoefficients(frequency, Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
 
-			float filterL = preL, filterR = preR;
+			float filterL = left, filterR = right;
 			m_filterBP[iFormant].tick(filterL, filterR);
 
 			filteredL += filterL;
@@ -59,7 +75,7 @@ namespace SFM
 		}
 
 		// Mix low end with normalized result
-		left  = lowL + filteredL/3.0;
-		right = lowR + filteredR/3.0;
+		left  = lowL + filteredL/3.f;
+		right = lowR + filteredR/3.f;
 	}
 }
