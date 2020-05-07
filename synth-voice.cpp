@@ -171,7 +171,7 @@ namespace SFM
 						// Get sample
 						// If modulator is disabled this will simply be zero
 						const float sample = opSample[iModulator];
-						phaseMod += sample * (1.f/k2PI);
+						phaseMod += sample; // FIXME: output -> index curve?
 					}
 				}
 
