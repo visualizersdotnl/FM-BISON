@@ -5,7 +5,6 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	FIXME:
-		- Use as test for Vowelizer 2.0
 		- Use BPM sync.
 */
 
