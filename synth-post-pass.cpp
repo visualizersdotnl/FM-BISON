@@ -329,7 +329,8 @@ namespace SFM
 				filteredL = sampleL; filteredR = sampleR;
 
 				const float amount      = smoothstepf(m_curTubeDist.Sample());
-				const float velocity    = powf(m_curAvgVelocity.Sample(), 3.f);
+				const float velLin      = m_curAvgVelocity.Sample();
+				const float velocity    = velLin*velLin*velLin;
 				const float drive       = m_curTubeDrive.Sample() + dBToGain(velocity*3.f);
 
 				m_tubeFilterPre.tick(filteredL, filteredR);

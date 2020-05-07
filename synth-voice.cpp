@@ -130,8 +130,9 @@ namespace SFM
 		// Sample LFO
 		const float LFO = m_LFO.Sample(modulation);
 
-		// Sample pitch envelope
-		const float pitchEnv = m_pitchEnvelope.Sample(m_sustained);
+		// Sample pitch envelope (does not sustain!)
+//		const float pitchEnv = m_pitchEnvelope.Sample(m_sustained);
+		const float pitchEnv = m_pitchEnvelope.Sample(false);
 
 		// Process all operators top-down
 		// - This is a simple readable loop for R&D purposes, but lacks performance and lacks support for operators to be modulated

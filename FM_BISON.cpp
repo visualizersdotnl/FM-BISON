@@ -1399,6 +1399,7 @@ namespace SFM
 					if (true == voice.IsPlaying() && false == voice.IsSustained())
 					{
 						voice.m_sustained = true;
+
 						Log("Voice sustained (synth.): " + std::to_string(iVoice));
 					}
 				}
