@@ -55,10 +55,6 @@
 		- synth-log.*
 		- synth-math.h
 		- synth-ring-buffer.h
-
-	Unused components:
-		- RingBuffer
-		- VowelizerV2
 	
 	Core goals:
 		- Yamaha DX7 style core FM with extensions
@@ -72,7 +68,7 @@
 	Reading material:
 		- https://www.hackaudio.com/digital-signal-processing/amplitude/peak-normalization/
 		- https://cytomic.com/files/dsp/DynamicSmoothing.pdf
-		- Your freshly bought Will Pirkle book
+		- Your Will C. Pirkle book
  
 	Issues:
 		- Inlining strategy a bit too agressive?

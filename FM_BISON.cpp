@@ -1153,7 +1153,7 @@ namespace SFM
 									// Amplitude (output level or "index")
 									voiceOp.amplitude.SetTarget(amplitude);
 
-									// Distortion
+									// Squarepusher
 									voiceOp.drive.SetTarget(patchOp.drive*opVelocity);
 
 									// Feedback amount
