@@ -131,22 +131,20 @@ namespace SFM
 		const float LFO = m_LFO.Sample(modulation);
 
 		// Sample pitch envelope (does not sustain!)
-//		const float pitchEnv = m_pitchEnvelope.Sample(m_sustained);
 		const float pitchEnv = m_pitchEnvelope.Sample(false);
 
 		// Process all operators top-down
 		// - This is a simple readable loop for R&D purposes, but lacks performance and lacks support for operators to be modulated
 		//   by lower ranked operators; an issue in the R&D repository has been created to address this
 
-		alignas(16) float opSample[kNumOperators] = { 0.f }; // Monaural normalized samples
+		alignas(16) float opSample[kNumOperators+1] = { 0.f }; // Monaural normalized samples (one extra so we can index with -1 to avoid branching)
 		float mixL = 0.f, mixR = 0.f; // Carrier mix
 
 		for (int iOp = kNumOperators-1; iOp >= 0; --iOp)
 		{
 			// Top-down
-			const unsigned index = iOp;
-
-			Operator &voiceOp = m_operators[index];
+			Operator &voiceOp = m_operators[iOp];
+			const int iOpSample = iOp+1; // See decl. of opSample[]
 
 			if (true == voiceOp.enabled)
 			{
@@ -162,32 +160,31 @@ namespace SFM
 				float phaseMod = 0.f;
 				for (unsigned iMod = 0; iMod < 3; ++iMod)
 				{
-					const unsigned iModulator = voiceOp.modulators[iMod];
-					if (-1 != iModulator && true == m_operators[iModulator].enabled) // Only if enabled!
-					{
-						// Sanity checks
-						SFM_ASSERT(iModulator < kNumOperators);
-						SFM_ASSERT(iModulator > index);
+					const int iModulator = voiceOp.modulators[iMod];
 
-						// Get sample
-						// If modulator is disabled this will simply be zero
-						const float sample = opSample[iModulator];
-						phaseMod += sample; // FIXME: output -> index curve?
-					}
+					// Sanity checks
+					SFM_ASSERT(-1 == iModulator || iModulator < kNumOperators);
+					SFM_ASSERT(-1 == iModulator || iModulator > iOp);
+
+					// Add sample to phase
+					// If modulator or modulator operator is disabled it's zero
+					const float sample = opSample[iModulator+1];
+					phaseMod += sample; // FIXME: output -> index curve?
 				}
 
 				const float feedbackAmt = kFeedbackScale*voiceOp.feedbackAmt.Sample();
 
 				// Get feedback
 				float feedback = 0.f;
-				if (voiceOp.iFeedback != -1)
+				if (-1 != voiceOp.iFeedback)
 				{
-					const unsigned iFeedback = voiceOp.iFeedback;
+					const int iFeedback = voiceOp.iFeedback;
 
 					// Sanity check
 					SFM_ASSERT(iFeedback < kNumOperators);
-
-					feedback = voiceOp.feedbackAccum;
+					
+					// Grab operator's current feedback
+					feedback = m_operators[iFeedback].feedbackAccum;
 				}
 
 				// Apply pitch bend, LFO vibrato & pitch envelope
@@ -198,7 +195,8 @@ namespace SFM
 				oscillator.PitchBend(vibrato);
 
 				// Calculate sample
-				float sample = oscillator.Sample(fmodf(phaseMod+feedback, 1.f));
+//				float sample = oscillator.Sample(fmodf(phaseMod+feedback, 1.f));
+				float sample = oscillator.Sample(phaseMod+feedback);
 
 				// Apply LFO tremolo
 				const float tremolo = lerpf<float>(1.f, LFO, voiceOp.ampMod);
@@ -223,10 +221,11 @@ namespace SFM
 				}
 				
 				// Apply filter
-				voiceOp.filterSVF.tickMono(sample);
+				if (SvfLinearTrapOptimised2::NO_FLT_TYPE != voiceOp.filterSVF.getFilterType())
+					voiceOp.filterSVF.tickMono(sample);
 
 				// Store final sample for modulation
-				opSample[index] = sample;
+				opSample[iOpSample] = sample;
 
 				// Calc. panning angle
 				float panAngle = voiceOp.panAngle.Sample();

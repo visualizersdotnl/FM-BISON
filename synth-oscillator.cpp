@@ -32,7 +32,7 @@ namespace SFM
 		modulation += 1.f; // [-1..1] -> [1..2]
 
 		const float phase     = m_phases[0].Sample();
-		const float modulated = fmodf(phase+modulation, 1.f);
+		const float modulated = fmodf(phase+modulation, 1.f); // FIXME: expensive!
 		
 		// Ratio to adjust PolyBLEP width
 		const auto sampleRate      = GetSampleRate();

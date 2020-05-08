@@ -2,10 +2,11 @@
 //
 // Modified to fit FM. BISON:
 // - Fitted to compile without dependencies
-// - Stereo support
+// - Stereo support (retained monaural mode, see tickMono())
 // - Added a few setup functions
-// - Stability assertion
+// - Stability assertions
 // - Added a few smaller update functions for specific filter types
+// - Added getFilterType()
 //
 // FIXME:
 // - Try using the fast(er) trig. functions (stress test filter stability before using permanently)
@@ -141,6 +142,12 @@ public:
 		SFM::FloatAssert(sample);
 	}
 
+	// Returns (latest) filter type
+	SFM_INLINE FLT_TYPE getFilterType() const
+	{
+		return _coef._type;
+	}
+
 private:
 	struct Coefficients {
 		Coefficients() {
@@ -159,6 +166,8 @@ private:
 			_m0 = 1;
 			_m1 = -2*k;
 			_m2 = 0;
+
+			_type = SvfLinearTrapOptimised2::ALL_PASS_FILTER;
 		}
 
 		// Added for Reverb::Apply()
@@ -172,6 +181,8 @@ private:
 			_m0 = 0;
 			_m1 = 0;
 			_m2 = 1;
+
+			_type = SvfLinearTrapOptimised2::LOW_PASS_FILTER;
 		}
 
 		// Added for Reverb::Apply()
@@ -185,74 +196,80 @@ private:
 			_m0 = 1;
 			_m1 = -k;
 			_m2 = -1;
+
+			_type = SvfLinearTrapOptimised2::HIGH_PASS_FILTER;
 		}
 		
 		SFM_INLINE void update(double cutoff, double q = 0.5, SvfLinearTrapOptimised2::FLT_TYPE type = LOW_PASS_FILTER, double sampleRate = 44100) {
-			double g = tan((cutoff / sampleRate) * SFM::kPI);
-//			double g = SFM::fast_tanf((cutoff / sampleRate) * 0.5);
-			const double k = computeK(q, type == BELL_FILTER /* USE GAIN FOR BELL FILTER ONLY */);
+			if (type != NO_FLT_TYPE)
+			{
+				double g = tan((cutoff / sampleRate) * SFM::kPI);
+//				double g = SFM::fast_tanf((cutoff / sampleRate) * 0.5);
+				const double k = computeK(q, type == BELL_FILTER /* USE GAIN FOR BELL FILTER ONLY */);
 			
-			switch (type) {
-				case LOW_PASS_FILTER:
-					computeA(g, k);
-					_m0 = 0;
-					_m1 = 0;
-					_m2 = 1;
-					break;
-				case BAND_PASS_FILTER:
-					computeA(g, k);
-					_m0 = 0;
-					_m1 = 1;
-					_m2 = 0;
-					break;
-				case HIGH_PASS_FILTER:
-					computeA(g, k);
-					_m0 = 1;
-					_m1 = -k;
-					_m2 = -1;
-					break;
-				case NOTCH_FILTER:
-					computeA(g, k);
-					_m0 = 1;
-					_m1 = -k;
-					_m2 = 0;
-					break;
-				case PEAK_FILTER:
-					computeA(g, k);
-					_m0 = 1;
-					_m1 = -k;
-					_m2 = -2;
-					break;
-				case ALL_PASS_FILTER:
-					computeA(g, k);
-					_m0 = 1;
-					_m1 = -2*k;
-					_m2 = 0;
-					break;
-				case BELL_FILTER:
-					computeA(g, k);
-					_m0 = 1;
-					_m1 = k*(_A*_A - 1);
-					_m2 = 0;
-					break;
-				case LOW_SHELF_FILTER:
-					computeA(g /= _ASqrt, k);
-					_m0 = 1;
-					_m1 = k*(_A-1);
-					_m2 = _A*_A - 1;
-					break;
-				case HIGH_SHELF_FILTER:
-					computeA(g *= _ASqrt, k);
-					_m0 = _A*_A;
-					_m1 = k*(1-_A)*_A;
-					_m2 = 1-_A*_A;
-					break;
-				case NO_FLT_TYPE:
-					// nothing todo
-					break;
-				default:
-					SFM_ASSERT(false);
+				switch (type) {
+					case LOW_PASS_FILTER:
+						computeA(g, k);
+						_m0 = 0;
+						_m1 = 0;
+						_m2 = 1;
+						break;
+					case BAND_PASS_FILTER:
+						computeA(g, k);
+						_m0 = 0;
+						_m1 = 1;
+						_m2 = 0;
+						break;
+					case HIGH_PASS_FILTER:
+						computeA(g, k);
+						_m0 = 1;
+						_m1 = -k;
+						_m2 = -1;
+						break;
+					case NOTCH_FILTER:
+						computeA(g, k);
+						_m0 = 1;
+						_m1 = -k;
+						_m2 = 0;
+						break;
+					case PEAK_FILTER:
+						computeA(g, k);
+						_m0 = 1;
+						_m1 = -k;
+						_m2 = -2;
+						break;
+					case ALL_PASS_FILTER:
+						computeA(g, k);
+						_m0 = 1;
+						_m1 = -2*k;
+						_m2 = 0;
+						break;
+					case BELL_FILTER:
+						computeA(g, k);
+						_m0 = 1;
+						_m1 = k*(_A*_A - 1);
+						_m2 = 0;
+						break;
+					case LOW_SHELF_FILTER:
+						computeA(g /= _ASqrt, k);
+						_m0 = 1;
+						_m1 = k*(_A-1);
+						_m2 = _A*_A - 1;
+						break;
+					case HIGH_SHELF_FILTER:
+						computeA(g *= _ASqrt, k);
+						_m0 = _A*_A;
+						_m1 = k*(1-_A)*_A;
+						_m2 = 1-_A*_A;
+						break;
+
+					case NO_FLT_TYPE:
+					default:
+						SFM_ASSERT(false);
+				}
 			}
+
+			_type = type;
 		}
 		
 		void setGain(double gainDb) {
@@ -277,6 +294,8 @@ private:
 		
 		double _A;
 		double _ASqrt;
+		
+		FLT_TYPE _type = NO_FLT_TYPE;
 	} _coef;
 	
 	double _ic1eq_left;

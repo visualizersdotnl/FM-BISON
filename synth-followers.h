@@ -91,7 +91,7 @@ namespace SFM
 				
 			// Raise & write
 			const unsigned index = m_writeIdx % m_numSamples;
-			const float samplePow2 = powf(monaural, 2.f);
+			const float samplePow2 = monaural*monaural;
 			m_buffer[index] = samplePow2;
 			++m_writeIdx;
 				

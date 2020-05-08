@@ -44,6 +44,9 @@
 // Set to 1 to let FM. BISON handle denormals
 #define SFM_KILL_DENORMALS 0
 
+// Define to disable all FX
+// #define SFM_DISABLE_FX
+
 #include "synth-log.h"
 #include "synth-math.h"
 
@@ -212,7 +215,7 @@ namespace SFM
 
 	// If a voice is considered to be stolen, this bias [0..1] is multiplied with the output
 	// of a voice in release state so it's preferred over an equally loud but playing voice
-	constexpr float kVoiceStealReleaseBias = 0.66f;
+	constexpr float kVoiceStealReleaseBias = 0.1f;
 
 	// Size of main delay effect's line in seconds
 	constexpr float kMainDelayInSec = 4.f; // Min. 15BPM

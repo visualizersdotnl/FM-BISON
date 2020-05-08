@@ -14,7 +14,7 @@ namespace SFM
 	const unsigned kFastCosTabLog2Size = 10; // Equals size of 1024
 	const unsigned kFastCosTabSize = 1 << kFastCosTabLog2Size;
 
-	static double s_fastCosTab[kFastCosTabSize+1];
+	alignas(16) static double s_fastCosTab[kFastCosTabSize+1];
 
 	void InitializeFastCosine()
 	{

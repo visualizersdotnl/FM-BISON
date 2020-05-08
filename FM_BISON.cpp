@@ -359,13 +359,24 @@ namespace SFM
 
 				if (false == voice.IsIdle())
 				{
-					// Release if still playing
-					if (true == voice.IsPlaying())
-						ReleaseVoice(index);
+					// In monophonic mode we can just use ReleaseVoice() without any problems
+					if (true == monophonic)
+					{
+						// Release if still playing
+						if (true == voice.IsPlaying())
+							ReleaseVoice(index);
+
+						// Disassociate voice from key
+						FreeKey(voice.m_key);
+						voice.m_key = -1;
+					}
+					else
+					{
+						// Steal if still playing (performance fix)
+						if (false == voice.IsStolen())
+							StealVoice(index);
+					}
 					
-					// Disassociate voice from key
-					FreeKey(voice.m_key);
-					voice.m_key = -1;
 
 					Log("NoteOn() retrigger: " + std::to_string(key) + ", voice: " + std::to_string(index));
 				}
@@ -705,7 +716,7 @@ namespace SFM
 
 		// Envelope velocity scaling: higher velocity *can* mean longer decay phase
 		// This is specifically designed for piano, guitar et cetera
-		const float envVelScaling = 1.f + powf(velocity, 2.f)*m_patch.velocityScaling;
+		const float envVelScaling = 1.f + (velocity*velocity)*m_patch.velocityScaling;
 
 		// Set up voice operators
 		for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
@@ -732,8 +743,7 @@ namespace SFM
 				switch (patchOp.filterType)
 				{
 				case PatchOperators::Operator::kNoFilter:
-					// FIXME: this just passes everything through, but I should perhaps add a full pass-through to the SVF impl.
-					voiceOp.filterSVF.updateCoefficients(CutoffToHz(1.f, m_Nyquist), ResoToQ(0.f), SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
+					voiceOp.filterSVF.updateCoefficients(0.0, 0.0, SvfLinearTrapOptimised2::NO_FLT_TYPE);
 					break;
 
 				case PatchOperators::Operator::kLowpassFilter:
@@ -1325,18 +1335,18 @@ namespace SFM
 			float lowestOutput = 1.f*kNumOperators;
 			int iLowest = -1;
 			
-			// FIXME: repeating this loop over and over is a little ham-fisted, is it not?
+			// FIXME: create a (sorted) list of voices that can be stolen
 			for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
 			{
 				Voice &voice = m_voices[iVoice];
 				
 				const bool isIdle      = voice.IsIdle(); 
-//				const bool isPlaying   = voice.IsPlaying();
+				const bool isPlaying   = voice.IsPlaying();
 				const bool isReleasing = voice.IsReleasing();
 				const bool isStolen    = voice.IsStolen();
 
 				// Bias releasing voices
-				const float releaseScale = (true == isReleasing) ? kVoiceStealReleaseBias : 1.f;
+				const float releaseScale = (false == isPlaying) ? kVoiceStealReleaseBias : 1.f;
 
 				if (false == isIdle && false == isStolen)
 				{

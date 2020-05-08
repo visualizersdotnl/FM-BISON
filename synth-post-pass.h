@@ -29,7 +29,7 @@
 
 namespace SFM
 {
-	const unsigned kNumPhaserStages = 7;
+	const unsigned kNumPhaserStages = 8;
 
 	class PostPass
 	{

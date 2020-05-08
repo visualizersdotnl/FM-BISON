@@ -134,8 +134,10 @@ namespace SFM
 
 		// Copy inputs to local buffers
 		const size_t bufSize = numSamples * sizeof(float);
-		memcpy(m_pBufL, pLeftIn, bufSize);
+		memcpy(m_pBufL, pLeftIn,  bufSize);
 		memcpy(m_pBufR, pRightIn, bufSize);
+
+#if !defined(SFM_DISABLE_FX)
 
 		/* ----------------------------------------------------------------------------------------------------
 
@@ -378,6 +380,8 @@ namespace SFM
 		 m_compressor.SetParameters(compPeakToRMS, compThresholddB, compKneedB, compRatio, compGaindB, compAttack, compRelease, compLookahead);
 		 m_compressor.Apply(m_pBufL, m_pBufR, numSamples);
 
+#endif
+
 		/* ----------------------------------------------------------------------------------------------------
 
 			Final pass: DC blocker, master value
@@ -402,7 +406,8 @@ namespace SFM
 			pRightOut[iSample] = sampleR;
 		}
 
-		
+#if !defined(SFM_DISABLE_FX)
+
 		// Reset Chorus/Phaser state
 		if (true == effectSwitch)
 		{
@@ -415,6 +420,8 @@ namespace SFM
 
 			// Chorus delay line is fed continously
 		}
+
+#endif
 
 		m_chorusOrPhaser = isChorus;
 	}
@@ -460,7 +467,7 @@ namespace SFM
 		const float sweepMod = m_phaserSweepLPF.Apply(oscSine(m_phaserSweep.Sample()));
 		
 		// Sweep cutoff frequency around center
-		constexpr float rangeMul = 0.25f;
+		constexpr float rangeMul = 0.3f;
 		static_assert(rangeMul <= 0.5f);
 		const float range = m_Nyquist*rangeMul;
 		const float cutoffCentre = m_Nyquist*0.5f + range*sweepMod;
@@ -473,16 +480,18 @@ namespace SFM
 		float curCutoff = cutoffCentre - range*0.5f;
 		const float cutStep = range/kNumPhaserStages;
 		
-		// Apply cascading filters
+		// Resonance
 		double curReso = 0.025;
+		const double resoStep = 0.0; // 0.025/kNumPhaserStages;
+		
+		// Apply cascading filters
 		for (auto &filter : m_allpassFilters)
 		{
-			// FIXME: replace for simple 6dB filter?
 			filter.updateAllpassCoeff(curCutoff, curReso, m_sampleRate);
 			filter.tick(filteredL, filteredR);
 
 			curCutoff += cutStep;		
-			curReso *= 2.0;
+			curReso   += resoStep;
 		}
 		
 		// Mix result with dry signal

@@ -57,7 +57,7 @@ namespace SFM
 	SFM_INLINE float CubicClip(float sample, float amount)
 	{	
 		SFM_ASSERT(amount >= 0.f && amount <= 1.f);
-		return sample - amount*(1.f/3.f)*powf(sample, 3.f);
+		return sample - amount*(1.f/3.f) * (sample*sample*sample);
 	}
 
 	// Squarepusher distortion
