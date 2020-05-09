@@ -76,8 +76,11 @@
 		- For embedded use this needs review, a lot of choices were made in favor of the VST plug-in
 		- Analyze and optimize performance! (17/01/2020)
 
-	Not supported on purpose:
-		- Polyphonic aftertouch (or just anything MPE!)
+	Not supported yet:
+		- Polyphonic aftertouch / MPE
+
+	Optimal compiler parameters for Visual Studio 2017:
+		- /Ob2 /Oi /O2 /Ot
 
 	
 	For issues & tasks please see Github repository.
