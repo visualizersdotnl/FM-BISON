@@ -198,8 +198,7 @@ namespace SFM
 				oscillator.PitchBend(vibrato);
 
 				// Calculate sample
-//				float sample = oscillator.Sample(fmodf(phaseMod+feedback, 1.f));
-				float sample = oscillator.Sample(phaseMod+feedback);
+				float sample = oscillator.Sample(phaseMod, feedback);
 
 				// Apply LFO tremolo
 				const float tremolo = lerpf<float>(1.f, LFO, voiceOp.ampMod);

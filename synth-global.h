@@ -155,9 +155,9 @@ namespace SFM
 	constexpr float kMaxPhaserSpeed = 8.f;
 	
 	// Master output volume range & default in dB
-	constexpr int kMinVolumedB = -75;
+	constexpr int kMinVolumedB = -96;
 	constexpr int kMaxVolumedB =   6;
-	constexpr int kDefVolumedB =  -9;
+	constexpr int kDefVolumedB = -12;
 	constexpr int kVolumeRangedB = kMaxVolumedB-kMinVolumedB;
 
 	// (Monophonic) frequency glide (in seconds)

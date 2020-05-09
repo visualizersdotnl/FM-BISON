@@ -585,8 +585,7 @@ namespace SFM
 		SFM_ASSERT(output >= 0.f && output <= 1.f);
 
 		// Factor in velocity
-//		const float velPow = (true == patchOp.isCarrier) ? velocity*velocity*velocity : velocity;
-		const float velPow = velocity; // Stick to linear for now
+		const float velPow = velocity*velocity;
 		output = lerpf<float>(output, output*velPow, patchOp.velSens);
 		
 		// Apply L/R breakpoint cut & level scaling (subtractive/additive & linear/exponential, like the DX7)

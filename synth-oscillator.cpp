@@ -27,12 +27,12 @@ namespace SFM
 
 	/* static */ alignas(16) float Oscillator::s_supersawDetune[kNumPolySupersaws] = { 0.f };
 
-	float Oscillator::Sample(float modulation)
+	float Oscillator::Sample(float modulation, float feedback /* = 0.f */)
 	{	
-		modulation += 1.f; // [-1..1] -> [1..2]
+		modulation += 1.f; // [-1..1] -> [0..2]
 
 		const float phase     = m_phases[0].Sample();
-		const float modulated = fmodf(phase+modulation, 1.f); // FIXME: expensive!
+		const float modulated = fmodf(phase+modulation+feedback, 1.f); // FIXME: expensive!
 		
 		// Ratio to adjust PolyBLEP width
 		const auto sampleRate      = GetSampleRate();

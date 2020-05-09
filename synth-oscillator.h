@@ -150,7 +150,7 @@ namespace SFM
 			return m_form; 
 		}
 
-		float Sample(float modulation);
+		float Sample(float modulation, float feedback = 0.f /* Only used by Voice::Render() */);
 
 		SFM_INLINE float Get() const
 		{
