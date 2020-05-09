@@ -101,7 +101,7 @@ namespace SFM
 			float pitchMod;
 			float panMod;
 
-			// (Over)drive distortion (R)
+			// Drive (square) distortion (R)
 			float drive;
 
 			// Panning [-1..1] (R)

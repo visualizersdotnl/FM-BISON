@@ -455,7 +455,7 @@ namespace SFM
 		const float chorusR = m_chorusDL.Read(delay + spread*m_chorusSweepLPF2.Apply(sweepR));
 		
 		// Mix result with dry signal
-		const float maxWet = dBToGain(kMaxCPWetdB); // FIXME
+		const float maxWet = kMaxCPWet;
 		const float effectWet = wetness*maxWet;
 		outL = sampleL + chorusL*effectWet; 
 		outR = sampleR + chorusR*effectWet; 
@@ -495,7 +495,7 @@ namespace SFM
 		}
 		
 		// Mix result with dry signal
-		const float maxWet = dBToGain(kMaxCPWetdB);
+		const float maxWet = kMaxCPWet;
 		wetness *= maxWet;
 		outL = sampleL + wetness*filteredL;
 		outR = sampleR + wetness*filteredR;

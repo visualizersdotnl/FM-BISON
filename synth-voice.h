@@ -80,7 +80,7 @@ namespace SFM
 			float pitchMod;
 			float panMod;
 
-			// Drive/distortion (R)
+			// Drive (square) distortion (R)
 			InterpolatedParameter<kLinInterpolate> drive;
 
 			// Panning (angle) (R)

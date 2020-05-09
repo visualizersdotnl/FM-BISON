@@ -85,9 +85,8 @@ namespace SFM
 	{
 		m_sampleRate       = sampleRate;
 		m_samplesPerBlock  = samplesPerBlock;
-		
-		// Sample rates higher than a certain value just give us headroom and nothing else
-		m_Nyquist = std::min<unsigned>(sampleRate>>1, unsigned(kAudibleHighHz));
+
+		m_Nyquist = sampleRate>>1;
 
 		/* 
 			Reset sample rate dependent global objects:
@@ -586,7 +585,9 @@ namespace SFM
 		SFM_ASSERT(output >= 0.f && output <= 1.f);
 
 		// Factor in velocity
-		output = lerpf<float>(output, output*velocity, patchOp.velSens);
+//		const float velPow = (true == patchOp.isCarrier) ? velocity*velocity*velocity : velocity;
+		const float velPow = velocity; // Stick to linear for now
+		output = lerpf<float>(output, output*velPow, patchOp.velSens);
 		
 		// Apply L/R breakpoint cut & level scaling (subtractive/additive & linear/exponential, like the DX7)
 		const unsigned breakpoint = patchOp.levelScaleBP;
@@ -658,8 +659,7 @@ namespace SFM
 
 		SFM_ASSERT(output >= 0.f && output <= 1.f);
 		
-		// Returning linear output, if this has to be adjusted to dB scale, this is not the place to do so
-		// because it has absolutely nothing to do with our frequency modulation
+		// Returning linear output
 		return output;
 	}
 
@@ -806,13 +806,12 @@ namespace SFM
 				voiceOp.panAngle = { CalcPanningAngle(patchOp), m_sampleRate, kDefParameterLatency };
 
 				// Distortion
-				voiceOp.drive = { patchOp.drive*opVelocity, m_sampleRate, kDefParameterLatency };
+				const float drive = lerpf<float>(patchOp.drive, patchOp.drive*opVelocity, patchOp.velSens);
+				voiceOp.drive = { drive, m_sampleRate, kDefParameterLatency };
 			}
 		}
 
 		// Reset filters
-//		voice.m_filterSVF1.setGain(3.0);
-//		voice.m_filterSVF2.setGain(3.0);
 		voice.m_filterSVF1.resetState();
 		voice.m_filterSVF2.resetState();
 
@@ -924,8 +923,7 @@ namespace SFM
 					switch (patchOp.filterType)
 					{
 					case PatchOperators::Operator::kNoFilter:
-						// FIXME: this just passes everything through, but I should perhaps add a full pass-through to the SVF impl.
-						voiceOp.filterSVF.updateCoefficients(CutoffToHz(1.f, m_Nyquist), ResoToQ(0.f), SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
+						voiceOp.filterSVF.updateCoefficients(0.0, 0.0, SvfLinearTrapOptimised2::NO_FLT_TYPE);
 						break;
 
 					case PatchOperators::Operator::kLowpassFilter:
@@ -997,7 +995,8 @@ namespace SFM
 				voiceOp.panAngle = { CalcPanningAngle(patchOp), m_sampleRate, kDefParameterLatency };
 
 				// Distortion
-				voiceOp.drive = { patchOp.drive*opVelocity, m_sampleRate, kDefParameterLatency };
+				const float drive = lerpf<float>(patchOp.drive, patchOp.drive*opVelocity, patchOp.velSens);
+				voiceOp.drive = { drive, m_sampleRate, kDefParameterLatency };
 			}
 		}
 
@@ -1163,8 +1162,9 @@ namespace SFM
 									// Amplitude (output level or "index")
 									voiceOp.amplitude.SetTarget(amplitude);
 
-									// Squarepusher
-									voiceOp.drive.SetTarget(patchOp.drive*opVelocity);
+									// Squarepusher (or "drive")
+									const float drive = lerpf<float>(patchOp.drive, patchOp.drive*opVelocity, patchOp.velSens);
+									voiceOp.drive.SetTarget(drive);
 
 									// Feedback amount
 									voiceOp.feedbackAmt.SetTarget(patchOp.feedbackAmt);

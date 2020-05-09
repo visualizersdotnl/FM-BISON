@@ -145,7 +145,7 @@ namespace SFM
 	constexpr float kVoiceGaindB = -9.f;
 	
 	// The CP effect in synth-post-pass.cpp sounds best this way
-	constexpr float kMaxCPWetdB = -3.f;
+	constexpr float kMaxCPWet = 0.707f; // -3dB
 
 	// Reverb effect sounds best until mixed to around 50-60 percent as well (wetness)
 	constexpr float kMaxReverbWet = 0.55f;

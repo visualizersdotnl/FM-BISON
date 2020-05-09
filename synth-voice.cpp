@@ -109,12 +109,15 @@ namespace SFM
 		
 		FIXME:
 			- Rewrite so all operators can modulate each other
-			- And to make it *faster*
+			- And make it *faster*
 			
 	 ------------------------------------------------------------------------------------------------------ */
 
-	 // Between [0..75] the sinus and triangle stay band limited; using feedback on a square, saw et cetera you're just *looking* for dirt!
-	const float kFeedbackScale = 0.75f;
+	 // Tame
+//	const float kFeedbackScale = 0.75f;
+
+	// More in line with the DX7
+	const float kFeedbackScale = 1.f;
 
 	void Voice::Sample(float &left, float &right, float pitchBend, float ampBend, float modulation)
 	{
