@@ -455,48 +455,41 @@ namespace SFM
 		const float chorusR = m_chorusDL.Read(delay + spread*m_chorusSweepLPF2.Apply(sweepR));
 		
 		// Mix result with dry signal
-		const float maxWet = kMaxCPWet;
-		const float effectWet = wetness*maxWet;
-		outL = sampleL + chorusL*effectWet; 
-		outR = sampleR + chorusR*effectWet; 
+		wetness *= kMaxChorusPhaserWet;
+		outL = sampleL + wetness*chorusL; 
+		outR = sampleR + wetness*chorusR; 
 	}
 
 	void PostPass::ApplyPhaser(float sampleL, float sampleR, float &outL, float &outR, float wetness)
 	{
 		// Sweep LFO (lowpassed for pleasing effect)
-		const float sweepMod = m_phaserSweepLPF.Apply(oscSine(m_phaserSweep.Sample()));
+		const float sweepMod = m_phaserSweepLPF.Apply(oscTriangle(m_phaserSweep.Sample()));
 		
 		// Sweep cutoff frequency around center
-		constexpr float rangeMul = 0.3f;
-		static_assert(rangeMul <= 0.5f);
-		const float range = m_Nyquist*rangeMul;
-		const float cutoffCentre = m_Nyquist*0.5f + range*sweepMod;
+		constexpr float range = 0.2f;
+		static_assert(range < 0.5f);
+		const float normCutoff = 0.5f + range*sweepMod;
 		
 		// Start with dry sample
 		float filteredL = sampleL;
 		float filteredR = sampleR;
 
-		// Cutoff
-		float curCutoff = cutoffCentre - range*0.5f;
-		const float cutStep = range/kNumPhaserStages;
-		
-		// Resonance
-		double curReso = 0.025;
-		const double resoMul = 1.2;
+		// Cutoff & Q
+		const float cutoffHz = CutoffToHz(normCutoff, m_Nyquist);
+		float Q = 0.025f;
 		
 		// Apply cascading filters
 		for (auto &filter : m_allpassFilters)
 		{
-			filter.updateAllpassCoeff(curCutoff, curReso, m_sampleRate);
+			filter.updateAllpassCoeff(cutoffHz, Q, m_sampleRate);
 			filter.tick(filteredL, filteredR);
 
-			curCutoff += cutStep;		
-			curReso   *= resoMul;
+			// Adds a little "space"
+			Q += Q;
 		}
 		
 		// Mix result with dry signal
-		const float maxWet = kMaxCPWet;
-		wetness *= maxWet;
+		wetness *= kMaxChorusPhaserWet;
 		outL = sampleL + wetness*filteredL;
 		outR = sampleR + wetness*filteredR;
 	}

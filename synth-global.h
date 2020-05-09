@@ -146,8 +146,8 @@ namespace SFM
 	// This keeps the voice mix nicely within acceptable range (approx. 8 voices, see https://www.kvraudio.com/forum/viewtopic.php?t=275702)
 	constexpr float kVoiceGaindB = -9.f;
 	
-	// The CP effect in synth-post-pass.cpp sounds best this way
-	constexpr float kMaxCPWet = 0.707f; // Once based on -3dB for no good reason, now it's just a constant that works out well enough
+	// Chorus/Phaser effect (synth-post-pass.cpp) max. wetness
+	constexpr float kMaxChorusPhaserWet = 0.707f; // -3dB
 
 	// Reverb effect sounds best until mixed to around 50-60 percent as well (wetness)
 	constexpr float kMaxReverbWet = 0.55f;
