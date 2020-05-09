@@ -57,7 +57,7 @@ namespace SFM
 			{
 				// Extra assertions (in these cases we'd get divide by zero)
 				SFM_ASSERT(0.f != kneedB);
-				SFM_ASSERT(0.f == ratio);
+				SFM_ASSERT(0.f != ratio);
 
 				const float delta = sumdB-thresholddB;
 				
