@@ -78,6 +78,9 @@
 
 	Not supported on purpose:
 		- Polyphonic aftertouch (or just anything MPE!)
+	
+	Optimal compiler parameters for Visual Studio 2017:
+		- /Ob2 /Oi /O2 /Ot
 
 	
 	For issues & tasks please see Github repository.
