@@ -9,6 +9,8 @@
 
 	In case a parameter does not come with a comment it can be most likely be normalized ([0..1]) range,
 	though in some times it helps to look at synth-global.h; it *should* be documented here so it's a FIXME.
+
+	Nearly all of these parameters are interpolated per sample.
 */
 
 #pragma once

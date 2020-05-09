@@ -482,7 +482,7 @@ namespace SFM
 		
 		// Resonance
 		double curReso = 0.025;
-		const double resoStep = 0.0; // 0.025/kNumPhaserStages;
+		const double resoMul = 1.2;
 		
 		// Apply cascading filters
 		for (auto &filter : m_allpassFilters)
@@ -491,7 +491,7 @@ namespace SFM
 			filter.tick(filteredL, filteredR);
 
 			curCutoff += cutStep;		
-			curReso   += resoStep;
+			curReso   *= resoMul;
 		}
 		
 		// Mix result with dry signal

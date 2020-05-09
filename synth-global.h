@@ -54,10 +54,12 @@ namespace SFM
 {
 	/*
 		Almost all constants used across FM. BISON are defined here; I initially chose this approach because there weren't so many
-		of them and almost none were too specific to certain parts of the code. This has changed over time but I still, for now, decide
-		to stick with having them here instead of spreading them across various files.
-	 
-		October 2019: I've now decided to *try* and place (new) constants closer to home, but only if it isn't also used by the VST!
+		of them and almost none were too specific to certain parts of the code. 
+		
+		This has changed over time but I still, for now, decide to stick with having most of them here instead of spreading them across various files.
+		Very specific constants however should live close to their implementation.
+
+		So long as every constant the host needs is defined here we're in the clear.
 	*/
 
 	// Reasonable audible spectrum
@@ -98,7 +100,7 @@ namespace SFM
 	// Main filter resonance range (max. must be < 40.f, or so the manual says)
 	// Engine adds kMinFilterResonance automatically!
 	constexpr float kMinFilterResonance = 0.025f;
-	constexpr float kMaxFilterResonance = 13.f;
+	constexpr float kMaxFilterResonance = 14.f;
 	constexpr float kFilterResonanceRange = kMaxFilterResonance-kMinFilterResonance;
 	
 	// Min. filter cutoff; range is simply [0..1]

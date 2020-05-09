@@ -538,6 +538,54 @@ namespace SFM
 		return panAngle*0.25f;
 	}
 
+	// Set up (static) operator SVF filter
+	void Bison::SetOperatorFilter(unsigned key, SvfLinearTrapOptimised2 *filterSVF, const PatchOperators::Operator &patchOp)
+	{
+		SFM_ASSERT(nullptr != filterSVF);
+
+		// Calculate (scaled) cutoff freq. & Q
+		const float cutoffNorm = lerpf<float>(patchOp.cutoff, 1.f, CalcCutoffScaling(key, patchOp));
+		const float cutoffHz   = CutoffToHz(cutoffNorm, m_Nyquist);
+		const float normQ      = patchOp.resonance;
+		const float Q          = ResoToQ(normQ);
+				
+		switch (patchOp.filterType)
+		{
+		case PatchOperators::Operator::kNoFilter:
+			filterSVF[0].updateCoefficients(0.0, 0.0, SvfLinearTrapOptimised2::NO_FLT_TYPE);
+			break;
+
+		case PatchOperators::Operator::kLowpassFilter:
+			filterSVF[0].resetState();
+			filterSVF[0].updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
+			break;
+
+		case PatchOperators::Operator::kHighpassFilter:
+			filterSVF[0].resetState();
+			filterSVF[0].updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
+			break;
+
+		case PatchOperators::Operator::kBandpassFilter:
+			filterSVF[0].resetState();
+			filterSVF[0].updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
+			break;
+
+		case PatchOperators::Operator::kAllPassFilter:
+			{
+				for (unsigned iAllpass = 0; iAllpass < kNumVoiceAllpasses; ++iAllpass)
+				{
+					filterSVF[iAllpass].resetState();
+					filterSVF[iAllpass].updateCoefficients(cutoffNorm, Q, SvfLinearTrapOptimised2::ALL_PASS_FILTER, m_sampleRate);
+				}
+			}
+			
+			break;
+
+		default:
+			SFM_ASSERT(false);
+		}
+	}
+
 	// Calculate operator frequency
 	float Bison::CalcOpFreq(float fundamentalFreq, const PatchOperators::Operator &patchOp)
 	{
@@ -732,34 +780,7 @@ namespace SFM
 				const float opVelocity = (false == patchOp.velocityInvert) ? velocity : 1.f-velocity;
 
 				// (Re)set constant/static filter
-				voiceOp.filterSVF.resetState();
-
-				// Calculate (scaled) cutoff freq. & Q
-				const float cutoffNorm = lerpf<float>(patchOp.cutoff, 1.f, CalcCutoffScaling(key, patchOp));
-				const float cutoffHz   = CutoffToHz(cutoffNorm, m_Nyquist);
-				const float Q          = ResoToQ(patchOp.resonance);
-				
-				switch (patchOp.filterType)
-				{
-				case PatchOperators::Operator::kNoFilter:
-					voiceOp.filterSVF.updateCoefficients(0.0, 0.0, SvfLinearTrapOptimised2::NO_FLT_TYPE);
-					break;
-
-				case PatchOperators::Operator::kLowpassFilter:
-					voiceOp.filterSVF.updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
-					break;
-
-				case PatchOperators::Operator::kHighpassFilter:
-					voiceOp.filterSVF.updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
-					break;
-
-				case PatchOperators::Operator::kBandpassFilter:
-					voiceOp.filterSVF.updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
-					break;
-						
-				default:
-					SFM_ASSERT(false);
-				}
+				SetOperatorFilter(key, voiceOp.filterSVF, patchOp);
 	
 				const float frequency = CalcOpFreq(fundamentalFreq, patchOp);
 				const float amplitude = CalcOpIndex(key, opVelocity, patchOp);
@@ -912,34 +933,7 @@ namespace SFM
 				if (true == reset)
 				{
 					// (Re)set constant/static filter
-					voiceOp.filterSVF.resetState();
-				
-					// Calculate (scaled) cutoff freq. & Q
-					const float cutoffNorm = lerpf<float>(patchOp.cutoff, 1.f, CalcCutoffScaling(key, patchOp));
-					const float cutoffHz   = CutoffToHz(cutoffNorm, m_Nyquist);
-					const float Q          = ResoToQ(patchOp.resonance*kDefFilterResonanceLimit /* Lesser range in favor of better control sensitivity */);
-				
-					switch (patchOp.filterType)
-					{
-					case PatchOperators::Operator::kNoFilter:
-						voiceOp.filterSVF.updateCoefficients(0.0, 0.0, SvfLinearTrapOptimised2::NO_FLT_TYPE);
-						break;
-
-					case PatchOperators::Operator::kLowpassFilter:
-						voiceOp.filterSVF.updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
-						break;
-
-					case PatchOperators::Operator::kHighpassFilter:
-						voiceOp.filterSVF.updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
-						break;
-
-					case PatchOperators::Operator::kBandpassFilter:
-						voiceOp.filterSVF.updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
-						break;
-						
-					default:
-						SFM_ASSERT(false);
-					}
+					SetOperatorFilter(key, voiceOp.filterSVF, patchOp);
 				}
 				
 				const float frequency = CalcOpFreq(fundamentalFreq, patchOp);

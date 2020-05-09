@@ -114,10 +114,10 @@ namespace SFM
 	 ------------------------------------------------------------------------------------------------------ */
 
 	 // Tame
-//	const float kFeedbackScale = 0.75f;
-
-	// More in line with the DX7
-	const float kFeedbackScale = 1.f;
+//	constexpr float kFeedbackScale = 0.75f;
+	
+	// Bright
+	constexpr float kFeedbackScale = 1.f;
 
 	void Voice::Sample(float &left, float &right, float pitchBend, float ampBend, float modulation)
 	{
@@ -172,7 +172,7 @@ namespace SFM
 					// Add sample to phase
 					// If modulator or modulator operator is disabled it's zero
 					const float sample = opSample[iModulator+1];
-					phaseMod += sample; // FIXME: output -> index curve?
+					phaseMod += sample+1.f; // [0..2], FIXME: output -> index curve?
 				}
 
 				const float feedbackAmt = kFeedbackScale*voiceOp.feedbackAmt.Sample();
@@ -223,8 +223,21 @@ namespace SFM
 				}
 				
 				// Apply filter
-				if (SvfLinearTrapOptimised2::NO_FLT_TYPE != voiceOp.filterSVF.getFilterType())
-					voiceOp.filterSVF.tickMono(sample);
+				switch (voiceOp.filterSVF[0].getFilterType())
+				{
+				case SvfLinearTrapOptimised2::NO_FLT_TYPE:
+					break;
+
+				case SvfLinearTrapOptimised2::ALL_PASS_FILTER:
+					for (unsigned iAllpass = 0; iAllpass < kNumVoiceAllpasses; ++iAllpass)
+						voiceOp.filterSVF[iAllpass].tickMono(sample);
+
+					break;
+
+				default:
+					// I'm assuming the filter is set up properly
+					voiceOp.filterSVF[0].tickMono(sample);
+				}
 
 				// Store final sample for modulation
 				opSample[iOpSample] = sample;
@@ -234,6 +247,7 @@ namespace SFM
 				const float panMod = voiceOp.panMod;
 				if (0.f != panMod)
 				{
+					// FIXME: even though it's 05:10 AM, I strongly feel like I have to review this :-)
 					const float dryPanning = (panAngle-0.125f)*8.f;
 					const float panning = Clamp(LFO*panMod*modulation + dryPanning*0.33f);
 					panAngle = (panning+1.f)*0.5f*0.25f;

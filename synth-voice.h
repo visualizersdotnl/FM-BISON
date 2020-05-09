@@ -27,8 +27,9 @@
 
 namespace SFM
 {
-	const unsigned kMaxVoiceOscillators = 4;
-	
+	// Number of cascaded filters of this type (keep it civil as it's a per operator filter)
+	constexpr unsigned kNumVoiceAllpasses = 4;
+
 	class Voice
 	{
 	public:
@@ -89,8 +90,8 @@ namespace SFM
 			// Is carrier (output)
 			bool isCarrier;
 			
-			// 12db Filter
-			SvfLinearTrapOptimised2 filterSVF;
+			// 12dB filter(s)
+			SvfLinearTrapOptimised2 filterSVF[kNumVoiceAllpasses];
 
 			// Feedback accum.
 			float feedbackAccum;
@@ -124,7 +125,8 @@ namespace SFM
 
 				isCarrier = false;
 				
-				filterSVF.resetState();
+				for (auto &filter : filterSVF)
+					filter.resetState();
 
 				feedbackAccum = 0.f;
 			}
