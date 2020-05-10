@@ -11,19 +11,18 @@
 
 namespace SFM
 {
-	SFM_INLINE static float CalcRate(float rateMul, float rate, unsigned sampleRate)
+	SFM_INLINE static double CalcRate(double rateMul, float rate, unsigned sampleRate)
 	{
 		return rateMul*rate*sampleRate;
 	}
 
-	SFM_INLINE static float CalcRatio(float curve)
+	SFM_INLINE static double CalcRatio(float curve)
 	{
 		SFM_ASSERT(curve >= 0.f && curve <= 1.f);
 		
-		curve = 1.f-curve;
-		
-		// Function taken from Nigel's own widget (https://www.earlevel.com/main/2013/06/23/envelope-generators-adsr-widget/)
-		return 0.001f * (expf(12.f*curve)-1.f);
+		// Tweaked version of the function in Nigel's own widget (https://www.earlevel.com/main/2013/06/23/envelope-generators-adsr-widget/)
+		const double invX = 1.0 - curve;
+		return kEpsilon + 0.03 * (exp(4.0*invX) - 1.0);
 	}
 
 	void Envelope::Start(const Parameters &parameters, unsigned sampleRate, bool isCarrier, float keyScaling, float velScaling, float outputOnAttack)
@@ -42,9 +41,9 @@ namespace SFM
 		m_ADSR.reset();
 
 		// Set ratios
-		const float ratioA = CalcRatio(parameters.attackCurve);
-		const float ratioD = CalcRatio(parameters.decayCurve);
-		const float ratioR = CalcRatio(parameters.releaseCurve);
+		const double ratioA = CalcRatio(parameters.attackCurve);
+		const double ratioD = CalcRatio(parameters.decayCurve);
+		const double ratioR = CalcRatio(parameters.releaseCurve);
 
 		m_ADSR.setTargetRatioA(ratioA);
 		m_ADSR.setTargetRatioD(ratioD);
@@ -55,11 +54,11 @@ namespace SFM
 		m_ADSR.setSustainLevel(parameters.sustain);
 
 		// Set rates
-		const float rateMul = parameters.rateMul*keyScaling; // For ex. key scaling can make the envelope shorter
-
-		const float attack   = CalcRate(rateMul, parameters.attack, sampleRate);
-		const float decay    = CalcRate(rateMul*velScaling, parameters.decay, sampleRate); // Velocity scaling can lengthen the decay phase
-		const float release  = CalcRate(rateMul, parameters.release, sampleRate);
+		const double rateMul = parameters.rateMul*keyScaling; // For ex. key scaling can make the envelope shorter
+		 
+		const double attack   = CalcRate(rateMul,            parameters.attack,  sampleRate);
+		const double decay    = CalcRate(rateMul*velScaling, parameters.decay,   sampleRate); // Velocity scaling can lengthen the decay phase
+		const double release  = CalcRate(rateMul,            parameters.release, sampleRate);
 
 		m_ADSR.setAttackRate(attack);
 		m_ADSR.setDecayRate(decay);
