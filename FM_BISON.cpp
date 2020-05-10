@@ -610,6 +610,18 @@ namespace SFM
 			SFM_ASSERT(coarse != 0);
 			SFM_ASSERT(abs(fine) <= kFineRange);
 			SFM_ASSERT(abs(detune) <= kDetuneRange);
+			
+			/*
+				Sean Bolton's Hexter seems to detune the fundamental frequency *first*, see
+				https://github.com/smbolton/hexter/blob/master/src/dx7_voice.c, line 788
+
+				When I moved this I could hear a definite difference in the DX7 style
+				patches I built, like it got a lot closer.
+
+				So for now I'm keeping this.
+			*/
+
+			frequency *= powf(2.f, (detune*0.01f)/12.f);
 
 			if (coarse < 0)
 				frequency /= abs(coarse-1);
@@ -619,7 +631,9 @@ namespace SFM
 				SFM_ASSERT(false); // Coarse may *never* be zero!
 			
 			frequency *= powf(2.f, fine/12.f);
-			frequency *= powf(2.f, (detune*0.01f)/12.f);
+			
+			// Moved up
+//			frequency *= powf(2.f, (detune*0.01f)/12.f);
 		}
 
 		return frequency;
