@@ -42,7 +42,7 @@ namespace SFM
 
 		// Calculate magnitude of frequencies as if it were a 3D vector
 		// We're knee deep in pseudo-science from this point onward :-)
-		const float magnitude = sqrtf(frequencies[0]*frequencies[0] + frequencies[1]*frequencies[1] + frequencies[2]*frequencies[2]);
+		const double magnitude = sqrt(frequencies[0]*frequencies[0] + frequencies[1]*frequencies[1] + frequencies[2]*frequencies[2]);
 
 		// Apply 3 parallel band passes
 		float filteredL = 0.f, filteredR = 0.f;

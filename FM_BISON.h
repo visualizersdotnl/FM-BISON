@@ -88,6 +88,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <deque>
 
 #include "synth-global.h"

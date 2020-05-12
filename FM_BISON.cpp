@@ -11,8 +11,8 @@
 #endif
 
 // C++11
-#include <mutex>
-#include <shared_mutex>
+// #include <mutex>
+// #include <shared_mutex>
 // #include <deque>
 // #include <cfenv>
 
@@ -31,8 +31,8 @@
 
 namespace SFM
 {
-	std::atomic<unsigned> s_instanceCount = 0;
-	std::atomic_bool s_staticInit = true;
+	static std::atomic<unsigned> s_instanceCount(0);
+	static bool s_staticInit = true;
 
 	/* ----------------------------------------------------------------------------------------------------
 
@@ -75,6 +75,8 @@ namespace SFM
 		DeleteRateDependentObjects();
 
 		Log("FM. BISON engine released");
+
+		--s_instanceCount;
 	}
 
 	/* ----------------------------------------------------------------------------------------------------
@@ -954,7 +956,7 @@ namespace SFM
 				const float frequency = CalcOpFreq(fundamentalFreq, patchOp);
 				const float amplitude = CalcOpIndex(key, opVelocity, patchOp);
 
-				const float curFreq   = voiceOp.oscillator.GetFrequency();
+//				const float curFreq   = voiceOp.oscillator.GetFrequency();
 //				const float curPhase  = voiceOp.oscillator.GetPhase(); 
 //				const float curAmp    = voiceOp.amplitude.Get();
 
@@ -1142,7 +1144,7 @@ namespace SFM
 							// Some of these are updated in this loop
 							// The set of parameters (also outside of this object) isn't conclusive and may vary depending on the use of FM. BISON (currently customized for VST plug-in)
 					
-							const float freqGlide = voice.freqGlide;						
+//							const float freqGlide = voice.freqGlide;						
 
 							for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
 							{
@@ -1350,7 +1352,7 @@ namespace SFM
 				
 				const bool isIdle      = voice.IsIdle(); 
 				const bool isPlaying   = voice.IsPlaying();
-				const bool isReleasing = voice.IsReleasing();
+//				const bool isReleasing = voice.IsReleasing();
 				const bool isStolen    = voice.IsStolen();
 
 				// Bias releasing voices

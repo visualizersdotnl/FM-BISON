@@ -98,7 +98,7 @@ namespace SFM
 				{
 					auto &phase = m_phases[iSaw];
 					const float detune = s_supersawDetune[iSaw];
-					phase.Initialize(frequency*s_supersawDetune[iSaw], sampleRate, phaseShift);
+					phase.Initialize(frequency*detune, sampleRate, phaseShift);
 					
 					// Hard sync. to base freq.
 					phase.SyncTo(frequency);

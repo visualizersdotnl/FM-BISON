@@ -66,8 +66,8 @@ namespace SFM
 			// This sounded better for Compressor, though here we factor in wetness so the signal
 			// ain't delayed when we're running dry, which is 100% nonsense pseudo-logic (FIXME)
 			const float lookahead = m_lookahead*wetness;
-			float delayedL = lerpf<float>(sampleL, m_outDelayL.ReadNearest(-1), m_lookahead);
-			float delayedR = lerpf<float>(sampleR, m_outDelayR.ReadNearest(-1), m_lookahead);
+			float delayedL = lerpf<float>(sampleL, m_outDelayL.ReadNearest(-1), lookahead);
+			float delayedR = lerpf<float>(sampleR, m_outDelayR.ReadNearest(-1), lookahead);
 
 			// Cut off high end and that's what we'll work with
 			float preFilteredL = delayedL, preFilteredR = delayedR;
