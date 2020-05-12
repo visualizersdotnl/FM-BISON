@@ -52,7 +52,7 @@ namespace SFM
 			SFM_ASSERT(ratio >= kMinCompRatio && ratio <= kMaxCompRatio);
 			SFM_ASSERT(gaindB >= kMinCompGaindB && gaindB <= kMaxCompGaindB);
 			SFM_ASSERT(attack >= kMinCompAttack && attack <= kMaxCompAttack);
-			SFM_ASSERT(release >= kMinCompRelease && attack <= kMaxCompRelease);
+			SFM_ASSERT(release >= kMinCompRelease && release <= kMaxCompRelease);
 			SFM_ASSERT(lookahead >= 0.f && lookahead <= 1.f);
 
 			m_curPeakToRMS.SetTarget(peakToRMS);
