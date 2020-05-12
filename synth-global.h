@@ -44,8 +44,11 @@
 // Set to 1 to let FM. BISON handle denormals
 #define SFM_KILL_DENORMALS 0
 
-// Define to disable all FX
+// Define to disable all FX (including per-voice filter)
 // #define SFM_DISABLE_FX
+
+// Define to disable ParameterFilter (chiefly a MIDI-crackle countermeasure)
+// #define SFM_DISABLE_PARAMETER_FILTER
 
 #include "synth-log.h"
 #include "synth-math.h"

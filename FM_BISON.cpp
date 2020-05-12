@@ -31,6 +31,9 @@
 
 namespace SFM
 {
+	std::atomic<unsigned> s_instanceCount = 0;
+	std::atomic_bool s_staticInit = true;
+
 	/* ----------------------------------------------------------------------------------------------------
 
 		Constructor/Destructor
@@ -39,7 +42,6 @@ namespace SFM
 	
 	Bison::Bison()
 	{
-		static bool s_staticInit = true;
 		if (true == s_staticInit)
 		{
 			// Calculate LUTs & initialize random generator
@@ -50,6 +52,8 @@ namespace SFM
 
 			s_staticInit = false;
 		}
+
+		m_iInstance = s_instanceCount++;
 		
 		// Reset entire patch
 		m_patch.ResetToEngineDefaults();
@@ -83,6 +87,8 @@ namespace SFM
 	// Called by JUCE's prepareToPlay()
 	void Bison::OnSetSamplingProperties(unsigned sampleRate, unsigned samplesPerBlock)
 	{
+		Log("BISON(" + std::to_string(m_iInstance) + ")::OnSetSamplingProperties(" + std::to_string(sampleRate) + ", " + std::to_string(samplesPerBlock) + ")");
+
 		m_sampleRate       = sampleRate;
 		m_samplesPerBlock  = samplesPerBlock;
 
@@ -614,11 +620,6 @@ namespace SFM
 			/*
 				Sean Bolton's Hexter seems to detune the fundamental frequency *first*, see
 				https://github.com/smbolton/hexter/blob/master/src/dx7_voice.c, line 788
-
-				When I moved this I could hear a definite difference in the DX7 style
-				patches I built, like it got a lot closer.
-
-				So for now I'm keeping this.
 			*/
 
 			frequency *= powf(2.f, (detune*0.01f)/12.f);
@@ -1763,7 +1764,9 @@ namespace SFM
 						// SVF cutoff aftertouch (curved towards zero if pressed)
 						const float cutAfter = mainFilterAftertouch*sampAftertouch;
 						SFM_ASSERT(cutAfter >= 0.f && cutAfter <= 1.f);
-						
+
+#if !defined(SFM_DISABLE_FX)						
+
 						// Apply & mix filter (FIXME: write single sequential loop (see Github issue), prepare buffer(s) on initialization)
 						if (false == noFilter)
 						{	
@@ -1793,7 +1796,9 @@ namespace SFM
 							left  = filteredL;
 							right = filteredR;
 						}
-						
+
+#endif
+
 						// Apply gain and add to mix
 						const float amplitude = curGlobalAmp.Sample() * voiceGain;
 						m_pBufL[iSample] += amplitude * left;

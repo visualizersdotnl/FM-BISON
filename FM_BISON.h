@@ -257,6 +257,8 @@ namespace SFM
 			Vars.
 		*/
 
+		unsigned m_iInstance;
+
 		// Sample rate related (driven by JUCE)
 		unsigned m_sampleRate;
 		unsigned m_Nyquist;

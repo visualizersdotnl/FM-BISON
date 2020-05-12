@@ -161,9 +161,19 @@ namespace SFM
 		ParameterFilter() :
 			LowpassFilter(1.f) {} // Does (next to) nothing
 
+#if !defined(SFM_DISABLE_PARAMETER_FILTER)			
+
 		ParameterFilter(unsigned sampleRate, float cutHz = kDefParameterFilterCutHz) :
 			LowpassFilter(cutHz/sampleRate)
 		{}
+
+#else
+
+		ParameterFilter(unsigned sampleRate, float cutHz = kDefParameterFilterCutHz) :
+			LowpassFilter(1.f) // Bypass
+		{}
+
+#endif
 	};
 }
-								   
+							   
