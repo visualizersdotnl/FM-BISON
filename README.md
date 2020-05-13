@@ -28,6 +28,10 @@ to define their new sound, often using the Yamaha DX7.
 We stand on the shoulders of thousands of creative innovators, engineers, artists *and* the public
 domain and we invite you to profit from the work we are doing to take FM to another level.
 
+Because FM synthesis is highly, notoriously so, programmable we aim to offer a wide variety of
+possibilities: from rumbling analog bass lines to sound effects to patches that feel like you're 
+playing an actual instrument.
+
 Our code is open to study, disassemble, improve and use in any way you like, so long as you adhere
 to the MIT license.
 
