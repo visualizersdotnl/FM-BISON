@@ -187,7 +187,7 @@ namespace SFM
 					SFM_ASSERT(iFeedback < kNumOperators);
 					
 					// Grab operator's current feedback
-					feedback = m_operators[iFeedback].feedbackAccum;
+					feedback = m_operators[iFeedback].feedback;
 				}
 
 				// Apply pitch bend, LFO vibrato & pitch envelope
@@ -211,8 +211,8 @@ namespace SFM
 				const float envelope = voiceOp.envelope.Sample();
 				sample *= envelope;
 
-				// Update feedback accumulator
-				voiceOp.feedbackAccum = 0.25f*(voiceOp.feedbackAccum*0.995f + sample*feedbackAmt);
+				// Update operator's feedback
+				voiceOp.feedback = 0.25f*(voiceOp.feedback*0.995f + sample*feedbackAmt);
 
 				// Apply distortion 
 				const float driveAmt = voiceOp.drive.Sample();

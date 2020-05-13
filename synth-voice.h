@@ -61,7 +61,10 @@ namespace SFM
 			float setFrequency; // As calculated by CalcOpFreq()
 			InterpolatedParameter<kMulInterpolate> curFreq;
 
-			// Key scaling
+			// Detune offset (used in jitter)
+			float detuneOffs;
+
+			// Key scaling (higher note, shorter envelope)
 			float keyScaling;
 
 			// Oscillator, amplitude & envelope
@@ -93,14 +96,16 @@ namespace SFM
 			// 12dB filter(s)
 			SvfLinearTrapOptimised2 filterSVF[kNumVoiceAllpasses];
 
-			// Feedback accum.
-			float feedbackAccum;
+			// Signal feedback
+			float feedback;
 
 			void Reset(unsigned sampleRate)
 			{
 				enabled = false;
 				
 				curFreq = { kEpsilon, sampleRate, kDefParameterLatency };
+
+				detuneOffs = 0.f;
 
 				keyScaling = 0.f;
 
@@ -128,7 +133,7 @@ namespace SFM
 				for (auto &filter : filterSVF)
 					filter.resetState();
 
-				feedbackAccum = 0.f;
+				feedback = 0.f;
 			}
 
 		} m_operators[kNumOperators];

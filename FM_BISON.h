@@ -55,6 +55,7 @@
 		- synth-log.*
 		- synth-math.h
 		- synth-ring-buffer.h
+		- synth-random.*
 	
 	Core goals:
 		- Yamaha DX7 style core FM with extensions
@@ -224,7 +225,7 @@ namespace SFM
 		void StealVoice(int index);   // Steal voice
 
 		void SetOperatorFilter(unsigned key, SvfLinearTrapOptimised2 *filterSVF, const PatchOperators::Operator &patchOp);
-		float CalcOpFreq(float fundamentalFreq, const PatchOperators::Operator &patchOp);
+		float CalcOpFreq(float fundamentalFreq, float detuneOffs, const PatchOperators::Operator &patchOp);
 		float CalcOpIndex(unsigned key, float velocity, const PatchOperators::Operator &patchOp);
 
 		void InitializeVoice(const VoiceRequest &request, unsigned iVoice);

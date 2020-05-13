@@ -14,12 +14,18 @@ namespace SFM
 	void InitializeRandomGenerator();
 
 	/*
-		randf()   -- Returns a random value between not 0 but epsilon and 1 (convenient in case you want to divide).
+		randf()   -- Returns FP random value between not 0 but epsilon and 1 (convenient in case you want to divide).
 		randu32() -- Unsigned 32-bit.
 		rand32()  -- Signed 32-bit.
+		randfc()  -- Returns FP random value between -1 and 1.
 	*/
 
 	float mt_randf();
 	uint32_t mt_randu32();
 	int32_t mt_rand32();
+
+	SFM_INLINE static float mt_randfc()
+	{
+		return -1.f + 2.f*mt_randf();
+	}
 };

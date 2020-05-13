@@ -97,8 +97,11 @@ namespace SFM
 	constexpr unsigned kMaxPitchBendRange = 48; // +/- 4 octaves
 	constexpr unsigned kDefPitchBendRange = 12; // +/- 1 octave
 
-	// Max. note drift (in cents, bidirectional)
-	constexpr unsigned kMaxNoteJitter = 33; // Going with the number 3 again, thanks Jan Marguc :-)
+	// Jitter: max. note drift (in cents, -/+)
+	constexpr unsigned kMaxNoteJitter = 50; // Half a note
+
+	// Jitter: max. detune (in cents, -/+)
+	constexpr float kMaxDetuneJitter = 1.f; // 100th of a note
 
 	// Main filter resonance range (max. must be < 40.f, or so the manual says)
 	// Engine adds kMinFilterResonance automatically!

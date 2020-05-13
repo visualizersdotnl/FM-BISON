@@ -504,8 +504,8 @@ namespace SFM
 
 		Voice initialization.
 
-		There's a separate function for the monophonic voice; this means quite some code is duplicated
-		in favour of keeping the core logic for both polyphonic and monophonic separated.
+		There's a separate init. function for the monophonic voice; this means quite some code is 
+		duplicated in favour of keeping the core logic for polyphonic and monophonic separated.
 
 	 ------------------------------------------------------------------------------------------------------ */
 
@@ -587,7 +587,7 @@ namespace SFM
 	}
 
 	// Calculate operator frequency
-	float Bison::CalcOpFreq(float fundamentalFreq, const PatchOperators::Operator &patchOp)
+	float Bison::CalcOpFreq(float fundamentalFreq, float detuneOffs, const PatchOperators::Operator &patchOp)
 	{
 		float frequency;
 		if (true == patchOp.fixed)
@@ -602,9 +602,9 @@ namespace SFM
 		{
 			frequency = fundamentalFreq;
 
-			const int   coarse = patchOp.coarse; // Ratio
-			const int     fine = patchOp.fine;   // Semitones
-			const float detune = patchOp.detune; // Cents
+			const int   coarse = patchOp.coarse;              // Ratio
+			const int     fine = patchOp.fine;                // Semitones
+			const float detune = patchOp.detune + detuneOffs; // Cents
 
 			SFM_ASSERT(coarse >= kCoarseMin && coarse <= kCoarseMax);
 			SFM_ASSERT(coarse != 0);
@@ -745,8 +745,8 @@ namespace SFM
 			: request.frequency;
 
 		// Note frequency jitter
-		const float noteJitter = jitter * (-1.f + mt_randf()*2.f);
-		fundamentalFreq *= powf(2.f, (noteJitter*kMaxNoteJitter*0.01f)/12.f);
+		const float noteJitter = jitter*mt_randfc()*kMaxNoteJitter;
+		fundamentalFreq *= powf(2.f, (noteJitter*0.01f)/12.f);
 
 		voice.m_fundamentalFreq = fundamentalFreq;
 		
@@ -784,8 +784,11 @@ namespace SFM
 
 				// (Re)set constant/static filter
 				SetOperatorFilter(key, voiceOp.filterSVF, patchOp);
+				
+				// Store detune jitter
+				voiceOp.detuneOffs = jitter*mt_randfc()*kMaxDetuneJitter;
 	
-				const float frequency = CalcOpFreq(fundamentalFreq, patchOp);
+				const float frequency = CalcOpFreq(fundamentalFreq, voiceOp.detuneOffs, patchOp);
 				const float amplitude = CalcOpIndex(key, opVelocity, patchOp);
 
 				// Start oscillator
@@ -938,8 +941,11 @@ namespace SFM
 					// (Re)set constant/static filter
 					SetOperatorFilter(key, voiceOp.filterSVF, patchOp);
 				}
+
+				// Store detune jitter
+				voiceOp.detuneOffs = jitter*mt_randfc()*kMaxDetuneJitter;
 				
-				const float frequency = CalcOpFreq(fundamentalFreq, patchOp);
+				const float frequency = CalcOpFreq(fundamentalFreq, voiceOp.detuneOffs, patchOp);
 				const float amplitude = CalcOpIndex(key, opVelocity, patchOp);
 
 				if (true == reset)
@@ -1137,7 +1143,7 @@ namespace SFM
 									// Operator velocity
 									const float opVelocity = (false == patchOp.velocityInvert) ? voice.m_velocity : 1.f-voice.m_velocity;
 
-									const float frequency = CalcOpFreq(fundamentalFreq, patchOp);
+									const float frequency = CalcOpFreq(fundamentalFreq, voiceOp.detuneOffs, patchOp);
 									const float amplitude = CalcOpIndex(voice.m_key, opVelocity, patchOp);
 								
 									// Interpolate if necessary
