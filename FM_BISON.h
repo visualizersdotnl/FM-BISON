@@ -89,7 +89,6 @@
 #pragma once
 
 // C++
-#include <atomic>
 #include <deque>
 
 #include "synth-global.h"
@@ -231,7 +230,7 @@ namespace SFM
 		void InitializeVoice(const VoiceRequest &request, unsigned iVoice);
 		void InitializeMonoVoice(const VoiceRequest &request);
 
-		// Use front request to initialize new voice
+		// Use front (latest) request (list has been sorted in polyphonic mode) to initialize new voice
 		SFM_INLINE void InitializeVoice(unsigned iVoice)
 		{
 			const VoiceRequest &request = m_voiceReq.front();
@@ -251,15 +250,13 @@ namespace SFM
 		}
 
 		// Called by Render()
-		void UpdateVoicesPreRender();
+		void UpdateVoicesPreRender(unsigned numSamples);
 		void UpdateVoicesPostRender();
 		void UpdateSustain();
 
 		/*
 			Vars.
 		*/
-
-		unsigned m_iInstance;
 
 		// Sample rate related (driven by JUCE)
 		unsigned m_sampleRate;

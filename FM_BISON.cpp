@@ -25,8 +25,7 @@
 
 namespace SFM
 {
-	static std::atomic<unsigned> s_instanceCount(0);
-	static std::atomic_bool s_staticInit(true);
+	static bool s_performStaticInit = true;
 
 	/* ----------------------------------------------------------------------------------------------------
 
@@ -36,7 +35,7 @@ namespace SFM
 	
 	Bison::Bison()
 	{
-		if (true == s_staticInit.load())
+		if (true == s_performStaticInit)
 		{
 			// Calculate LUTs & initialize random generator
 			InitializeRandomGenerator();
@@ -44,10 +43,8 @@ namespace SFM
 			InitializeFastCosine();
 			Oscillator::CalculateSupersawDetuneTable();
 
-			s_staticInit.store(false);
+			s_performStaticInit = false;
 		}
-
-		m_iInstance = s_instanceCount++;
 		
 		// Reset entire patch
 		m_patch.ResetToEngineDefaults();
@@ -55,7 +52,7 @@ namespace SFM
 		// Initialize polyphony
 		m_curPolyphony = m_patch.maxVoices;
 
-		Log("FM. BISON engine initalized");
+		Log("Instance of FM. BISON engine initalized");
 		Log("Suzie, call Dr. Bison, tell him it's for me...");
 
 		/*
@@ -68,9 +65,7 @@ namespace SFM
 	{
 		DeleteRateDependentObjects();
 
-		Log("FM. BISON engine released");
-
-		--s_instanceCount;
+		Log("Instance of FM. BISON engine released");
 	}
 
 	/* ----------------------------------------------------------------------------------------------------
@@ -83,7 +78,7 @@ namespace SFM
 	// Called by JUCE's prepareToPlay()
 	void Bison::OnSetSamplingProperties(unsigned sampleRate, unsigned samplesPerBlock)
 	{
-		Log("BISON(" + std::to_string(m_iInstance) + ")::OnSetSamplingProperties(" + std::to_string(sampleRate) + ", " + std::to_string(samplesPerBlock) + ")");
+		Log("BISON::OnSetSamplingProperties(" + std::to_string(sampleRate) + ", " + std::to_string(samplesPerBlock) + ")");
 
 		m_sampleRate       = sampleRate;
 		m_samplesPerBlock  = samplesPerBlock;
@@ -91,7 +86,7 @@ namespace SFM
 		m_Nyquist = sampleRate>>1;
 
 		/* 
-			Reset sample rate dependent global objects:
+			Reset sample rate dependent global objects
 		*/
 
 		DeleteRateDependentObjects();
@@ -144,6 +139,7 @@ namespace SFM
 
 		// Set parameter filter rates to reduce automation/MIDI noise (to default cut Hz, mostly)
 		// They're kept in this class since they are pretty VST-specific and might need tweaking or another target such as embedded
+		// They can also be turned off completely (see top of synth-global.h)
 
 		// Local
 		m_LFORatePF             = { m_sampleRate, kDefParameterFilterCutHz * 0.5f /* Softer */ };
@@ -242,7 +238,7 @@ namespace SFM
 
 		Monophonic mode:
 		- Each note uses it's own velocity for all calculations, instead of carrying over the
-		  initial one (e.g. like I can hear my TG77 do)
+		  initial one (like I can hear my TG77 do)
 		- When a note is released, the last note in the sequence will play; to restart lift all keys
 		- Glide speed and velocity attenuation can be controlled through parameters
 
@@ -360,9 +356,12 @@ namespace SFM
 
 				if (false == voice.IsIdle())
 				{
-					// In monophonic mode we can just use ReleaseVoice() without any problems
 					if (true == monophonic)
 					{
+						/*
+							FIXME: I've kept this logic for monophonic mode, but purely because I did not want to mess with it!
+						*/
+
 						// Release if still playing
 						if (true == voice.IsPlaying())
 							ReleaseVoice(index);
@@ -377,7 +376,6 @@ namespace SFM
 						if (false == voice.IsStolen())
 							StealVoice(index);
 					}
-					
 
 					Log("NoteOn() retrigger: " + std::to_string(key) + ", voice: " + std::to_string(index));
 				}
@@ -390,7 +388,7 @@ namespace SFM
 			}
 			else
 			{
-				// Replace last request (FIXME: replace one with lowest time stamp instead?)
+				// Replace last request (FIXME: replace by time stamp instead?)
 				m_voiceReq.pop_back();
 				m_voiceReq.emplace_back(request);
 			}
@@ -404,7 +402,7 @@ namespace SFM
 			// Issue first request only
 			if (m_voiceReq.size() < m_curPolyphony)
 			{
-				m_voiceReq.emplace_front(request);
+				m_voiceReq.emplace_back(request);
 
 				// Add to sequence
 				m_monoReq.emplace_front(request);
@@ -613,11 +611,8 @@ namespace SFM
 			SFM_ASSERT(abs(fine) <= kFineRange);
 			SFM_ASSERT(abs(detune) <= kDetuneRange);
 			
-			/*
-				Sean Bolton's Hexter seems to detune the fundamental frequency *first*, see
-				https://github.com/smbolton/hexter/blob/master/src/dx7_voice.c, line 788
-			*/
-
+			// Sean Bolton's Hexter seems to detune the fundamental frequency *first*, see
+			// https://github.com/smbolton/hexter/blob/master/src/dx7_voice.c, line 788
 			frequency *= powf(2.f, (detune*0.01f)/12.f);
 
 			if (coarse < 0)
@@ -628,9 +623,6 @@ namespace SFM
 				SFM_ASSERT(false); // Coarse may *never* be zero!
 			
 			frequency *= powf(2.f, fine/12.f);
-			
-			// Moved up
-//			frequency *= powf(2.f, (detune*0.01f)/12.f);
 		}
 
 		return frequency;
@@ -950,10 +942,6 @@ namespace SFM
 				const float frequency = CalcOpFreq(fundamentalFreq, patchOp);
 				const float amplitude = CalcOpIndex(key, opVelocity, patchOp);
 
-//				const float curFreq   = voiceOp.oscillator.GetFrequency();
-//				const float curPhase  = voiceOp.oscillator.GetPhase(); 
-//				const float curAmp    = voiceOp.amplitude.Get();
-
 				if (true == reset)
 				{
 					// Reset
@@ -972,10 +960,7 @@ namespace SFM
 				else
 				{
 					// Glide
-//					voiceOp.amplitude.Set(curAmp);
 					voiceOp.amplitude.SetTarget(amplitude);
-
-//					voiceOp.curFreq.Set(curFreq);
 					voiceOp.curFreq.SetTarget(frequency);
 				}
 
@@ -1028,12 +1013,12 @@ namespace SFM
 
 	/* ----------------------------------------------------------------------------------------------------
 
-		Voice logic handling, (to be) called during Render().
+		Voice logic handling, (to be) called by Render().
 
 	 ------------------------------------------------------------------------------------------------------ */
 
 	// Prepare voices for Render() pass
-	void Bison::UpdateVoicesPreRender()
+	void Bison::UpdateVoicesPreRender(unsigned numSamples)
 	{
 		m_modeSwitch = m_curVoiceMode != m_patch.voiceMode;
 		const bool monophonic = Patch::VoiceMode::kMono == m_curVoiceMode;
@@ -1080,12 +1065,12 @@ namespace SFM
 			return;
 		}
 
+		/*
+			Handle all release requests (polyphonic)
+		*/
+
 		if (false == monophonic)
 		{
-			/*
-				Handle all release requests (polyphonic)
-			*/
-
 			std::deque<VoiceReleaseRequest> remainder;
 		
 			for (auto key : m_voiceReleaseReq)
@@ -1118,7 +1103,7 @@ namespace SFM
 		}
 		
 		/*
-			Update voices
+			Update live voice parameters
 		*/
 
 		for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
@@ -1128,17 +1113,16 @@ namespace SFM
 				// Active?
 				if (false == voice.IsIdle())
 				{
-					// Fully released and ready for cooldown?
-					if (false == voice.IsDone() && false == voice.IsStolen()) // No reason to further update a stolen voice
+					// Playing and not stolen?
+					if (false == voice.IsDone() && false == voice.IsStolen())
 					{
+						// Still bound to a key?
 						if (-1 != voice.m_key)
 						{
-							// Update active voices
-							// Each (active) operator has a set of parameters that need per-sample interpolation 
-							// Some of these are updated in this loop
-							// The set of parameters (also outside of this object) isn't conclusive and may vary depending on the use of FM. BISON (currently customized for VST plug-in)
-					
-//							const float freqGlide = voice.freqGlide;						
+							// Update active voice:
+							// - Each (active) operator has a set of parameters that need per-sample interpolation 
+							// - Some of these are updated in this loop
+							// - The set of parameters (also outside of this object) isn't conclusive and may vary depending on the use of FM. BISON (currently: VST plug-in)
 
 							for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
 							{
@@ -1180,8 +1164,7 @@ namespace SFM
 						}
 						else
 						{
-							// If key is -1, this voice is the tail end of a note that has been retriggered; I don't feel it's warranted to add yet
-							// another variable to handle the update, nor do I think it's necessary to sound right.
+							// Not bound to key: voice must be releasing (though after a recent (13/05/2020) adjustment this should no longer happen in polyphonic mode)
 							SFM_ASSERT(true == voice.IsReleasing());
 						}
 					}
@@ -1189,17 +1172,15 @@ namespace SFM
 			}
 		}
 		
-		/*
-			Simple first-fit voice allocation (if none available stealing will be attempted in UpdateVoicesPostRender())
-		*/
-
 		if (false == monophonic)
 		{
 			/* Polyphonic */
 
 			// Sort list by time stamp
+			// The front of the deque will be the latest (largest) time stamp; we'll honour requests in that order
 			std::sort(m_voiceReq.begin(), m_voiceReq.end(), [](const auto &left, const auto &right ) -> bool { return left.timeStamp > right.timeStamp; } );
-
+			
+			// Allocate voices (simple first-fit)
 			while (m_voiceReq.size() > 0 && m_voiceCount < m_curPolyphony)
 			{
 				// Pick first free voice
@@ -1209,11 +1190,68 @@ namespace SFM
 
 					if (true == voice.IsIdle())
 					{
+						// Initialize (also pops request)
 						InitializeVoice(iVoice);
 						break;
 					}
 				}
 			}
+			
+			// If we still have requests, try to steal releasing voices in order to free up slots
+			// that can be used to spawn these voices the next frame (no gaurantee!)
+
+			size_t remainingRequests = m_voiceReq.size();
+			size_t voicesStolen = 0;
+
+			// FIXME: create a list of candidates and steal them by summed output (low to high)
+			while (remainingRequests--)
+			{
+				float lowestSummedOutput = 1.f*kNumOperators;
+				int iLowestVoice = -1;
+			
+				for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
+				{
+					Voice &voice = m_voices[iVoice];
+				
+					const bool isReleasing = voice.IsReleasing();
+					const bool isStolen    = voice.IsStolen();
+
+					if (true == isReleasing && false == isStolen)
+					{
+						// Check (summed) output level
+						const float summedOutput = voice.GetSummedOutput();
+						if (lowestSummedOutput > summedOutput)
+						{
+							// Lowest so far
+							iLowestVoice = iVoice;
+							lowestSummedOutput = summedOutput;
+						}
+					}
+				}
+			
+				// Found one?
+				if (-1 != iLowestVoice)
+				{
+					// Steal it
+					StealVoice(iLowestVoice);
+					Log("Voice stolen (index): "  + std::to_string(iLowestVoice));
+
+					++voicesStolen;
+				}
+				else 
+					// Nothing to steal at all, so bail
+					break; 
+			}
+			
+			if (remainingRequests > 0)
+			{
+				Log("Could not steal all voices needed, " + std::to_string(remainingRequests) + " remaining.");
+			}
+
+			// Offset remaining request time stamps by number of samples processed this frame; t
+			// they will now be first in line to be allocated next frame
+			for (auto &request : m_voiceReq)
+				request.timeStamp += numSamples;
 		}
 		else
 		{
@@ -1283,10 +1321,7 @@ namespace SFM
 	// Update voices after Render() pass
 	void Bison::UpdateVoicesPostRender()
 	{
-		/*
-			Free (stolen) voices
-		*/
-
+		// Free (stolen) voices
 		for (unsigned iVoice = 0; iVoice < kMaxVoices /* Evaluate all! */; ++iVoice)
 		{
 			Voice &voice = m_voices[iVoice];
@@ -1311,78 +1346,10 @@ namespace SFM
 
 		// Possible mode switch complete
 		m_modeSwitch = false;
-
+		
+		// Voice request should be honoured immediately in monophonic mode
 		const bool monophonic = Patch::VoiceMode::kMono == m_curVoiceMode;
-
-		if (true == monophonic)
-		{
-			SFM_ASSERT(true == m_voiceReq.empty());
-			
-			// In monophonic mode we won't need to steal any voices at this point
-			return;
-		}
-	
-		/*
-			Try to steal the required amount of voices
-			
-			For now if voices are stolen there's 1 Render() call (or frame if you will) delay before the new voice(s) are triggered,
-			this avoids clicks at the cost of minimal latency
-
-			FIXME: here's some proper discussion on the matter: https://www.kvraudio.com/forum/viewtopic.php?t=91557
-		*/
-
-		size_t voicesNeeded = m_voiceReq.size();
-		size_t voicesStolen = 0;
-
-		while (voicesNeeded--)
-		{
-			float lowestOutput = 1.f*kNumOperators;
-			int iLowest = -1;
-			
-			// FIXME: create a (sorted) list of voices that can be stolen
-			for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
-			{
-				Voice &voice = m_voices[iVoice];
-				
-				const bool isIdle      = voice.IsIdle(); 
-				const bool isPlaying   = voice.IsPlaying();
-//				const bool isReleasing = voice.IsReleasing();
-				const bool isStolen    = voice.IsStolen();
-
-				// Bias releasing voices
-				const float releaseScale = (false == isPlaying) ? kVoiceStealReleaseBias : 1.f;
-
-				if (false == isIdle && false == isStolen)
-				{
-					// Check output level
-					const float output = voice.GetSummedOutput()*releaseScale;
-					if (lowestOutput > output)
-					{
-						// Lowest so far
-						iLowest = iVoice;
-						lowestOutput = output;
-					}
-				}
-			}
-			
-			// Found one?
-			if (-1 != iLowest)
-			{
-				// Steal it
-				StealVoice(iLowest);
-				Log("Voice stolen (index): "  + std::to_string(iLowest));
-
-				++voicesStolen;
-			}
-			else break; // Nothing to steal at all, so bail
-		}
-
-		if (false == m_voiceReq.empty())
-		{
-			// Report any voices we can't immediately trigger next frame
-			if (voicesStolen < m_voiceReq.size())
-				Log("Voice requests deferred: " + std::to_string(m_voiceReq.size()));
-		}
+		SFM_ASSERT(false ==  monophonic || true == m_voiceReq.empty());
 	}
 
 	// Update sustain state
@@ -1413,7 +1380,6 @@ namespace SFM
 					if (true == voice.IsPlaying() && false == voice.IsSustained())
 					{
 						voice.m_sustained = true;
-
 						Log("Voice sustained (synth.): " + std::to_string(iVoice));
 					}
 				}
@@ -1427,10 +1393,6 @@ namespace SFM
 					if (true == voice.IsPlaying() && true == voice.IsSustained())
 					{
 						voice.m_sustained = false;
-						
-						// Issue NOTE_OFF
-//						NoteOff(voice.m_key, 0);
-
 						Log("Voice no longer sustained (synth.): " + std::to_string(iVoice));
 					}
 				}
@@ -1476,9 +1438,7 @@ namespace SFM
 					Voice &voice = m_voices[iVoice];
 					if (false == voice.IsIdle() && true == voice.IsSustained())
 					{
-						// Voice is no longer sustained, so it can be released
 						voice.m_sustained = false;
-
 						Log("Voice no longer sustained (CP): " + std::to_string(iVoice));
 					}
 				}
@@ -1568,8 +1528,8 @@ namespace SFM
 			}
 		}
 
-		// Update voice logic
-		UpdateVoicesPreRender();
+		// Update voice logic (pre)
+		UpdateVoicesPreRender(numSamples);
 
 		// Update filter type & state
 		// This is where the magic happens ;)
@@ -1673,16 +1633,17 @@ namespace SFM
 			const float voiceGain = 0.354813397f; // dBToGain(kVoiceGaindB);
 		
 			// Render voices
-			for (int iVoice = 0; iVoice < kMaxVoices /* Actual voice count can be > m_curPolyphony due to being stolen on ResetVoices() */; ++iVoice)
+			for (int iVoice = 0; iVoice < kMaxVoices /* Actual voice count can be > m_curPolyphony */; ++iVoice)
 			{
 				Voice &voice = m_voices[iVoice];
 
-				voice.m_LFO.SetFrequency(freqLFO);
-				
 				if (false == voice.IsIdle())
 				{
-					const float globalAmpFull = 1.f;
-					InterpolatedParameter<kLinInterpolate> globalAmp(globalAmpFull, std::min<unsigned>(128, numSamples));
+					// Update LFO frequency
+					voice.m_LFO.SetFrequency(freqLFO);
+
+					// Global amp. allows use to fade the voice in and out within this frame
+					InterpolatedParameter<kLinInterpolate> globalAmp(1.f, std::min<unsigned>(128, numSamples));
 
 					if (true == voice.IsStolen())
 					{
@@ -1695,10 +1656,10 @@ namespace SFM
 						{
 							// If resetting BPM sync. phase, fade in in this Render() pass
 							globalAmp.Set(0.f);
-							globalAmp.SetTarget(globalAmpFull);
+							globalAmp.SetTarget(1.f);
 						}
 
-						// Add to avgVelocity
+						// Add to average velocity (if not releasing / after NOTE_OFF)
 						if (false == voice.IsReleasing())
 							avgVelocity += voice.m_velocity;
 					}
@@ -1808,7 +1769,7 @@ namespace SFM
 			SFM_ASSERT(avgVelocity <= 1.f);
 		}
 				
-		// Update voice logic
+		// Update voice logic (post)
 		UpdateVoicesPostRender();
 
 		// Update sustain state

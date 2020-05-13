@@ -218,10 +218,6 @@ namespace SFM
 	// Low cut (for post-pass DC blocker)
 	constexpr float kLowCutHz = 16.f;
 
-	// If a voice is considered to be stolen, this bias [0..1] is multiplied with the output
-	// of a voice in release state so it's preferred over an equally loud but playing voice
-	constexpr float kVoiceStealReleaseBias = 0.1f;
-
 	// Size of main delay effect's line in seconds
 	constexpr float kMainDelayInSec = 4.f; // Min. 15BPM
 
