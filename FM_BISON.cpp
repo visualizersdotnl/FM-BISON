@@ -10,12 +10,6 @@
 	#define _CRT_SECURE_NO_WARNINGS
 #endif
 
-// C++11
-// #include <mutex>
-// #include <shared_mutex>
-// #include <deque>
-// #include <cfenv>
-
 #include "FM_BISON.h"
 
 #include "synth-MIDI.h"
@@ -32,7 +26,7 @@
 namespace SFM
 {
 	static std::atomic<unsigned> s_instanceCount(0);
-	static bool s_staticInit = true;
+	static std::atomic_bool s_staticInit(true);
 
 	/* ----------------------------------------------------------------------------------------------------
 
@@ -42,7 +36,7 @@ namespace SFM
 	
 	Bison::Bison()
 	{
-		if (true == s_staticInit)
+		if (true == s_staticInit.load())
 		{
 			// Calculate LUTs & initialize random generator
 			InitializeRandomGenerator();
@@ -50,7 +44,7 @@ namespace SFM
 			InitializeFastCosine();
 			Oscillator::CalculateSupersawDetuneTable();
 
-			s_staticInit = false;
+			s_staticInit.store(false);
 		}
 
 		m_iInstance = s_instanceCount++;
@@ -542,8 +536,8 @@ namespace SFM
 	SFM_INLINE static float CalcPanningAngle(const PatchOperators::Operator &patchOp)
 	{
 		SFM_ASSERT(fabsf(patchOp.panning) <= 1.f);
-		const float panAngle = (patchOp.panning+1.f)*0.5f;
-		return panAngle*0.25f;
+		const float panAngle = (patchOp.panning+1.f)*0.5f*0.25f;
+		return panAngle;
 	}
 
 	// Set up (static) operator SVF filter

@@ -247,10 +247,9 @@ namespace SFM
 				const float panMod = voiceOp.panMod;
 				if (0.f != panMod)
 				{
-					// FIXME: even though it's 05:10 AM, I strongly feel like I have to review this :-)
-					const float dryPanning = (panAngle-0.125f)*8.f;
-					const float panning = Clamp(LFO*panMod*modulation + dryPanning*0.33f);
-					panAngle = (panning+1.f)*0.5f*0.25f;
+					// Override user value
+					const float panning = 1.f + LFO*panMod*modulation;
+					panAngle = panning*0.5f*0.25f;
 				}
 
 				// If carrier, mix (chose not to branch on purpose, though it'll probably won't matter or just a little)
