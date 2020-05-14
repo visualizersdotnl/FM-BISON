@@ -1202,62 +1202,61 @@ namespace SFM
 				}
 			}
 			
-			// If we still have requests, try to steal releasing voices in order to free up slots
-			// that can be used to spawn these voices the next frame (no gaurantee!)
+			// If we still have requests, try to steal (releasing) voices in order to 
+			// free up slots that can be used to spawn these voices the next frame (no gaurantee though!)
 
 			size_t remainingRequests = m_voiceReq.size();
-			size_t voicesStolen = 0;
 
 			if (remainingRequests > 0)
 			{
-				// FIXME: create a list of candidates and steal them by summed output (low to high)
-				while (remainingRequests--)
+				struct VoiceRef
 				{
-					float lowestSummedOutput = 1.f*kNumOperators;
-					int iLowestVoice = -1;
-			
-					for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
-					{
-						Voice &voice = m_voices[iVoice];
-				
-						const bool isReleasing = voice.IsReleasing();
-						const bool isStolen    = voice.IsStolen();
+					unsigned iVoice;
+					float summedOutput;
+				};
 
-						if (true == isReleasing && false == isStolen)
-						{
-							// Check (summed) output level
-							const float summedOutput = voice.GetSummedOutput();
-							if (lowestSummedOutput > summedOutput)
-							{
-								// Lowest so far
-								iLowestVoice = iVoice;
-								lowestSummedOutput = summedOutput;
-							}
-						}
-					}
-			
-					// Found one?
-					if (-1 != iLowestVoice)
-					{
-						// Steal it
-						StealVoice(iLowestVoice);
-						Log("Voice stolen (index): "  + std::to_string(iLowestVoice));
+				std::vector<VoiceRef> voiceRefs;
 
-						++voicesStolen;
+				for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
+				{
+					Voice &voice = m_voices[iVoice];
+					
+					const bool isReleasing = voice.IsReleasing();
+					const bool isStolen    = voice.IsStolen();
+
+					if (true == isReleasing && false == isStolen)
+					{
+						VoiceRef voiceRef;
+						voiceRef.iVoice = iVoice;
+						voiceRef.summedOutput = voice.GetSummedOutput();
+
+						voiceRefs.emplace_back(voiceRef);
 					}
-					else 
-						// Nothing to steal at all, so bail
-						break; 
+				}
+
+				// Sort list from low to high summed output
+				std::sort(voiceRefs.begin(), voiceRefs.end(), [](const auto &left, const auto &right ) -> bool { return left.summedOutput < right.summedOutput; } );
+
+				for (auto &voiceRef : voiceRefs)
+				{
+					// Steal voice
+					const unsigned iVoice = voiceRef.iVoice;
+					StealVoice(iVoice);
+					Log("Voice stolen (index): "  + std::to_string(iVoice));
+					
+					if (--remainingRequests == 0)
+						break;
+				}
+
+				if (remainingRequests != 0)
+				{
+					// FIXME: I think it's a viable strategy to drop the remaining requests?
+					Log("Could not steal enough voices: " + std::to_string(remainingRequests) + " remaining.");
 				}
 			}
-			
-			if (remainingRequests > 0)
-			{
-				Log("Could not steal all voices needed, " + std::to_string(remainingRequests) + " remaining.");
-			}
 
-			// Offset remaining request time stamps by number of samples processed this frame; t
-			// they will now be first in line to be allocated next frame
+			// Offset remaining voice request's time stamps by number of samples processed 
+			// this frame; they will now be first in line to be allocated next frame
 			for (auto &request : m_voiceReq)
 				request.timeStamp += numSamples;
 		}

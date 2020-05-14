@@ -27,7 +27,7 @@ namespace SFM
 	public:
 		// Constant parameters
 		float kWahDelay = 0.01f; // 10MS             
-		float kWahLookahead = kGoldenRatio*0.1f; // FIXME: parameter?
+		float kWahLookahead = kGoldenRatio*0.3f; // FIXME: parameter?
 
 		AutoWah(unsigned sampleRate, unsigned Nyquist) :
 			m_sampleRate(sampleRate), m_Nyquist(Nyquist)

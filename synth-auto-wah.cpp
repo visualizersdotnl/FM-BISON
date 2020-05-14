@@ -70,21 +70,24 @@ namespace SFM
 			float filteredL = preFilteredL, filteredR = preFilteredR;
 
 			// Vowelize (V2)
-			const VowelizerV2::Vowel vowelA = VowelizerV2::kA;
-			const VowelizerV2::Vowel vowelB = VowelizerV2::kU;
-			const float vowBlend = envGain;
+			if (0.f != vowelize)
+			{
+				const VowelizerV2::Vowel vowelA = VowelizerV2::kOO;
+				const VowelizerV2::Vowel vowelB = VowelizerV2::kEE;
+				const float vowBlend = envGain*envGain*envGain;
 
-			float vowelL_1 = filteredL, vowelR_1 = filteredR;
-			m_vowelizerV2_1.Apply(vowelL_1, vowelR_1, vowelA);
+				float vowelL_1 = filteredL, vowelR_1 = filteredR;
+				m_vowelizerV2_1.Apply(vowelL_1, vowelR_1, vowelA);
 
-			float vowelL_2 = filteredL, vowelR_2 = filteredR;
-			m_vowelizerV2_1.Apply(vowelL_2, vowelR_2, vowelB);
+				float vowelL_2 = filteredL, vowelR_2 = filteredR;
+				m_vowelizerV2_1.Apply(vowelL_2, vowelR_2, vowelB);
 			
-			const float vowelL = lerpf<float>(vowelL_1, vowelL_2, vowBlend);
-			const float vowelR = lerpf<float>(vowelR_1, vowelR_2, vowBlend);
+				const float vowelL = lerpf<float>(vowelL_1, vowelL_2, vowBlend);
+				const float vowelR = lerpf<float>(vowelR_1, vowelR_2, vowBlend);
 
-			filteredL = lerpf<float>(filteredL, vowelL, vowelize);
-			filteredR = lerpf<float>(filteredR, vowelR, vowelize);
+				filteredL = lerpf<float>(filteredL, vowelL, vowelize);
+				filteredR = lerpf<float>(filteredR, vowelR, vowelize);
+			}
 
 			// Post filter (LP)
 			const float cutoff = kLFODepth + envGain*(1.f-kLFODepth) + 0.5f*kLFODepth*LFO;

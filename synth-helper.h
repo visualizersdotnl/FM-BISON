@@ -50,25 +50,25 @@ namespace SFM
 	 ------------------------------------------------------------------------------------------------------ */
 
 	// Frequency to pitch
-	SFM_INLINE double CalculatePitch(double frequency, unsigned sampleRate)
+	SFM_INLINE static double CalculatePitch(double frequency, unsigned sampleRate)
 	{
 		return frequency/sampleRate;
 	}
 
 	// Frequency to angular pitch
-	SFM_INLINE double CalculateAngularPitch(double frequency, unsigned sampleRate)
+	SFM_INLINE static double CalculateAngularPitch(double frequency, unsigned sampleRate)
 	{
 		return CalculatePitch(frequency, sampleRate)*k2PI;
 	}
 
 	// Note to frequency
-	SFM_INLINE float NoteToFreq(unsigned note)
+	SFM_INLINE static float NoteToFreq(unsigned note)
 	{
 		return float(kBaseHz * pow(2.0, (note - 69.0) / 12.0 /* 1 octave equals 12 semitones */));
 	}
 
 	// Is frequency audible?
-	SFM_INLINE bool InAudibleSpectrum(float frequency)
+	SFM_INLINE static bool InAudibleSpectrum(float frequency)
 	{
 		return frequency >= kAudibleLowHz && frequency <= kAudibleHighHz;
 	}
@@ -80,12 +80,11 @@ namespace SFM
 	 ------------------------------------------------------------------------------------------------------ */
 
 	// To and from dB
-	// https://sound.stackexchange.com/questions/38722/convert-db-value-to-linear-scale
-	SFM_INLINE float GainTodB(float amplitude) { return 20.f * log10f(amplitude); }
-	SFM_INLINE float dBToGain(float dB)        { return powf(10.f, dB/20.f);      }
+	SFM_INLINE static float GainTodB(float amplitude) { return 20.f * log10f(amplitude); }
+	SFM_INLINE static float dBToGain(float dB)        { return powf(10.f, dB/20.f);      }
 
 	// Normalized level ([0..1]) to gain
-	SFM_INLINE float LevelToGain(float level)
+	SFM_INLINE static float LevelToGain(float level)
 	{
 		SFM_ASSERT(level >= 0.f && level <= 1.f);
 		return dBToGain(-kVolumeRangedB + level*kVolumeRangedB);
@@ -98,13 +97,13 @@ namespace SFM
 	 ------------------------------------------------------------------------------------------------------ */
 
 	// Integer is power of 2?
-	SFM_INLINE const bool IsPow2(unsigned value)
+	SFM_INLINE static bool IsPow2(unsigned value)
 	{
 		return value != 0 && !(value & (value - 1));
 	}
 
 	// Hard clamp (sample)
-	SFM_INLINE float Clamp(float sample)
+	SFM_INLINE static float Clamp(float sample)
 	{
 		if (sample > 1.f)
 			return 1.f;
@@ -122,7 +121,7 @@ namespace SFM
 	 ------------------------------------------------------------------------------------------------------ */
 
 	// Floating point error detection
-	SFM_INLINE bool FloatCheck(float value)
+	SFM_INLINE static bool FloatCheck(float value)
 	{
 		if (value != 0.f && fabsf(value) < std::numeric_limits<float>::denorm_min())
 			return false;
