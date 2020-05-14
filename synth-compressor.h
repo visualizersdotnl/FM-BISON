@@ -25,6 +25,7 @@ namespace SFM
 ,			m_outDelayL(sampleRate, kCompMaxDelay)
 ,			m_outDelayR(sampleRate, kCompMaxDelay)
 ,			m_RMSDetector(sampleRate, 0.01f /* 10MS: Twice Reaper's compressor default */)
+,			m_envFollower(sampleRate)
 ,			m_curThresholddB(kDefCompThresholddB, sampleRate, kDefParameterLatency)
 ,			m_curKneedB(kDefCompKneedB, sampleRate, kDefParameterLatency)
 ,			m_curRatio(kDefCompRatio, sampleRate, kDefParameterLatency)
@@ -32,10 +33,6 @@ namespace SFM
 ,			m_curAttack(kDefCompAttack, sampleRate, kDefParameterLatency)
 ,			m_curRelease(kDefCompRelease, sampleRate, kDefParameterLatency)
 ,			m_curLookahead(0.f, sampleRate, kDefParameterLatency)
-
-,			m_envFollower(sampleRate)
-,			m_envdB(0.f)
-
 		{
 		}
 
@@ -69,7 +66,7 @@ namespace SFM
 		RMSDetector m_RMSDetector;
 
 		AttackReleaseFollower m_envFollower;
-		float m_envdB;
+		float m_envdB = 0.f;
 
 		// Interpolated parameters
 		InterpolatedParameter<kLinInterpolate> m_curThresholddB;

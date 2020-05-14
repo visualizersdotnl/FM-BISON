@@ -15,7 +15,7 @@ namespace SFM
 {
 	// Constant parameters
 	constexpr double kPreLowCutQ =   0.5;
-	constexpr float  kPostMaxQ   =  0.8f;   
+	constexpr float  kPostMaxQ   =  0.7f;   
 	constexpr float  kLFODepth   = 0.02f; // In normalized range
 
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples)

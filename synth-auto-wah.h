@@ -81,7 +81,7 @@ namespace SFM
 		RMSDetector m_RMSDetector;
 
 		AttackReleaseFollower m_envFollower;
-		float m_envdB;
+		float m_envdB = 0.f;
 
 		SvfLinearTrapOptimised2 m_preFilterHP;
 		SvfLinearTrapOptimised2 m_preFilterLP[3];

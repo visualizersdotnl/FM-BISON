@@ -20,7 +20,7 @@ namespace SFM
 	{
 		for (unsigned iExp = 0; iExp < kFastCosTabSize+1; ++iExp)
 		{
-			const float phase = double(iExp) * ((double(k2PI)/kFastCosTabSize));
+			const double phase = double(iExp) * ((double(k2PI)/kFastCosTabSize));
 			s_fastCosTab[iExp] = cos(phase);
 		}
 	}

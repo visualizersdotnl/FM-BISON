@@ -27,12 +27,12 @@ namespace SFM
 	{
 		SFM_ASSERT(vowel < kNumVowels);
 
-		const double bandWidth = 150.0; // 100.0, according to the article (link on top) is the avg. male voice
+		const double bandWidth = 100.0; // 100.0, according to the article (link on top) is the avg. male voice
 		const double halfBandWidth = bandWidth/2.0;
 
 		// Filter and store lower frequencies (below half band width)
 		float preL = left, preR = right;
-		m_preFilter.updateHighpassCoeff(halfBandWidth, 0.5, m_sampleRate);
+		m_preFilter.updateHighpassCoeff(halfBandWidth, 0.025, m_sampleRate);
 		m_preFilter.tick(preL, preR);
 
 		const float lowL = left-preL;
@@ -69,7 +69,7 @@ namespace SFM
 			filteredR += filterR;
 		}
 
-		// Mix low end with normalized result
+		// Mix low end with result
 		left  = lowL + filteredL;
 		right = lowR + filteredR;
 	}
