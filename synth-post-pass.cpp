@@ -109,7 +109,7 @@ namespace SFM
 	                     float postCutoff, float postQ, float postDrivedB, float postWet,
 						 float avgVelocity, float tubeDistort, float tubeDrivedB,
 	                     float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
-	                     float compPeakToRMS, float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead,
+	                     float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead,
 	                     float masterVol,
 	                     const float *pLeftIn, const float *pRightIn, float *pLeftOut, float *pRightOut)
 	{
@@ -377,7 +377,7 @@ namespace SFM
 
 		 ------------------------------------------------------------------------------------------------------ */
 
-		 m_compressor.SetParameters(compPeakToRMS, compThresholddB, compKneedB, compRatio, compGaindB, compAttack, compRelease, compLookahead);
+		 m_compressor.SetParameters(compThresholddB, compKneedB, compRatio, compGaindB, compAttack, compRelease, compLookahead);
 		 m_compressor.Apply(m_pBufL, m_pBufR, numSamples);
 
 #endif

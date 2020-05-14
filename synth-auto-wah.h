@@ -27,16 +27,14 @@ namespace SFM
 	public:
 		// Constant parameters
 		float kWahDelay = 0.01f; // 10MS             
-		float kWahLookahead = kGoldenRatio*0.1f; // Arbitrary, sounds OK
+		float kWahLookahead = kGoldenRatio*0.1f; // FIXME: parameter?
 
 		AutoWah(unsigned sampleRate, unsigned Nyquist) :
 			m_sampleRate(sampleRate), m_Nyquist(Nyquist)
 ,			m_outDelayL(sampleRate, kWahDelay)
 ,			m_outDelayR(sampleRate, kWahDelay)
-,			m_detectorL(sampleRate, kDefWahSlack)
-,			m_detectorR(sampleRate, kDefWahSlack)
-,			m_gainShaper(sampleRate, kDefWahAttack, kDefWahHold)
-
+,			m_RMSDetector(sampleRate, 0.01f /* 10MS: Twice Reaper's compressor default */)
+,			m_envFollower(sampleRate, kDefWahAttack, kDefWahHold)
 ,			m_vowelizerV2_1(sampleRate)
 ,			m_vowelizerV2_2(sampleRate)
 
@@ -80,16 +78,19 @@ namespace SFM
 		const unsigned m_Nyquist;
 
 		DelayLine m_outDelayL, m_outDelayR;
-		PeakDetector m_detectorL, m_detectorR;
-		GainShaper m_gainShaper;
+		RMSDetector m_RMSDetector;
+
+		AttackReleaseFollower m_envFollower;
+		float m_envdB;
+
 		SvfLinearTrapOptimised2 m_preFilterHP;
 		SvfLinearTrapOptimised2 m_preFilterLP[3];
 		SvfLinearTrapOptimised2 m_postFilterLP;
-		Oscillator m_LFO;
-//		Vowelizer m_vowelizerL, m_vowelizerR;
 
 		VowelizerV2 m_vowelizerV2_1;
 		VowelizerV2 m_vowelizerV2_2;
+
+		Oscillator m_LFO;
 
 		// Interpolated parameters
 		InterpolatedParameter<kLinInterpolate> m_curSlack;

@@ -8,7 +8,7 @@
 		- It's monaural
 		- Coarse way of implementing a formant filter (which usually consists of multiple carefully tuned band pass filters)
 		- Effective enough for adding a bit of flair to effects
-		- I've started on a new version (see synth-vowelizer-V2.*)
+		- I'm working on a new version (see synth-vowelizer-V2.*)
 
 	Source: a contribution to http://www.musicdsp.org by alex@smartelectronix.com
 */

@@ -1,6 +1,6 @@
 
 /*
-	FM. BISON hybrid FM synthesis -- Peak/RMS detector & "gain shaper".
+	FM. BISON hybrid FM synthesis -- Signal follower, A/R follower, RMS detector.
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 */
@@ -11,57 +11,67 @@
 
 namespace SFM
 {
-	class PeakDetector
+	class SignalFollower
 	{
 	public:
-		PeakDetector(unsigned sampleRate, float release = 0.1f) :
+		SignalFollower(unsigned sampleRate, float MS = 1.f) :
 			m_sampleRate(sampleRate)
-,			m_release(release)
-,			m_attackB0(1.f)
 		{
-			Reset();
-			SetRelease(m_release);
+			SetTimeCoeff(MS);
 		}
 
-		~PeakDetector() {}
-
-		SFM_INLINE void SetRelease(float release)
+		SFM_INLINE void SetTimeCoeff(float MS)
 		{
-			// There's no reason why a release bigger than 1 shouldn't be allowed
-			SFM_ASSERT(release >= 0.f);
-			m_release = release;
-
-			m_releaseB0 = 1.f - expf(-1.f / (m_release*m_sampleRate));
+			SFM_ASSERT(MS > 0.f);
+			m_timeCoeff = expf(-1000.f / (MS*m_sampleRate));
 		}
 
-
-		SFM_INLINE float Apply(float sample)
+		SFM_INLINE float Apply(float sample, float &state)
 		{
-			const float sampleAbs = fabsf(sample);
+			state = sample + m_timeCoeff*(state-sample);
+			return state;
+		}
 
-			float B0;
-			if (sampleAbs > m_peak)
-				B0 = m_attackB0;
+	private:	
+		const unsigned m_sampleRate;
+
+		float m_timeCoeff;
+	};
+
+	class AttackReleaseFollower
+	{
+	public:
+		AttackReleaseFollower(unsigned sampleRate, float attackMS = 10.f, float releaseMS = 100.f) :
+			m_attEnv(sampleRate, attackMS)
+,			m_relEnv(sampleRate, releaseMS)
+		{
+		}
+
+		SFM_INLINE void SetAttack(float MS)
+		{
+			m_attEnv.SetTimeCoeff(MS);
+		}
+
+		SFM_INLINE void SetRelease(float MS)
+		{
+			m_relEnv.SetTimeCoeff(MS);
+		}
+
+		SFM_INLINE float Apply(float sample, float &state)
+		{
+			if (sample > state)
+				// Attack
+				m_attEnv.Apply(sample, state);
 			else
-				B0 = m_releaseB0;
-				
-			m_peak += B0*(sampleAbs-m_peak);
+				// Release
+				m_relEnv.Apply(sample, state);
 
-			return m_peak;
+			return state;
 		}
 
 	private:
-		SFM_INLINE void Reset()
-		{
-			m_peak = 0.f;
-		}
-    
-		const unsigned m_sampleRate;
-		/* const */ float m_release;
-			
-		float m_attackB0, m_releaseB0;
-
-		float m_peak;
+		SignalFollower m_attEnv;
+		SignalFollower m_relEnv;
 	};
 
 	// Use RMS to calculate signal dB
@@ -86,8 +96,8 @@ namespace SFM
 
 		float Run(float sampleL, float sampleR)
 		{
-			// Mix down to monaural (soft clip)
-			const float monaural = fast_atanf(sampleL+sampleR)*0.5f;
+			// Mix down to monaural
+			const float monaural = sampleL*0.5f + sampleR*0.5f;
 				
 			// Raise & write
 			const unsigned index = m_writeIdx % m_numSamples;
@@ -110,58 +120,5 @@ namespace SFM
 		float *m_buffer;
 
 		unsigned m_writeIdx;
-	};
-
-	// Gain shaper (envelopes a signal (AR))
-	class GainShaper
-	{
-	public:
-		GainShaper(unsigned sampleRate, float attack, float release) :
-			m_sampleRate(sampleRate)
-		{
-			Reset(attack, release);
-		}
-
-		~GainShaper() {}
-
-		SFM_INLINE void Reset(float attack, float release)
-		{    
-			m_gain = 0.f;
-			SetAttack(attack);
-			SetRelease(release);
-		}
-
-		SFM_INLINE void SetAttack(float attack)
-		{
-			m_attack = attack;
-			m_attackB0 = 1.0 - exp(-1.0 / (m_attack*m_sampleRate));
-		}
-
-		SFM_INLINE void SetRelease(float release)
-		{
-			m_release = release;
-			m_releaseB0 = 1.0 - exp(-1.0 / (m_release*m_sampleRate));
-		}
-
-		SFM_INLINE float Apply(float gain)
-		{
-			double B0;
-			if (gain > m_gain)
-				B0 = m_attackB0;
-			else
-				B0 = m_releaseB0;
-				
-			m_gain += float(B0 * (gain-m_gain));
-
-			return m_gain;
-		}
-		
-	private:
-		const unsigned m_sampleRate;
-		float m_attack;
-		float m_release;
-			
-		float m_gain;
-		double m_attackB0, m_releaseB0;
 	};
 }

@@ -713,7 +713,6 @@ namespace SFM
 		return output;
 	}
 
-	// Calculate phase jitter
 	SFM_INLINE static float CalcPhaseJitter(float drift)
 	{
 		const float random = -0.25f + mt_randf()*0.5f; // [-90..90] deg.
@@ -1209,44 +1208,47 @@ namespace SFM
 			size_t remainingRequests = m_voiceReq.size();
 			size_t voicesStolen = 0;
 
-			// FIXME: create a list of candidates and steal them by summed output (low to high)
-			while (remainingRequests--)
+			if (remainingRequests > 0)
 			{
-				float lowestSummedOutput = 1.f*kNumOperators;
-				int iLowestVoice = -1;
-			
-				for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
+				// FIXME: create a list of candidates and steal them by summed output (low to high)
+				while (remainingRequests--)
 				{
-					Voice &voice = m_voices[iVoice];
-				
-					const bool isReleasing = voice.IsReleasing();
-					const bool isStolen    = voice.IsStolen();
-
-					if (true == isReleasing && false == isStolen)
+					float lowestSummedOutput = 1.f*kNumOperators;
+					int iLowestVoice = -1;
+			
+					for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
 					{
-						// Check (summed) output level
-						const float summedOutput = voice.GetSummedOutput();
-						if (lowestSummedOutput > summedOutput)
+						Voice &voice = m_voices[iVoice];
+				
+						const bool isReleasing = voice.IsReleasing();
+						const bool isStolen    = voice.IsStolen();
+
+						if (true == isReleasing && false == isStolen)
 						{
-							// Lowest so far
-							iLowestVoice = iVoice;
-							lowestSummedOutput = summedOutput;
+							// Check (summed) output level
+							const float summedOutput = voice.GetSummedOutput();
+							if (lowestSummedOutput > summedOutput)
+							{
+								// Lowest so far
+								iLowestVoice = iVoice;
+								lowestSummedOutput = summedOutput;
+							}
 						}
 					}
-				}
 			
-				// Found one?
-				if (-1 != iLowestVoice)
-				{
-					// Steal it
-					StealVoice(iLowestVoice);
-					Log("Voice stolen (index): "  + std::to_string(iLowestVoice));
+					// Found one?
+					if (-1 != iLowestVoice)
+					{
+						// Steal it
+						StealVoice(iLowestVoice);
+						Log("Voice stolen (index): "  + std::to_string(iLowestVoice));
 
-					++voicesStolen;
+						++voicesStolen;
+					}
+					else 
+						// Nothing to steal at all, so bail
+						break; 
 				}
-				else 
-					// Nothing to steal at all, so bail
-					break; 
 			}
 			
 			if (remainingRequests > 0)
@@ -1831,7 +1833,6 @@ namespace SFM
 						  m_reverbHP_PF.Apply(m_patch.reverbHP),
 						  m_reverbPreDelayPF.Apply(m_patch.reverbPreDelay),
 						  /* Compressor (FIXME: apply more ParameterFilter if necessary) */
-						  m_patch.compPeakToRMS,
 						  m_patch.compThresholddB,
 						  m_patch.compKneedB,
 						  m_patch.compRatio,

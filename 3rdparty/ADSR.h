@@ -1,7 +1,6 @@
 
 //
 // Modified to fit FM. BISON:
-// - Fixed: process() proceeds to decay state immediately after attack to prevent a click
 // - Shoved into SFM namespace (collided with JUCE's ADSR)
 // - Separate target ratios for A/D/R
 // - Made a few functions 'const'
@@ -98,14 +97,16 @@ namespace SFM
 					output = 1.0;
 					state = env_decay;
 				}
-				else break;
+//				else break;
+				break;
 			case env_decay:
 				output = decayBase + output * decayCoef;
 				if (output <= sustainLevel) {
 					output = sustainLevel;
 					state = env_sustain;
 				}
-				else break;
+//				else break;
+				break;
 			case env_sustain:
 				break;
 			case env_piano_attack:
