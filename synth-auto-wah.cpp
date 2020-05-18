@@ -51,8 +51,8 @@ namespace SFM
 
 			// Grab (delayed) signal
 			const float lookahead = m_lookahead*wetness; // Lookahead is proportional to wetness, a hack to make sure we do not cause a delay when 100% dry (FIXME)
-			const auto  delayL    = (m_outDelayL.size() - 1)*m_lookahead;
-			const auto  delayR    = (m_outDelayR.size() - 1)*m_lookahead;
+			const auto  delayL    = (m_outDelayL.size() - 1)*lookahead;
+			const auto  delayR    = (m_outDelayR.size() - 1)*lookahead;
 			const float delayedL  = m_outDelayL.Read(delayL);
 			const float delayedR  = m_outDelayR.Read(delayR);
 
