@@ -147,6 +147,9 @@ namespace SFM
 
 		 ------------------------------------------------------------------------------------------------------ */
 
+		if (true == useBPM)
+			wahRate = rateBPM; // FIXME: test this!
+
 		m_wah.SetParameters(wahSlack, wahAttack, wahHold, wahRate, wahSpeak, wahCut, wahWet);
 		m_wah.Apply(m_pBufL, m_pBufR, numSamples);
 
