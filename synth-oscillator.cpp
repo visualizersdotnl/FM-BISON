@@ -1,6 +1,6 @@
 	
 /*
-	FM. BISON hybrid FM synthesis -- Oscillator (VCO/LFO).
+	FM. BISON hybrid FM synthesis -- Oscillator (DCO/LFO).
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 */
@@ -43,7 +43,7 @@ namespace SFM
 		float signal = 0.f;
 		switch (m_form)
 		{
-			/* Bandlimited (VCO/LFO) */
+			/* Bandlimited (DCO/LFO) */
 
 			case kSine:
 				signal = oscSine(modulated);
