@@ -5,7 +5,7 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	- Phase is [0..1]
-	- Anti-aliased oscillators are called 'oscPoly...'
+	- Band-limited oscillators are called 'oscPoly...'
 */
 
 #pragma once
@@ -31,7 +31,7 @@ namespace SFM
 	}
 
 	/*
-		Ramp, sawtooth, square, triangle & pulse (not bandlimited)
+		Ramp, sawtooth, square, triangle & pulse (not band-limited)
 	*/
 
 	SFM_INLINE static float oscRamp(float phase)
@@ -67,7 +67,7 @@ namespace SFM
 	}
 
 	/*
-		Bandlimited oscillators (using PolyBLEP)
+		Band-limited oscillators (using PolyBLEP)
 
 		I've studied and adapted this implementation from: https://github.com/martinfinke/PolyBLEP
 
