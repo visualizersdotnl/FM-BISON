@@ -116,17 +116,13 @@ namespace SFM
 
 	void Reverb::Apply(float *pLeft, float *pRight, unsigned numSamples, float wet, float lowpass, float highpass)
 	{
-		/*
-			FIXME: try to revert parameters back 1 by 1 to discover if and why that "ghhh" artifact comes from!
-		*/
-
 		SFM_ASSERT(nullptr != pLeft && nullptr != pRight);
 		SFM_ASSERT(wet >= 0.f && wet <= 1.f);
 		SFM_ASSERT(lowpass >= 0.f && lowpass <= 1.f);
 		SFM_ASSERT(highpass >= 0.f && highpass <= 1.f);
 
 		// Set parameter targets
-		// Some are already class members and I'd rather keep it that way, might come in handy in other scenarios
+		// Some are class members and I want to keep it that way
 		m_curWet.SetTarget(wet);
 		m_curWidth.SetTarget(m_width);
 		m_curRoomSize.SetTarget(m_roomSize);

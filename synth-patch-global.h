@@ -100,10 +100,8 @@ namespace SFM
 		float reverbDampening;
 		float reverbWidth;
 		float reverbPreDelay;
-
-		// Reverb LP and HP must be 1 for complete pass-through
-		float reverbLP;
-		float reverbHP;
+		float reverbLP; // Reverb LP and HP must be 1 for complete pass-through
+		float reverbHP; //
 
 		// Compressor settings (see synth-global.h & synth-compressor.h for non-normalized parameters)
 		float compThresholddB;
@@ -168,7 +166,7 @@ namespace SFM
 		float pianoPedalFalloff;
 		float pianoPedalReleaseMul;
 
-		// Velocity scaling
+		// Velocity scaling (longer decay phase for higher notes relative to velocity)
 		float velocityScaling;
 
 		void ResetToEngineDefaults()
