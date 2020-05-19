@@ -67,7 +67,6 @@ namespace SFM
 		/* const */ Waveform m_form;
 		alignas(16) Phase m_phases[kNumPolySupersaws];
 
-		float m_prevSignal;
 		PinkNoiseState m_pinkState;
 
 		// FIXME: wouldn't it be wiser, memory access wise, to have local copies of this?
@@ -104,8 +103,6 @@ namespace SFM
 					phase.SyncTo(frequency);
 				}
 			}
-			
-			m_prevSignal = curSignal;
 		}
 
 		SFM_INLINE void PitchBend(float bend)
@@ -152,9 +149,9 @@ namespace SFM
 
 		float Sample(float modulation, float feedback = 0.f /* Only used by Voice::Render() */);
 
-		SFM_INLINE float Get() const
-		{
-			return m_prevSignal;
-		}
+//		SFM_INLINE float Get() const
+//		{
+//			return m_prevSignal;
+//		}
 	};
 }

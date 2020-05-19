@@ -68,52 +68,90 @@ namespace SFM
 
 	/*
 		Bandlimited oscillators (using PolyBLEP)
-		
-		Source: 
-		- http://www.kvraudio.com/ (lost exact link!)
-		- Martin Finke (http://www.martin-finke.de/blog/articles/audio-plugins-018-polyblep-oscillator/)
+
+		I've studied and adapted this implementation from: https://github.com/martinfinke/PolyBLEP
+
+		- There are a lot more waveforms ready to use, but for now I just need a square, saw & triangle.
+		- I've kept the implementation and it's helper functions all in one spot.
+		- I did rename a few variables for readability.
 	*/
 
-	SFM_INLINE static float BiPolyBLEP(float t, float w)
+	template<typename T> SFM_INLINE static T Squared(const T &value)
 	{
-		// Not near point?
-		if (fabsf(t) >= w)
-			return 0.f;
-
-		// Near point: smoothen
-		t /= w;
-		float tt1 = t*t + 1.f;
-		if (t >= 0.f)
-			tt1 = -tt1;
-		
-		return tt1 + t+t;
+		return value*value;
 	}
 
-	SFM_INLINE static float oscPolySaw(float phase, float width /* Generally 'frequency/(sampleRate/width)' */)
+	template<typename T> SFM_INLINE static int64_t bitwiseOrZero(const T &value) 
 	{
-		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
+		return static_cast<int64_t>(value) | 0;
+	}
 
-		const float closestUp = float(phase-0.5f >= 0.f);
-		
-		float saw = oscSaw(phase);
-		saw += BiPolyBLEP(phase - closestUp, width);
+	// Adapted from "Phaseshaping Oscillator Algorithms for Musical Sound Synthesis" by Jari Kleimola, Victor Lazzarini, Joseph Timoney, and Vesa Valimaki.
+	// http://www.acoustics.hut.fi/publications/papers/smc2010-phaseshaping/
+	SFM_INLINE static float PolyBLEP(float point, float width) 
+	{
+		if (point < width)
+			return -Squared(point/width - 1.f);
+		else if (point > 1.f - width)
+			return Squared((point - 1.f)/width + 1.f);
+		else
+			return 0.f;
+	}
+	
+	SFM_INLINE static float PolyBLAMP(float point, float width)
+	{
+		if (point < width) 
+		{
+			point = point / width - 1.f;
+			return -1.f / 3.f * Squared(point) * point;
+		} 
+		else if (point > 1 - width) 
+		{
+			point = (point - 1.f) / width + 1.f;
+			return 1.f / 3.f * Squared(point) * point;
+		} 
+		else 
+			return 0.f;
+	}
+
+	SFM_INLINE static float oscPolySquare(float phase, float width)
+	{
+		float P1 = phase + 0.5f;
+		P1 -= bitwiseOrZero(P1);
+
+		float square = phase < 0.5f ? 1.f : -1.f;
+		square += PolyBLEP(phase, width) - PolyBLEP(P1, width);
+
+		return square;
+	}
+
+	SFM_INLINE static float oscPolySaw(float phase, float width)
+	{
+		float P1 = phase + 0.5f;
+		P1 -= bitwiseOrZero(P1);
+
+		float saw = 2.f*P1 - 1.f;
+		saw -= PolyBLEP(P1, width);
 
 		return saw;
 	}
 
-	SFM_INLINE static float oscPolyPulse(float phase, float width, float duty)
+	SFM_INLINE static float oscPolyTriangle(float phase, float width)
 	{
-		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
+		float P1 = phase + 0.25f;
+		float P2 = phase + 0.75f;
+		P1 -= bitwiseOrZero(P1);
+		P2 -= bitwiseOrZero(P2);
 
-		const float closestUp   = float(phase-0.5f >= 0.f);
-		const float closestDown = float(phase-0.5f >= duty) - float(phase+0.5f < duty) + duty;
-		
-		float pulse = oscPulse(phase, duty);
+		float triangle = phase*4.f;
+		if (triangle >= 3.f)
+			triangle -= 4.f;
+		else if (triangle > 1.f)
+			triangle = 2.f - triangle;
 
-		pulse += BiPolyBLEP(phase - closestUp,   width);
-		pulse -= BiPolyBLEP(phase - closestDown, width);
+		triangle += 4.f * width * (PolyBLAMP(P1, width) - PolyBLAMP(P2, width));
 
-		return pulse;
+		return triangle;
 	}
 
 	/*
@@ -160,7 +198,7 @@ namespace SFM
 
 		state.m_pinkCoeffs[6] = whiteNoise * 0.115926f;
 		
-		// FIXME: at times it over- or undershoots
+		// FIXME: at times it over- or undershoots, try double precision?
 		return Clamp(pink);
 	}
 }

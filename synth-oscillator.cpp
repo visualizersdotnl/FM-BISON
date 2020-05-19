@@ -54,18 +54,12 @@ namespace SFM
 				break;
 				
 			case kPolyTriangle:
-				{
-					const double square = oscPolyPulse(modulated, polyWidth, 0.5f);
-
-					// Leaky integration
-					const double pitch = m_phases[0].GetPitch()*2.f*kPI; // Martin Finke uses angular pitch to integrate
-					signal = float(pitch*square + (1.0-pitch)*m_prevSignal);
-				}
+				signal = oscPolyTriangle(modulated, polyWidth);
 				
 				break;
 
 			case kPolySquare:
-				signal = oscPolyPulse(modulated, polyWidth, 0.5f);
+				signal = oscPolySquare(modulated, polyWidth);
 				break;
 
 			case kPolySaw:
@@ -123,8 +117,6 @@ namespace SFM
 
 		// Can not check for range here (because of, for example, kPolySupersaw)
 		FloatAssert(signal);
-
-		m_prevSignal = signal;
 
 		return signal;
 	}
