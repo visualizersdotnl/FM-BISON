@@ -77,10 +77,10 @@ namespace SFM
 		Oscillator(unsigned sampleRate = 1)
 		{
 			// Oscillator will yield 1.0 at phase 0.0
-			Initialize(kCosine, 0.f, sampleRate, 0.f, 0.f);
+			Initialize(kCosine, 0.f, sampleRate, 0.f);
 		}
 
-		void Initialize(Waveform form, float frequency, unsigned sampleRate, float phaseShift, float curSignal)
+		void Initialize(Waveform form, float frequency, unsigned sampleRate, float phaseShift)
 		{
 			m_form = form;
 			m_phases[0].Initialize(frequency, sampleRate, phaseShift);

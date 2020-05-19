@@ -47,7 +47,7 @@ namespace SFM
 ,			m_curWet(0.f, sampleRate, kDefParameterLatency)
 ,			m_lookahead(kWahLookahead)
 		{
-			m_LFO.Initialize(Oscillator::Waveform::kSine, kDefWahRate, m_sampleRate, 0.f, 0.f);
+			m_LFO.Initialize(Oscillator::Waveform::kSine, kDefWahRate, m_sampleRate, 0.f);
 		}
 
 		~AutoWah() {}

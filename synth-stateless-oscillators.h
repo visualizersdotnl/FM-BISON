@@ -34,6 +34,7 @@ namespace SFM
 		Ramp, sawtooth, square, triangle & pulse (not band-limited)
 	*/
 
+	// Some refer to the ramp being equal to a saw, but to me this way around makes more sense.
 	SFM_INLINE static float oscRamp(float phase)
 	{
 		SFM_ASSERT(phase >= 0.f && phase <= 1.f);

@@ -21,7 +21,9 @@
 namespace SFM
 {
 	// BPM sync. mode note ratios, adopted from the Arturia Keystep
-	static const float kBeatSyncRatios[8]
+	constexpr size_t kNumBeatSyncRatios = 8;
+
+	static const float kBeatSyncRatios[kNumBeatSyncRatios]
 	{
 		1.0f,           //  1/4
 		0.6666666668f,  // 1/4T
@@ -33,7 +35,17 @@ namespace SFM
 		0.08333333335f, // 1/32T 	
 	};
 
-	const size_t kNumBeatSyncRatios = 8;
+	constexpr unsigned kNumLFOWaveforms = 4;
+
+	const Oscillator::Waveform kLFOWaveforms[kNumOperatorWaveforms] =
+	{
+			Oscillator::Waveform::kSine, 
+			Oscillator::Waveform::kTriangle,
+			
+			// The band-limited ones sound a tad better, though they still don't sit that well with amplitude modulation!
+			Oscillator::Waveform::kPolySaw,   // "Ramp"
+			Oscillator::Waveform::kPolySquare
+	};
 
 	struct Patch
 	{
@@ -58,7 +70,8 @@ namespace SFM
 		int pitchBendRange; // [0..kMaxPitchBendRange]
 
 		// LFO
-		float LFORate;    // Range [0.0..127.0]
+		Oscillator::Waveform LFOWaveform;
+		float LFORate; // Range [0.0..127.0]
 		bool  LFOKeySync;  
 
 		// BPM sync. mode (LFO, chorus/phaser, delay, ...)
@@ -186,8 +199,9 @@ namespace SFM
 			pitchBendRange = kDefPitchBendRange;
 
 			// LFO
-			LFORate = 0.f;      // Zero Hz
-			LFOKeySync = false; // No key sync.
+			LFOWaveform = kLFOWaveforms[0]; // Sine
+			LFORate = 0.f;                  // Zero Hz
+			LFOKeySync = false;             // No key sync.
 
 			// BPM sync.
 			beatSync = false;

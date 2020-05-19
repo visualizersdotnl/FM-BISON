@@ -755,7 +755,7 @@ namespace SFM
 			: m_globalLFO->Get(); // Adopt running phase
 
 		const float phaseJitter = CalcPhaseJitter(jitter);
-		voice.m_LFO.Initialize(Oscillator::kSine, m_globalLFO->GetFrequency(), m_sampleRate, phaseAdj+phaseJitter, 0.f); // FIXME: more forms!
+		voice.m_LFO.Initialize(m_patch.LFOWaveform, m_globalLFO->GetFrequency(), m_sampleRate, phaseAdj+phaseJitter);
 
 		// Get dry FM patch		
 		PatchOperators &patchOps = m_patch.operators;
@@ -796,7 +796,7 @@ namespace SFM
 					: voiceOp.oscillator.GetPhase(); // Running
 
 				voiceOp.oscillator.Initialize(
-					patchOp.waveform, frequency, m_sampleRate, phaseShift, 0.f);
+					patchOp.waveform, frequency, m_sampleRate, phaseShift);
 
 				// Set static amplitude
 				voiceOp.amplitude.SetRate(m_sampleRate, kDefParameterLatency);
@@ -906,7 +906,7 @@ namespace SFM
 				: m_globalLFO->Get(); // Adopt running phase
 
 			const float phaseJitter = CalcPhaseJitter(jitter);
-			voice.m_LFO.Initialize(Oscillator::kSine, m_globalLFO->GetFrequency(), m_sampleRate, phaseAdj+phaseJitter, 0.f); // FIXME: more forms!
+			voice.m_LFO.Initialize(m_patch.LFOWaveform, m_globalLFO->GetFrequency(), m_sampleRate, phaseAdj+phaseJitter);
 		}
 
 		// Envelope velocity scaling: higher velocity *can* mean longer decay phase
@@ -951,7 +951,7 @@ namespace SFM
 				{
 					// Reset
 					voiceOp.oscillator.Initialize(
-						patchOp.waveform, frequency, m_sampleRate, 0.f, 0.f);
+						patchOp.waveform, frequency, m_sampleRate, 0.f);
 	
 					voiceOp.amplitude.SetRate(m_sampleRate, voice.freqGlide);
 					voiceOp.amplitude.Set(amplitude);
