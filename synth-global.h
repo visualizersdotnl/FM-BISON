@@ -124,14 +124,10 @@ namespace SFM
 	// Reverb default lowpass & highpass (normalized)
 	constexpr float kDefReverbFilter = 1.f;
 
-	// Default post-pass filter settings & ranges
-	// Tweak these according to filter in use (KrajeskiMoog); the idea is, roughly,
-	// to be able to mix in a warm fuzzy filtered version with some extra drive on top of the sound, prior to reverberation
-	constexpr float kDefPostFilterResonance =  0.f;
-	constexpr float kDefPostFilterDrivedB   = -3.f;
-	constexpr float kMaxPostFilterResonance =  1.f;
+	// Default post-pass filter drive range & default (dB)	
 	constexpr float kMinPostFilterDrivedB   = -3.f;
-	constexpr float kMaxPostFilterDrivedB   =  3.f;
+	constexpr float kMaxPostFilterDrivedB   =  6.f;
+	constexpr float kDefPostFilterDrivedB   =  0.f;
 
 	// Tube amp. distortion
 	constexpr float kMinTubeDrivedB = 16.f;
