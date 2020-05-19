@@ -262,7 +262,7 @@ namespace SFM
 
 			// Post-pass filter (disabled)
 			postCutoff = 0.f;
-			postResonance = kDefPostFilterResonance;
+			postResonance = 0.f;
 			postDrivedB = kDefPostFilterDrivedB;
 			postWet = 0.f;
 

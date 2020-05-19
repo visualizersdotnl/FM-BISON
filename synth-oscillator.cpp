@@ -83,6 +83,10 @@ namespace SFM
 				}
 
 				break;
+
+			case kPolyRectSine:
+				signal = oscPolyRectifiedSine(modulated, polyWidth);
+				break;
 				
 			case kPinkNoise:
 				signal = oscPinkNoise(m_pinkState);

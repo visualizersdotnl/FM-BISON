@@ -155,6 +155,20 @@ namespace SFM
 		return triangle;
 	}
 
+	SFM_INLINE static float oscPolyRectifiedSine(float phase, float width)
+	{
+		float P1 = phase + 0.25f;
+		P1 -= bitwiseOrZero(P1);
+
+//		float rectified = 2.f * sinf(kPI * P1) - 4.f/kPI; // FIXME: use oscSine()
+//		rectified += k2PI * width * PolyBLAMP(P1, width);
+
+		float rectified = 2.f * oscSine(0.5f * P1) - 4.f*0.5f;
+		rectified += 2.f * width * PolyBLAMP(P1, width);
+
+		return rectified;
+	}
+
 	/*
 		White noise
 	*/

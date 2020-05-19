@@ -25,17 +25,18 @@ namespace SFM
 	const int kFineRange     = 24;    // Semitones
 	const float kDetuneRange = 100.f; // Cents
 
-	const Oscillator::Waveform kOperatorWaveforms[6] =
+	const Oscillator::Waveform kOperatorWaveforms[7] =
 	{
 			Oscillator::Waveform::kSine,          // Sine
 			Oscillator::Waveform::kPolyTriangle,  // Triangle
 			Oscillator::Waveform::kPolySquare,	  // Square
 			Oscillator::Waveform::kPinkNoise,     // Pink noise
 			Oscillator::Waveform::kPolySaw,       // Saw
-			Oscillator::Waveform::kPolySupersaw   // Supersaw
+			Oscillator::Waveform::kPolySupersaw,  // Supersaw
+			Oscillator::Waveform::kPolyRectSine   // Rectified sine
 	};
 
-	const unsigned kNumOperatorWaveforms = 6;
+	const unsigned kNumOperatorWaveforms = 7;
 
 	struct PatchOperators
 	{

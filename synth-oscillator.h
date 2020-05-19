@@ -47,6 +47,7 @@ namespace SFM
 			kPolySquare,
 			kPolySaw,
 			kPolySupersaw,
+			kPolyRectSine,
 
 			// Raw
 			kRamp,
