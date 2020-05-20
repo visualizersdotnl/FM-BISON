@@ -73,22 +73,28 @@ namespace SFM
 
 		SFM_INLINE float Sample()
 		{
-			while (m_phase >= 1.f)
+			while (m_phase >= 1.0)
 			{
-				m_phase -= 1.f;
+				m_phase -= 1.0;
 			}
 
+/*
 			const double curPhase = m_phase;
+			SFM_ASSERT(curPhase >= 0.0 && curPhase <= 1.0);
 			m_phase += m_pitch*m_syncRatio;
 
-			SFM_ASSERT(curPhase >= 0.0 && curPhase <= 1.0);
-
 			return float(curPhase);
+*/
+
+			m_phase += m_pitch*m_syncRatio;
+
+			return float(m_phase);
+
 		}
 
 		SFM_INLINE void Ticks(unsigned count)
 		{
-			m_phase = fmod(m_phase + m_pitch*count, 1.f);
+			m_phase = fmod(m_phase + m_pitch*count, 1.0);
 		}
 	};
 }

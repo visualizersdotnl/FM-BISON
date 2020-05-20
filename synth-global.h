@@ -206,7 +206,7 @@ namespace SFM
 	constexpr float kMinWahAttack        = 0.01f;  // 10MS
 	constexpr float kMaxWahAttack        = 1.f;    // 1 sec.
 	constexpr float kDefWahAttack        = kMinWahAttack; 
-	constexpr float kMinWahHold          = 0.01f;  // 10MS
+	constexpr float kMinWahHold          = 0.001f; // 1MS
 	constexpr float kMaxWahHold          = 1.f;    // 1 sec.
 	constexpr float kDefWahHold          = kMinWahHold;
 	constexpr float kMinWahRate          = 0.f; 

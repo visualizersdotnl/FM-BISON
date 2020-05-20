@@ -93,7 +93,7 @@ public:
 private:
 	SFM_INLINE void SetResonance(float r)
 	{
-		SFM_ASSERT(r >= 0.f && r <= SFM::kMaxPostFilterResonance);
+		SFM_ASSERT(r >= 0.f && r <= 1.f);
 		m_resonance = r;
 
 		// Traded in favour of less pow() calls

@@ -8,6 +8,7 @@
 		- It's monaural
 		- Coarse way of implementing a formant filter (which usually consists of multiple carefully tuned band pass filters)
 		- Effective enough for adding a bit of flair to effects
+		- It's unreliable among different sample rates as the coefficients must've taken *some* rate into account?
 		- I'm working on a new version (see synth-vowelizer-V2.*)
 
 	Source: a contribution to http://www.musicdsp.org by alex@smartelectronix.com
@@ -24,10 +25,10 @@ namespace SFM
 	public:
 		enum Vowel
 		{
-			kI,
-			kA,
 			kU,
+			kA,
 			kE,
+			kI,
 			kO,
 			kNumVowels
 		};

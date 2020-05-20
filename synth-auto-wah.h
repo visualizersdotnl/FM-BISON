@@ -35,6 +35,7 @@ namespace SFM
 ,			m_outDelayR(sampleRate, kWahDelay)
 ,			m_RMSDetector(sampleRate, 0.01f /* 10MS: Twice Reaper's compressor default */)
 ,			m_envFollower(sampleRate, kDefWahAttack, kDefWahHold)
+
 ,			m_vowelizerV2_1(sampleRate)
 ,			m_vowelizerV2_2(sampleRate)
 
@@ -86,6 +87,8 @@ namespace SFM
 		SvfLinearTrapOptimised2 m_preFilterHP;
 		SvfLinearTrapOptimised2 m_preFilterLP[3];
 		SvfLinearTrapOptimised2 m_postFilterLP;
+
+//		Vowelizer m_vowelizerL, m_vowelizerR;
 
 		VowelizerV2 m_vowelizerV2_1;
 		VowelizerV2 m_vowelizerV2_2;

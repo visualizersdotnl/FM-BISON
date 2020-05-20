@@ -72,7 +72,7 @@ namespace SFM
 
 		I've studied and adapted this implementation from: https://github.com/martinfinke/PolyBLEP
 
-		- There are a lot more waveforms ready to use, but for now I just need a square, saw & triangle.
+		- There are a lot more waveforms ready to use.
 		- I've kept the implementation and it's helper functions all in one spot.
 		- I did rename a few variables for readability.
 	*/
