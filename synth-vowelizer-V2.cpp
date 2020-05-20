@@ -49,7 +49,7 @@ namespace SFM
 			// Grab frequency
 			const float frequency = float(frequencies[iFormant]);
 			
-			// Divide normalized frequency by half of bandwidth and soft clip it to get a pseudo-Q
+			// Divide frequency by half of bandwidth and soft clip it to get a pseudo-Q
 			const float normalizedQ = fast_tanhf(frequency/halfBandWidth);
 			const float Q = 0.5f + 19.5f*smoothstepf(normalizedQ);
 
@@ -58,6 +58,7 @@ namespace SFM
 			float filterL = preL, filterR = preR;
 			m_filterBP[iFormant].tick(filterL, filterR);
 
+			// This linear gain simply makes higher frequencies louder
 			const float gain = 1.f-(frequency/magnitude);
 			filteredL += filterL*gain;
 			filteredR += filterR*gain;
