@@ -234,7 +234,9 @@ namespace SFM
 		// Use front (latest) request (list has been sorted in polyphonic mode) to initialize new voice
 		SFM_INLINE void InitializeVoice(unsigned iVoice)
 		{
-			const VoiceRequest &request = m_voiceReq.front();
+			SFM_ASSERT(m_voiceReq.size() > 0);
+
+			const VoiceRequest request = m_voiceReq.front();
 
 			if (Patch::VoiceMode::kMono != m_curVoiceMode)
 				InitializeVoice(request, iVoice);

@@ -218,10 +218,10 @@ namespace SFM
 	constexpr float kMainDelayInSec = 4.f; // Min. 15BPM
 
 	// Default piano pedal settings & mul. range
-	constexpr float kDefPianoPedalFalloff = 0.f;    // Slowest
-	constexpr float kDefPianoPedalReleaseMul = 5.f;  // A reasonable default
+	constexpr float kDefPianoPedalFalloff = 0.f; // Slowest
 	constexpr float kPianoPedalMinReleaseMul = 1.f;
-	constexpr float kPianoPedalMaxReleaseMul = 10.f; // Rather arbitrary, in fact I'm not sure if this should be a feature at all! (FIXME)
+	constexpr float kPianoPedalMaxReleaseMul = 10.f;                     // Rather arbitrary, in fact I'm not sure if this should be a feature at all! (FIXME)
+	constexpr float kDefPianoPedalReleaseMul = kPianoPedalMinReleaseMul; // So because of that, by default, the influence of this parameter is nil.
 };
 
 #include "synth-random.h"
