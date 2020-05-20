@@ -39,7 +39,7 @@ namespace SFM
 ,			m_vowelizerV2_1(sampleRate)
 ,			m_vowelizerV2_2(sampleRate)
 
-,			m_curSlack(kDefWahSlack, sampleRate, kDefParameterLatency)
+,			m_curResonance(0.f, sampleRate, kDefParameterLatency)
 ,			m_curAttack(kDefWahAttack, sampleRate, kDefParameterLatency)
 ,			m_curHold(kDefWahHold, sampleRate, kDefParameterLatency)
 ,			m_curRate(kDefWahRate, sampleRate, kDefParameterLatency)
@@ -53,9 +53,9 @@ namespace SFM
 
 		~AutoWah() {}
 
-		SFM_INLINE void SetParameters(float slack, float attack, float hold, float rate, float speak, float cut, float wetness)
+		SFM_INLINE void SetParameters(float resonance, float attack, float hold, float rate, float speak, float cut, float wetness)
 		{
-			SFM_ASSERT(slack >= kMinWahSlack && slack <= kMaxWahSlack);
+			SFM_ASSERT(resonance >= 0.f && resonance <= 1.f);
 			SFM_ASSERT(attack >= kMinWahAttack && attack <= kMaxWahAttack);
 			SFM_ASSERT(hold >= kMinWahHold && hold <= kMaxWahHold);
 			SFM_ASSERT(rate >= kMinWahRate && rate <= kMaxWahRate);
@@ -63,7 +63,7 @@ namespace SFM
 			SFM_ASSERT(cut >= 0.f && cut <= 1.f);
 			SFM_ASSERT(wetness >= 0.f && wetness <= 1.f);
 
-			m_curSlack.SetTarget(slack);
+			m_curResonance.SetTarget(resonance);
 			m_curAttack.SetTarget(attack);
 			m_curHold.SetTarget(hold);
 			m_curRate.SetTarget(rate);
@@ -96,7 +96,7 @@ namespace SFM
 		Oscillator m_LFO;
 
 		// Interpolated parameters
-		InterpolatedParameter<kLinInterpolate> m_curSlack;
+		InterpolatedParameter<kLinInterpolate> m_curResonance;
 		InterpolatedParameter<kLinInterpolate> m_curAttack;
 		InterpolatedParameter<kLinInterpolate> m_curHold;
 		InterpolatedParameter<kLinInterpolate> m_curRate;

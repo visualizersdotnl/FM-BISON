@@ -5,7 +5,7 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	FIXME:
-		- Use BPM sync.
+		- Interpolate between more formants or perhaps write and use an all new formant (vowel) filter?
 */
 
 #include "synth-auto-wah.h"
@@ -13,24 +13,25 @@
 
 namespace SFM
 {
-	// Constant parameters
+	// Constant parameter(s)
 	constexpr double kPreLowCutQ  =   0.5;
-	constexpr float  kPostMaxQ    =  0.7f;   
-	constexpr float  kLFOCutDepth = 0.02f; // In normalized range
+	constexpr double kResoMax     =   0.7;
 
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples)
 	{
+		constexpr float kGain3dB = 1.41253757f;
+
 		for (unsigned iSample = 0; iSample  < numSamples; ++iSample)
 		{
 			// Get parameters
-			const float slack     = m_curSlack.Sample(); // FIXME: unused
+			const float resonance = m_curResonance.Sample();
 			const float curAttack = m_curAttack.Sample();
 			const float curHold   = m_curHold.Sample();
 			const float vowelize  = m_curSpeak.Sample();
 			const float lowCut    = m_curCut.Sample()*0.125f; // Nyquist/8 is more than enough!
 			const float wetness   = m_curWet.Sample();
 			
-			m_envFollower.SetAttack(curAttack*1000.f);
+			m_envFollower.SetAttack(curAttack*100.f); // Up to a tenth of second sounds much closer to an actual second (FIXME)
 			m_envFollower.SetRelease(curHold*1000.f);
 
 			m_LFO.SetFrequency(m_curRate.Sample());
@@ -44,10 +45,11 @@ namespace SFM
 			m_outDelayR.Write(sampleR);
 
 			// Calc. RMS and feed it to env. follower
+			// We normalize between infinity and 3dB so 'envGain' is easy to use
 			const float RMS = m_RMSDetector.Run(sampleL, sampleR);
 			const float signaldB = (RMS != 0.f) ? GainTodB(RMS) : kMinVolumedB;
 			const float envdB = m_envFollower.Apply(signaldB, m_envdB);
-			const float envGain = dBToGain(envdB);
+			const float envGain = std::min<float>(dBToGain(envdB), kGain3dB) / kGain3dB;
 
 			// Grab (delayed) signal
 			const float lookahead = m_lookahead*wetness; // Lookahead is proportional to wetness, a hack to make sure we do not cause a delay when 100% dry (FIXME)
@@ -70,9 +72,15 @@ namespace SFM
 			float filteredL = preFilteredL, filteredR = preFilteredR;
 
 			// Post filter (LP)
-			const float cutoff = saturatef(kLFOCutDepth + envGain*(1.f-kLFOCutDepth) + 0.5f*kLFOCutDepth*LFO); // FIXME: this doesn't look sane?
-			const float cutHz  = CutoffToHz(cutoff, m_Nyquist);
-			const float Q      = ResoToQ(kPostMaxQ - kPostMaxQ*envGain); // Lower signal, more Q
+			const float range  = 0.05f;
+			const float cutoff = range + (envGain * (1.f - 2.f*range)) + LFO*range;
+
+			SFM_ASSERT(cutoff >= 0.f && cutoff <= 1.f);
+
+			const float cutHz    = CutoffToHz(cutoff, m_Nyquist);
+			const float maxNormQ = kResoMax*resonance;            //
+			const float normQ    = maxNormQ - maxNormQ*envGain;   //
+			const float Q        = ResoToQ(normQ);                // Less signal, more Q
 
 			m_postFilterLP.updateLowpassCoeff(cutHz, Q, m_sampleRate);
 			m_postFilterLP.tick(filteredL, filteredR);
@@ -99,7 +107,7 @@ namespace SFM
 			filteredR = lerpf<float>(filteredR, vowelR, vowelize);
 
 			// Vowelize (legacy)
-//			const float vowBlend = kLFOVowDepth + envGain*(1.f-kLFOVowDepth) + 0.5f*kLFOVowDepth*LFO;
+//			const float vowBlend = envGain;
 //			const float vowelL = m_vowelizerL.Apply(filteredL*0.707f, Vowelizer::kU, vowBlend);
 //			const float vowelR = m_vowelizerR.Apply(filteredR*0.707f, Vowelizer::kU, vowBlend);
 //			filteredL = lerpf<float>(filteredL, vowelL, vowelize);

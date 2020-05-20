@@ -41,6 +41,8 @@ namespace SFM
 			m_pitch = CalculatePitch(frequency, sampleRate);
 			m_phase = fmod(phaseShift, 1.f);
 			m_syncRatio = 1.f;
+
+			SFM_ASSERT(m_phase >= 0.0 && m_phase <= 1.0);
 		}
 		
 		// Synchronize to freq. (hard sync.)
@@ -74,22 +76,14 @@ namespace SFM
 		SFM_INLINE float Sample()
 		{
 			while (m_phase >= 1.0)
-			{
 				m_phase -= 1.0;
-			}
 
-/*
-			const double curPhase = m_phase;
-			SFM_ASSERT(curPhase >= 0.0 && curPhase <= 1.0);
-			m_phase += m_pitch*m_syncRatio;
-
-			return float(curPhase);
-*/
+			const float curPhase = float(m_phase);
+			SFM_ASSERT(curPhase >= 0.f && curPhase <= 1.f);
 
 			m_phase += m_pitch*m_syncRatio;
 
-			return float(m_phase);
-
+			return curPhase;
 		}
 
 		SFM_INLINE void Ticks(unsigned count)

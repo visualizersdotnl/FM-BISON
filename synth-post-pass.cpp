@@ -103,7 +103,7 @@ namespace SFM
 
 	void PostPass::Apply(unsigned numSamples,
 	                     float rateBPM,
-	                     float wahSlack, float wahAttack, float wahHold, float wahRate, float wahSpeak, float wahCut, float wahWet,
+	                     float wahResonance, float wahAttack, float wahHold, float wahRate, float wahSpeak, float wahCut, float wahWet,
 	                     float cpRate, float cpWet, bool isChorus,
 	                     float delayInSec, float delayWet, float delayFeedback, float delayFeedbackCutoff,
 	                     float postCutoff, float postQ, float postDrivedB, float postWet,
@@ -150,7 +150,7 @@ namespace SFM
 		if (true == useBPM)
 			wahRate = rateBPM; // FIXME: test this!
 
-		m_wah.SetParameters(wahSlack, wahAttack, wahHold, wahRate, wahSpeak, wahCut, wahWet);
+		m_wah.SetParameters(wahResonance, wahAttack, wahHold, wahRate, wahSpeak, wahCut, wahWet);
 		m_wah.Apply(m_pBufL, m_pBufR, numSamples);
 
 		/* ----------------------------------------------------------------------------------------------------
@@ -327,32 +327,34 @@ namespace SFM
 				m_postFilter.SetParameters(curPostCutoff, curPostQ, curPostDrive);
 				m_postFilter.Apply(filteredL, filteredR);
 
-				const float postSampleL = lerpf<float>(sampleL, filteredL, curPostWet);
-				const float postSampleR = lerpf<float>(sampleR, filteredR, curPostWet);
-				
-				// Apply distortion
-				filteredL = sampleL; filteredR = sampleR;
+				const float postSampleL = filteredL;
+				const float postSampleR = filteredR;
 
-				const float amount      = smoothstepf(m_curTubeDist.Sample());
-				const float velLin      = m_curAvgVelocity.Sample();
-				const float velocity    = velLin*velLin*velLin;
-				const float drive       = m_curTubeDrive.Sample() + dBToGain(velocity*3.f);
+				// Apply distortion				
+				filteredL = sampleL; 
+				filteredR = sampleR;
+
+				const float amount            = m_curTubeDist.Sample();
+				const float velLin            = m_curAvgVelocity.Sample();
+				const float velocity          = velLin*velLin;
+				constexpr float driveVelRange = 0.25f*(kMaxTubeDrivedB-kMinTubeDrivedB);
+				const float drive             = m_curTubeDrive.Sample() + dBToGain(driveVelRange*velocity);
+				const float zoelzerDrive      = drive*amount;
 
 				m_tubeFilterPre.tick(filteredL, filteredR);
-				filteredL *= drive*amount;
-				filteredR *= drive*amount;
-				filteredL = ZoelzerClip(filteredL);
-				filteredR = ZoelzerClip(filteredR);
+				filteredL = ZoelzerClip(filteredL*drive);
+				filteredR = ZoelzerClip(filteredR*drive);
 				m_tubeFilterPost.tick(filteredL, filteredR);
-				
-				const float clipGain = dBToGain(-6.f + 9.f*amount*velocity);
 
-				// Blend 2 effects with dry sample
-				pOverL[iSample] = postSampleL + lerpf<float>(sampleL, clipGain*filteredL, amount);
-				pOverR[iSample] = postSampleR + lerpf<float>(sampleR, clipGain*filteredR, amount);
+				// Mix them
+				sampleL += postSampleL*curPostWet;
+				sampleR += postSampleR*curPostWet;
+				const float gain = dBToGain(-3.f + velocity*6.f); // [-3dB..3dB]
+				pOverL[iSample] = lerpf<float>(sampleL, sampleL + filteredL*gain, amount);
+				pOverR[iSample] = lerpf<float>(sampleR, sampleR + filteredR*gain, amount);
 			}
 
-			// Downsample (result); do I need to reset? (FIXME)
+			// Downsample (result) (FIXME: do I need to reset?)
 			m_oversamplingL.processSamplesDown(inputBlockL);
 			m_oversamplingR.processSamplesDown(inputBlockR);
 		}

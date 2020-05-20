@@ -7,6 +7,9 @@
 
 #pragma once
 
+#pragma warning(push)
+#pragma warning(disable: 4324) // Tell MSVC to shut it about padding I'm aware of
+
 #include "synth-global.h"
 #include "synth-stateless-oscillators.h"
 #include "synth-phase.h"
@@ -151,3 +154,5 @@ namespace SFM
 		float Sample(float modulation, float feedback = 0.f /* Only used by Voice::Render() */);
 	};
 }
+
+#pragma warning(pop)

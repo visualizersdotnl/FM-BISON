@@ -64,8 +64,8 @@ namespace SFM
 ,		m_curHP(CutoffToHz(kDefReverbFilter, Nyquist), sampleRate, kDefParameterLatency)
 	{
 		// Semi-fixed
-		SFM_ASSERT(8 == kReverbNumCombs);
-		SFM_ASSERT(4 == kReverbNumAllPasses);
+		static_assert(8 == kReverbNumCombs);
+		static_assert(4 == kReverbNumAllPasses);
 
 		// Adjusted stereo spread
 		const size_t stereoSpread = ScaleNumSamples(sampleRate, kStereoSpread);

@@ -99,7 +99,7 @@ namespace SFM
 		unsigned maxVoices;
 
 		// Auto-wah settings (see synth-global.h & synth-auto-wah.h for non-normalized parameters)
-		float wahSlack;
+		float wahResonance;
 		float wahAttack;
 		float wahHold;
 		float wahRate;
@@ -228,7 +228,7 @@ namespace SFM
 			maxVoices = kDefMaxVoices;
 
 			// Default auto-wah, 100% dry
-			wahSlack = kDefWahSlack;
+			wahResonance = kDefWahResonance;
 			wahAttack = kDefWahAttack;
 			wahHold = kDefWahHold;
 			wahRate = kDefWahRate;

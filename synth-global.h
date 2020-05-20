@@ -200,9 +200,7 @@ namespace SFM
 	constexpr float kDefCompRelease     = kMinCompRelease;
 
 	// Auto-wah range & defaults
-	constexpr float kMinWahSlack         = 0.1f;   // Unused (FIXME)
-	constexpr float kMaxWahSlack         = 1.f;    //
-	constexpr float kDefWahSlack         = 0.1f;   // 
+	constexpr float kDefWahResonance     = 0.5f;   // 50%
 	constexpr float kMinWahAttack        = 0.01f;  // 10MS
 	constexpr float kMaxWahAttack        = 1.f;    // 1 sec.
 	constexpr float kDefWahAttack        = kMinWahAttack; 

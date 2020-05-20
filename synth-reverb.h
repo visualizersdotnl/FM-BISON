@@ -164,11 +164,11 @@ namespace SFM
 	};
 
 	// Warning: you can't just change these!
-	const unsigned kReverbNumCombs = 8;
-	const unsigned kReverbNumAllPasses = 4;
+	constexpr unsigned kReverbNumCombs = 8;
+	constexpr unsigned kReverbNumAllPasses = 4;
 
 	// Max. room size to prevent infinite reverberation
-	const float kReverbMaxRoomSize = 0.9f;
+	constexpr float kReverbMaxRoomSize = 0.9f;
 
 	class Reverb
 	{

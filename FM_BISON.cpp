@@ -713,10 +713,10 @@ namespace SFM
 		return output;
 	}
 
-	SFM_INLINE static float CalcPhaseJitter(float drift)
+	SFM_INLINE static float CalcPhaseJitter(float jitter)
 	{
-		const float random = -0.25f + mt_randf()*0.5f; // [-90..90] deg.
-		return random*drift;
+		SFM_ASSERT(jitter >= 0.f && jitter <= 1.f);
+		return jitter*mt_randf()*0.25f; // [0..90] deg.
 	}
 	
 	// Initialize new voice
@@ -1630,7 +1630,7 @@ namespace SFM
 		memset(m_pBufL, 0, m_samplesPerBlock*sizeof(float));
 		memset(m_pBufR, 0, m_samplesPerBlock*sizeof(float));
 
-		float avgVelocity = 0.f;
+		float accumVelocity = 0.f;
 
 		if (0 != numVoices)
 		{
@@ -1670,9 +1670,8 @@ namespace SFM
 							globalAmp.SetTarget(1.f);
 						}
 
-						// Add to average velocity (if not releasing / after NOTE_OFF)
-						if (false == voice.IsReleasing())
-							avgVelocity += voice.m_velocity;
+						// Add to average velocity
+						accumVelocity += voice.m_velocity;
 					}
 	
 					if (true == resetFilter)
@@ -1774,11 +1773,11 @@ namespace SFM
 					}
 				}
 			}
-			
-			// Normalize
-			avgVelocity /= numVoices;
-			SFM_ASSERT(avgVelocity <= 1.f);
 		}
+
+		// Normalize accum. to avg. velocity
+		const float avgVelocity = (numVoices > 0) ? accumVelocity/numVoices : 0.f;
+		SFM_ASSERT(avgVelocity <= 1.f);
 				
 		// Update voice logic (post)
 		UpdateVoicesPostRender();
@@ -1803,7 +1802,7 @@ namespace SFM
 		                  /* BPM sync. */
 						  m_freqBPM,
 						  /* Auto-wah (FIXME: apply more ParameterFilter if necessary) */
-						  m_patch.wahSlack,
+						  m_patch.wahResonance,
 						  m_patch.wahAttack,
 						  m_patch.wahHold,
 						  m_wahRatePF.Apply(m_patch.wahRate),
