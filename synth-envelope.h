@@ -43,7 +43,7 @@ namespace SFM
 			float releaseCurve;
 		};
 
-		void Start(const Parameters &parameters, unsigned sampleRate, bool isCarrier, float keyScaling, float velScaling, float outputOnAttack);
+		void Start(const Parameters &parameters, unsigned sampleRate, bool isCarrier, float keyTracking, float velScaling);
 
 		SFM_INLINE void Stop()
 		{

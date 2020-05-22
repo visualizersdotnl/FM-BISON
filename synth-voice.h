@@ -64,8 +64,8 @@ namespace SFM
 			// Detune offset (used in jitter)
 			float detuneOffs;
 
-			// Key scaling (higher note, shorter envelope)
-			float keyScaling;
+			// Key tracking (higher note, shorter envelope)
+			float keyTracking;
 
 			// Oscillator, amplitude & envelope
 			InterpolatedParameter<kLinInterpolate> amplitude; // (R)
@@ -107,7 +107,7 @@ namespace SFM
 
 				detuneOffs = 0.f;
 
-				keyScaling = 0.f;
+				keyTracking = 0.f;
 
 				amplitude  = { 0.f, sampleRate, kDefParameterLatency };
 				oscillator = Oscillator(sampleRate);

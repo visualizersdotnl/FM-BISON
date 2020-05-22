@@ -25,12 +25,11 @@ namespace SFM
 		return kEpsilon + 0.03 * (exp(4.0*invX) - 1.0);
 	}
 
-	void Envelope::Start(const Parameters &parameters, unsigned sampleRate, bool isCarrier, float keyScaling, float velScaling, float outputOnAttack)
+	void Envelope::Start(const Parameters &parameters, unsigned sampleRate, bool isCarrier, float keyTracking, float velScaling)
 	{
 		SFM_ASSERT(parameters.rateMul >= kEnvMulMin && parameters.rateMul <= kEnvMulMax);
-		SFM_ASSERT(keyScaling >= 0.f && keyScaling <= 1.f);
-		SFM_ASSERT(velScaling >= 1.f); // && velScaling <= 2.f);
-		SFM_ASSERT(outputOnAttack >= 0.f && outputOnAttack <= 1.f);
+		SFM_ASSERT(keyTracking >= 0.f && keyTracking <= 1.f);
+		SFM_ASSERT(velScaling >= 1.f);
 
 		SFM_ASSERT(parameters.attackCurve  >= 0.f && parameters.attackCurve  <= 1.f);
 		SFM_ASSERT(parameters.decayCurve   >= 0.f && parameters.decayCurve   <= 1.f);
@@ -54,7 +53,7 @@ namespace SFM
 		m_ADSR.setSustainLevel(parameters.sustain);
 
 		// Set rates
-		const double rateMul = parameters.rateMul*keyScaling; // For ex. key scaling can make the envelope shorter
+		const double rateMul = parameters.rateMul*keyTracking;
 		 
 		const double attack   = CalcRate(rateMul,            parameters.attack,  sampleRate);
 		const double decay    = CalcRate(rateMul*velScaling, parameters.decay,   sampleRate); // Velocity scaling can lengthen the decay phase
@@ -64,7 +63,7 @@ namespace SFM
 		m_ADSR.setDecayRate(decay);
 		m_ADSR.setReleaseRate(release);
 	
-		m_ADSR.gate(true, outputOnAttack);
+		m_ADSR.gate(true, 0.0);
 
 		// Maarten van Strien advised this due to his experience with FM8
 		// It means the envelope will never go past it's sustain phase

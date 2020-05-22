@@ -80,7 +80,7 @@
 	Not supported yet:
 		- Polyphonic aftertouch / MPE
 
-	Optimal compiler parameters for Visual Studio 2017:
+	Optimal compiler parameters for Visual Studio (MSVC):
 		- /Ob2 /Oi /O2 /Ot
 
 	

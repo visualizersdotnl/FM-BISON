@@ -65,8 +65,8 @@ namespace SFM
 			float cutoff;
 			float resonance;
 
-			// Amount of key scaling applied to cutoff (higher key(s) means higher cutoff frequency, initially designed for Wurlitzer patch)
-			float cutoffKeyScale;
+			// Cutoff keytracking (higher key(s) means higher cutoff frequency)
+			float cutoffKeyTrack;
 
 			// Sync. oscillator on key press
 			bool keySync;
@@ -87,7 +87,7 @@ namespace SFM
 
 			// Envelopes
 			Envelope::Parameters envParams;
-			float envKeyScale; // Also known as tracking: shortens the envelope along the keys (higher)
+			float envKeyTrack; // Shortens the envelope along the keys (higher means shorter)
 
 			// Velocity invert (play "louder" for less amplitude/index)
 			bool velocityInvert;
@@ -137,7 +137,7 @@ namespace SFM
 				patchOp.filterType = Operator::kNoFilter;
 				patchOp.cutoff = kDefFilterCutoff;
 				patchOp.resonance = kDefFilterResonance;
-				patchOp.cutoffKeyScale = 0.f; // No filter key scaling (or 'TRACK', if you will)
+				patchOp.cutoffKeyTrack = 0.f; // No filter key tracking (or 'TRACK', if you will)
 
 				// Sync. oscillator by default
 				patchOp.keySync = true;
@@ -167,8 +167,8 @@ namespace SFM
 				patchOp.envParams.releaseCurve = 0.f;
 				patchOp.envParams.rateMul = 1.f; // 1 second
 				
-				// No key scaling
-				patchOp.envKeyScale = 0.f;
+				// No key tracking
+				patchOp.envKeyTrack = 0.f;
 
 				// No velocity invert
 				patchOp.velocityInvert = false;

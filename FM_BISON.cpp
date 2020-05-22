@@ -509,26 +509,26 @@ namespace SFM
 
 	 ------------------------------------------------------------------------------------------------------ */
 
-	SFM_INLINE static float CalcKeyScaling(unsigned key, const PatchOperators::Operator &patchOp)
+	SFM_INLINE static float CalcKeyTracking(unsigned key, const PatchOperators::Operator &patchOp)
 	{
 		SFM_ASSERT(key >= 0 && key <= 127);
 		const float normalizedKey = key/127.f;
 
-		return PaulCurve(normalizedKey, patchOp.envKeyScale);
+		return PaulCurve(normalizedKey, patchOp.envKeyTrack);
 
 		// Linear version
-//		return patchOp.envKeyScale*normalizedKey;
+//		return patchOp.envKeyTrack*normalizedKey;
 	}
 
-	SFM_INLINE static float CalcCutoffScaling(unsigned key, const PatchOperators::Operator &patchOp)
+	SFM_INLINE static float CalcCutoffTracking(unsigned key, const PatchOperators::Operator &patchOp)
 	{
 		SFM_ASSERT(key >= 0 && key <= 127);
 		const float normalizedKey = key/127.f;
 
-		return PaulCurve(normalizedKey, patchOp.cutoffKeyScale);
+		return PaulCurve(normalizedKey, patchOp.cutoffKeyTrack);
 
 		// Linear version
-//		return patchOp.cutoffKeyScale*normalizedKey;
+//		return patchOp.cutoffKeyTrack*normalizedKey;
 	}
 
 	SFM_INLINE static float CalcPanningAngle(const PatchOperators::Operator &patchOp)
@@ -544,7 +544,7 @@ namespace SFM
 		SFM_ASSERT(nullptr != filterSVF);
 
 		// Calculate (scaled) cutoff freq. & Q
-		const float cutoffNorm = lerpf<float>(patchOp.cutoff, 1.f, CalcCutoffScaling(key, patchOp));
+		const float cutoffNorm = lerpf<float>(patchOp.cutoff, 1.f, CalcCutoffTracking(key, patchOp));
 		const float cutoffHz   = CutoffToHz(cutoffNorm, m_Nyquist);
 		const float normQ      = patchOp.resonance;
 		const float Q          = ResoToQ(normQ);
@@ -763,9 +763,9 @@ namespace SFM
 		// Default glide (in case frequency is manipulated whilst playing)
 		voice.freqGlide = kDefPolyFreqGlide;
 
-		// Envelope velocity scaling: higher velocity *can* mean longer decay phase
+		// Acoustic scaling: more velocity can mean longer envelope decay phase
 		// This is specifically designed for piano, guitar et cetera
-		const float envVelScaling = 1.f + (velocity*velocity)*m_patch.velocityScaling;
+		const float envAcousticScaling = 1.f + (velocity*velocity)*m_patch.acousticScaling;
 
 		// Set up voice operators
 		for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
@@ -807,11 +807,11 @@ namespace SFM
 				voiceOp.curFreq.Set(frequency);
 				voiceOp.setFrequency = frequency;
 
-				// Envelope key scaling: higher note (key) means shorter envelope
-				const float envKeyScaling = 1.f - 0.9f*CalcKeyScaling(key, patchOp);
+				// Envelope key tracking
+				const float envKeyTracking = 1.f - 0.9f*CalcKeyTracking(key, patchOp);
 				
 				// Start envelope
-				voiceOp.envelope.Start(patchOp.envParams, m_sampleRate, patchOp.isCarrier, envKeyScaling, envVelScaling, 0.f); 
+				voiceOp.envelope.Start(patchOp.envParams, m_sampleRate, patchOp.isCarrier, envKeyTracking, envAcousticScaling); 
 
 				// Modulation/Feedback sources
 				voiceOp.modulators[0] = patchOp.modulators[0];
@@ -841,7 +841,7 @@ namespace SFM
 		voice.m_filterSVF2.resetState();
 
 		// Start filter envelope
-		voice.m_filterEnvelope.Start(m_patch.filterEnvParams, m_sampleRate, false, 1.f, envVelScaling, 0.f);
+		voice.m_filterEnvelope.Start(m_patch.filterEnvParams, m_sampleRate, false, 1.f, envAcousticScaling);
 
 		// Start pitch envelope
 		voice.m_pitchEnvelope.Start(m_patch.pitchEnvParams, m_sampleRate, m_patch.pitchBendRange);
@@ -909,9 +909,9 @@ namespace SFM
 			voice.m_LFO.Initialize(m_patch.LFOWaveform, m_globalLFO->GetFrequency(), m_sampleRate, phaseAdj+phaseJitter);
 		}
 
-		// Envelope velocity scaling: higher velocity *can* mean longer decay phase
+		// Acoustic scaling: more velocity can mean longer envelope decay phase
 		// This is specifically designed for piano, guitar et cetera
-		const float envVelScaling = 1.f + powf(velocity, 2.f)*m_patch.velocityScaling;
+		const float envAcousticScaling = 1.f + (velocity*velocity)*m_patch.acousticScaling;
 
 		// Get patch operators		
 		PatchOperators &patchOps = m_patch.operators;
@@ -959,8 +959,8 @@ namespace SFM
 					voiceOp.curFreq.SetRate(m_sampleRate, voice.freqGlide);
 					voiceOp.curFreq.Set(frequency);
 
-					const float envKeyScaling = 1.f - 0.9f*CalcKeyScaling(key, patchOp);
-					voiceOp.envelope.Start(patchOp.envParams, m_sampleRate, patchOp.isCarrier, envKeyScaling, envVelScaling, 0.f); 
+					const float envKeyTracking = 1.f - 0.9f*CalcKeyTracking(key, patchOp);
+					voiceOp.envelope.Start(patchOp.envParams, m_sampleRate, patchOp.isCarrier, envKeyTracking, envAcousticScaling); 
 				}
 				else
 				{
@@ -1005,7 +1005,7 @@ namespace SFM
 			voice.m_filterSVF2.resetState();
 			
 			// Start filter envelope
-			voice.m_filterEnvelope.Start(m_patch.filterEnvParams, m_sampleRate, false, 1.f, envVelScaling, 0.f);
+			voice.m_filterEnvelope.Start(m_patch.filterEnvParams, m_sampleRate, false, 1.f, envAcousticScaling);
 
 			// Start pitch envelope
 			voice.m_pitchEnvelope.Start(m_patch.pitchEnvParams, m_sampleRate, m_patch.pitchBendRange);

@@ -179,8 +179,8 @@ namespace SFM
 		float pianoPedalFalloff;
 		float pianoPedalReleaseMul;
 
-		// Velocity scaling (longer decay phase for higher notes relative to velocity)
-		float velocityScaling;
+		// Acoustic scaling (more velocity means longer decay phase; useful, mostly, for acoustic instruments)
+		float acousticScaling;
 
 		void ResetToEngineDefaults()
 		{
@@ -301,8 +301,8 @@ namespace SFM
 			pianoPedalFalloff    = kDefPianoPedalFalloff;
 			pianoPedalReleaseMul = kDefPianoPedalReleaseMul;
 
-			// No velocity scaling
-			velocityScaling = 0.f;
+			// No acoustic scaling
+			acousticScaling = 0.f;
 		}
 	};
 }
