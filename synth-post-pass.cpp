@@ -339,7 +339,6 @@ namespace SFM
 				const float velocity          = velLin*velLin;
 				constexpr float driveVelRange = 0.25f*(kMaxTubeDrivedB-kMinTubeDrivedB);
 				const float drive             = m_curTubeDrive.Sample() + dBToGain(driveVelRange*velocity);
-				const float zoelzerDrive      = drive*amount;
 
 				m_tubeFilterPre.tick(filteredL, filteredR);
 				filteredL = ZoelzerClip(filteredL*drive);
