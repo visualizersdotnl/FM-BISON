@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "../Source/FM-BISON/synth-global.h"
+#include "../synth-global.h"
 
 namespace SFM 
 {

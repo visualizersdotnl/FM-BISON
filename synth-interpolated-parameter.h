@@ -22,7 +22,7 @@
 #pragma once
 
 // FIXME
-#include "../../JuceLibraryCode/JuceHeader.h"
+#include "../FM-BISON-internal-plug-in/JuceLibraryCode/JuceHeader.h"
 
 #include "synth-global.h"
 
