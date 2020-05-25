@@ -14,8 +14,10 @@
 namespace SFM
 {
 	// Constant parameter(s)
+	// Each of these could be a parameter but I *chose* these values (thank you, Stijn)
 	constexpr double kPreLowCutQ  =    0.5;
 	constexpr float  kResoMax     =   0.7f;
+	constexpr float  kCutRange    = 0.05f;
 
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples)
 	{
@@ -72,8 +74,7 @@ namespace SFM
 			float filteredL = preFilteredL, filteredR = preFilteredR;
 
 			// Post filter (LP)
-			const float range  = 0.05f;
-			const float cutoff = range + (envGain * (1.f - 2.f*range)) + LFO*range;
+			const float cutoff = kCutRange + (envGain * (1.f - 2.f*kCutRange)) + LFO*kCutRange;
 
 			SFM_ASSERT(cutoff >= 0.f && cutoff <= 1.f);
 
