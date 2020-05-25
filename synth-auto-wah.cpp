@@ -17,7 +17,7 @@ namespace SFM
 	// Each of these could be a parameter but I *chose* these values (thank you, Stijn)
 	constexpr double kPreLowCutQ  =    0.5;
 	constexpr float  kResoMax     =   0.7f;
-	constexpr float  kCutRange    = 0.05f;
+	constexpr float  kCutRange    =  0.05f;
 
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples)
 	{
