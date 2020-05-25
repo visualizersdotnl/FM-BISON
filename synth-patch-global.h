@@ -72,7 +72,8 @@ namespace SFM
 		// LFO
 		Oscillator::Waveform LFOWaveform;
 		float LFORate; // Range [0.0..127.0]
-		bool  LFOKeySync;  
+		bool  LFOKeySync;
+		float modulationOverride; // If non-zero overrides Render() modulation parameter, which is typically the mod. wheel (MIDI)
 
 		// BPM sync. mode (LFO, chorus/phaser, delay, ...)
 		bool beatSync;
@@ -202,6 +203,7 @@ namespace SFM
 			LFOWaveform = kLFOWaveforms[0]; // Sine
 			LFORate = 0.f;                  // Zero Hz
 			LFOKeySync = false;             // No key sync.
+			modulationOverride = 0.f;       // Wheel input
 
 			// BPM sync.
 			beatSync = false;

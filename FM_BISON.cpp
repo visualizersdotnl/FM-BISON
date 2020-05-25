@@ -1497,6 +1497,13 @@ namespace SFM
 			}
 		}
 
+		// Modulation override?
+		if (0.f != m_patch.modulationOverride)
+		{
+			SFM_ASSERT(m_patch.modulationOverride > 0.f && m_patch.modulationOverride <= 1.f);
+			modulation = m_patch.modulationOverride;
+		}
+
 		// Calculate current BPM freq.
 		// FIXME: move to SetBPM()
 		if (true == m_patch.beatSync && 0.f != m_BPM)
