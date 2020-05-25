@@ -6,7 +6,7 @@ FM. BISON - A hybrid FM synthesis engine.
 
 - Basic documentation will be written at some point; for now just explore our code, it has it's share of comments :)
 - Github issue list is complete, please at least give it a once over since this project is under *heavy* development.
-- Currently there are 2 dependencies on JUCE 5.4.x! We love JUCE for our VST projects.
+- Currently there are 2 dependencies on JUCE 5.4.x
 - Yes, we know, we haven't done a lot of optimization; it is reasonably fast, though. We're still in R&D so flexibility is a plus.
 
 # TRAILER (30/04/2020)
