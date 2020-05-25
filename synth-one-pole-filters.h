@@ -8,8 +8,11 @@
 	2 filters, a DC blocker and a (MIDI) parameter/control filter.
 
 	There are more single pole filters in this codebase but they usually have a special purpose which
-	makes their implementation a tad different (for example see synth-compressor.h), so I chose not to
+	makes their implementation a tad different (for example see synth-reverb.h), so I chose not to
 	include those here but rather keep them alongside the code that uses them.
+
+	I also tend to differ a bit from the standard DSP nomenclature in regard to variable naming.
+	I'll try to refrain from doing this in the future (25/05/2020).
 */
 
 #pragma once
@@ -116,7 +119,7 @@ namespace SFM
 		LowBlocker(float lowCutHz, unsigned sampleRate) :
 			m_feedbackL(0.f), m_feedbackR(0.f)
 		{
-			SFM_ASSERT(lowCutHz > 0.f && sampleRate > 0.f);
+			SFM_ASSERT(lowCutHz > 0.f && sampleRate > 0);
 			SetCutoff(lowCutHz/sampleRate);
 		}
 	
