@@ -17,14 +17,13 @@ namespace SFM
 	class Compressor
 	{
 	public:
-		// FIXME: parameter?
-		const float kCompMaxDelay = 0.01f; 
+		const float kCompMaxDelay = 0.01f; // 10MS
 
 		Compressor(unsigned sampleRate) :
 			m_sampleRate(sampleRate)
 ,			m_outDelayL(sampleRate, kCompMaxDelay)
 ,			m_outDelayR(sampleRate, kCompMaxDelay)
-,			m_RMSDetector(sampleRate, 0.01f /* 10MS: Twice Reaper's compressor default */)
+,			m_RMSDetector(sampleRate, 0.01f /* 10MS */)
 ,			m_envFollower(sampleRate)
 ,			m_curThresholddB(kDefCompThresholddB, sampleRate, kDefParameterLatency)
 ,			m_curKneedB(kDefCompKneedB, sampleRate, kDefParameterLatency)

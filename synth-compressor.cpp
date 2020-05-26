@@ -24,8 +24,8 @@ namespace SFM
 			const float curRelease  = m_curRelease.Sample();
 			const float kneedB      = m_curKneedB.Sample();
 
-			m_envFollower.SetAttack(curAttack   *  100.f); // Up to a tenth of second sounds much closer to an actual second (FIXME)
-			m_envFollower.SetRelease(curRelease * 1000.f);
+			m_envFollower.SetAttack(curAttack   *  100.f);
+			m_envFollower.SetRelease(curRelease *  1000.f);
 
 			// Input
 			const float sampleL = pLeft[iSample];

@@ -80,45 +80,34 @@ namespace SFM
 	public:
 		RMSDetector(unsigned sampleRate, float lengthInSec) :
 			m_numSamples(unsigned(sampleRate*lengthInSec))
-,				m_buffer((float *) mallocAligned(m_numSamples * sizeof(float), 16))
-,				m_writeIdx(0)
+,			m_buffer(m_numSamples)
+,			m_sum(0.f)
 		{
 			SFM_ASSERT(m_numSamples > 0);
-				
-			// Clear buffer
-			memset(m_buffer, 0, m_numSamples * sizeof(float));
-		}
-
-		~RMSDetector()
-		{
-			freeAligned(m_buffer);
 		}
 
 		float Run(float sampleL, float sampleR)
 		{
-			// Mix down to monaural
+			// Mix down to monaural & raise
 			const float monaural = sampleL*0.5f + sampleR*0.5f;
-				
-			// Raise & write
-			const unsigned index = m_writeIdx % m_numSamples;
 			const float samplePow2 = monaural*monaural;
-			m_buffer[index] = samplePow2;
-			++m_writeIdx;
-				
-			// Calculate RMS (FIXME: use circular buffer & running sum)
-			float sum = 0.f;
-			for (unsigned iSample = 0; iSample < m_numSamples; ++iSample)
-				sum += m_buffer[iSample];
-
-			const float RMS = sqrtf(sum/m_numSamples);
+			
+			// Read, write, sum
+			const float tail = m_buffer.IsFull() ? m_buffer.Read() : 0.f;
+			m_buffer.Write(samplePow2);
+			m_sum -= tail;
+			m_sum += samplePow2;
+			
+			// Voila!
+			const float RMS = sqrtf(fabsf(m_sum)/m_numSamples);
+			FloatAssert(RMS);
 				
 			return RMS;
 		}
 
 	private:
 		const unsigned m_numSamples;
-		float *m_buffer;
-
-		unsigned m_writeIdx;
+		RingBuffer m_buffer;
+		float m_sum;
 	};
 }

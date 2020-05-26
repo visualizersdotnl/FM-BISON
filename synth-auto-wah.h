@@ -26,14 +26,14 @@ namespace SFM
 
 	public:
 		// Constant parameters
-		float kWahDelay = 0.01f; // 10MS             
-		float kWahLookahead = kGoldenRatio*0.3f; // FIXME: parameter?
+		float kWahDelay = 0.005f; // 5MS             
+		float kWahLookahead = kGoldenRatio*0.1f*kPI;
 
 		AutoWah(unsigned sampleRate, unsigned Nyquist) :
 			m_sampleRate(sampleRate), m_Nyquist(Nyquist)
 ,			m_outDelayL(sampleRate, kWahDelay)
 ,			m_outDelayR(sampleRate, kWahDelay)
-,			m_RMSDetector(sampleRate, 0.01f /* 10MS: Twice Reaper's compressor default */)
+,			m_RMSDetector(sampleRate, 0.01f /* 10MS */)
 ,			m_envFollower(sampleRate, kDefWahAttack, kDefWahHold)
 
 ,			m_vowelizerV2_1(sampleRate)
