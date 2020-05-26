@@ -249,7 +249,7 @@ namespace SFM
 				{
 					// Override user value
 					const float panning = 1.f + LFO*panMod*modulation;
-					panAngle = panning*0.5f*0.25f;
+					panAngle = lerpf(panAngle, panning*0.5f*0.25f, panMod); // Center around panning
 				}
 
 				// If carrier, mix (chose not to branch on purpose, though it'll probably won't matter or just a little)
