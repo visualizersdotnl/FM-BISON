@@ -33,7 +33,7 @@ namespace SFM
 			m_sampleRate(sampleRate), m_Nyquist(Nyquist)
 ,			m_outDelayL(sampleRate, kWahDelay)
 ,			m_outDelayR(sampleRate, kWahDelay)
-,			m_RMSDetector(sampleRate, 0.01f /* 10MS */)
+,			m_RMSDetector(sampleRate, 0.001f /* 1MS */)
 ,			m_envFollower(sampleRate, kDefWahAttack, kDefWahHold)
 
 ,			m_vowelizerV2_1(sampleRate)

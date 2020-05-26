@@ -23,7 +23,7 @@ namespace SFM
 			m_sampleRate(sampleRate)
 ,			m_outDelayL(sampleRate, kCompMaxDelay)
 ,			m_outDelayR(sampleRate, kCompMaxDelay)
-,			m_RMSDetector(sampleRate, 0.01f /* 10MS */)
+,			m_RMSDetector(sampleRate, 0.001f /* 1MS */)
 ,			m_envFollower(sampleRate)
 ,			m_curThresholddB(kDefCompThresholddB, sampleRate, kDefParameterLatency)
 ,			m_curKneedB(kDefCompKneedB, sampleRate, kDefParameterLatency)
