@@ -134,6 +134,10 @@ namespace SFM
 
 		return true;
 	}
+	
+	// 'Unreferenced formal parameter'
+	#pragma warning (push)
+	#pragma warning (disable: 4100)
 
 	SFM_INLINE static void FloatAssert(float value)
 	{
@@ -146,6 +150,8 @@ namespace SFM
 		SFM_ASSERT(true == FloatCheck(sample));	
 		SFM_ASSERT(sample >= -1.f && sample <= 1.f);
 	}
+
+	#pragma warning (pop)
 
 	/* ----------------------------------------------------------------------------------------------------
 
