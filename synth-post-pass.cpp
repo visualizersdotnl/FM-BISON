@@ -77,6 +77,7 @@ namespace SFM
 ,		m_wah(sampleRate, Nyquist)
 ,		m_reverb(sampleRate, Nyquist)
 ,		m_compressor(sampleRate)
+,		m_compressorActivity(1000.f / sampleRate) // Nicely smoothens out the activity (level)
 		
 		// CP wetness & master volume
 ,		m_curEffectWet(0.f, sampleRate, kDefParameterLatency)
@@ -382,7 +383,7 @@ namespace SFM
 		 ------------------------------------------------------------------------------------------------------ */
 
 		 m_compressor.SetParameters(compThresholddB, compKneedB, compRatio, compGaindB, compAttack, compRelease, compLookahead);
-		 m_compressor.Apply(m_pBufL, m_pBufR, numSamples);
+		 m_compressorActivity.Apply(m_compressor.Apply(m_pBufL, m_pBufR, numSamples));
 
 #endif
 

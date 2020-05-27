@@ -183,6 +183,13 @@ namespace SFM
 		unsigned GetSampleRate() const      { return m_sampleRate;      }
 		unsigned GetSamplesPerBlock() const { return m_samplesPerBlock; }
 		unsigned GetNyquist() const         { return m_Nyquist;         }
+		
+		// Value can be used to visually represent compressor activity
+		float GetCompressorActivity() const
+		{
+			SFM_ASSERT(nullptr != m_postPass);
+			return m_postPass->GetCompressorActivity();
+		}
 
 	private:
 		/*

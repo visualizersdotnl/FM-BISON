@@ -8,6 +8,7 @@
 #pragma once
 
 #include "synth-global.h"
+#include "synth-one-pole-filters.h"
 
 namespace SFM
 {
@@ -80,8 +81,6 @@ namespace SFM
 	public:
 		RMSDetector(unsigned sampleRate, float lengthInSec) :
 			m_numSamples(unsigned(sampleRate*lengthInSec))
-,			m_buffer(m_numSamples)
-,			m_sum(0.f)
 		{
 			SFM_ASSERT(m_numSamples > 0);
 		}
@@ -90,24 +89,34 @@ namespace SFM
 		{
 			// Mix down to monaural & raise
 			const float monaural = sampleL*0.5f + sampleR*0.5f;
-			const float samplePow2 = monaural*monaural;
+			const float samplePow2 = fabsf(monaural*monaural);
 
 			// Write/Read/Sum	
-			m_buffer.Write(samplePow2);
-			const float tail = m_buffer.IsFull() ? m_buffer.Read() : 0.f;
-			m_sum -= tail;
-			m_sum += samplePow2;
+			m_buffer.emplace_back(samplePow2);
+//			m_sum += samplePow2;
+
+			if (m_buffer.size() == m_numSamples)
+			{
+//				m_sum -= m_buffer.front();
+				m_buffer.pop_front();
+			}
+
+			float sum = 0.f;
+			for (auto value : m_buffer)
+				sum += value;
 			
 			// Voila!
-			const float RMS = sqrtf(fabsf(m_sum)/m_numSamples);
+			const float RMS = sqrtf(sum/m_numSamples);
 			FloatAssert(RMS);
-				
+
 			return RMS;
 		}
 
 	private:
 		const unsigned m_numSamples;
-		RingBuffer m_buffer;
-		float m_sum;
+		std::deque<float> m_buffer;
+		
+		// FIXME
+//		float m_sum = 0.f;
 	};
 }

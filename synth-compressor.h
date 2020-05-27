@@ -55,8 +55,9 @@ namespace SFM
 			m_curRelease.SetTarget(release);
 			m_curLookahead.SetTarget(lookahead);
 		}
-
-		void Apply(float *pLeft, float *pRight, unsigned numSamples);
+		
+		// Returns activity
+		float Apply(float *pLeft, float *pRight, unsigned numSamples);
 
 	private:
 		const unsigned m_sampleRate;

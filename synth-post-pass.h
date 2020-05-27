@@ -54,6 +54,11 @@ namespace SFM
 			return m_oversamplingRate;
 		}
 
+		float GetCompressorActivity() const
+		{
+			return m_compressorActivity.GetValue();
+		}
+
 	private:
 		SFM_INLINE void SetChorusRate(float rate, float scale) // [0..1]
 		{
@@ -131,6 +136,10 @@ namespace SFM
 		AutoWah m_wah;
 		Reverb m_reverb;
 		Compressor m_compressor;
+
+		// Exposed to be used, chiefly, as indicator
+		LowpassFilter m_compressorActivity;
+//		float m_compressorActivity = 0.f;
 
 		// Misc.
 		InterpolatedParameter<kLinInterpolate> m_curEffectWet;

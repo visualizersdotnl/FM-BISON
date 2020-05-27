@@ -180,8 +180,8 @@ namespace SFM
 	constexpr float kDefReverbPreDelay = 0.001f; //  10ms
 
 	// Compressor range & defaults
-	constexpr float kMinCompThresholdB  = kMinVolumedB;
-	constexpr float kMaxCompThresholdB  = kMaxVolumedB;
+	constexpr float kMinCompThresholdB  =  -60.f; // Taken from Audacity's compressor
+	constexpr float kMaxCompThresholdB  =    6.f; // A little higher than just 1 dB so we can bypass compression by default
 	constexpr float kDefCompThresholddB = kMaxCompThresholdB;
 	constexpr float kMinCompKneedB      =    0.f;
 	constexpr float kMaxCompKneedB      =    6.f;

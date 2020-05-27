@@ -11,8 +11,10 @@
 
 namespace SFM
 {
-	void Compressor::Apply(float *pLeft, float *pRight, unsigned numSamples)
+	float Compressor::Apply(float *pLeft, float *pRight, unsigned numSamples)
 	{
+		float activity = 0.f;
+
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
 			// Get parameters
@@ -54,6 +56,9 @@ namespace SFM
 			const float gaindB = -deltadB/adjRatio;
 			const float gain = dBToGain(gaindB + postGaindB);
 
+			if (signaldB > thresholddB)
+				activity += 1.f;
+
 			// Apply to (delayed) signal
 			const auto  delayL   = (m_outDelayL.size()-1)*lookahead;
 			const auto  delayR   = (m_outDelayR.size()-1)*lookahead;
@@ -63,5 +68,13 @@ namespace SFM
 			pLeft[iSample]  = delayedL*gain;
 			pRight[iSample] = delayedR*gain;
 		}
+
+		// There's absolutely zero science going on here:
+		SFM_ASSERT(0 != numSamples);
+		activity = saturatef(activity/numSamples);
+
+		Log("Activity: " +  std::to_string(activity));
+
+		return activity;
 	}
 }
