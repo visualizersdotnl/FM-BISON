@@ -64,7 +64,7 @@
 
 	VST/JUCE related:
 		- See PluginProcessor.cpp
-		- This ibrary is *not* thread-safe (it does not have to be)
+		- This library is *not* thread-safe (does not have to be) though it uses them internally
 
 	Reading material:
 		- https://www.hackaudio.com/digital-signal-processing/amplitude/peak-normalization/
@@ -91,6 +91,7 @@
 
 // C++
 #include <deque>
+#include <thread>
 
 #include "synth-global.h"
 
@@ -270,6 +271,43 @@ namespace SFM
 		void UpdateVoicesPostRender();
 		void UpdateSustain();
 
+		// Parameters for each voice to be rendered
+		struct VoiceRenderParameters
+		{
+			float freqLFO;
+			
+			SvfLinearTrapOptimised2::FLT_TYPE filterType1;
+			SvfLinearTrapOptimised2::FLT_TYPE filterType2;
+			bool resetFilter;
+			float qDiv;
+			bool secondFilterPass;
+			float secondQOffs;
+			float fullCutoff;
+			
+			float modulationAftertouch;
+			float mainFilterAftertouch;
+		};
+
+		// Voice thread basics (parameters, indices, buffers)
+		struct VoiceThreadContext
+		{
+			VoiceThreadContext(const VoiceRenderParameters &parameters) :
+				parameters(parameters) {}
+
+			const VoiceRenderParameters &parameters;
+			
+			std::vector<unsigned> voiceIndices;
+
+			unsigned numSamples;
+			float *pDestL;
+			float *pDestR;
+
+			float accumVelocity = 0.f;
+		};
+
+		static void VoiceRenderThread(Bison *pInst, VoiceThreadContext *pContext);
+		float RenderVoices(const VoiceRenderParameters &context, const std::vector<unsigned> &voiceIndices, unsigned numSamples, float *pDestL, float *pDestR);
+
 		/*
 			Vars.
 		*/
@@ -346,8 +384,8 @@ namespace SFM
 		SvfLinearTrapOptimised2::FLT_TYPE m_curFilterType; 
 
 		// Intermediate buffers
-		float *m_pBufL = nullptr;
-		float *m_pBufR = nullptr;
+		float *m_pBufL[2] = { nullptr, nullptr };
+		float *m_pBufR[2] = { nullptr, nullptr };
 
 		alignas(16) Voice m_voices[kMaxVoices];       // Array of voices to use
 		alignas(16) bool  m_voicesStolen[kMaxVoices]; // Simple way to flag voices as stolen; contain related logic in FM_BISON.cpp

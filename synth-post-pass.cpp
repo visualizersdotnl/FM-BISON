@@ -133,7 +133,7 @@ namespace SFM
 		// Only adapt the BPM if it fits in the delay line (Ableton does this so why won't we?)
 		const bool useBPM = false == (rateBPM < 1.f/kMainDelayInSec);
 
-		// Copy inputs to local buffers
+		// Copy inputs to local buffers (a bit wasteful but in practice this does not involve a whole lot of samples)
 		const size_t bufSize = numSamples * sizeof(float);
 		memcpy(m_pBufL, pLeftIn,  bufSize);
 		memcpy(m_pBufR, pRightIn, bufSize);

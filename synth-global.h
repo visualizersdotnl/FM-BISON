@@ -65,6 +65,9 @@ namespace SFM
 		So long as every constant the host needs is defined here we're in the clear.
 	*/
 
+	// Max. number of voices to render using the main (single) thread
+	constexpr unsigned kSingleThreadMaxVoices = 24; // FIXME: setting?
+
 	// Reasonable audible spectrum
 	// Source: https://en.wikipedia.org/wiki/Hearing_range
 	constexpr float kAudibleLowHz = 31.f;

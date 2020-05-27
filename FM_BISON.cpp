@@ -117,8 +117,10 @@ namespace SFM
 		m_curFilterType = SvfLinearTrapOptimised2::NO_FLT_TYPE;
 
 		// Allocate intermediate buffers
-		m_pBufL = reinterpret_cast<float *>(mallocAligned(m_samplesPerBlock*sizeof(float), 16));
-		m_pBufR = reinterpret_cast<float *>(mallocAligned(m_samplesPerBlock*sizeof(float), 16));
+		m_pBufL[0] = reinterpret_cast<float *>(mallocAligned(m_samplesPerBlock*sizeof(float), 16));
+		m_pBufL[1] = reinterpret_cast<float *>(mallocAligned(m_samplesPerBlock*sizeof(float), 16));
+		m_pBufR[0] = reinterpret_cast<float *>(mallocAligned(m_samplesPerBlock*sizeof(float), 16));
+		m_pBufR[1] = reinterpret_cast<float *>(mallocAligned(m_samplesPerBlock*sizeof(float), 16));
 
 		// Create effects
 		m_postPass = new PostPass(m_sampleRate, m_samplesPerBlock, m_Nyquist);
@@ -217,9 +219,11 @@ namespace SFM
 	void Bison::DeleteRateDependentObjects()
 	{
 		// Allocate intermediate sample buffers
-		freeAligned(m_pBufL);
-		freeAligned(m_pBufR);
-		m_pBufL = m_pBufR = nullptr;
+		freeAligned(m_pBufL[0]);
+		freeAligned(m_pBufL[1]);
+		freeAligned(m_pBufR[0]);
+		freeAligned(m_pBufR[1]);
+		m_pBufL[0] = m_pBufL[1] = m_pBufR[0] = m_pBufR[1] = nullptr;
 
 		// Release post-pass
 		delete m_postPass;
@@ -1457,6 +1461,155 @@ namespace SFM
 		}
 	}
 
+	/* static */ void Bison::VoiceRenderThread(Bison *pInst, VoiceThreadContext *pContext)
+	{
+		SFM_ASSERT(nullptr != pInst);
+		SFM_ASSERT(nullptr != pContext);
+		pContext->accumVelocity = pInst->RenderVoices(pContext->parameters, pContext->voiceIndices, pContext->numSamples, pContext->pDestL, pContext->pDestR);
+	}
+
+	// Returns accumulated velocity
+	float Bison::RenderVoices(const VoiceRenderParameters &context, const std::vector<unsigned> &voiceIndices, unsigned numSamples, float *pDestL, float *pDestR)
+	{
+		SFM_ASSERT(nullptr != pDestL && nullptr != pDestR);
+
+		float accumVelocity = 0.f;
+
+		for (auto iVoice : voiceIndices)
+		{
+			Voice &voice = m_voices[iVoice];
+			SFM_ASSERT(false == voice.IsIdle());
+
+			// Global per-voice gain
+			constexpr float voiceGain = 0.354813397f; // dBToGain(kVoiceGaindB);
+
+			// Update LFO frequency
+			voice.m_LFO.SetFrequency(context.freqLFO);
+
+			// Global amp. allows use to fade the voice in and out within this frame
+			InterpolatedParameter<kLinInterpolate> globalAmp(1.f, std::min<unsigned>(128, numSamples));
+
+			if (true == voice.IsStolen())
+			{
+				// If stolen, fade out completely in this Render() pass
+				globalAmp.SetTarget(0.f);
+			}
+			else
+			{
+				if (true == m_resetPhaseBPM)
+				{
+					// If resetting BPM sync. phase, fade in in this Render() pass
+					globalAmp.Set(0.f);
+					globalAmp.SetTarget(1.f);
+				}
+
+				// Add to average velocity
+				accumVelocity += voice.m_velocity;
+			}
+	
+			if (true == context.resetFilter)
+			{
+				// Reset
+				voice.m_filterSVF1.resetState();
+				voice.m_filterSVF2.resetState();
+			}
+
+			// Reset to initial cutoff & Q
+			auto curCutoff = m_curCutoff;
+			auto curQ      = m_curQ;
+
+			// Reset to initial pitch/amp. bend & modulation
+			auto curPitchBend  = m_curPitchBend;
+			auto curAmpBend    = m_curAmpBend;
+			auto curModulation = m_curModulation;
+
+			// Reset to initial aftertouch
+			auto curAftertouch = m_curAftertouch;
+
+			// Reset to initial global amp.
+			auto curGlobalAmp = globalAmp;
+
+			const bool noFilter = SvfLinearTrapOptimised2::NO_FLT_TYPE == context.filterType1;
+			auto& filterEG      = voice.m_filterEnvelope;
+
+			// Second filter lags behind a little to add a bit of "gritty sparkle"
+			LowpassFilter secondCutoffLPF(5000.f/m_sampleRate);
+			secondCutoffLPF.Reset(curCutoff.Get());
+					
+			for (unsigned iSample = 0; iSample < numSamples; ++iSample)
+			{
+				const float sampAftertouch = curAftertouch.Sample();
+
+				// FIXME: 
+				// - Break this up in smaller loops writing to (sequential) buffers, and lastly store the result,
+				//   as this just can't be fast enough for production quality (release); also keep in mind that
+				//   there might come a point where we might want to render voices in chunks, to quantize MIDI
+				//   events for more accurate playback (though I think this is preferably done by the host (VST))
+				// - Test if there are still any over- and/or undershoots
+
+				const float sampMod = std::min<float>(1.f, curModulation.Sample() + context.modulationAftertouch*sampAftertouch);
+						
+				// Render dry voice
+				float left, right;
+				voice.Sample(
+					left, right, 
+					powf(2.f, curPitchBend.Sample()*(m_patch.pitchBendRange/12.f)),
+					curAmpBend.Sample()+1.f, // [0.0..2.0]
+					sampMod);
+
+				// Sample filter envelope
+				float filterEnv = filterEG.Sample();
+				if (true == m_patch.filterEnvInvert)
+					filterEnv = 1.f-filterEnv;
+
+				// SVF cutoff aftertouch (curved towards zero if pressed)
+				const float cutAfter = context.mainFilterAftertouch*sampAftertouch;
+				SFM_ASSERT(cutAfter >= 0.f && cutAfter <= 1.f);
+
+	#if !defined(SFM_DISABLE_FX)						
+
+				// Apply & mix filter (FIXME: write single sequential loop (see Github issue), prepare buffer(s) on initialization)
+				if (false == noFilter)
+				{	
+					float filteredL = left;
+					float filteredR = right;
+							
+					// Cutoff & Q, finally, for *this* sample
+					/* const */ float sampCutoff = curCutoff.Sample()*(1.f - cutAfter*kMainCutoffAftertouchRange);
+					const float sampQ = curQ.Sample()*context.qDiv;
+							
+					// Add some sparkle?
+					// Cascade!
+					if (true == context.secondFilterPass)
+					{
+						SFM_ASSERT(SvfLinearTrapOptimised2::NO_FLT_TYPE != context.filterType2);
+
+						const float secondCutoff = lerpf<float>(context.fullCutoff, secondCutoffLPF.Apply(sampCutoff), filterEnv); 
+						const float secondQ      = std::min<float>(kMaxFilterResonance, sampQ+context.secondQOffs);
+						voice.m_filterSVF2.updateCoefficients(secondCutoff, secondQ, context.filterType2, m_sampleRate);
+						voice.m_filterSVF2.tick(filteredL, filteredR);
+					}
+
+					// Ref: https://github.com/FredAntonCorvest/Common-DSP/blob/master/Filter/SvfLinearTrapOptimised2Demo.cpp
+					voice.m_filterSVF1.updateCoefficients(lerpf<float>(context.fullCutoff, sampCutoff, filterEnv), sampQ, context.filterType1, m_sampleRate);
+					voice.m_filterSVF1.tick(filteredL, filteredR);
+							
+					left  = filteredL;
+					right = filteredR;
+				}
+
+	#endif
+
+				// Apply gain and add to mix
+				const float amplitude = curGlobalAmp.Sample() * voiceGain;
+				pDestL[iSample] += amplitude * left;
+				pDestR[iSample] += amplitude * right;
+			}
+		}
+
+		return accumVelocity;
+	}
+
 	/* ----------------------------------------------------------------------------------------------------
 
 		Block renderer; basically takes care of all there is to it in the right order.
@@ -1471,7 +1624,8 @@ namespace SFM
 		SFM_ASSERT(aftertouch >=  0.f && aftertouch <= 1.f);
 
 		SFM_ASSERT(nullptr != pLeft && nullptr != pRight);
-		SFM_ASSERT(nullptr != m_pBufL && nullptr != m_pBufR);
+		SFM_ASSERT(nullptr != m_pBufL[0] && nullptr != m_pBufR[0]);
+		SFM_ASSERT(nullptr != m_pBufL[1] && nullptr != m_pBufR[1]);
 
 		if (numSamples > m_samplesPerBlock)
 		{
@@ -1623,162 +1777,103 @@ namespace SFM
 			m_curPitchBend.SetTarget(0.f);
 		}
 
-
 		// Set modulation & aftertouch target values
 		m_curModulation.SetTarget(m_modulationPF.Apply(modulation));
 
 		const float aftertouchFiltered = m_aftertouchPF.Apply(aftertouch);
 		m_curAftertouch.SetTarget(aftertouchFiltered);
+
+			// Clear L/R buffers
+			memset(m_pBufL[0], 0, m_samplesPerBlock*sizeof(float));
+			memset(m_pBufL[1], 0, m_samplesPerBlock*sizeof(float));
+			memset(m_pBufR[0], 0, m_samplesPerBlock*sizeof(float));
+			memset(m_pBufR[1], 0, m_samplesPerBlock*sizeof(float));
 		
 		// Start rendering voices, if necessary
 		const unsigned numVoices = m_voiceCount;
-
-		// Clear L/R buffers
-		memset(m_pBufL, 0, m_samplesPerBlock*sizeof(float));
-		memset(m_pBufR, 0, m_samplesPerBlock*sizeof(float));
 
 		float accumVelocity = 0.f;
 
 		if (0 != numVoices)
 		{
-			float left = 0.f, right = 0.f;
-			
 			// Swap 2 branches for multiplications later on
 			const float mainFilterAftertouch = (Patch::kMainFilter == m_patch.aftertouchMod) ? 1.f : 0.f;
 			const float modulationAftertouch = (Patch::kModulation == m_patch.aftertouchMod) ? 1.f : 0.f;
-			
-			// Global per-voice gain
-			const float voiceGain = 0.354813397f; // dBToGain(kVoiceGaindB);
-		
-			// Render voices
+
+			VoiceRenderParameters parameters;
+			parameters.freqLFO = freqLFO;
+			parameters.filterType1 = filterType1;
+			parameters.filterType2 = filterType2;
+			parameters.resetFilter = resetFilter;
+			parameters.qDiv = qDiv;
+			parameters.secondFilterPass = secondFilterPass;
+			parameters.secondQOffs = secondQOffs;
+			parameters.fullCutoff = fullCutoff;
+			parameters.modulationAftertouch = modulationAftertouch;
+			parameters.mainFilterAftertouch = mainFilterAftertouch;
+
+			// Build array of voices to render
+			std::vector<unsigned> voiceIndices;
 			for (int iVoice = 0; iVoice < kMaxVoices /* Actual voice count can be > m_curPolyphony */; ++iVoice)
 			{
-				Voice &voice = m_voices[iVoice];
+				if (false == m_voices[iVoice].IsIdle())
+					voiceIndices.push_back(iVoice);
+			}
 
-				if (false == voice.IsIdle())
+			if (voiceIndices.size() <= kSingleThreadMaxVoices)
+			{
+				// Render voices (currentv thread)
+				VoiceThreadContext context(parameters);
+				context.voiceIndices = voiceIndices;
+				context.numSamples = numSamples;
+				context.pDestL = m_pBufL[0];
+				context.pDestR = m_pBufR[0];
+			
+				VoiceRenderThread(this, &context);
+				accumVelocity += context.accumVelocity;
+			}
+			else
+			{
+				// Use 2 threads to render voices
+				// I use 2 (for now) since it feels right to be conservative towards the host and other plug-ins
+				VoiceThreadContext contexts[2] = { parameters, parameters };
+				
+				// Split voices up 50:50
+				const size_t half = voiceIndices.size();
+				contexts[0].voiceIndices = std::vector<unsigned>(voiceIndices.begin(), voiceIndices.begin() + half);
+				contexts[1].voiceIndices = std::vector<unsigned>(voiceIndices.begin() + half, voiceIndices.end());
+
+				contexts[0].numSamples = contexts[1].numSamples = numSamples;
+				contexts[0].pDestL = m_pBufL[0];
+				contexts[0].pDestR = m_pBufR[0];
+				contexts[1].pDestL = m_pBufL[1];
+				contexts[1].pDestR = m_pBufR[1];
+
+				std::vector<std::thread> threads;
+				threads.emplace_back(std::thread(VoiceRenderThread, this, &contexts[0]));
+				threads.emplace_back(std::thread(VoiceRenderThread, this, &contexts[1]));
+								
+				for (auto &thread : threads)
 				{
-					// Update LFO frequency
-					voice.m_LFO.SetFrequency(freqLFO);
-
-					// Global amp. allows use to fade the voice in and out within this frame
-					InterpolatedParameter<kLinInterpolate> globalAmp(1.f, std::min<unsigned>(128, numSamples));
-
-					if (true == voice.IsStolen())
+					if (true == thread.joinable())
 					{
-						// If stolen, fade out completely in this Render() pass
-						globalAmp.SetTarget(0.f);
+						thread.join();
 					}
 					else
-					{
-						if (true == m_resetPhaseBPM)
-						{
-							// If resetting BPM sync. phase, fade in in this Render() pass
-							globalAmp.Set(0.f);
-							globalAmp.SetTarget(1.f);
-						}
-
-						// Add to average velocity
-						accumVelocity += voice.m_velocity;
-					}
-	
-					if (true == resetFilter)
-					{
-						// Reset
-						voice.m_filterSVF1.resetState();
-						voice.m_filterSVF2.resetState();
-					}
-
-					// Reset to initial cutoff & Q
-					auto curCutoff = m_curCutoff;
-					auto curQ      = m_curQ;
-
-					// Reset to initial pitch/amp. bend & modulation
-					auto curPitchBend  = m_curPitchBend;
-					auto curAmpBend    = m_curAmpBend;
-					auto curModulation = m_curModulation;
-
-					// Reset to initial aftertouch
-					auto curAftertouch = m_curAftertouch;
-
-					// Reset to initial global amp.
-					auto curGlobalAmp = globalAmp;
-
-					const bool noFilter = SvfLinearTrapOptimised2::NO_FLT_TYPE == filterType1;
-					auto& filterEG      = voice.m_filterEnvelope;
-
-					// Second filter lags behind a little to add a bit of "gritty sparkle"
-					LowpassFilter secondCutoffLPF(5000.f/m_sampleRate);
-					secondCutoffLPF.Reset(curCutoff.Get());
-					
-					for (unsigned iSample = 0; iSample < numSamples; ++iSample)
-					{
-						const float sampAftertouch = curAftertouch.Sample();
-
-						// FIXME: 
-						// - Break this up in smaller loops writing to (sequential) buffers, and lastly store the result,
-						//   as this just can't be fast enough for production quality (release); also keep in mind that
-						//   there might come a point where we might want to render voices in chunks, to quantize MIDI
-						//   events for more accurate playback (though I think this is preferably done by the host (VST))
-						// - Test if there are still any over- and/or undershoots
-
-						const float sampMod = std::min<float>(1.f, curModulation.Sample() + modulationAftertouch*sampAftertouch);
-						
-						// Render dry voice
-						voice.Sample(
-							left, right, 
-							powf(2.f, curPitchBend.Sample()*(m_patch.pitchBendRange/12.f)),
-							curAmpBend.Sample()+1.f, // [0.0..2.0]
-							sampMod);
-
-						// Sample filter envelope
-						float filterEnv = filterEG.Sample();
-						if (true == m_patch.filterEnvInvert)
-							filterEnv = 1.f-filterEnv;
-
-						// SVF cutoff aftertouch (curved towards zero if pressed)
-						const float cutAfter = mainFilterAftertouch*sampAftertouch;
-						SFM_ASSERT(cutAfter >= 0.f && cutAfter <= 1.f);
-
-#if !defined(SFM_DISABLE_FX)						
-
-						// Apply & mix filter (FIXME: write single sequential loop (see Github issue), prepare buffer(s) on initialization)
-						if (false == noFilter)
-						{	
-							float filteredL = left;
-							float filteredR = right;
-							
-							// Cutoff & Q, finally, for *this* sample
-							/* const */ float sampCutoff = curCutoff.Sample()*(1.f - cutAfter*kMainCutoffAftertouchRange);
-							const float sampQ = curQ.Sample()*qDiv;
-							
-							// Add some sparkle?
-							// Cascade!
-							if (true == secondFilterPass)
-							{
-								SFM_ASSERT(SvfLinearTrapOptimised2::NO_FLT_TYPE != filterType2);
-
-								const float secondCutoff = lerpf<float>(fullCutoff, secondCutoffLPF.Apply(sampCutoff), filterEnv); 
-								const float secondQ      = std::min<float>(kMaxFilterResonance, sampQ+secondQOffs);
-								voice.m_filterSVF2.updateCoefficients(secondCutoff, secondQ, filterType2, m_sampleRate);
-								voice.m_filterSVF2.tick(filteredL, filteredR);
-							}
-
-							// Ref: https://github.com/FredAntonCorvest/Common-DSP/blob/master/Filter/SvfLinearTrapOptimised2Demo.cpp
-							voice.m_filterSVF1.updateCoefficients(lerpf<float>(fullCutoff, sampCutoff, filterEnv), sampQ, filterType1, m_sampleRate);
-							voice.m_filterSVF1.tick(filteredL, filteredR);
-							
-							left  = filteredL;
-							right = filteredR;
-						}
-
-#endif
-
-						// Apply gain and add to mix
-						const float amplitude = curGlobalAmp.Sample() * voiceGain;
-						m_pBufL[iSample] += amplitude * left;
-						m_pBufR[iSample] += amplitude * right;
-					}
+						// FIXME: necessary?
+						std::this_thread::yield();
 				}
+
+				// Mix samples (FIXME: could move to PostPass but if all is well we've already won some CPU)
+				for (unsigned iSample = 0; iSample < numSamples; ++iSample)
+				{
+					m_pBufL[0][iSample] += m_pBufL[1][iSample];
+					m_pBufR[0][iSample] += m_pBufR[1][iSample];
+				}
+				
+				// Add accum. velocity
+				accumVelocity += contexts[0].accumVelocity;
+				accumVelocity += contexts[1].accumVelocity;
 			}
 		}
 
@@ -1852,9 +1947,9 @@ namespace SFM
 						  /* Master volume */
 						  m_masterVolPF.Apply(m_patch.masterVol),
 						  /* Buffers */
-						  m_pBufL, m_pBufR, pLeft, pRight);
+						  m_pBufL[0], m_pBufR[0], pLeft, pRight);
 
-		// Of all these, copies were used per voice, so let their parent skip numSamples to keep up	
+		// Of all these, copies were used per voice, so skip numSamples to keep up	
 		m_curCutoff.Skip(numSamples);
 		m_curQ.Skip(numSamples);
 		m_curPitchBend.Skip(numSamples);
