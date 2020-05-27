@@ -91,9 +91,7 @@ namespace SFM
 			const float monaural = sampleL*0.5f + sampleR*0.5f;
 			const float samplePow2 = fabsf(monaural*monaural);
 
-			// Write/Read/Sum	
-			m_buffer.emplace_back(samplePow2);
-//			m_sum += samplePow2;
+//			m_sum += 1.0E-25;
 
 			if (m_buffer.size() == m_numSamples)
 			{
@@ -101,13 +99,19 @@ namespace SFM
 				m_buffer.pop_front();
 			}
 
+			// Write and add
+			m_buffer.emplace_back(samplePow2);
+//			m_sum += samplePow2;
+
 			float sum = 0.f;
 			for (auto value : m_buffer)
 				sum += value;
 			
-			// Voila!
 			const float RMS = sqrtf(sum/m_numSamples);
 			FloatAssert(RMS);
+
+//			const float RMS = (float) sqrt(m_sum/m_numSamples);
+//			FloatAssert(RMS);
 
 			return RMS;
 		}
@@ -116,7 +120,6 @@ namespace SFM
 		const unsigned m_numSamples;
 		std::deque<float> m_buffer;
 		
-		// FIXME
-//		float m_sum = 0.f;
+		double m_sum = 0.0;
 	};
 }
