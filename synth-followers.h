@@ -91,10 +91,10 @@ namespace SFM
 			// Mix down to monaural & raise
 			const float monaural = sampleL*0.5f + sampleR*0.5f;
 			const float samplePow2 = monaural*monaural;
-			
-			// Read, write, sum
-			const float tail = m_buffer.IsFull() ? m_buffer.Read() : 0.f;
+
+			// Write/Read/Sum	
 			m_buffer.Write(samplePow2);
+			const float tail = m_buffer.IsFull() ? m_buffer.Read() : 0.f;
 			m_sum -= tail;
 			m_sum += samplePow2;
 			
