@@ -165,7 +165,13 @@ namespace SFM
 		}
 
 		// Note events (just to be sure: do *not* call these from different threads!)
-		void NoteOn(unsigned key, float frequency, float velocity /* 0.f will *not* yield NOTE_OFF, handle that yourself */, unsigned timeStamp /* See VoiceRequest */, bool isMonoRetrigger = false /* Internal use only! */);
+		void NoteOn(
+			unsigned key, 
+			float frequency,               // Uses internal table if -1.f
+			float velocity,                // Zero will *not* yield NOTE_OFF, handle that yourself
+			unsigned timeStamp,            // See VoiceRequest 
+			bool isMonoRetrigger = false); // Internal use only!
+
 		void NoteOff(unsigned key, unsigned timeStamp);
 		
 		// Apply sustain to (active) voices
