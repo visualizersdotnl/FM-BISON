@@ -23,6 +23,32 @@ namespace SFM
 	{
 		constexpr float kGain3dB = 1.41253757f;
 
+		if (0.f == m_curWet.Get() && 0.f == m_curWet.GetTarget())
+		{
+			m_curResonance.Skip(numSamples);
+			m_curAttack.Skip(numSamples);
+			m_curHold.Skip(numSamples);
+			m_curSpeak.Skip(numSamples);
+			m_curCut.Skip(numSamples);
+			m_curWet.Skip(numSamples);
+
+			for (unsigned iSample = 0; iSample  < numSamples; ++iSample)
+			{
+				const float sampleL = pLeft[iSample];
+				const float sampleR = pRight[iSample];
+
+				// Keep running RMS calc.
+				/* const float RMS = */ m_RMSDetector.Run(sampleL, sampleR);
+
+				// Feed delay line
+				m_outDelayL.Write(sampleL);
+				m_outDelayR.Write(sampleR);
+			}
+
+			// Done
+			return;
+		}
+
 		for (unsigned iSample = 0; iSample  < numSamples; ++iSample)
 		{
 			// Get parameters
