@@ -16,7 +16,7 @@ namespace SFM
 	// Period [0..1]
 	float fast_cosf(float x);
 	
-	SFM_INLINE static float fast_sinf(float x) { return fast_cosf(fast_fmodf_one(x-0.25f)); }
-//	SFM_INLINE static float fast_sinf(float x) { return fast_cosf(fmodf(x-0.25f, 1.f)); }
+//	SFM_INLINE static float fast_sinf(float x) { return fast_cosf(fast_fmodf_one(x-0.25f)); }
+	SFM_INLINE static float fast_sinf(float x) { return fast_cosf(fmodf(x-0.25f, 1.f)); }
 	SFM_INLINE static float fast_tanf(float x) { return fast_sinf(x)/fast_cosf(x); }
 };
