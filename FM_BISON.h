@@ -64,7 +64,7 @@
 
 	VST/JUCE related:
 		- See PluginProcessor.cpp
-		- *This* library is currently not thread-safe (it does not have to be)
+		- This ibrary is *not* thread-safe (it does not have to be)
 
 	Reading material:
 		- https://www.hackaudio.com/digital-signal-processing/amplitude/peak-normalization/
@@ -164,8 +164,8 @@ namespace SFM
 			}
 		}
 
-		// Note events
-		void NoteOn(unsigned key, float frequency, float velocity /* -1.f to use internal table */, unsigned timeStamp /* See VoiceRequest */, bool isMonoRetrigger = false /* Internal use only! */);
+		// Note events (just to be sure: do *not* call these from different threads!)
+		void NoteOn(unsigned key, float frequency, float velocity /* 0.f will *not* yield NOTE_OFF, handle that yourself */, unsigned timeStamp /* See VoiceRequest */, bool isMonoRetrigger = false /* Internal use only! */);
 		void NoteOff(unsigned key, unsigned timeStamp);
 		
 		// Apply sustain to (active) voices
