@@ -1474,7 +1474,10 @@ namespace SFM
 		pContext->accumVelocity = pInst->RenderVoices(pContext->parameters, pContext->voiceIndices, pContext->numSamples, pContext->pDestL, pContext->pDestR);
 	}
 
-	// Returns accumulated velocity
+	// Renders a set of voices
+	// - Returns accumulated velocity
+	// - Uses variables supplied through a context, but also ones prepared in Render(), they're all read-only
+	// - Assumes that each voice is active
 	float Bison::RenderVoices(const VoiceRenderParameters &context, const std::vector<unsigned> &voiceIndices, unsigned numSamples, float *pDestL, float *pDestR)
 	{
 		SFM_ASSERT(nullptr != pDestL && nullptr != pDestR);
@@ -1545,13 +1548,6 @@ namespace SFM
 			for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 			{
 				const float sampAftertouch = curAftertouch.Sample();
-
-				// FIXME: 
-				// - Break this up in smaller loops writing to (sequential) buffers, and lastly store the result,
-				//   as this just can't be fast enough for production quality (release); also keep in mind that
-				//   there might come a point where we might want to render voices in chunks, to quantize MIDI
-				//   events for more accurate playback (though I think this is preferably done by the host (VST))
-				// - Test if there are still any over- and/or undershoots
 
 				const float sampMod = std::min<float>(1.f, curModulation.Sample() + context.modulationAftertouch*sampAftertouch);
 						
@@ -1826,7 +1822,7 @@ namespace SFM
 
 			if (voiceIndices.size() <= kSingleThreadMaxVoices)
 			{
-				// Render voices (currentv thread)
+				// Render all voices on current thread
 				VoiceThreadContext context(parameters);
 				context.voiceIndices = voiceIndices;
 				context.numSamples = numSamples;
@@ -1838,33 +1834,31 @@ namespace SFM
 			}
 			else
 			{
+				// Clear L/R buffers
 				memset(m_pBufL[1], 0, m_samplesPerBlock*sizeof(float));
 				memset(m_pBufR[1], 0, m_samplesPerBlock*sizeof(float));
-
-				// Use 2 threads to render voices (one extra)
-				// I use 2 (for now) since it feels right to be conservative towards the host and other plug-ins
+				
+				// Use 2 (current plus one extra) threads to render voices
 				VoiceThreadContext contexts[2] = { parameters, parameters };
 				
-				// Split voices up 50:50
+				// Split voices up 50/50
 				const size_t half = voiceIndices.size();
 				contexts[0].voiceIndices = std::vector<unsigned>(voiceIndices.begin(), voiceIndices.begin() + half);
 				contexts[1].voiceIndices = std::vector<unsigned>(voiceIndices.begin() + half, voiceIndices.end());
 
 				contexts[0].numSamples = contexts[1].numSamples = numSamples;
+
 				contexts[0].pDestL = m_pBufL[0];
 				contexts[0].pDestR = m_pBufR[0];
 				contexts[1].pDestL = m_pBufL[1];
 				contexts[1].pDestR = m_pBufR[1];
 
-				std::vector<std::thread> threads;
-//				threads.emplace_back(std::thread(VoiceRenderThread, this, &contexts[0]));
-				threads.emplace_back(std::thread(VoiceRenderThread, this, &contexts[1]));
-				
-				VoiceRenderThread(this, &contexts[0]);
-				threads[0].join();
-//				threads[1].join();
+				std::thread thread(VoiceRenderThread, this, &contexts[1]);
 
-				// Mix samples (FIXME: could move to PostPass but if all is well we've already won some CPU)
+				VoiceRenderThread(this, &contexts[0]); // Process our part
+				thread.join();                         // Wait for thread
+
+				// Mix samples (FIXME: could move to PostPass but if all is well we've already won at least *some* CPU if necessary)
 				for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 				{
 					m_pBufL[0][iSample] += m_pBufL[1][iSample];
