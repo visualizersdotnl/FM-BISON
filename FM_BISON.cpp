@@ -1461,6 +1461,12 @@ namespace SFM
 		}
 	}
 
+/* ----------------------------------------------------------------------------------------------------
+
+	Voice rendering (threaded).
+
+ ------------------------------------------------------------------------------------------------------ */
+
 	/* static */ void Bison::VoiceRenderThread(Bison *pInst, VoiceThreadContext *pContext)
 	{
 		SFM_ASSERT(nullptr != pInst);
@@ -1783,12 +1789,10 @@ namespace SFM
 		const float aftertouchFiltered = m_aftertouchPF.Apply(aftertouch);
 		m_curAftertouch.SetTarget(aftertouchFiltered);
 
-			// Clear L/R buffers
-			memset(m_pBufL[0], 0, m_samplesPerBlock*sizeof(float));
-			memset(m_pBufL[1], 0, m_samplesPerBlock*sizeof(float));
-			memset(m_pBufR[0], 0, m_samplesPerBlock*sizeof(float));
-			memset(m_pBufR[1], 0, m_samplesPerBlock*sizeof(float));
-		
+		// Clear L/R buffers
+		memset(m_pBufL[0], 0, m_samplesPerBlock*sizeof(float));
+		memset(m_pBufR[0], 0, m_samplesPerBlock*sizeof(float));
+
 		// Start rendering voices, if necessary
 		const unsigned numVoices = m_voiceCount;
 
@@ -1834,7 +1838,10 @@ namespace SFM
 			}
 			else
 			{
-				// Use 2 threads to render voices
+				memset(m_pBufL[1], 0, m_samplesPerBlock*sizeof(float));
+				memset(m_pBufR[1], 0, m_samplesPerBlock*sizeof(float));
+
+				// Use 2 threads to render voices (one extra)
 				// I use 2 (for now) since it feels right to be conservative towards the host and other plug-ins
 				VoiceThreadContext contexts[2] = { parameters, parameters };
 				
@@ -1850,19 +1857,12 @@ namespace SFM
 				contexts[1].pDestR = m_pBufR[1];
 
 				std::vector<std::thread> threads;
-				threads.emplace_back(std::thread(VoiceRenderThread, this, &contexts[0]));
+//				threads.emplace_back(std::thread(VoiceRenderThread, this, &contexts[0]));
 				threads.emplace_back(std::thread(VoiceRenderThread, this, &contexts[1]));
-								
-				for (auto &thread : threads)
-				{
-					if (true == thread.joinable())
-					{
-						thread.join();
-					}
-					else
-						// FIXME: necessary?
-						std::this_thread::yield();
-				}
+				
+				VoiceRenderThread(this, &contexts[0]);
+				threads[0].join();
+//				threads[1].join();
 
 				// Mix samples (FIXME: could move to PostPass but if all is well we've already won some CPU)
 				for (unsigned iSample = 0; iSample < numSamples; ++iSample)
