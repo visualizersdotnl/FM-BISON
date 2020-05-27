@@ -61,6 +61,13 @@ namespace SFM
 	{
 		return 16.f * x * (kPI-x) / (5.f * kPI*kPI - 4.f * x * (kPI-x));
 	}
+
+	// Ham-fisted fast floating point modulo which only works fairly well for smaller values
+	// https://stackoverflow.com/questions/9505513/floating-point-modulo-operation/37977740#comment12038890_9505761
+	SFM_INLINE static float fast_fmodf(float value, float modulo)
+	{
+		return value - truncf(value/modulo)*modulo;
+	}
 }
 
 #include "synth-fast-cosine.h"
