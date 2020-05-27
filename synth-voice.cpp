@@ -172,7 +172,7 @@ namespace SFM
 					// Add sample to phase
 					// If modulator or modulator operator is disabled it's zero
 					const float sample = opSample[iModulator+1];
-					phaseMod += sample+1.f; // [0..2], FIXME: output -> index curve?
+					phaseMod += sample;
 				}
 
 				const float feedbackAmt = kFeedbackScale*voiceOp.feedbackAmt.Sample();

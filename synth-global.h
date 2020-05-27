@@ -66,7 +66,7 @@ namespace SFM
 	*/
 
 	// Max. number of voices to render using the main (single) thread
-	constexpr unsigned kSingleThreadMaxVoices = 24; // FIXME: setting?
+	constexpr unsigned kSingleThreadMaxVoices = 16; // FIXME: setting?
 
 	// Reasonable audible spectrum
 	// Source: https://en.wikipedia.org/wiki/Hearing_range
