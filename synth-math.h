@@ -68,6 +68,11 @@ namespace SFM
 	{
 		return value - truncf(value/modulo)*modulo;
 	}
+
+	SFM_INLINE static float fast_fmodf_one(float value)
+	{
+		return value - truncf(value);
+	}
 }
 
 #include "synth-fast-cosine.h"

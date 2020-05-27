@@ -30,7 +30,8 @@ namespace SFM
 	float Oscillator::Sample(float modulation, float feedback /* = 0.f */)
 	{
 		const float phase     = m_phases[0].Sample();
-		const float modulated = fast_fmodf(phase+modulation+feedback, 1.f); // Less expensive, but needs battle testing
+		const float modulated = fast_fmodf_one(phase+modulation+feedback); // Less expensive, but needs battle testing
+//		const float modulated = fmodf(phase+modulation+feedback, 1.f);
 
 		// Ratio to adjust PolyBLEP width
 		const auto sampleRate      = GetSampleRate();
