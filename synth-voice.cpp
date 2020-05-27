@@ -248,7 +248,7 @@ namespace SFM
 				if (0.f != panMod)
 				{
 					// Override user value
-					const float panning = 1.f + LFO*panMod*modulation;
+					const float panning = LFO*panMod*modulation;
 					panAngle = lerpf(panAngle, panning*0.5f*0.25f, panMod); // Center around panning
 				}
 
