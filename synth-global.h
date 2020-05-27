@@ -130,7 +130,7 @@ namespace SFM
 	constexpr float kDefPostFilterDrivedB   =  0.f;
 
 	// Tube amp. distortion
-	constexpr float kMinTubeDrivedB = 16.f;
+	constexpr float kMinTubeDrivedB =  6.f;
 	constexpr float kMaxTubeDrivedB = 24.f;
 	constexpr float kDefTubeDrivedB = 16.f;
 
