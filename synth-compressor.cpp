@@ -73,7 +73,7 @@ namespace SFM
 		SFM_ASSERT(0 != numSamples);
 		activity = saturatef(activity/numSamples);
 
-		Log("Activity: " +  std::to_string(activity));
+//		Log("Activity: " +  std::to_string(activity));
 
 		return activity;
 	}
