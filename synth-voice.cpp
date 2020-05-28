@@ -144,7 +144,7 @@ namespace SFM
 		const float pitchEnv = m_pitchEnvelope.Sample(false);
 
 		// Process all operators top-down
-		// FIXME: it's quite verbose and algorithmically not as flexible as could be
+		// It's quite verbose and algorithmically not as flexible as could be (FIXME?)
 
 		alignas(16) float opSample[kNumOperators+1] = { 0.f }; // Monaural normalized samples (one extra so we can index with -1 to avoid branching)
 		float mixL = 0.f, mixR = 0.f; // Carrier mix

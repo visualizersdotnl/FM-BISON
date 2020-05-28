@@ -47,7 +47,7 @@ namespace SFM
 		switch (m_form)
 		{
 			case kStatic:
-				signal = 1.f;
+				signal = 0.f;
 				break;
 
 			/* Bandlimited (DCO/LFO) */
