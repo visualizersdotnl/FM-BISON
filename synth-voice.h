@@ -139,7 +139,8 @@ namespace SFM
 		} m_operators[kNumOperators];
 
 		// LFO
-		Oscillator m_LFO;
+		Oscillator m_LFO1, m_LFO2;
+		Oscillator m_blendLFO;
 
 		// Main filter(s)
 		SvfLinearTrapOptimised2 m_filterSVF1, m_filterSVF2;
@@ -175,6 +176,6 @@ namespace SFM
 		float GetSummedOutput(); /* const */
 
 		// Render "dry" FM voice
-		void Sample(float &left, float &right, float pitchBend, float ampBend, float modulation);
+		void Sample(float &left, float &right, float pitchBend, float ampBend, float modulation, float LFOBias);
 	};
 }

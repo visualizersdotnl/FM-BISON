@@ -33,7 +33,9 @@ namespace SFM
 		m_sustained = false;
 
 		// LFO
-		m_LFO = Oscillator(sampleRate);
+		m_LFO1 = Oscillator(sampleRate);
+		m_LFO2 = Oscillator(sampleRate);
+		m_blendLFO = Oscillator(sampleRate);
 
 		// Filter envelope
 		m_filterEnvelope.Reset();
@@ -119,7 +121,7 @@ namespace SFM
 	// Bright
 	constexpr float kFeedbackScale = 1.f;
 
-	void Voice::Sample(float &left, float &right, float pitchBend, float ampBend, float modulation)
+	void Voice::Sample(float &left, float &right, float pitchBend, float ampBend, float modulation, float LFOBias)
 	{
 		if (kIdle == m_state)
 		{
@@ -129,9 +131,14 @@ namespace SFM
 
 		SFM_ASSERT(ampBend >= 0.f && ampBend <= 2.f);
 		SFM_ASSERT(modulation >= 0.f && modulation <= 1.f);
+		SFM_ASSERT(LFOBias >= 0.f && LFOBias <= 1.f);
 
-		// Sample LFO
-		const float LFO = m_LFO.Sample(modulation);
+		// Calculate LFO shape (blending between 2 waveforms using another, with an optional bias)
+		const float LFO1  = m_LFO1.Sample(modulation);
+		const float LFO2  = m_LFO2.Sample(modulation);
+		const float bias  = LFOBias;
+		const float blend = 0.5f + 0.5f*m_blendLFO.Sample(modulation);
+		const float LFO   = lerpf<float>(LFO1, LFO2, lerpf<float>(1.f-blend, blend, bias));
 
 		// Sample pitch envelope (does not sustain!)
 		const float pitchEnv = m_pitchEnvelope.Sample(false);

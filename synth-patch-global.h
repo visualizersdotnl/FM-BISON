@@ -70,7 +70,10 @@ namespace SFM
 		int pitchBendRange; // [0..kMaxPitchBendRange]
 
 		// LFO
-		Oscillator::Waveform LFOWaveform;
+		Oscillator::Waveform LFOWaveform1; // Base #1
+		Oscillator::Waveform LFOWaveform2; // Base #2
+		Oscillator::Waveform LFOWaveform3; // Blend
+		float LFOBias;
 		float LFORate; // Range [0.0..127.0]
 		bool  LFOKeySync;
 		float modulationOverride; // If non-zero overrides Render() modulation parameter, which is typically the mod. wheel (MIDI)
@@ -200,10 +203,13 @@ namespace SFM
 			pitchBendRange = kDefPitchBendRange;
 
 			// LFO
-			LFOWaveform = kLFOWaveforms[0]; // Sine
-			LFORate = 0.f;                  // Zero Hz
-			LFOKeySync = false;             // No key sync.
-			modulationOverride = 0.f;       // Wheel input
+			LFOWaveform1 = kLFOWaveforms[0]; // Sine
+			LFOWaveform2 = kLFOWaveforms[0]; // Sine
+			LFOWaveform3 = kLFOWaveforms[0]; // Sine
+			LFOBias = 0.f;                   // Bias from LFOWaveform1 towards LFOWaveform2
+			LFORate = 0.f;                   // Zero Hz
+			LFOKeySync = false;              // No key sync.
+			modulationOverride = 0.f;        // Wheel input
 
 			// BPM sync.
 			beatSync = false;

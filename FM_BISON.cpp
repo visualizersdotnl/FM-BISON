@@ -753,13 +753,16 @@ namespace SFM
 
 		voice.m_fundamentalFreq = fundamentalFreq;
 		
-		// Initialize LFO
+		// Initialize LFOs (FIXME: move to function)
 		const float phaseAdj = (true == m_patch.LFOKeySync)
 			? 0.f // Synchronized 
 			: m_globalLFO->Get(); // Adopt running phase
 
 		const float phaseJitter = CalcPhaseJitter(jitter);
-		voice.m_LFO.Initialize(m_patch.LFOWaveform, m_globalLFO->GetFrequency(), m_sampleRate, phaseAdj+phaseJitter);
+		const float globalFreq = m_globalLFO->GetFrequency();
+		voice.m_LFO1.Initialize(m_patch.LFOWaveform1, globalFreq, m_sampleRate, phaseAdj+phaseJitter);
+		voice.m_LFO2.Initialize(m_patch.LFOWaveform2, globalFreq, m_sampleRate, phaseAdj+phaseJitter);
+		voice.m_blendLFO.Initialize(m_patch.LFOWaveform3, globalFreq, m_sampleRate, phaseAdj+phaseJitter);
 
 		// Get dry FM patch		
 		PatchOperators &patchOps = m_patch.operators;
@@ -904,13 +907,16 @@ namespace SFM
 		
 		if (true == reset)
 		{
-			// Initialize LFO
-			const float phaseAdj = (true == m_patch.LFOKeySync) 
+			// Initialize LFOs (FIXME: move to function)
+			const float phaseAdj = (true == m_patch.LFOKeySync)
 				? 0.f // Synchronized 
 				: m_globalLFO->Get(); // Adopt running phase
 
 			const float phaseJitter = CalcPhaseJitter(jitter);
-			voice.m_LFO.Initialize(m_patch.LFOWaveform, m_globalLFO->GetFrequency(), m_sampleRate, phaseAdj+phaseJitter);
+			const float globalFreq = m_globalLFO->GetFrequency();
+			voice.m_LFO1.Initialize(m_patch.LFOWaveform1, globalFreq, m_sampleRate, phaseAdj+phaseJitter);
+			voice.m_LFO2.Initialize(m_patch.LFOWaveform2, globalFreq, m_sampleRate, phaseAdj+phaseJitter);
+			voice.m_blendLFO.Initialize(m_patch.LFOWaveform3, globalFreq, m_sampleRate, phaseAdj+phaseJitter);
 		}
 
 		// Acoustic scaling: more velocity can mean longer envelope decay phase
@@ -1461,11 +1467,11 @@ namespace SFM
 		}
 	}
 
-/* ----------------------------------------------------------------------------------------------------
+	/* ----------------------------------------------------------------------------------------------------
 
-	Voice rendering (threaded).
+		Voice rendering (ready to run in a thread).
 
- ------------------------------------------------------------------------------------------------------ */
+	 ------------------------------------------------------------------------------------------------------ */
 
 	/* static */ void Bison::VoiceRenderThread(Bison *pInst, VoiceThreadContext *pContext)
 	{
@@ -1492,8 +1498,10 @@ namespace SFM
 			// Global per-voice gain
 			constexpr float voiceGain = 0.354813397f; // dBToGain(kVoiceGaindB);
 
-			// Update LFO frequency
-			voice.m_LFO.SetFrequency(context.freqLFO);
+			// Update LFO frequencies
+			voice.m_LFO1.SetFrequency(context.freqLFO);
+			voice.m_LFO2.SetFrequency(context.freqLFO);
+			voice.m_blendLFO.SetFrequency(context.freqLFO);
 
 			// Global amp. allows use to fade the voice in and out within this frame
 			InterpolatedParameter<kLinInterpolate> globalAmp(1.f, std::min<unsigned>(128, numSamples));
@@ -1557,7 +1565,8 @@ namespace SFM
 					left, right, 
 					powf(2.f, curPitchBend.Sample()*(m_patch.pitchBendRange/12.f)),
 					curAmpBend.Sample()+1.f, // [0.0..2.0]
-					sampMod);
+					sampMod,
+					m_patch.LFOBias /* Think I can get away without filtering here? (FIXME) */);
 
 				// Sample filter envelope
 				float filterEnv = filterEG.Sample();
