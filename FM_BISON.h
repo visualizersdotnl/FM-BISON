@@ -340,6 +340,8 @@ namespace SFM
 	
 		// Parameter filters
 		ParameterFilter m_LFORatePF;
+		ParameterFilter m_LFOBiasPF;
+		ParameterFilter m_LFOFMDepthPF;
 		ParameterFilter m_cutoffPF, m_resoPF;
 		ParameterFilter m_effectWetPF, m_effectRatePF;
 		ParameterFilter m_delayPF, m_delayWetPF, m_delayFeedbackPF, m_delayFeedbackCutoffPF;
@@ -366,7 +368,7 @@ namespace SFM
 		
 		// Not in patch but supplied as parameters:
 		ParameterFilter m_bendWheelPF;
-		ParameterFilter m_modulationPF;
+		ParameterFilter m_modulationPF; // Can be overridden by patch parameter
 		ParameterFilter m_aftertouchPF;
 
 		// Not in patch but supplied as parameters:

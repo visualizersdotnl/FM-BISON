@@ -131,7 +131,7 @@ namespace SFM
 		const float freqLFO = MIDI_To_LFO_Hz(m_patch.LFORate);
 		m_globalLFO->Initialize(freqLFO, m_sampleRate);
 
-		// Reset interpolated global parameter(s)
+		// Reset global interpolated parameters
 		m_curCutoff     = { CutoffToHz(m_patch.cutoff, m_Nyquist), m_sampleRate, kDefParameterLatency };
 		m_curQ          = { ResoToQ(m_patch.resonance), m_sampleRate, kDefParameterLatency };
 		m_curPitchBend  = { 0.f, m_sampleRate, kDefParameterLatency };
@@ -139,23 +139,32 @@ namespace SFM
 		m_curModulation = { 0.f, m_sampleRate, kDefParameterLatency * 1.5f /* Longer */ };
 		m_curAftertouch = { 0.f, m_sampleRate, kDefParameterLatency * 3.f  /* Longer */ };
 
-		// Set parameter filter rates to reduce automation/MIDI noise (to default cut Hz, mostly)
-		// They're kept in this class since they are pretty VST-specific and might need tweaking or another target such as embedded
-		// They can also be turned off completely (see top of synth-global.h)
+		/*
+			Reset parameter filters; they reduce automation/MIDI noise (by a default cut Hz, mostly)
 
-		// Local
-		m_LFORatePF             = { m_sampleRate, kDefParameterFilterCutHz * 0.5f /* Softer */ };
+			They're kept in this class since they are pretty VST-specific and might need tweaking or another target such as 
+			embedded hardware. 
+			
+			They can also be turned off completely (see top of synth-global.h)
+		*/
+
+		// Global
+		m_LFORatePF             = { m_sampleRate, kDefParameterFilterCutHz * 0.5f /* Slower */ };
+		m_LFOBiasPF             = { m_sampleRate, kDefParameterFilterCutHz * 0.5f /* Slower */ };
+		m_LFOFMDepthPF          = { m_sampleRate, kDefParameterFilterCutHz * 0.5f /* Slower */ };
 		m_cutoffPF              = { m_sampleRate };
 		m_resoPF                = { m_sampleRate };
 
 		m_LFORatePF.Reset(freqLFO);
+		m_LFOBiasPF.Reset(m_patch.LFOBias);
+		m_LFOFMDepthPF.Reset(m_patch.LFOFMDepth);
 		m_cutoffPF.Reset(m_patch.cutoff);
 		m_resoPF.Reset(m_patch.resonance);
 
 		// PostPass
 		m_effectWetPF           = { m_sampleRate }; 
 		m_effectRatePF          = { m_sampleRate };
-		m_delayPF               = { m_sampleRate, kDefParameterFilterCutHz * 0.05f /* Softens it up nicely */ };
+		m_delayPF               = { m_sampleRate, kDefParameterFilterCutHz * 0.05f /* Slower */ };
 		m_delayWetPF            = { m_sampleRate };
 		m_delayFeedbackPF       = { m_sampleRate };
 		m_delayFeedbackCutoffPF = { m_sampleRate };
@@ -163,8 +172,8 @@ namespace SFM
 		m_postCutoffPF          = { oversamplingRate };
 		m_postResoPF            = { oversamplingRate };
 		m_postDrivePF           = { oversamplingRate };
-		m_postWetPF             = { oversamplingRate, kDefParameterFilterCutHz*0.3f /* Softer */ };
-		m_avgVelocityPF         = { oversamplingRate, kDefParameterFilterCutHz*0.1f /* Softer */ };
+		m_postWetPF             = { oversamplingRate, kDefParameterFilterCutHz*0.3f /* Slower */ };
+		m_avgVelocityPF         = { oversamplingRate, kDefParameterFilterCutHz*0.1f /* Slower */ };
 		m_wahRatePF             = { m_sampleRate };
 		m_wahSpeakPF            = { m_sampleRate };
 		m_wahCutPF              = { m_sampleRate };
@@ -176,7 +185,7 @@ namespace SFM
 		m_reverbHP_PF           = { m_sampleRate };
 		m_reverbLP_PF           = { m_sampleRate };
 		m_reverbPreDelayPF      = { m_sampleRate };
-		m_compLookaheadPF       = { m_sampleRate, kDefParameterFilterCutHz*0.5f /* Softer */ };
+		m_compLookaheadPF       = { m_sampleRate, kDefParameterFilterCutHz*0.5f /* Slower */ };
 		m_masterVolPF           = { m_sampleRate };
 
 		m_effectWetPF.Reset(m_patch.cpWet);
@@ -1568,7 +1577,8 @@ namespace SFM
 					powf(2.f, curPitchBend.Sample()*(m_patch.pitchBendRange/12.f)),
 					curAmpBend.Sample()+1.f, // [0.0..2.0]
 					sampMod,
-					m_patch.LFOBias, m_patch.LFOFMDepth /* FIXME: filter! */);
+					m_LFOBiasPF.Apply(m_patch.LFOBias), 
+					m_LFOFMDepthPF.Apply(m_patch.LFOFMDepth));
 
 				// Sample filter envelope
 				float filterEnv = filterEG.Sample();

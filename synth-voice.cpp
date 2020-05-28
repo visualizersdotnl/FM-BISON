@@ -135,7 +135,7 @@ namespace SFM
 		SFM_ASSERT(LFOFMDepth >= 0.f);
 		
 		// Calculate LFO
-		const float subLFO = 0.5f * LFOFMDepth * m_subLFO.Sample(0.f); // FIXME: needs it's own parameter
+		const float subLFO = 0.5f * (0.5f*LFOFMDepth * m_subLFO.Sample(modulation));
 		const float LFO1   = m_LFO1.Sample(0.5f + subLFO);
 		const float LFO2   = m_LFO2.Sample(0.5f + subLFO);
 		const float biased = lerpf<float>(LFO1, LFO2, LFOBias);

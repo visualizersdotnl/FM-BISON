@@ -11,7 +11,8 @@
 #pragma warning(disable: 4324) // Tell MSVC to shut it about padding I'm aware of
 
 #include "synth-global.h"
-#include "synth-stateless-oscillators.h"
+// #include "synth-stateless-oscillators.h"
+#include "synth-pink-noise.h"
 #include "synth-phase.h"
 #include "synth-MIDI.h"
 
