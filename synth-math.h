@@ -35,7 +35,9 @@ namespace SFM
 	template<typename T>
 	SFM_INLINE static const T lerpf(const T &a, const T &b, float t)
 	{
-		return a + (b-a)*t;
+		// Discussion: https://stackoverflow.com/questions/4353525/floating-point-linear-interpolation
+		return a*(1.f-t) + b*t;
+//		return a + (b-a)*t;
 	}
 
 	// (GLSL) frac()
@@ -56,22 +58,10 @@ namespace SFM
 		return value;
 	}
 	
-	// Approx. sinf() derived from mr. Bhaskara's theory
+	// Approx. sinf() derived from mr. Bhaskara's theorem
 	SFM_INLINE float BhaskaraSinf(float x)
 	{
 		return 16.f * x * (kPI-x) / (5.f * kPI*kPI - 4.f * x * (kPI-x));
-	}
-
-	// Ham-fisted fast floating point modulo which only works fairly well for smaller values
-	// https://stackoverflow.com/questions/9505513/floating-point-modulo-operation/37977740#comment12038890_9505761
-	SFM_INLINE static float fast_fmodf(float value, float modulo)
-	{
-		return value - truncf(value/modulo)*modulo;
-	}
-
-	SFM_INLINE static float fast_fmodf_one(float value)
-	{
-		return value - truncf(value);
 	}
 }
 

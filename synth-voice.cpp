@@ -33,9 +33,9 @@ namespace SFM
 		m_sustained = false;
 
 		// LFO
-		m_LFO1     = Oscillator(sampleRate);
-		m_LFO2     = Oscillator(sampleRate);
-		m_shapeLFO = Oscillator(sampleRate);
+		m_LFO1   = Oscillator(sampleRate);
+		m_LFO2   = Oscillator(sampleRate);
+		m_subLFO = Oscillator(sampleRate);
 
 		// Filter envelope
 		m_filterEnvelope.Reset();
@@ -133,20 +133,18 @@ namespace SFM
 		SFM_ASSERT(modulation >= 0.f && modulation <= 1.f);
 		SFM_ASSERT(LFOBias >= 0.f && LFOBias <= 1.f);
 		
-		// Sculpt LFO shape using 3 waveforms (a little experiment, I like it)
+		// Calculate LFO
+		const float subLFO = modulation * m_subLFO.Sample(0.f); // FIXME: needs it's own parameter
 		const float LFO1   = m_LFO1.Sample(0.f);
 		const float LFO2   = m_LFO2.Sample(0.f);
-		const float bias   = LFOBias;
-		const float shape  = 0.5f + m_shapeLFO.Sample(0.f)*0.5f;
-		const float biased = lerpf<float>(LFO1*(1.f-shape) /* Inverted */, LFO2*shape, bias);
-		const float LFO    = biased;
+		const float biased = lerpf<float>(LFO1+subLFO, LFO2+subLFO, LFOBias);
+		const float LFO    = Clamp(biased);
 
 		// Sample pitch envelope (does not sustain!)
 		const float pitchEnv = m_pitchEnvelope.Sample(false);
 
 		// Process all operators top-down
-		// - This is a simple readable loop for R&D purposes, but lacks performance and lacks support for operators to be modulated
-		//   by lower ranked operators; an issue in the R&D repository has been created to address this
+		// FIXME: it's quite verbose and algorithmically not as flexible as could be
 
 		alignas(16) float opSample[kNumOperators+1] = { 0.f }; // Monaural normalized samples (one extra so we can index with -1 to avoid branching)
 		float mixL = 0.f, mixR = 0.f; // Carrier mix
@@ -168,7 +166,7 @@ namespace SFM
 					oscillator.SetFrequency(curFreq);
 
 				// Get modulation from max. 3 sources
-				float phaseMod = 0.f;
+				float phaseShift = 0.f;
 				for (unsigned iMod = 0; iMod < 3; ++iMod)
 				{
 					const int iModulator = voiceOp.modulators[iMod];
@@ -180,7 +178,7 @@ namespace SFM
 					// Add sample to phase
 					// If modulator or modulator operator is disabled it's zero
 					const float sample = opSample[iModulator+1];
-					phaseMod += sample;
+					phaseShift += sample + 1.f; // [0..2]
 				}
 
 				const float feedbackAmt = kFeedbackScale*voiceOp.feedbackAmt.Sample();
@@ -206,7 +204,7 @@ namespace SFM
 				oscillator.PitchBend(vibrato);
 
 				// Calculate sample
-				float sample = oscillator.Sample(phaseMod, feedback);
+				float sample = oscillator.Sample(phaseShift+feedback);
 
 				// Apply LFO tremolo
 				const float tremolo = lerpf<float>(1.f, LFO, voiceOp.ampMod);
@@ -250,21 +248,20 @@ namespace SFM
 				// Store final sample for modulation
 				opSample[iOpSample] = sample;
 
-				// Calc. panning angle
-				float panAngle = voiceOp.panAngle.Sample();
+				// Calculate panning
+				float panning = voiceOp.panning.Sample();
 				const float panMod = voiceOp.panMod;
 				if (0.f != panMod)
 				{
-					// Override user value
-					const float panning = LFO*panMod*modulation;
-					panAngle = lerpf(panAngle, panning*0.5f*0.25f, panMod); // Center around panning
+					const float modulated = LFO*panMod*0.5f + 0.5f; // [0..1]
+					panning = lerpf<float>(panning, modulated, modulation); // FIXME: user panning as *real* bias
 				}
 
 				// If carrier, mix (chose not to branch on purpose, though it'll probably won't matter or just a little)
 				sample *= voiceOp.isCarrier;
 				const float monaural = sample*ampBend;
-				mixL += monaural*fast_cosf(panAngle);
-				mixR += monaural*fast_sinf(panAngle);
+				mixL += monaural*sqrtf(1.f-panning);
+				mixR += monaural*sqrtf(panning);
 			}
 		} 
 

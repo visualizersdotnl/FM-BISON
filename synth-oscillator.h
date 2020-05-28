@@ -43,7 +43,9 @@ namespace SFM
 	public:
 		enum Waveform
 		{
-			// AA
+			kStatic,
+
+			// Band-limited
 			kSine,
 			kCosine,
 			kPolyTriangle,
@@ -80,8 +82,7 @@ namespace SFM
 	public:
 		Oscillator(unsigned sampleRate = 1)
 		{
-			// Oscillator will yield 1.0 at phase 0.0
-			Initialize(kCosine, 0.f, sampleRate, 0.f);
+			Initialize(kStatic, 0.f, sampleRate, 0.f);
 		}
 
 		void Initialize(Waveform form, float frequency, unsigned sampleRate, float phaseShift)
@@ -142,16 +143,22 @@ namespace SFM
 			}
 		}
 		
-		SFM_INLINE float    GetFrequency()  const { return m_phases[0].GetFrequency();  }
-		SFM_INLINE unsigned GetSampleRate() const { return m_phases[0].GetSampleRate(); }
-		SFM_INLINE float    GetPhase()      const { return m_phases[0].Get();           }
+		SFM_INLINE float    GetFrequency()   const { return m_phases[0].GetFrequency();  }
+		SFM_INLINE unsigned GetSampleRate()  const { return m_phases[0].GetSampleRate(); }
+		SFM_INLINE float    GetPhase()       const { return m_phases[0].Get();           }
+
+		SFM_INLINE Phase &GetPhaseObject(unsigned iPhase = 0)
+		{
+			SFM_ASSERT(iPhase < kNumPolySupersaws);
+			return m_phases[iPhase];
+		}
 
 		SFM_INLINE Waveform GetWaveform() const 
 		{ 
 			return m_form; 
 		}
 
-		float Sample(float modulation, float feedback = 0.f /* Only used by Voice::Render() */);
+		float Sample(float phaseShift, float phaseMod = 1.f);
 	};
 }
 

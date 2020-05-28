@@ -241,6 +241,7 @@ namespace SFM
 		void SetOperatorFilter(unsigned key, SvfLinearTrapOptimised2 *filterSVF, const PatchOperators::Operator &patchOp);
 		float CalcOpFreq(float fundamentalFreq, float detuneOffs, const PatchOperators::Operator &patchOp);
 		float CalcOpIndex(unsigned key, float velocity, const PatchOperators::Operator &patchOp);
+		void InitializeLFO(Voice &voice, float jitter);
 
 		void InitializeVoice(const VoiceRequest &request, unsigned iVoice);
 		void InitializeMonoVoice(const VoiceRequest &request);

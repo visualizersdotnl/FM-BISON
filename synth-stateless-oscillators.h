@@ -56,7 +56,7 @@ namespace SFM
 	SFM_INLINE static float oscTriangle(float phase)
 	{
 		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
-		return 2.f * (fabsf(-1.f + (2.f*phase))-0.5f);
+		return -2.f * (fabsf(-1.f + (2.f*phase))-0.5f);
 	}
 
 	SFM_INLINE static float oscPulse(float phase, float duty)

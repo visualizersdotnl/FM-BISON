@@ -87,8 +87,8 @@ namespace SFM
 			// Drive (square) distortion (R)
 			InterpolatedParameter<kLinInterpolate> drive;
 
-			// Panning (angle) (R)
-			InterpolatedParameter<kLinInterpolate> panAngle;
+			// Panning ([0..1], 0.5 is center) (R)
+			InterpolatedParameter<kLinInterpolate> panning;
 
 			// Is carrier (output)
 			bool isCarrier;
@@ -126,7 +126,7 @@ namespace SFM
 
 				drive = { 0.f, sampleRate, kDefParameterLatency };
 				
-				panAngle = { 0.f, sampleRate, kDefParameterLatency };
+				panning = { 0.f, sampleRate, kDefParameterLatency };
 
 				isCarrier = false;
 				
@@ -140,7 +140,7 @@ namespace SFM
 
 		// LFO
 		Oscillator m_LFO1, m_LFO2;
-		Oscillator m_shapeLFO;
+		Oscillator m_subLFO;
 
 		// Main filter(s)
 		SvfLinearTrapOptimised2 m_filterSVF1, m_filterSVF2;

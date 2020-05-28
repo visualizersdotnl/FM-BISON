@@ -535,11 +535,10 @@ namespace SFM
 //		return patchOp.cutoffKeyTrack*normalizedKey;
 	}
 
-	SFM_INLINE static float CalcPanningAngle(const PatchOperators::Operator &patchOp)
+	SFM_INLINE static float CalcPanning(const PatchOperators::Operator &patchOp)
 	{
 		SFM_ASSERT(fabsf(patchOp.panning) <= 1.f);
-		const float panAngle = (patchOp.panning+1.f)*0.5f*0.25f;
-		return panAngle;
+		return 0.5f*patchOp.panning + 0.5f;
 	}
 
 	// Set up (static) operator SVF filter
@@ -722,6 +721,22 @@ namespace SFM
 		SFM_ASSERT(jitter >= 0.f && jitter <= 1.f);
 		return jitter*mt_randf()*0.25f; // [0..90] deg.
 	}
+
+	SFM_INLINE void Bison::InitializeLFO(Voice &voice, float jitter)
+	{
+		// Initialize LFOs (FIXME: move to function)
+		float phaseAdj = (true == m_patch.LFOKeySync)
+			? 0.f // Synchronized 
+			: m_globalLFO->Get(); // Adopt running phase
+
+		phaseAdj += CalcPhaseJitter(jitter);
+		const float globalFreq = m_globalLFO->GetFrequency();
+		voice.m_LFO1.Initialize(m_patch.LFOWaveform1, globalFreq, m_sampleRate, phaseAdj);
+		voice.m_LFO2.Initialize(m_patch.LFOWaveform2, globalFreq, m_sampleRate, phaseAdj);
+
+		voice.m_subLFO.Initialize(m_patch.LFOWaveform3, globalFreq/2.f, m_sampleRate, phaseAdj);
+		voice.m_subLFO.GetPhaseObject().SyncTo(globalFreq);
+	}
 	
 	// Initialize new voice
 	void Bison::InitializeVoice(const VoiceRequest &request, unsigned iVoice)
@@ -753,16 +768,8 @@ namespace SFM
 
 		voice.m_fundamentalFreq = fundamentalFreq;
 		
-		// Initialize LFOs (FIXME: move to function)
-		float phaseAdj = (true == m_patch.LFOKeySync)
-			? 0.f // Synchronized 
-			: m_globalLFO->Get(); // Adopt running phase
-
-		phaseAdj += CalcPhaseJitter(jitter);
-		const float globalFreq = m_globalLFO->GetFrequency();
-		voice.m_LFO1.Initialize(m_patch.LFOWaveform1, globalFreq, m_sampleRate, phaseAdj);
-		voice.m_LFO2.Initialize(m_patch.LFOWaveform2, globalFreq, m_sampleRate, phaseAdj);
-		voice.m_shapeLFO.Initialize(m_patch.LFOWaveform3, globalFreq, m_sampleRate, phaseAdj);
+		// Initialize LFO
+		InitializeLFO(voice, jitter);
 
 		// Get dry FM patch		
 		PatchOperators &patchOps = m_patch.operators;
@@ -835,7 +842,7 @@ namespace SFM
 				voiceOp.panMod   = patchOp.panMod;
 
 				// Panning
-				voiceOp.panAngle = { CalcPanningAngle(patchOp), m_sampleRate, kDefParameterLatency };
+				voiceOp.panning = { CalcPanning(patchOp), m_sampleRate, kDefParameterLatency };
 
 				// Distortion
 				const float drive = lerpf<float>(patchOp.drive, patchOp.drive*opVelocity, patchOp.velSens);
@@ -907,16 +914,8 @@ namespace SFM
 		
 		if (true == reset)
 		{
-			// Initialize LFOs (FIXME: move to function)
-			float phaseAdj = (true == m_patch.LFOKeySync)
-				? 0.f // Synchronized 
-				: m_globalLFO->Get(); // Adopt running phase
-
-			phaseAdj += CalcPhaseJitter(jitter);
-			const float globalFreq = m_globalLFO->GetFrequency();
-			voice.m_LFO1.Initialize(m_patch.LFOWaveform1, globalFreq, m_sampleRate, phaseAdj);
-			voice.m_LFO2.Initialize(m_patch.LFOWaveform2, globalFreq, m_sampleRate, phaseAdj);
-			voice.m_shapeLFO.Initialize(m_patch.LFOWaveform3, globalFreq, m_sampleRate, phaseAdj);
+			// Initialize LFO
+			InitializeLFO(voice, jitter);
 		}
 
 		// Acoustic scaling: more velocity can mean longer envelope decay phase
@@ -1000,7 +999,7 @@ namespace SFM
 				voiceOp.panMod   = patchOp.panMod;
 
 				// Panning
-				voiceOp.panAngle = { CalcPanningAngle(patchOp), m_sampleRate, kDefParameterLatency };
+				voiceOp.panning = { CalcPanning(patchOp), m_sampleRate, kDefParameterLatency };
 
 				// Distortion
 				const float drive = lerpf<float>(patchOp.drive, patchOp.drive*opVelocity, patchOp.velSens);
@@ -1177,7 +1176,7 @@ namespace SFM
 									voiceOp.feedbackAmt.SetTarget(patchOp.feedbackAmt);
 					
 									// Panning (as set by static parameter)
-									voiceOp.panAngle.SetTarget(CalcPanningAngle(patchOp));
+									voiceOp.panning.SetTarget(CalcPanning(patchOp));
 								}
 							}
 						}
@@ -1499,9 +1498,12 @@ namespace SFM
 			constexpr float voiceGain = 0.354813397f; // dBToGain(kVoiceGaindB);
 
 			// Update LFO frequencies
-			voice.m_LFO1.SetFrequency(context.freqLFO);
-			voice.m_LFO2.SetFrequency(context.freqLFO);
-			voice.m_shapeLFO.SetFrequency(context.freqLFO);
+			const float freqLFO = context.freqLFO;
+			const float subFreq = freqLFO/2.f;
+			voice.m_LFO1.SetFrequency(freqLFO);
+			voice.m_LFO2.SetFrequency(freqLFO);
+			voice.m_subLFO.SetFrequency(subFreq);
+			voice.m_subLFO.GetPhaseObject().SyncTo(freqLFO);
 
 			// Global amp. allows use to fade the voice in and out within this frame
 			InterpolatedParameter<kLinInterpolate> globalAmp(1.f, std::min<unsigned>(128, numSamples));
