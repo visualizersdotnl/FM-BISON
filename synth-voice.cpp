@@ -121,7 +121,7 @@ namespace SFM
 	// Bright
 	constexpr float kFeedbackScale = 1.f;
 
-	void Voice::Sample(float &left, float &right, float pitchBend, float ampBend, float modulation, float LFOBias)
+	void Voice::Sample(float &left, float &right, float pitchBend, float ampBend, float modulation, float LFOBias, float LFOFMDepth)
 	{
 		if (kIdle == m_state)
 		{
@@ -132,12 +132,13 @@ namespace SFM
 		SFM_ASSERT(ampBend >= 0.f && ampBend <= 2.f);
 		SFM_ASSERT(modulation >= 0.f && modulation <= 1.f);
 		SFM_ASSERT(LFOBias >= 0.f && LFOBias <= 1.f);
+		SFM_ASSERT(LFOFMDepth >= 0.f);
 		
 		// Calculate LFO
-		const float subLFO = modulation * m_subLFO.Sample(0.f); // FIXME: needs it's own parameter
-		const float LFO1   = m_LFO1.Sample(0.f);
-		const float LFO2   = m_LFO2.Sample(0.f);
-		const float biased = lerpf<float>(LFO1+subLFO, LFO2+subLFO, LFOBias);
+		const float subLFO = 0.5f * LFOFMDepth * m_subLFO.Sample(0.f); // FIXME: needs it's own parameter
+		const float LFO1   = m_LFO1.Sample(0.5f + subLFO);
+		const float LFO2   = m_LFO2.Sample(0.5f + subLFO);
+		const float biased = lerpf<float>(LFO1, LFO2, LFOBias);
 		const float LFO    = Clamp(biased);
 
 		// Sample pitch envelope (does not sustain!)

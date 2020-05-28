@@ -176,6 +176,6 @@ namespace SFM
 		float GetSummedOutput(); /* const */
 
 		// Render "dry" FM voice
-		void Sample(float &left, float &right, float pitchBend, float ampBend, float modulation, float LFOBias);
+		void Sample(float &left, float &right, float pitchBend, float ampBend, float modulation, float LFOBias, float LFOFMDepth);
 	};
 }

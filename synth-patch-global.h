@@ -74,7 +74,8 @@ namespace SFM
 		Oscillator::Waveform LFOWaveform2; // Base #2
 		Oscillator::Waveform LFOWaveform3; // Blend
 		float LFOBias;
-		float LFORate; // Range [0.0..127.0]
+		float LFOFMDepth; // Range [0..N]
+		float LFORate;    // Range [0.0..127.0]
 		bool  LFOKeySync;
 		float modulationOverride; // If non-zero overrides Render() modulation parameter, which is typically the mod. wheel (MIDI)
 
@@ -207,6 +208,7 @@ namespace SFM
 			LFOWaveform2 = kLFOWaveforms[0]; // Sine
 			LFOWaveform3 = kLFOWaveforms[1]; // Silent
 			LFOBias = kDefLFOBias;           // Bias (between waveform #1 & waveform #2)
+			LFOFMDepth = 0.f;                // No FM
 			LFORate = 0.f;                   // Zero Hz
 			LFOKeySync = false;              // No key sync.
 			modulationOverride = 0.f;        // Wheel input

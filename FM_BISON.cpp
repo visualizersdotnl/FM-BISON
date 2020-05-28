@@ -1568,7 +1568,7 @@ namespace SFM
 					powf(2.f, curPitchBend.Sample()*(m_patch.pitchBendRange/12.f)),
 					curAmpBend.Sample()+1.f, // [0.0..2.0]
 					sampMod,
-					m_patch.LFOBias /* Think I can get away without filtering here? (FIXME) */);
+					m_patch.LFOBias, m_patch.LFOFMDepth /* FIXME: filter! */);
 
 				// Sample filter envelope
 				float filterEnv = filterEG.Sample();
