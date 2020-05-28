@@ -50,7 +50,7 @@ namespace SFM
 		{
 			double ratio = 1.f;
 			if (0.0 != m_frequency)
-				ratio = frequency/m_frequency;
+				ratio = frequency/m_frequency; // FIXME: is this correct?
 
 			m_syncRatio = ratio;
 		}

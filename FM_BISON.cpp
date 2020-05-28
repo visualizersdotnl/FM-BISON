@@ -743,7 +743,7 @@ namespace SFM
 		voice.m_LFO1.Initialize(m_patch.LFOWaveform1, globalFreq, m_sampleRate, phaseAdj);
 		voice.m_LFO2.Initialize(m_patch.LFOWaveform2, globalFreq, m_sampleRate, phaseAdj);
 
-		voice.m_subLFO.Initialize(m_patch.LFOWaveform3, globalFreq/2.f, m_sampleRate, phaseAdj);
+		voice.m_subLFO.Initialize(m_patch.LFOWaveform3, globalFreq/kLFOSubOscFreqDiv, m_sampleRate, phaseAdj);
 		voice.m_subLFO.GetPhaseObject().SyncTo(globalFreq);
 	}
 	
@@ -1508,10 +1508,9 @@ namespace SFM
 
 			// Update LFO frequencies
 			const float freqLFO = context.freqLFO;
-			const float subFreq = freqLFO/2.f;
 			voice.m_LFO1.SetFrequency(freqLFO);
 			voice.m_LFO2.SetFrequency(freqLFO);
-			voice.m_subLFO.SetFrequency(subFreq);
+			voice.m_subLFO.SetFrequency(freqLFO/kLFOSubOscFreqDiv);
 			voice.m_subLFO.GetPhaseObject().SyncTo(freqLFO);
 
 			// Global amp. allows use to fade the voice in and out within this frame
@@ -1589,7 +1588,7 @@ namespace SFM
 				const float cutAfter = context.mainFilterAftertouch*sampAftertouch;
 				SFM_ASSERT(cutAfter >= 0.f && cutAfter <= 1.f);
 
-	#if !defined(SFM_DISABLE_FX)						
+#if !defined(SFM_DISABLE_FX)						
 
 				// Apply & mix filter (FIXME: write single sequential loop (see Github issue), prepare buffer(s) on initialization)
 				if (false == noFilter)
@@ -1621,7 +1620,7 @@ namespace SFM
 					right = filteredR;
 				}
 
-	#endif
+#endif
 
 				// Apply gain and add to mix
 				const float amplitude = curGlobalAmp.Sample() * voiceGain;
