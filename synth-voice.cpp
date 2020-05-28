@@ -125,7 +125,10 @@ namespace SFM
 	{
 		if (kIdle == m_state)
 		{
+			SFM_ASSERT(false);
+
 			left = right = 0.f;
+
 			return;
 		}
 

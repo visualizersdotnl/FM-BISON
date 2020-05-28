@@ -116,7 +116,7 @@ namespace SFM
 		// Reset filter type
 		m_curFilterType = SvfLinearTrapOptimised2::NO_FLT_TYPE;
 
-		// Allocate intermediate buffers
+		// Allocate intermediate buffers (a pair for each thread)
 		m_pBufL[0] = reinterpret_cast<float *>(mallocAligned(m_samplesPerBlock*sizeof(float), 16));
 		m_pBufL[1] = reinterpret_cast<float *>(mallocAligned(m_samplesPerBlock*sizeof(float), 16));
 		m_pBufR[0] = reinterpret_cast<float *>(mallocAligned(m_samplesPerBlock*sizeof(float), 16));
