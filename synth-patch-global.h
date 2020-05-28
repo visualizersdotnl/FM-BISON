@@ -206,7 +206,7 @@ namespace SFM
 			LFOWaveform1 = kLFOWaveforms[0]; // Sine
 			LFOWaveform2 = kLFOWaveforms[0]; // Sine
 			LFOWaveform3 = kLFOWaveforms[0]; // Sine
-			LFOBias = 0.f;                   // Bias from LFOWaveform1 towards LFOWaveform2
+			LFOBias = kDefLFOBias;           // Bias (between waveform #1 & waveform #2)
 			LFORate = 0.f;                   // Zero Hz
 			LFOKeySync = false;              // No key sync.
 			modulationOverride = 0.f;        // Wheel input

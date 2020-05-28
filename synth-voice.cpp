@@ -33,9 +33,9 @@ namespace SFM
 		m_sustained = false;
 
 		// LFO
-		m_LFO1 = Oscillator(sampleRate);
-		m_LFO2 = Oscillator(sampleRate);
-		m_blendLFO = Oscillator(sampleRate);
+		m_LFO1     = Oscillator(sampleRate);
+		m_LFO2     = Oscillator(sampleRate);
+		m_shapeLFO = Oscillator(sampleRate);
 
 		// Filter envelope
 		m_filterEnvelope.Reset();
@@ -132,13 +132,14 @@ namespace SFM
 		SFM_ASSERT(ampBend >= 0.f && ampBend <= 2.f);
 		SFM_ASSERT(modulation >= 0.f && modulation <= 1.f);
 		SFM_ASSERT(LFOBias >= 0.f && LFOBias <= 1.f);
-
-		// Calculate LFO shape (blending between 2 waveforms using another, with an optional bias)
-		const float LFO1  = m_LFO1.Sample(modulation);
-		const float LFO2  = m_LFO2.Sample(modulation);
-		const float bias  = LFOBias;
-		const float blend = 0.5f + 0.5f*m_blendLFO.Sample(modulation);
-		const float LFO   = lerpf<float>(LFO1, LFO2, lerpf<float>(1.f-blend, blend, bias));
+		
+		// Sculpt LFO shape using 3 waveforms (a little experiment, I like it)
+		const float LFO1   = m_LFO1.Sample(0.f);
+		const float LFO2   = m_LFO2.Sample(0.f);
+		const float bias   = LFOBias;
+		const float shape  = 0.5f + m_shapeLFO.Sample(0.f)*0.5f;
+		const float biased = lerpf<float>(LFO1*(1.f-shape) /* Inverted */, LFO2*shape, bias);
+		const float LFO    = biased;
 
 		// Sample pitch envelope (does not sustain!)
 		const float pitchEnv = m_pitchEnvelope.Sample(false);

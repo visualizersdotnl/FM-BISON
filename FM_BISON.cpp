@@ -754,15 +754,15 @@ namespace SFM
 		voice.m_fundamentalFreq = fundamentalFreq;
 		
 		// Initialize LFOs (FIXME: move to function)
-		const float phaseAdj = (true == m_patch.LFOKeySync)
+		float phaseAdj = (true == m_patch.LFOKeySync)
 			? 0.f // Synchronized 
 			: m_globalLFO->Get(); // Adopt running phase
 
-		const float phaseJitter = CalcPhaseJitter(jitter);
+		phaseAdj += CalcPhaseJitter(jitter);
 		const float globalFreq = m_globalLFO->GetFrequency();
-		voice.m_LFO1.Initialize(m_patch.LFOWaveform1, globalFreq, m_sampleRate, phaseAdj+phaseJitter);
-		voice.m_LFO2.Initialize(m_patch.LFOWaveform2, globalFreq, m_sampleRate, phaseAdj+phaseJitter);
-		voice.m_blendLFO.Initialize(m_patch.LFOWaveform3, globalFreq, m_sampleRate, phaseAdj+phaseJitter);
+		voice.m_LFO1.Initialize(m_patch.LFOWaveform1, globalFreq, m_sampleRate, phaseAdj);
+		voice.m_LFO2.Initialize(m_patch.LFOWaveform2, globalFreq, m_sampleRate, phaseAdj);
+		voice.m_shapeLFO.Initialize(m_patch.LFOWaveform3, globalFreq, m_sampleRate, phaseAdj);
 
 		// Get dry FM patch		
 		PatchOperators &patchOps = m_patch.operators;
@@ -908,15 +908,15 @@ namespace SFM
 		if (true == reset)
 		{
 			// Initialize LFOs (FIXME: move to function)
-			const float phaseAdj = (true == m_patch.LFOKeySync)
+			float phaseAdj = (true == m_patch.LFOKeySync)
 				? 0.f // Synchronized 
 				: m_globalLFO->Get(); // Adopt running phase
 
-			const float phaseJitter = CalcPhaseJitter(jitter);
+			phaseAdj += CalcPhaseJitter(jitter);
 			const float globalFreq = m_globalLFO->GetFrequency();
-			voice.m_LFO1.Initialize(m_patch.LFOWaveform1, globalFreq, m_sampleRate, phaseAdj+phaseJitter);
-			voice.m_LFO2.Initialize(m_patch.LFOWaveform2, globalFreq, m_sampleRate, phaseAdj+phaseJitter);
-			voice.m_blendLFO.Initialize(m_patch.LFOWaveform3, globalFreq, m_sampleRate, phaseAdj+phaseJitter);
+			voice.m_LFO1.Initialize(m_patch.LFOWaveform1, globalFreq, m_sampleRate, phaseAdj);
+			voice.m_LFO2.Initialize(m_patch.LFOWaveform2, globalFreq, m_sampleRate, phaseAdj);
+			voice.m_shapeLFO.Initialize(m_patch.LFOWaveform3, globalFreq, m_sampleRate, phaseAdj);
 		}
 
 		// Acoustic scaling: more velocity can mean longer envelope decay phase
@@ -1501,7 +1501,7 @@ namespace SFM
 			// Update LFO frequencies
 			voice.m_LFO1.SetFrequency(context.freqLFO);
 			voice.m_LFO2.SetFrequency(context.freqLFO);
-			voice.m_blendLFO.SetFrequency(context.freqLFO);
+			voice.m_shapeLFO.SetFrequency(context.freqLFO);
 
 			// Global amp. allows use to fade the voice in and out within this frame
 			InterpolatedParameter<kLinInterpolate> globalAmp(1.f, std::min<unsigned>(128, numSamples));
