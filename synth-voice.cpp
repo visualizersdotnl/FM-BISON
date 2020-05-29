@@ -35,7 +35,7 @@ namespace SFM
 		// LFO
 		m_LFO1   = Oscillator(sampleRate);
 		m_LFO2   = Oscillator(sampleRate);
-		m_subLFO = Oscillator(sampleRate);
+		m_modLFO = Oscillator(sampleRate);
 
 		// Filter envelope
 		m_filterEnvelope.Reset();
@@ -138,9 +138,9 @@ namespace SFM
 		SFM_ASSERT(LFOFMDepth >= 0.f);
 		
 		// Calculate current LFO value
-		const float subLFO = LFOFMDepth * m_subLFO.Sample(0.f);
-		const float LFO1   = m_LFO1.Sample(1.f + subLFO); // [0..2]
-		const float LFO2   = m_LFO2.Sample(1.f + subLFO); //
+		const float modLFO = LFOFMDepth + LFOFMDepth*m_modLFO.Sample(0.f);
+		const float LFO1   = m_LFO1.Sample(modLFO);
+		const float LFO2   = m_LFO2.Sample(modLFO);
 		const float biased = lerpf<float>(LFO1, LFO2, LFOBias);
 		const float LFO    = Clamp(biased);
 

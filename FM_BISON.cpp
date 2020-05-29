@@ -745,7 +745,7 @@ namespace SFM
 		const float globalFreq = m_globalLFO->GetFrequency();
 		voice.m_LFO1.Initialize(m_patch.LFOWaveform1, globalFreq, m_sampleRate, phaseAdj);
 		voice.m_LFO2.Initialize(m_patch.LFOWaveform2, globalFreq, m_sampleRate, phaseAdj);
-		voice.m_subLFO.Initialize(m_patch.LFOWaveform3, globalFreq/kLFOSubOscFreqDiv, m_sampleRate, phaseAdj);
+		voice.m_modLFO.Initialize(m_patch.LFOWaveform3, globalFreq, m_sampleRate, phaseAdj);
 	}
 	
 	// Initialize new voice
@@ -1517,13 +1517,13 @@ namespace SFM
 			const float freqLFO = context.freqLFO;
 			voice.m_LFO1.SetFrequency(freqLFO);
 			voice.m_LFO2.SetFrequency(freqLFO);
-			voice.m_subLFO.SetFrequency(freqLFO/kLFOSubOscFreqDiv);
+			voice.m_modLFO.SetFrequency(freqLFO);
 			
 			// Update LFO S&H parameters
 			const float slewRate = m_SandHSlewRatePF.Get();
 			voice.m_LFO1.SetSampleAndHoldSlewRate(slewRate);
 			voice.m_LFO2.SetSampleAndHoldSlewRate(slewRate);
-			voice.m_subLFO.SetSampleAndHoldSlewRate(slewRate);
+			voice.m_modLFO.SetSampleAndHoldSlewRate(kMinSandHSlewRate); // As modulator, slew causes artifacts (slight discontinuities)
 
 			// Global amp. allows use to fade the voice in and out within this frame
 			InterpolatedParameter<kLinInterpolate> globalAmp(1.f, std::min<unsigned>(128, numSamples));

@@ -140,7 +140,7 @@ namespace SFM
 
 		// LFO
 		Oscillator m_LFO1, m_LFO2;
-		Oscillator m_subLFO;
+		Oscillator m_modLFO;
 
 		// Main filter(s)
 		SvfLinearTrapOptimised2 m_filterSVF1, m_filterSVF2;

@@ -231,9 +231,8 @@ namespace SFM
 	constexpr float kPianoPedalMaxReleaseMul = 10.f;                     // Rather arbitrary, in fact I'm not sure if this should be a feature at all! (FIXME)
 	constexpr float kDefPianoPedalReleaseMul = kPianoPedalMinReleaseMul; // So because of that, by default, the influence of this parameter is nil.
 
-	// Default LFO bias (center) & sub-oscillator freq. div.
+	// Default LFO bias (center)
 	constexpr float kDefLFOBias = 0.5f;
-	constexpr float kLFOSubOscFreqDiv = 4.f;
 };
 
 #include "synth-random.h"
