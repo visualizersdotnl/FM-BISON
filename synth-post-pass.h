@@ -56,7 +56,7 @@ namespace SFM
 
 		float GetCompressorActivity() const
 		{
-			return m_compressorActivity.GetValue();
+			return m_compressorActivity.Get();
 		}
 
 	private:

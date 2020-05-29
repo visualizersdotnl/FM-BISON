@@ -175,8 +175,8 @@ namespace SFM
 	
 	// Slew parameters for S&H oscillator (LFO)
 	constexpr float kMinSandHSlewRate = 0.01f;  //  10MS
-	constexpr float kMaxSandHSlewRate = 0.5f;   // 500MS
-	constexpr float kDefSandHSlewRate = 0.05f;  //  50MS
+	constexpr float kMaxSandHSlewRate = 0.1f;   // 100MS
+	constexpr float kDefSandHSlewRate = 0.02f;  //  20MS
 
 	// Reverb width range & default (FIXME: odd range, no?)
 	constexpr float kMinReverbWidth = 0.f;

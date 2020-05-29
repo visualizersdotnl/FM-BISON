@@ -78,8 +78,9 @@ namespace SFM
 		/* const */ Waveform m_form;
 		alignas(16) Phase m_phases[kNumPolySupersaws];
 
-		PinkNoise m_pinkOsc;
-		SampleAndHold m_SandH;
+		// Oscillators with state
+		PinkNoise m_pinkOsc;    // FIXME: can't I keep a global copy?
+		SampleAndHold m_SandH;  // FIXME: shouldn't this be a more autonomous object?
 
 		// FIXME: wouldn't it be wiser, memory access wise, to have local copies of this?
 		//        in that case you could also decide to allocate only the phase objects you need
@@ -157,10 +158,16 @@ namespace SFM
 		SFM_INLINE unsigned GetSampleRate()  const { return m_phases[0].GetSampleRate(); }
 		SFM_INLINE float    GetPhase()       const { return m_phases[0].Get();           }
 
-		SFM_INLINE Phase &GetPhaseObject(unsigned iPhase = 0)
+		SFM_INLINE Phase &GetPhase(unsigned iPhase)
 		{
 			SFM_ASSERT(iPhase < kNumPolySupersaws);
 			return m_phases[iPhase];
+		}
+		
+		// To update parameter(s)
+		SFM_INLINE SampleAndHold &GetSandH()
+		{
+			return m_SandH;
 		}
 
 		SFM_INLINE Waveform GetWaveform() const 

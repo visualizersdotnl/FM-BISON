@@ -104,7 +104,7 @@ namespace SFM
 			/* S&H (LFO, band-limited) */
 
 			case kSampleAndHold:
-				signal = m_SandH.Sample(modulated, GetFrequency(), polyWidth);
+				signal = m_SandH.Sample(modulated, GetFrequency());
 				break;
 
 			/* Not band-limited (LFO) */

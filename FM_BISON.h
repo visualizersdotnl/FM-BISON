@@ -277,6 +277,7 @@ namespace SFM
 		{
 			float freqLFO;
 			
+			// Filter setup
 			SvfLinearTrapOptimised2::FLT_TYPE filterType1;
 			SvfLinearTrapOptimised2::FLT_TYPE filterType2;
 			bool resetFilter;
@@ -285,6 +286,7 @@ namespace SFM
 			float secondQOffs;
 			float fullCutoff;
 			
+			// Questionable cycle savers (FIXME)
 			float modulationAftertouch;
 			float mainFilterAftertouch;
 		};
@@ -307,7 +309,7 @@ namespace SFM
 		};
 
 		static void VoiceRenderThread(Bison *pInst, VoiceThreadContext *pContext);
-		float RenderVoices(const VoiceRenderParameters &context, const std::vector<unsigned> &voiceIndices, unsigned numSamples, float *pDestL, float *pDestR);
+		float RenderVoices(const VoiceRenderParameters &context, const std::vector<unsigned> &voiceIndices, unsigned numSamples, float *pDestL, float *pDestR) const;
 
 		/*
 			Vars.
@@ -342,6 +344,7 @@ namespace SFM
 		ParameterFilter m_LFORatePF;
 		ParameterFilter m_LFOBiasPF;
 		ParameterFilter m_LFOFMDepthPF;
+		ParameterFilter m_SandHSlewRatePF;
 		ParameterFilter m_cutoffPF, m_resoPF;
 		ParameterFilter m_effectWetPF, m_effectRatePF;
 		ParameterFilter m_delayPF, m_delayWetPF, m_delayFeedbackPF, m_delayFeedbackCutoffPF;

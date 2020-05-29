@@ -80,6 +80,9 @@ namespace SFM
 		bool  LFOKeySync;
 		float modulationOverride; // If non-zero overrides Render() modulation parameter, which is typically the mod. wheel (MIDI)
 
+		// S&H oscillator slew rate
+		float SandHSlewRate;
+
 		// BPM sync. mode (LFO, chorus/phaser, delay, ...)
 		bool beatSync;
 		float beatSyncRatio; // See kBeatSyncRatios
@@ -213,6 +216,9 @@ namespace SFM
 			LFORate = 0.f;                   // Zero Hz
 			LFOKeySync = false;              // No key sync.
 			modulationOverride = 0.f;        // Wheel input
+
+			// S&H: default slew rate
+			SandHSlewRate = kDefSandHSlewRate;
 
 			// BPM sync.
 			beatSync = false;

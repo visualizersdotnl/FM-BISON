@@ -54,7 +54,7 @@ namespace SFM
 		return m_feedback;
 	}
 
-	SFM_INLINE float GetValue() const 
+	SFM_INLINE float Get() const 
 	{
 		return m_feedback;
 	}
@@ -99,7 +99,7 @@ namespace SFM
 		return m_feedback;
 	}
 
-	SFM_INLINE float GetValue() const 
+	SFM_INLINE float Get() const 
 	{
 		return m_feedback;
 	}

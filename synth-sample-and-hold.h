@@ -39,11 +39,8 @@ namespace SFM
 
 		~SampleAndHold() {}
 
-		float Sample(float phase, float frequency, float polyWidth /* For band-limited signal osc. */)
+		float Sample(float phase, float frequency)
 		{
-			// FIXME 
-			juce::ignoreUnused(polyWidth);
-
 			const float curGate = oscSquare(phase);
 
 			if (m_prevGate != curGate)
@@ -56,7 +53,9 @@ namespace SFM
 				frequency *= powf(2.f, (freqJitter*0.01f)/12.f);
 				m_sigPhase.SetFrequency(frequency);
 				
-				// Sample current signal (to hold)
+				// Update slew rate and set signal to hold as new target
+				const float curSignal = m_curSignal.Get();
+				m_curSignal.SetRate(m_sampleRate, m_slewRate);
 				m_curSignal.SetTarget(oscSine(m_sigPhase.Sample()));
 			}
 			else
@@ -64,7 +63,7 @@ namespace SFM
 
 			m_prevGate = curGate;
 
-			return m_curSignal.Sample(); // Slew towards current
+			return m_curSignal.Sample(); // Slew towards target signal
 		}
 
 		void SetSlewRate(float rate)
@@ -77,8 +76,8 @@ namespace SFM
 		// Parameters
 		/* const */ unsigned m_sampleRate;
 
-		float m_freqJitter = 1.f;               // Not parametrized; default behaviour sounds fine for now
-		float m_slewRate   = kDefSandHSlewRate; // Parametrized
+		float m_freqJitter = 1.f; // Not parametrized; default behaviour sounds fine for now
+		float m_slewRate   = kDefSandHSlewRate;
 
 		// State
 		Phase m_sigPhase;

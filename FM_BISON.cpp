@@ -143,21 +143,23 @@ namespace SFM
 			Reset parameter filters; they reduce automation/MIDI noise (by a default cut Hz, mostly)
 
 			They're kept in this class since they are pretty VST-specific and might need tweaking or another target such as 
-			embedded hardware. 
+			embedded hardware. All that aside it's not very pretty either.
 			
 			They can also be turned off completely (see top of synth-global.h)
 		*/
 
 		// Global
-		m_LFORatePF             = { m_sampleRate, kDefParameterFilterCutHz * 0.5f /* Slower */ };
-		m_LFOBiasPF             = { m_sampleRate, kDefParameterFilterCutHz * 0.5f /* Slower */ };
-		m_LFOFMDepthPF          = { m_sampleRate, kDefParameterFilterCutHz * 0.5f /* Slower */ };
+		m_LFORatePF             = { m_sampleRate, kDefParameterFilterCutHz };
+		m_LFOBiasPF             = { m_sampleRate, kDefParameterFilterCutHz };
+		m_LFOFMDepthPF          = { m_sampleRate, kDefParameterFilterCutHz };
+		m_SandHSlewRatePF       = { m_sampleRate, kDefParameterFilterCutHz };
 		m_cutoffPF              = { m_sampleRate };
 		m_resoPF                = { m_sampleRate };
 
 		m_LFORatePF.Reset(freqLFO);
 		m_LFOBiasPF.Reset(m_patch.LFOBias);
 		m_LFOFMDepthPF.Reset(m_patch.LFOFMDepth);
+		m_SandHSlewRatePF.Reset(m_patch.SandHSlewRate);
 		m_cutoffPF.Reset(m_patch.cutoff);
 		m_resoPF.Reset(m_patch.resonance);
 
@@ -744,7 +746,7 @@ namespace SFM
 		voice.m_LFO2.Initialize(m_patch.LFOWaveform2, globalFreq, m_sampleRate, phaseAdj);
 
 		voice.m_subLFO.Initialize(m_patch.LFOWaveform3, globalFreq/kLFOSubOscFreqDiv, m_sampleRate, phaseAdj);
-		voice.m_subLFO.GetPhaseObject().SyncTo(globalFreq);
+		voice.m_subLFO.GetPhase(0).SyncTo(globalFreq);
 	}
 	
 	// Initialize new voice
@@ -1477,7 +1479,11 @@ namespace SFM
 
 	/* ----------------------------------------------------------------------------------------------------
 
-		Voice rendering (ready to run in a thread).
+		Voice render.
+
+		This function was lifted straight out of Render() so it has a few dependencies on class members
+		instead of just the context(s). I've made the function constant as a precaution but it's not
+		unthinkable that something slips through the cracks. If you spot anything please clean it up ASAP.
 
 	 ------------------------------------------------------------------------------------------------------ */
 
@@ -1490,9 +1496,9 @@ namespace SFM
 
 	// Renders a set of voices
 	// - Returns accumulated velocity
-	// - Uses variables supplied through a context, but also ones prepared in Render(), they're all read-only
+	// - Stick to variables supplied through a context *or* make very sure you read only!
 	// - Assumes that each voice is active
-	float Bison::RenderVoices(const VoiceRenderParameters &context, const std::vector<unsigned> &voiceIndices, unsigned numSamples, float *pDestL, float *pDestR)
+	float Bison::RenderVoices(const VoiceRenderParameters &context, const std::vector<unsigned> &voiceIndices, unsigned numSamples, float *pDestL, float *pDestR) const
 	{
 		SFM_ASSERT(nullptr != pDestL && nullptr != pDestR);
 
@@ -1500,7 +1506,7 @@ namespace SFM
 
 		for (auto iVoice : voiceIndices)
 		{
-			Voice &voice = m_voices[iVoice];
+			Voice &voice = const_cast<Voice&>(m_voices[iVoice]);
 			SFM_ASSERT(false == voice.IsIdle());
 
 			// Global per-voice gain
@@ -1511,7 +1517,13 @@ namespace SFM
 			voice.m_LFO1.SetFrequency(freqLFO);
 			voice.m_LFO2.SetFrequency(freqLFO);
 			voice.m_subLFO.SetFrequency(freqLFO/kLFOSubOscFreqDiv);
-			voice.m_subLFO.GetPhaseObject().SyncTo(freqLFO);
+			voice.m_subLFO.GetPhase(0).SyncTo(freqLFO);
+			
+			// Update LFO S&H slew rates (must be a prettier way to do this, FIXME)
+			const float slewRate = m_SandHSlewRatePF.Get();
+			voice.m_LFO1.GetSandH().SetSlewRate(slewRate);
+			voice.m_LFO2.GetSandH().SetSlewRate(slewRate);
+			voice.m_subLFO.GetSandH().SetSlewRate(slewRate);
 
 			// Global amp. allows use to fade the voice in and out within this frame
 			InterpolatedParameter<kLinInterpolate> globalAmp(1.f, std::min<unsigned>(128, numSamples));
@@ -1576,8 +1588,8 @@ namespace SFM
 					powf(2.f, curPitchBend.Sample()*(m_patch.pitchBendRange/12.f)),
 					curAmpBend.Sample()+1.f, // [0.0..2.0]
 					sampMod,
-					m_LFOBiasPF.Apply(m_patch.LFOBias), 
-					m_LFOFMDepthPF.Apply(m_patch.LFOFMDepth));
+					m_LFOBiasPF.Get(), 
+					m_LFOFMDepthPF.Get());
 
 				// Sample filter envelope
 				float filterEnv = filterEG.Sample();
@@ -1695,7 +1707,7 @@ namespace SFM
 			// None: interpret this as a cue to use user controlled rate(s)
 			m_freqBPM = 0.f;
 
-		// Set LFO freq.
+		// Calculate LFO freq.
 		float freqLFO = 0.f;
 
 		if (false == m_patch.beatSync || m_freqBPM == 0.f)
@@ -1721,6 +1733,11 @@ namespace SFM
 				m_LFORatePF.Reset(freqLFO); // Reset ParameterFilter
 			}
 		}
+		
+		// Filter a few LFO (related) parameters
+		m_LFOBiasPF.Apply(m_patch.LFOBias);
+		m_LFOFMDepthPF.Apply(m_patch.LFOFMDepth);
+		m_SandHSlewRatePF.Apply(m_patch.SandHSlewRate);
 
 		// Update voice logic (pre)
 		UpdateVoicesPreRender(numSamples);

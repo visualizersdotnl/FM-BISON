@@ -95,13 +95,13 @@ namespace SFM
 			m_value.skip(numSamples);
 		}
 
-		// Change ramp time adj. for rate
+		// Set rate in seconds (resets to target value)
 		SFM_INLINE void SetRate(unsigned sampleRate, float time)
 		{
 			m_value.reset(double(sampleRate), double(time));
 		}
 		
-		// Change ramp in samples
+		// Set rate in samples (resets to target value)
 		SFM_INLINE void SetRate(unsigned numSamples)
 		{
 			m_value.reset(numSamples);
