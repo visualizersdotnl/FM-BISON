@@ -163,7 +163,7 @@ namespace SFM
 	SFM_INLINE static float CutoffToHz(float cutoff, unsigned Nyquist, float minCutoff = 16.f /* For SVF */)
 	{
 		// Allowed according to SVF header: [16.0..Nyquist]
-		const unsigned maxCutoff = std::min<unsigned>(Nyquist, unsigned(kAudibleHighHz));
+		const unsigned maxCutoff = Nyquist;
 		SFM_ASSERT(cutoff >= 0.f && cutoff <= 1.f);
 		return minCutoff + cutoff*(maxCutoff-minCutoff);
 	}

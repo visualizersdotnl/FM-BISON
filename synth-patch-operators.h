@@ -75,7 +75,8 @@ namespace SFM
 			unsigned modulators[3], feedback;
 
 			// Frequency settings
-			int   coarse;   // Ratio mode: integer ratio (-1 = /2, 2 = *2, et cetera, but *never* zero!) / Fixed mode: any positive integer frequency
+			int   coarse;   // Ratio mode: integer ratio (-1 = /2, 2 = *2 et cetera, 0 is interpreted as 1) 
+			                // Fixed mode: any positive integer frequency
 			int     fine;   // Semitones
 			float detune;   // Cents
 

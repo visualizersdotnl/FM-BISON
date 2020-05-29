@@ -522,6 +522,8 @@ namespace SFM
 		There's a separate init. function for the monophonic voice; this means quite some code is 
 		duplicated in favour of keeping the core logic for polyphonic and monophonic separated.
 
+		Some of the helper functions on top can possibly be moved elsewhere? (FIXME)
+
 	 ------------------------------------------------------------------------------------------------------ */
 
 	SFM_INLINE static float CalcKeyTracking(unsigned key, const PatchOperators::Operator &patchOp)
@@ -621,7 +623,6 @@ namespace SFM
 			const float detune = patchOp.detune + detuneOffs; // Cents
 
 			SFM_ASSERT(coarse >= kCoarseMin && coarse <= kCoarseMax);
-			SFM_ASSERT(coarse != 0);
 			SFM_ASSERT(abs(fine) <= kFineRange);
 			SFM_ASSERT(abs(detune) <= kDetuneRange);
 			
@@ -631,10 +632,8 @@ namespace SFM
 
 			if (coarse < 0)
 				frequency /= abs(coarse-1);
-			else if (coarse > 0)
+			else if (coarse > 1)
 				frequency *= coarse;
-			else
-				SFM_ASSERT(false); // Coarse may *never* be zero!
 			
 			frequency *= powf(2.f, fine/12.f);
 		}
