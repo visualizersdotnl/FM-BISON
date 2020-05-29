@@ -255,10 +255,22 @@ namespace SFM
 				// Calculate panning
 				float panning = voiceOp.panning.Sample();
 				const float panMod = voiceOp.panMod;
-				if (0.f != panMod)
+				if (0.f != panMod && modulation > 0.f)
 				{
-					const float modulated = LFO*panMod*0.5f + 0.5f; // [0..1]
-					panning = lerpf<float>(panning, modulated, modulation); // FIXME: user panning as *real* bias
+					float modPanning = LFO*panMod*modulation*0.5f + 0.5f;
+
+					if (panning < 0.5f)		
+					{
+						// Left bias
+						modPanning = std::max<float>(0.f, modPanning - (0.5f-panning));
+					}
+					else if (panning > 0.5f)
+					{
+						// Right bias
+						modPanning = std::min<float>(1.f, modPanning + (panning-0.5f)); 
+					}
+
+					panning = modPanning;
 				}
 
 				// If carrier, mix (chose not to branch on purpose, though it'll probably won't matter or just a little)
