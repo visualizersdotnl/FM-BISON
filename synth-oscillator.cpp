@@ -32,7 +32,7 @@ namespace SFM
 		const float phase = m_phases[0].Sample();
 
 		// FIXME: try to skip fmodf() if certain conditions are met
-		const float modulated = fabsf(fmodf(phase+phaseShift, 1.f));
+		const float modulated = fmodf(phase+phaseShift, 1.f);
 
 		// Ratio to adjust PolyBLEP width
 		const auto sampleRate      = GetSampleRate();

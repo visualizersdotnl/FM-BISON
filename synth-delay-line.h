@@ -70,14 +70,14 @@ namespace SFM
 			++m_writeIdx;
 		}
 
-		// For filtered feedback path
+		// For filtered feedback path (call after Write())
 		SFM_INLINE void WriteFeedback(float sample, float feedback)
 		{
+			SFM_ASSERT(feedback >= 0.f && feedback <= 1.f);
 			const unsigned index = (m_writeIdx-1) % m_curSize;
 			sample = sample*feedback;
 			m_feedbackLPF.tickMono(sample);
 			m_buffer[index] += sample;
-//			++m_writeIdx;
 		}
 
 		// Delay is specified in samples relative to sample rate

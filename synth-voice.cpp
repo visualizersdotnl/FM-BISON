@@ -137,7 +137,7 @@ namespace SFM
 		SFM_ASSERT(LFOBias >= 0.f && LFOBias <= 1.f);
 		SFM_ASSERT(LFOFMDepth >= 0.f);
 		
-		// Calculate current LFO value
+		// Calculate LFO
 		const float modLFO = LFOFMDepth + LFOFMDepth*m_modLFO.Sample(0.f);
 		const float LFO1   = m_LFO1.Sample(modLFO);
 		const float LFO2   = m_LFO2.Sample(modLFO);
@@ -179,7 +179,7 @@ namespace SFM
 					// Add sample to phase
 					// If modulator or modulator operator is disabled it's zero
 					const float sample = opSample[iModulator+1];
-					phaseShift += 1.f+sample; // [0..2]
+					phaseShift += 1.f+sample;
 				}
 
 				const float feedbackAmt = kFeedbackScale*voiceOp.feedbackAmt.Sample();
@@ -212,7 +212,8 @@ namespace SFM
 				sample = lerpf<float>(sample, sample*tremolo, modulation);
 
 				// Apply amplitude (or 'index')
-				sample *= voiceOp.amplitude.Sample();
+				const float amplitude = voiceOp.amplitude.Sample();
+				sample *= amplitude;
 
 				// Apply envelope
 				const float envelope = voiceOp.envelope.Sample();
