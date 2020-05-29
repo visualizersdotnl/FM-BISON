@@ -32,8 +32,7 @@ namespace SFM
 		const float phase = m_phases[0].Sample();
 
 		// FIXME: try to skip fmodf() if certain conditions are met
-		SFM_ASSERT(phaseMod >= 0.f && phaseShift >= 0.f);
-		const float modulated = fmodf((phase+phaseShift) * phaseMod, 1.f);
+		const float modulated = fabsf(fmodf((phase+phaseShift) * phaseMod, 1.f));
 
 		// Ratio to adjust PolyBLEP width
 		const auto sampleRate      = GetSampleRate();
@@ -101,10 +100,10 @@ namespace SFM
 				signal = m_pinkOsc.Sample();
 				break;
 
-			/* S&H (LFO, band-limited) */
+			/* S&H (LFO) */
 
 			case kSampleAndHold:
-				signal = m_SandH.Sample(modulated, GetFrequency());
+				signal = m_SandH.Sample(modulated);
 				break;
 
 			/* Not band-limited (LFO) */

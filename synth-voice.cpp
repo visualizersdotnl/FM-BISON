@@ -163,11 +163,8 @@ namespace SFM
 			{
 				// Set base freq.
 				auto &oscillator = voiceOp.oscillator;
-				
-				const float prevFreq = voiceOp.curFreq.Get();
-				const float curFreq  = voiceOp.curFreq.Sample();
-				if (prevFreq != curFreq)
-					oscillator.SetFrequency(curFreq);
+				const float curFreq = voiceOp.curFreq.Sample();
+				oscillator.SetFrequency(curFreq);
 
 				// Get modulation from max. 3 sources
 				float phaseShift = 0.f;
@@ -182,7 +179,7 @@ namespace SFM
 					// Add sample to phase
 					// If modulator or modulator operator is disabled it's zero
 					const float sample = opSample[iModulator+1];
-					phaseShift += sample + 1.f; // [0..2]
+					phaseShift += sample;
 				}
 
 				const float feedbackAmt = kFeedbackScale*voiceOp.feedbackAmt.Sample();
