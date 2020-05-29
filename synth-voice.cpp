@@ -138,9 +138,9 @@ namespace SFM
 		SFM_ASSERT(LFOFMDepth >= 0.f);
 		
 		// Calculate current LFO value
-		const float subLFO = 0.5f * (0.5f * LFOFMDepth * m_subLFO.Sample(modulation)); // Max. [-0.25..0.25]
-		const float LFO1   = m_LFO1.Sample(0.5f + subLFO);
-		const float LFO2   = m_LFO2.Sample(0.5f + subLFO);
+		const float subLFO = LFOFMDepth * m_subLFO.Sample(0.f);
+		const float LFO1   = m_LFO1.Sample(subLFO);
+		const float LFO2   = m_LFO2.Sample(subLFO);
 		const float biased = lerpf<float>(LFO1, LFO2, LFOBias);
 		const float LFO    = Clamp(biased);
 

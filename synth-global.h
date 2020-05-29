@@ -178,12 +178,7 @@ namespace SFM
 	constexpr float kMaxSandHSlewRate =  0.02f;  // 20MS
 	constexpr float kDefSandHSlewRate = 0.005f;  //  5MS
 
-	// Duty cycle parameters for S&H
-	constexpr float kMinSandHDutyCycle =  0.1f;
-	constexpr float kMaxSandHDutyCycle =  0.9f;
-	constexpr float kDefSandHDutyCycle = 0.25f;
-
-	// Reverb width range & default (FIXME: odd range, no?)
+	// Reverb width range & default
 	constexpr float kMinReverbWidth = 0.f;
 	constexpr float kMaxReverbWidth = 2.f;
 	constexpr float kDefReverbWidth = 0.5f;
@@ -238,7 +233,7 @@ namespace SFM
 
 	// Default LFO bias (center) & sub-oscillator freq. div.
 	constexpr float kDefLFOBias = 0.5f;
-	constexpr float kLFOSubOscFreqDiv = 2.f;
+	constexpr float kLFOSubOscFreqDiv = 4.f;
 };
 
 #include "synth-random.h"

@@ -347,7 +347,6 @@ namespace SFM
 		ParameterFilter m_LFOBiasPF;
 		ParameterFilter m_LFOFMDepthPF;
 		ParameterFilter m_SandHSlewRatePF;
-		ParameterFilter m_SandHDutyCyclePF;
 		ParameterFilter m_cutoffPF, m_resoPF;
 		ParameterFilter m_effectWetPF, m_effectRatePF;
 		ParameterFilter m_delayPF, m_delayWetPF, m_delayFeedbackPF, m_delayFeedbackCutoffPF;

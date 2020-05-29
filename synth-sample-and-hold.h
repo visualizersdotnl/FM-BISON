@@ -30,8 +30,9 @@ namespace SFM
 		float Sample(float phase, float input)
 		{
 			const float curGate = oscPulse(phase, m_dutyCycle);
-
-			if (1.f == curGate && m_prevGate != curGate)
+			
+			// Unorthodox: both ends are a trigger
+			if (m_prevGate != curGate)
 			{
 				// Update slew rate and set signal to hold as new target
 				const float curSignal = m_curSignal.Get();
@@ -68,7 +69,7 @@ namespace SFM
 		/* const */ unsigned m_sampleRate;
 
 		float m_slewRate  = kDefSandHSlewRate;
-		float m_dutyCycle = kDefSandHDutyCycle;
+		float m_dutyCycle = 0.25f; // Simply sounds the best!
 
 		// State
 		float m_prevGate = 0.f;

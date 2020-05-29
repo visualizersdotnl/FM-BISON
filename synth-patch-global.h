@@ -41,7 +41,7 @@ namespace SFM
 	{
 			Oscillator::Waveform::kSine, 
 			Oscillator::Waveform::kStatic,
-			Oscillator::Waveform::kTriangle,
+			Oscillator::Waveform::kPolyTriangle,
 			Oscillator::Waveform::kPolySaw, // Cheat: should be a ramp!
 			Oscillator::Waveform::kPolySquare,
 			Oscillator::Waveform::kSampleAndHold
@@ -79,9 +79,8 @@ namespace SFM
 		bool  LFOKeySync;
 		float modulationOverride; // If non-zero overrides Render() modulation parameter, which is typically the mod. wheel (MIDI)
 
-		// S&H slew rate & duty cycle
+		// S&H
 		float SandHSlewRate;
-		float SandHDutyCycle;
 
 		// BPM sync. mode (LFO, chorus/phaser, delay, ...)
 		bool beatSync;
@@ -217,9 +216,8 @@ namespace SFM
 			LFOKeySync = false;              // No key sync.
 			modulationOverride = 0.f;        // Wheel input
 
-			// S&H defaults
+			// S&H default(s)
 			SandHSlewRate  = kDefSandHSlewRate;
-			SandHDutyCycle = kDefSandHDutyCycle;
 
 			// BPM sync.
 			beatSync = false;

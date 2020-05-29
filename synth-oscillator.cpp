@@ -9,7 +9,7 @@
 
 namespace SFM
 {
-	const float kPolyWidthAt44100Hz = 1.f;
+	const float kPolyWidthAt44100Hz = 1.3f;
 
 	// Called *once* by Bison::Bison()
 	/* static */ void Oscillator::CalculateSupersawDetuneTable()

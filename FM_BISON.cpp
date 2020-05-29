@@ -155,7 +155,6 @@ namespace SFM
 		m_LFOBiasPF             = { m_sampleRate };
 		m_LFOFMDepthPF          = { m_sampleRate };
 		m_SandHSlewRatePF       = { m_sampleRate };
-		m_SandHDutyCyclePF      = { m_sampleRate };
 		m_cutoffPF              = { m_sampleRate };
 		m_resoPF                = { m_sampleRate };
 
@@ -163,7 +162,6 @@ namespace SFM
 		m_LFOBiasPF.Reset(m_patch.LFOBias);
 		m_LFOFMDepthPF.Reset(m_patch.LFOFMDepth);
 		m_SandHSlewRatePF.Reset(m_patch.SandHSlewRate);
-		m_SandHDutyCyclePF.Reset(m_patch.SandHDutyCycle);
 		m_cutoffPF.Reset(m_patch.cutoff);
 		m_resoPF.Reset(m_patch.resonance);
 
@@ -747,9 +745,7 @@ namespace SFM
 		const float globalFreq = m_globalLFO->GetFrequency();
 		voice.m_LFO1.Initialize(m_patch.LFOWaveform1, globalFreq, m_sampleRate, phaseAdj);
 		voice.m_LFO2.Initialize(m_patch.LFOWaveform2, globalFreq, m_sampleRate, phaseAdj);
-
 		voice.m_subLFO.Initialize(m_patch.LFOWaveform3, globalFreq/kLFOSubOscFreqDiv, m_sampleRate, phaseAdj);
-		voice.m_subLFO.SetHardSync(globalFreq);
 	}
 	
 	// Initialize new voice
@@ -1522,18 +1518,12 @@ namespace SFM
 			voice.m_LFO1.SetFrequency(freqLFO);
 			voice.m_LFO2.SetFrequency(freqLFO);
 			voice.m_subLFO.SetFrequency(freqLFO/kLFOSubOscFreqDiv);
-			voice.m_subLFO.SetHardSync(freqLFO);
 			
 			// Update LFO S&H parameters
 			const float slewRate = m_SandHSlewRatePF.Get();
 			voice.m_LFO1.SetSampleAndHoldSlewRate(slewRate);
 			voice.m_LFO2.SetSampleAndHoldSlewRate(slewRate);
 			voice.m_subLFO.SetSampleAndHoldSlewRate(slewRate);
-
-			const float dutyCycle = m_SandHDutyCyclePF.Get();
-			voice.m_LFO1.SetSampleAndHoldDutyCycle(dutyCycle);
-			voice.m_LFO2.SetSampleAndHoldDutyCycle(dutyCycle);
-			voice.m_subLFO.SetSampleAndHoldDutyCycle(dutyCycle);
 
 			// Global amp. allows use to fade the voice in and out within this frame
 			InterpolatedParameter<kLinInterpolate> globalAmp(1.f, std::min<unsigned>(128, numSamples));
@@ -1748,7 +1738,6 @@ namespace SFM
 		m_LFOBiasPF.Apply(m_patch.LFOBias);
 		m_LFOFMDepthPF.Apply(m_patch.LFOFMDepth);
 		m_SandHSlewRatePF.Apply(m_patch.SandHSlewRate);
-		m_SandHDutyCyclePF.Apply(m_patch.SandHDutyCycle);
 
 		// Update voice logic (pre)
 		UpdateVoicesPreRender(numSamples);
