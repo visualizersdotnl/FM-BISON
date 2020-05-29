@@ -29,7 +29,7 @@ namespace SFM
 		{
 			const float curGate = oscPulse(phase, m_dutyCycle);
 
-			if (m_prevGate != curGate)
+			if (1.f == curGate && m_prevGate != curGate)
 			{
 				// Update slew rate and set signal to hold as new target
 				const float curSignal = m_curSignal.Get();

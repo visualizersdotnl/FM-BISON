@@ -179,9 +179,9 @@ namespace SFM
 	constexpr float kDefSandHSlewRate = 0.005f;  //  5MS
 
 	// Duty cycle parameters for S&H
-	constexpr float kMinSandHDutyCycle = 0.1f;
-	constexpr float kMaxSandHDutyCycle = 0.9f;
-	constexpr float kDefSandHDutyCycle = 0.9f;
+	constexpr float kMinSandHDutyCycle =  0.1f;
+	constexpr float kMaxSandHDutyCycle =  0.9f;
+	constexpr float kDefSandHDutyCycle = 0.25f;
 
 	// Reverb width range & default (FIXME: odd range, no?)
 	constexpr float kMinReverbWidth = 0.f;

@@ -41,9 +41,9 @@ namespace SFM
 	{
 			Oscillator::Waveform::kSine, 
 			Oscillator::Waveform::kStatic,
-			Oscillator::Waveform::kRamp,			
-			Oscillator::Waveform::kSaw,
-			Oscillator::Waveform::kSquare,
+			Oscillator::Waveform::kTriangle,
+			Oscillator::Waveform::kPolySaw, // Cheat: should be a ramp!
+			Oscillator::Waveform::kPolySquare,
 			Oscillator::Waveform::kNoiseSampleAndHold
 	};
 
