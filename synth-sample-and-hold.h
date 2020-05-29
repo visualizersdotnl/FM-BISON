@@ -1,17 +1,11 @@
 
 /*
-	FM. BISON hybrid FM synthesis -- Basic S&H oscillator (LFO).
+	FM. BISON hybrid FM synthesis -- S&H oscillator (or rather a filter).
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	This is a simple implementation that utilizes a little bit of white noise and an oscillator (band-limited) 
-	to generate a LFO S&H oscillator.
-
 	FIXME:
-	- Currently not suitable for high frequencies; can be made so by feeding a *much* lower (LFO range) gate signal.
-	- Along with the above it would be nice to detach this class from Oscillator in full.
-
-	For now this will do just fine (29/05/2020).
+	- Tighter integration with Oscillator
 */
 
 #pragma once
@@ -35,7 +29,7 @@ namespace SFM
 
 		~SampleAndHold() {}
 
-		float Sample(float phase)
+		float Sample(float phase, float input)
 		{
 			const float curGate = oscSquare(phase);
 
@@ -44,7 +38,7 @@ namespace SFM
 				// Update slew rate and set signal to hold as new target
 				const float curSignal = m_curSignal.Get();
 				m_curSignal.SetRate(m_sampleRate, m_slewRate);
-				m_curSignal.SetTarget(mt_randfc());
+				m_curSignal.SetTarget(input);
 			}
 
 			m_prevGate = curGate;

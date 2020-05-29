@@ -100,13 +100,11 @@ namespace SFM
 				signal = m_pinkOsc.Sample();
 				break;
 
-			/* S&H (LFO) */
-
-			case kSampleAndHold:
-				signal = m_SandH.Sample(modulated);
-				break;
-
 			/* Not band-limited (LFO) */
+
+			case kNoiseSampleAndHold:
+				signal = m_SandH.Sample(modulated, oscWhiteNoise());
+				break;
 
 			case kRamp:
 				signal = oscRamp(modulated);

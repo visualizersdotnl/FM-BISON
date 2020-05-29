@@ -45,7 +45,7 @@ namespace SFM
 			Oscillator::Waveform::kPolyTriangle,			
 			Oscillator::Waveform::kPolySaw,
 			Oscillator::Waveform::kPolySquare,
-			Oscillator::Waveform::kSampleAndHold
+			Oscillator::Waveform::kNoiseSampleAndHold
 	};
 
 	struct Patch

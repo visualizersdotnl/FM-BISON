@@ -67,8 +67,8 @@ namespace SFM
 			kWhiteNoise,
 			kPinkNoise,
 
-			// S&H (LFO)
-			kSampleAndHold
+			// LFO S&H
+			kNoiseSampleAndHold
 		};
 
 		// Called once by Bison::Bison()
@@ -98,8 +98,8 @@ namespace SFM
 			m_form = form;
 			m_phases[0].Initialize(frequency, sampleRate, phaseShift);
 			
-			if (kSampleAndHold == form)
-				m_SandH = SampleAndHold(sampleRate);
+			m_pinkOsc = PinkNoise();
+			m_SandH   = SampleAndHold(sampleRate);
 			
 			if (kPolySupersaw == m_form)
 			{
@@ -153,27 +153,24 @@ namespace SFM
 				}
 			}
 		}
+
+		SFM_INLINE void SetSampleAndHoldSlewRate(float rate)
+		{
+			m_SandH.SetSlewRate(rate);
+		}
+
+		SFM_INLINE void SetHardSync(float frequency)
+		{
+			// Not intended for this particular oscillator (special case)
+			SFM_ASSERT(kPolySupersaw != m_form);
+
+			m_phases[0].SyncTo(frequency);
+		}
 		
 		SFM_INLINE float    GetFrequency()   const { return m_phases[0].GetFrequency();  }
 		SFM_INLINE unsigned GetSampleRate()  const { return m_phases[0].GetSampleRate(); }
 		SFM_INLINE float    GetPhase()       const { return m_phases[0].Get();           }
-
-		SFM_INLINE Phase &GetPhase(unsigned iPhase)
-		{
-			SFM_ASSERT(iPhase < kNumPolySupersaws);
-			return m_phases[iPhase];
-		}
-		
-		// To update parameter(s)
-		SFM_INLINE SampleAndHold &GetSandH()
-		{
-			return m_SandH;
-		}
-
-		SFM_INLINE Waveform GetWaveform() const 
-		{ 
-			return m_form; 
-		}
+		SFM_INLINE Waveform GetWaveform()    const { return m_form;                      }
 
 		float Sample(float phaseShift, float phaseMod = 1.f);
 	};

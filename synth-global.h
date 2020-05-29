@@ -173,7 +173,7 @@ namespace SFM
 	constexpr float kDefPolyFreqGlide = 0.1f;   //  100MS
 	constexpr float kDefMonoGlideAtt = 0.33f;   // [0..1], the larger the punchier
 	
-	// Slew parameters for S&H oscillator (LFO)
+	// Slew parameters for S&H oscillator
 	constexpr float kMinSandHSlewRate = 0.001f;  //  1MS
 	constexpr float kMaxSandHSlewRate =  0.02f;  // 20MS
 	constexpr float kDefSandHSlewRate = 0.005f;  //  5MS
