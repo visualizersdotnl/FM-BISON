@@ -51,6 +51,7 @@ namespace SFM
 			SFM_ASSERT(rate >= kMinSandHSlewRate && rate <= kMaxSandHSlewRate)
 			m_slewRate = rate;
 		}
+
 		void Reset()
 		{
 			m_prevGate = -1.f;
