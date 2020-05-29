@@ -107,6 +107,12 @@ namespace SFM
 			m_value.reset(numSamples);
 		}
 
+		// Is no longer interpolating
+		SFM_INLINE bool IsDone()
+		{
+			return false == m_value.isSmoothing();
+		}
+
 	private:
 		SmoothedValue<float, T> m_value;
 	};

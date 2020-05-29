@@ -32,7 +32,7 @@ namespace SFM
 	public:
 		SampleAndHold(unsigned sampleRate) :
 			m_sampleRate(sampleRate)
-,			m_curSignal(0.f, sampleRate, kDefSHFreqGlide)
+,			m_curSignal(0.f, sampleRate, kDefSandHSlewRate)
 		{
 			m_sigPhase.Initialize(1.f, sampleRate);
 		}
@@ -49,7 +49,7 @@ namespace SFM
 			if (m_prevGate != curGate)
 			{
 				// Adv. phase
-				m_sigPhase.Ticks(m_ticks);
+				m_sigPhase.Skip(m_ticks);
 
 				// Set new (jittered) frequency
 				const float freqJitter = m_freqJitter*mt_randfc()*100.f; // +/- 100 cents
@@ -57,7 +57,6 @@ namespace SFM
 				m_sigPhase.SetFrequency(frequency);
 				
 				// Sample current signal (to hold)
-//				m_curSignal.SetTarget(oscPolyTriangle(m_sigPhase.Sample(), polyWidth));
 				m_curSignal.SetTarget(oscSine(m_sigPhase.Sample()));
 			}
 			else
@@ -65,21 +64,21 @@ namespace SFM
 
 			m_prevGate = curGate;
 
-			return m_curSignal.Sample();
+			return m_curSignal.Sample(); // Slew towards current
 		}
 
-		void SetGlide(float glide)
+		void SetSlewRate(float rate)
 		{
-			SFM_ASSERT(glide >= kMinSHFreqGlide && glide <= kMaxSHFreqGlide)
-			m_freqGlide = glide;
+			SFM_ASSERT(rate >= kMinSandHSlewRate && rate <= kMaxSandHSlewRate)
+			m_slewRate = rate;
 		}
 
 	private:
 		// Parameters
 		/* const */ unsigned m_sampleRate;
 
-		float m_freqJitter = 1.f;             // Not parametrized; default behaviour sounds fine for now
-		float m_freqGlide  = kDefSHFreqGlide; // Parametrized
+		float m_freqJitter = 1.f;               // Not parametrized; default behaviour sounds fine for now
+		float m_slewRate   = kDefSandHSlewRate; // Parametrized
 
 		// State
 		Phase m_sigPhase;

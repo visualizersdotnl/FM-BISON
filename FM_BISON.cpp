@@ -1902,7 +1902,7 @@ namespace SFM
 		UpdateSustain();
 
 		// Advance global LFO phase
-		m_globalLFO->Ticks(numSamples);
+		m_globalLFO->Skip(numSamples);
 
 		// Calculate post-pass filter cutoff freq.
 		const float postNormCutoff = m_postCutoffPF.Apply(m_patch.postCutoff);

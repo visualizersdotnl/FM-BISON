@@ -86,7 +86,7 @@ namespace SFM
 			return curPhase;
 		}
 
-		SFM_INLINE void Ticks(unsigned count)
+		SFM_INLINE void Skip(unsigned count)
 		{
 			m_phase = fmod(m_phase + m_pitch*count, 1.0);
 		}
