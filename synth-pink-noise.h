@@ -14,36 +14,37 @@
 
 namespace SFM
 {
-	class PinkNoiseState
+	class PinkNoise
 	{
 	public:
-		PinkNoiseState()
+		PinkNoise()
 		{
 			for (auto &value : m_pinkCoeffs)
-				value = oscWhiteNoise();
+				value = 0.0;
+		}
+
+		SFM_INLINE float Sample()
+		{
+			const float whiteNoise = mt_randfc();
+
+			// Added an extra zero to each last constant like Kellet suggested
+			m_pinkCoeffs[0] = 0.99886f * m_pinkCoeffs[0] + whiteNoise*0.00555179f;
+			m_pinkCoeffs[1] = 0.99332f * m_pinkCoeffs[1] + whiteNoise*0.00750759f;
+			m_pinkCoeffs[2] = 0.96900f * m_pinkCoeffs[2] + whiteNoise*0.01538520f;
+			m_pinkCoeffs[3] = 0.86650f * m_pinkCoeffs[3] + whiteNoise*0.03104856f;
+			m_pinkCoeffs[4] = 0.55000f * m_pinkCoeffs[4] + whiteNoise*0.05329522f;
+			m_pinkCoeffs[5] = -0.7616f * m_pinkCoeffs[5] - whiteNoise*0.00168980f;
+		
+			const float pink = m_pinkCoeffs[0] + m_pinkCoeffs[1] + m_pinkCoeffs[2] + m_pinkCoeffs[3] + m_pinkCoeffs[4] + m_pinkCoeffs[5] + m_pinkCoeffs[6] + whiteNoise*0.5362f;
+
+			m_pinkCoeffs[6] = whiteNoise * 0.115926f;
+			
+			// FIXME: overshoots [-1..1] every now and then
+			const float sample = float(pink);
+			return sample;
 		}
 		
+	private:
 		float m_pinkCoeffs[7];
 	};
-
-	SFM_INLINE static float oscPinkNoise(PinkNoiseState &state)
-	{
-		const float whiteNoise = oscWhiteNoise();
-
-		// Added an extra zero to each last constant like Kellet suggested
-		state.m_pinkCoeffs[0] = 0.99886f * state.m_pinkCoeffs[0] + whiteNoise*0.00555179f;
-		state.m_pinkCoeffs[1] = 0.99332f * state.m_pinkCoeffs[1] + whiteNoise*0.00750759f;
-		state.m_pinkCoeffs[2] = 0.96900f * state.m_pinkCoeffs[2] + whiteNoise*0.01538520f;
-		state.m_pinkCoeffs[3] = 0.86650f * state.m_pinkCoeffs[3] + whiteNoise*0.03104856f;
-		state.m_pinkCoeffs[4] = 0.55000f * state.m_pinkCoeffs[4] + whiteNoise*0.05329522f;
-		state.m_pinkCoeffs[5] = -0.7616f * state.m_pinkCoeffs[5] - whiteNoise*0.00168980f;
-		
-		// This can be optimized by adding these coefficients as you go (FIXME)
-		const float pink = state.m_pinkCoeffs[0] + state.m_pinkCoeffs[1] + state.m_pinkCoeffs[2] + state.m_pinkCoeffs[3] + state.m_pinkCoeffs[4] + state.m_pinkCoeffs[5] + state.m_pinkCoeffs[6] + whiteNoise*0.5362f;
-
-		state.m_pinkCoeffs[6] = whiteNoise * 0.115926f;
-		
-		// FIXME: at times it over- or undershoots, try double precision?
-		return Clamp(pink);
-	}
 }

@@ -175,6 +175,6 @@ namespace SFM
 
 	SFM_INLINE static float oscWhiteNoise()
 	{
-		return -1.f + mt_randf()*2.f;
+		return mt_randfc();
 	}
 }

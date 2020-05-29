@@ -13,6 +13,7 @@
 #include "synth-global.h"
 // #include "synth-stateless-oscillators.h"
 #include "synth-pink-noise.h"
+#include "synth-sample-and-hold.h"
 #include "synth-phase.h"
 #include "synth-MIDI.h"
 
@@ -64,7 +65,10 @@ namespace SFM
 
 			// Noise
 			kWhiteNoise,
-			kPinkNoise
+			kPinkNoise,
+
+			// S&H (LFO)
+			kSampleAndHold
 		};
 
 		// Called once by Bison::Bison()
@@ -74,14 +78,16 @@ namespace SFM
 		/* const */ Waveform m_form;
 		alignas(16) Phase m_phases[kNumPolySupersaws];
 
-		PinkNoiseState m_pinkState;
+		PinkNoise m_pinkOsc;
+		SampleAndHold m_SandH;
 
 		// FIXME: wouldn't it be wiser, memory access wise, to have local copies of this?
 		//        in that case you could also decide to allocate only the phase objects you need
 		alignas(16) static float s_supersawDetune[kNumPolySupersaws];
 		
 	public:
-		Oscillator(unsigned sampleRate = 1)
+		Oscillator(unsigned sampleRate = 1) :
+			m_SandH(sampleRate)
 		{
 			Initialize(kStatic, 0.f, sampleRate, 0.f);
 		}
@@ -90,6 +96,9 @@ namespace SFM
 		{
 			m_form = form;
 			m_phases[0].Initialize(frequency, sampleRate, phaseShift);
+			
+			if (kSampleAndHold == form)
+				m_SandH = SampleAndHold(sampleRate);
 			
 			if (kPolySupersaw == m_form)
 			{

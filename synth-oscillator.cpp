@@ -41,8 +41,8 @@ namespace SFM
 
 		// PolyBLEP width for (first) oscillator
 		const float polyWidth = CalcPolyWidth(GetFrequency(), sampleRate, polyWidthRatio);
-
-		// Analysis of final assembly shows that this approach neatly inlines the oscillators involved.
+		
+		// This switch statement has never shown up during profiling
 		float signal = 0.f;
 		switch (m_form)
 		{
@@ -94,12 +94,20 @@ namespace SFM
 			case kPolyRectSine:
 				signal = oscPolyRectifiedSine(modulated, polyWidth);
 				break;
+
+			/* Noise */
 				
 			case kPinkNoise:
-				signal = oscPinkNoise(m_pinkState);
+				signal = m_pinkOsc.Sample();
 				break;
 
-			/* Not bandlimited (LFO) */
+			/* S&H (LFO, band-limited) */
+
+			case kSampleAndHold:
+				signal = m_SandH.Sample(modulated, GetFrequency(), polyWidth);
+				break;
+
+			/* Not band-limited (LFO) */
 
 			case kRamp:
 				signal = oscRamp(modulated);

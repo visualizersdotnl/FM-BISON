@@ -1,0 +1,90 @@
+
+/*
+	FM. BISON hybrid FM synthesis -- Basic S&H oscillator (LFO).
+	(C) visualizers.nl & bipolaraudio.nl
+	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
+
+	This is a simple implementation that utilizes a little bit of white noise and an oscillator (band-limited) 
+	to generate a LFO S&H oscillator.
+
+	FIXME:
+	- Does not work (well) with high (read: audible) frequencies; a combination of the glide range and the high
+	  frequency of both the gate signal and the signal itself renders make it sound like a broken bit crusher.
+	  It is however primarily designed as LFO.
+	- It would be nice to detach this class in full from the Oscillator logic; Serum for example has S&H as a
+	  filter. Food for thought.
+
+	For now this will do just fine (29/05/2020).
+*/
+
+#pragma once
+
+#include "synth-global.h"
+#include "synth-stateless-oscillators.h"
+#include "synth-phase.h"
+// #include "synth-one-pole-filters.h"
+#include "synth-interpolated-parameter.h"
+
+namespace SFM
+{
+	class SampleAndHold
+	{
+	public:
+		SampleAndHold(unsigned sampleRate) :
+			m_sampleRate(sampleRate)
+,			m_curSignal(0.f, sampleRate, kDefSHFreqGlide)
+		{
+			m_sigPhase.Initialize(1.f, sampleRate);
+		}
+
+		~SampleAndHold() {}
+
+		float Sample(float phase, float frequency, float polyWidth /* For band-limited signal osc. */)
+		{
+			// FIXME 
+			juce::ignoreUnused(polyWidth);
+
+			const float curGate = oscSquare(phase);
+
+			if (m_prevGate != curGate)
+			{
+				// Adv. phase
+				m_sigPhase.Ticks(m_ticks);
+
+				// Set new (jittered) frequency
+				const float freqJitter = m_freqJitter*mt_randfc()*100.f; // +/- 100 cents
+				frequency *= powf(2.f, (freqJitter*0.01f)/12.f);
+				m_sigPhase.SetFrequency(frequency);
+				
+				// Sample current signal (to hold)
+//				m_curSignal.SetTarget(oscPolyTriangle(m_sigPhase.Sample(), polyWidth));
+				m_curSignal.SetTarget(oscSine(m_sigPhase.Sample()));
+			}
+			else
+				++m_ticks;
+
+			m_prevGate = curGate;
+
+			return m_curSignal.Sample();
+		}
+
+		void SetGlide(float glide)
+		{
+			SFM_ASSERT(glide >= kMinSHFreqGlide && glide <= kMaxSHFreqGlide)
+			m_freqGlide = glide;
+		}
+
+	private:
+		// Parameters
+		/* const */ unsigned m_sampleRate;
+
+		float m_freqJitter = 1.f;             // Not parametrized; default behaviour sounds fine for now
+		float m_freqGlide  = kDefSHFreqGlide; // Parametrized
+
+		// State
+		Phase m_sigPhase;
+		float m_prevGate = 0.f;
+		unsigned m_ticks = 0;
+		InterpolatedParameter<kLinInterpolate> m_curSignal;
+	};
+}

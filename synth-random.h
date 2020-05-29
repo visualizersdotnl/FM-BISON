@@ -26,6 +26,8 @@ namespace SFM
 
 	SFM_INLINE static float mt_randfc()
 	{
-		return -1.f + 2.f*mt_randf();
+		const float value = -1.f + 2.f*mt_randf();
+		SFM_ASSERT(value >= -1.f && value <= 1.f);
+		return value;
 	}
 };

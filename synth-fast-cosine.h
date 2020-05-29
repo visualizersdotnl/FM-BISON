@@ -26,7 +26,6 @@ namespace SFM
 		// Cosine is symmetrical around 0, let's get rid of negative values
 		x = fabs(x); 
 
-		// Convert [0..1] to [1..2]
 		auto phase = 1.0+x;
 
 		const auto phaseAsInt = *reinterpret_cast<unsigned long long *>(&phase);
@@ -49,6 +48,13 @@ namespace SFM
 		return float(left + (right-left)*fractMix);
 	}
 	
-	SFM_INLINE static float fast_sinf(float x) { return fast_cosf(x-0.25f); }
-	SFM_INLINE static float fast_tanf(float x) { return fast_sinf(x)/fast_cosf(x); }
+	SFM_INLINE static float fast_sinf(float x) 
+	{ 
+		return fast_cosf(x-0.25f); 
+	}
+
+	SFM_INLINE static float fast_tanf(float x) 
+	{ 
+		return fast_sinf(x)/fast_cosf(x); 
+	}
 };

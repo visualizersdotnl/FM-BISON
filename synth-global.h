@@ -168,10 +168,15 @@ namespace SFM
 	constexpr int kVolumeRangedB = kMaxVolumedB-kMinVolumedB;
 
 	// (Monophonic) frequency glide (in seconds)
-	constexpr float kMaxFreqGlide = 1.f;        // 1000ms
-	constexpr float kDefMonoFreqGlide = 0.066f; //   66ms
-	constexpr float kDefPolyFreqGlide = 0.1f;   //  100ms
+	constexpr float kMaxFreqGlide = 1.f;        // 1000MS
+	constexpr float kDefMonoFreqGlide = 0.066f; //   66MS
+	constexpr float kDefPolyFreqGlide = 0.1f;   //  100MS
 	constexpr float kDefMonoGlideAtt = 0.33f;   // [0..1], the larger the punchier
+	
+	// Glide parameters (or slew if you will) for sample & hold oscillator
+	constexpr float kMinSHFreqGlide = 0.01f;  //  10MS
+	constexpr float kMaxSHFreqGlide = 0.5f;   // 500MS
+	constexpr float kDefSHFreqGlide = 0.05f;  //  50MS
 
 	// Reverb width range & default (FIXME: odd range, no?)
 	constexpr float kMinReverbWidth = 0.f;
@@ -179,8 +184,8 @@ namespace SFM
 	constexpr float kDefReverbWidth = 0.5f;
 
 	// Reverb pre-delay line max. size
-	constexpr float kReverbPreDelayMax = 0.5f;   // 500ms
-	constexpr float kDefReverbPreDelay = 0.001f; //  10ms
+	constexpr float kReverbPreDelayMax = 0.5f;   // 500MS
+	constexpr float kDefReverbPreDelay = 0.001f; //  10MS
 
 	// Compressor range & defaults
 	constexpr float kMinCompThresholdB  =  -60.f; // Taken from Audacity's compressor
