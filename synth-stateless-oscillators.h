@@ -50,7 +50,7 @@ namespace SFM
 	SFM_INLINE static float oscSquare(float phase)
 	{
 		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
-		return phase >= 0.5f ? 0.f : -1.f;
+		return phase >= 0.5f ? 1.f : -1.f;
 	}
 
 	SFM_INLINE static float oscTriangle(float phase)

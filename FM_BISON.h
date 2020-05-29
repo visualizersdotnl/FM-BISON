@@ -73,9 +73,11 @@
  
 	Issues:
 		- Inlining strategy a bit too agressive?
-		- Class (object) design is just sloppy in places as I started with pure C
+		- Class (object) design is just sloppy in places as I started with pure C, I'm also starting to
+		  use more modern C++ features here and there (I'm not religious about it)
 		- For embedded use this needs review, a lot of choices were made in favor of the VST plug-in
 		- Analyze and optimize performance! (17/01/2020)
+		- I've spotted some (potentially overzealous) inconsistent use of SFM_INLINE (29/05/2020)
 
 	Not supported yet:
 		- Polyphonic aftertouch / MPE
@@ -345,6 +347,7 @@ namespace SFM
 		ParameterFilter m_LFOBiasPF;
 		ParameterFilter m_LFOFMDepthPF;
 		ParameterFilter m_SandHSlewRatePF;
+		ParameterFilter m_SandHDutyCyclePF;
 		ParameterFilter m_cutoffPF, m_resoPF;
 		ParameterFilter m_effectWetPF, m_effectRatePF;
 		ParameterFilter m_delayPF, m_delayWetPF, m_delayFeedbackPF, m_delayFeedbackCutoffPF;

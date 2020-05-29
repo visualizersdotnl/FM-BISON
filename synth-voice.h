@@ -152,7 +152,7 @@ namespace SFM
 		PitchEnvelope m_pitchEnvelope;
 
 		// Freq. glide
-		float freqGlide;
+		float m_freqGlide;
 
 	private:
 		void ResetOperators(unsigned sampleRate);

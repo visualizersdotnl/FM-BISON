@@ -39,12 +39,11 @@ namespace SFM
 
 	const Oscillator::Waveform kLFOWaveforms[kNumOperatorWaveforms] =
 	{
-			// Trying non band-limited oscillators (FIXME: is it worth it?)
 			Oscillator::Waveform::kSine, 
 			Oscillator::Waveform::kStatic,
-			Oscillator::Waveform::kPolyTriangle,			
-			Oscillator::Waveform::kPolySaw,
-			Oscillator::Waveform::kPolySquare,
+			Oscillator::Waveform::kRamp,			
+			Oscillator::Waveform::kSaw,
+			Oscillator::Waveform::kSquare,
 			Oscillator::Waveform::kNoiseSampleAndHold
 	};
 
@@ -80,8 +79,9 @@ namespace SFM
 		bool  LFOKeySync;
 		float modulationOverride; // If non-zero overrides Render() modulation parameter, which is typically the mod. wheel (MIDI)
 
-		// S&H oscillator slew rate
+		// S&H slew rate & duty cycle
 		float SandHSlewRate;
+		float SandHDutyCycle;
 
 		// BPM sync. mode (LFO, chorus/phaser, delay, ...)
 		bool beatSync;
@@ -217,8 +217,9 @@ namespace SFM
 			LFOKeySync = false;              // No key sync.
 			modulationOverride = 0.f;        // Wheel input
 
-			// S&H: default slew rate
-			SandHSlewRate = kDefSandHSlewRate;
+			// S&H defaults
+			SandHSlewRate  = kDefSandHSlewRate;
+			SandHDutyCycle = kDefSandHDutyCycle;
 
 			// BPM sync.
 			beatSync = false;

@@ -45,7 +45,7 @@ namespace SFM
 		m_filterSVF2.resetState();
 
 		// Def. glide
-		freqGlide = kDefPolyFreqGlide;
+		m_freqGlide = kDefPolyFreqGlide;
 	}
 
 	bool Voice::IsDone() /* const */

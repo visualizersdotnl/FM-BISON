@@ -143,16 +143,19 @@ namespace SFM
 			Reset parameter filters; they reduce automation/MIDI noise (by a default cut Hz, mostly)
 
 			They're kept in this class since they are pretty VST-specific and might need tweaking or another target such as 
-			embedded hardware. All that aside it's not very pretty either.
+			embedded hardware. Plus it's not very pretty either.
+
+			Where I commented out any Reset() calls it's because they were reset to zero on construction.
 			
 			They can also be turned off completely (see top of synth-global.h)
 		*/
 
 		// Global
-		m_LFORatePF             = { m_sampleRate, kDefParameterFilterCutHz };
-		m_LFOBiasPF             = { m_sampleRate, kDefParameterFilterCutHz };
-		m_LFOFMDepthPF          = { m_sampleRate, kDefParameterFilterCutHz };
-		m_SandHSlewRatePF       = { m_sampleRate, kDefParameterFilterCutHz };
+		m_LFORatePF             = { m_sampleRate };
+		m_LFOBiasPF             = { m_sampleRate };
+		m_LFOFMDepthPF          = { m_sampleRate };
+		m_SandHSlewRatePF       = { m_sampleRate };
+		m_SandHDutyCyclePF      = { m_sampleRate };
 		m_cutoffPF              = { m_sampleRate };
 		m_resoPF                = { m_sampleRate };
 
@@ -160,6 +163,7 @@ namespace SFM
 		m_LFOBiasPF.Reset(m_patch.LFOBias);
 		m_LFOFMDepthPF.Reset(m_patch.LFOFMDepth);
 		m_SandHSlewRatePF.Reset(m_patch.SandHSlewRate);
+		m_SandHDutyCyclePF.Reset(m_patch.SandHDutyCycle);
 		m_cutoffPF.Reset(m_patch.cutoff);
 		m_resoPF.Reset(m_patch.resonance);
 
@@ -221,9 +225,9 @@ namespace SFM
 		m_modulationPF          = { m_sampleRate, kDefParameterFilterCutHz*0.6f  };
 		m_aftertouchPF          = { m_sampleRate, kDefParameterFilterCutHz*0.05f };
 
-		m_bendWheelPF.Reset(0.f);
-		m_modulationPF.Reset(0.f);
-		m_aftertouchPF.Reset(0.f);
+//		m_bendWheelPF.Reset(0.f);
+//		m_modulationPF.Reset(0.f);
+//		m_aftertouchPF.Reset(0.f);
 	}
 
 	// Cleans up after OnSetSamplingProperties()
@@ -785,7 +789,7 @@ namespace SFM
 		PatchOperators &patchOps = m_patch.operators;
 
 		// Default glide (in case frequency is manipulated whilst playing)
-		voice.freqGlide = kDefPolyFreqGlide;
+		voice.m_freqGlide = kDefPolyFreqGlide;
 
 		// Acoustic scaling: more velocity can mean longer envelope decay phase
 		// This is specifically designed for piano, guitar et cetera
@@ -938,7 +942,7 @@ namespace SFM
 		// Calc. attenuated glide (using new velocity, feels more natural)
 		float monoGlide = m_patch.monoGlide;
 		float glideAtt = 1.f - m_patch.monoAtt*request.velocity;
-		voice.freqGlide = monoGlide*glideAtt;
+		voice.m_freqGlide = monoGlide*glideAtt;
 
 		// Set up voice operators
 		for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
@@ -972,10 +976,10 @@ namespace SFM
 					voiceOp.oscillator.Initialize(
 						patchOp.waveform, frequency, m_sampleRate, 0.f);
 	
-					voiceOp.amplitude.SetRate(m_sampleRate, voice.freqGlide);
+					voiceOp.amplitude.SetRate(m_sampleRate, voice.m_freqGlide);
 					voiceOp.amplitude.Set(amplitude);
 
-					voiceOp.curFreq.SetRate(m_sampleRate, voice.freqGlide);
+					voiceOp.curFreq.SetRate(m_sampleRate, voice.m_freqGlide);
 					voiceOp.curFreq.Set(frequency);
 
 					const float envKeyTracking = 1.f - 0.9f*CalcKeyTracking(key, patchOp);
@@ -987,7 +991,7 @@ namespace SFM
 					voiceOp.amplitude.SetTarget(amplitude);
 
 					const float curFreq = voiceOp.curFreq.Get();
-					voiceOp.curFreq.SetRate(m_sampleRate, voice.freqGlide);
+					voiceOp.curFreq.SetRate(m_sampleRate, voice.m_freqGlide);
 					voiceOp.curFreq.Set(curFreq);
 					voiceOp.curFreq.SetTarget(frequency);
 				}
@@ -1131,7 +1135,7 @@ namespace SFM
 		}
 		
 		/*
-			Update live voice parameters
+			Update real-time voice parameters
 		*/
 
 		for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
@@ -1178,7 +1182,7 @@ namespace SFM
 									// Amplitude (output level or "index")
 									voiceOp.amplitude.SetTarget(amplitude);
 
-									// Squarepusher (or "drive")
+									// Square(pusher) (or "drive")
 									const float drive = lerpf<float>(patchOp.drive, patchOp.drive*opVelocity, patchOp.velSens);
 									voiceOp.drive.SetTarget(drive);
 
@@ -1482,7 +1486,9 @@ namespace SFM
 
 		This function was lifted straight out of Render() so it has a few dependencies on class members
 		instead of just the context(s). I've made the function constant as a precaution but it's not
-		unthinkable that something slips through the cracks. If you spot anything please clean it up ASAP.
+		unthinkable that something slips through the cracks. 
+		
+		If you spot anything fishy please fix it ASAP.
 
 	 ------------------------------------------------------------------------------------------------------ */
 
@@ -1518,11 +1524,16 @@ namespace SFM
 			voice.m_subLFO.SetFrequency(freqLFO/kLFOSubOscFreqDiv);
 			voice.m_subLFO.SetHardSync(freqLFO);
 			
-			// Update S&H slew rates
+			// Update LFO S&H parameters
 			const float slewRate = m_SandHSlewRatePF.Get();
 			voice.m_LFO1.SetSampleAndHoldSlewRate(slewRate);
 			voice.m_LFO2.SetSampleAndHoldSlewRate(slewRate);
 			voice.m_subLFO.SetSampleAndHoldSlewRate(slewRate);
+
+			const float dutyCycle = m_SandHDutyCyclePF.Get();
+			voice.m_LFO1.SetSampleAndHoldDutyCycle(dutyCycle);
+			voice.m_LFO2.SetSampleAndHoldDutyCycle(dutyCycle);
+			voice.m_subLFO.SetSampleAndHoldDutyCycle(dutyCycle);
 
 			// Global amp. allows use to fade the voice in and out within this frame
 			InterpolatedParameter<kLinInterpolate> globalAmp(1.f, std::min<unsigned>(128, numSamples));
@@ -1733,10 +1744,11 @@ namespace SFM
 			}
 		}
 		
-		// Filter a few LFO (related) parameters
+		// Filter LFO & S&H parameters (so they can be read by RenderVoices())
 		m_LFOBiasPF.Apply(m_patch.LFOBias);
 		m_LFOFMDepthPF.Apply(m_patch.LFOFMDepth);
 		m_SandHSlewRatePF.Apply(m_patch.SandHSlewRate);
+		m_SandHDutyCyclePF.Apply(m_patch.SandHDutyCycle);
 
 		// Update voice logic (pre)
 		UpdateVoicesPreRender(numSamples);

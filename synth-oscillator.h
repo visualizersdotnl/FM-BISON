@@ -67,7 +67,7 @@ namespace SFM
 			kWhiteNoise,
 			kPinkNoise,
 
-			// LFO S&H
+			// LFO S&H (can't be used with post-S&H)
 			kNoiseSampleAndHold
 		};
 
@@ -79,8 +79,8 @@ namespace SFM
 		alignas(16) Phase m_phases[kNumPolySupersaws];
 
 		// Oscillators with state
-		PinkNoise m_pinkOsc;    // FIXME: can't I keep a global copy?
-		SampleAndHold m_SandH;  // FIXME: shouldn't this be a more autonomous object?
+		PinkNoise m_pinkOsc; // FIXME: can't I keep a global copy?
+		SampleAndHold m_SandH;
 
 		// FIXME: wouldn't it be wiser, memory access wise, to have local copies of this?
 		//        in that case you could also decide to allocate only the phase objects you need
@@ -154,17 +154,23 @@ namespace SFM
 			}
 		}
 
-		SFM_INLINE void SetSampleAndHoldSlewRate(float rate)
-		{
-			m_SandH.SetSlewRate(rate);
-		}
-
 		SFM_INLINE void SetHardSync(float frequency)
 		{
 			// Not intended for this particular oscillator (special case)
 			SFM_ASSERT(kPolySupersaw != m_form);
 
 			m_phases[0].SyncTo(frequency);
+		}
+
+		// 2 convenience functions for S&H-based waveforms
+		SFM_INLINE void SetSampleAndHoldSlewRate(float rate)
+		{
+			m_SandH.SetSlewRate(rate);
+		}
+
+		SFM_INLINE void SetSampleAndHoldDutyCycle(float length)
+		{
+			m_SandH.SetDutyCycle(length);
 		}
 		
 		SFM_INLINE float    GetFrequency()   const { return m_phases[0].GetFrequency();  }
