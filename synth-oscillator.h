@@ -67,8 +67,8 @@ namespace SFM
 			kWhiteNoise,
 			kPinkNoise,
 
-			// LFO S&H (can't be used with post-S&H)
-			kNoiseSampleAndHold
+			// S&H (for LFO)
+			kSampleAndHold
 		};
 
 		// Called once by Bison::Bison()

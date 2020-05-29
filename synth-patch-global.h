@@ -44,7 +44,7 @@ namespace SFM
 			Oscillator::Waveform::kTriangle,
 			Oscillator::Waveform::kPolySaw, // Cheat: should be a ramp!
 			Oscillator::Waveform::kPolySquare,
-			Oscillator::Waveform::kNoiseSampleAndHold
+			Oscillator::Waveform::kSampleAndHold
 	};
 
 	struct Patch

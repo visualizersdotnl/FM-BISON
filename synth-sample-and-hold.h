@@ -11,6 +11,7 @@
 #include "synth-stateless-oscillators.h"
 #include "synth-phase.h"
 #include "synth-interpolated-parameter.h"
+#include "synth-MIDI.h"
 
 namespace SFM
 {
@@ -25,6 +26,7 @@ namespace SFM
 
 		~SampleAndHold() {}
 
+		// Takes in any continuous signal
 		float Sample(float phase, float input)
 		{
 			const float curGate = oscPulse(phase, m_dutyCycle);
