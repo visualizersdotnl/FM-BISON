@@ -139,8 +139,8 @@ namespace SFM
 		
 		// Calculate current LFO value
 		const float subLFO = LFOFMDepth * m_subLFO.Sample(0.f);
-		const float LFO1   = m_LFO1.Sample(subLFO);
-		const float LFO2   = m_LFO2.Sample(subLFO);
+		const float LFO1   = m_LFO1.Sample(1.f + subLFO); // [0..2]
+		const float LFO2   = m_LFO2.Sample(1.f + subLFO); //
 		const float biased = lerpf<float>(LFO1, LFO2, LFOBias);
 		const float LFO    = Clamp(biased);
 
@@ -179,7 +179,7 @@ namespace SFM
 					// Add sample to phase
 					// If modulator or modulator operator is disabled it's zero
 					const float sample = opSample[iModulator+1];
-					phaseShift += sample;
+					phaseShift += 1.f+sample; // [0..2]
 				}
 
 				const float feedbackAmt = kFeedbackScale*voiceOp.feedbackAmt.Sample();

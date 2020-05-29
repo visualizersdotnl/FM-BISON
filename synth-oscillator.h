@@ -154,23 +154,9 @@ namespace SFM
 			}
 		}
 
-		SFM_INLINE void SetHardSync(float frequency)
-		{
-			// Not intended for this particular oscillator (special case)
-			SFM_ASSERT(kPolySupersaw != m_form);
-
-			m_phases[0].SyncTo(frequency);
-		}
-
-		// 2 convenience functions for S&H-based waveforms
 		SFM_INLINE void SetSampleAndHoldSlewRate(float rate)
 		{
 			m_SandH.SetSlewRate(rate);
-		}
-
-		SFM_INLINE void SetSampleAndHoldDutyCycle(float length)
-		{
-			m_SandH.SetDutyCycle(length);
 		}
 		
 		SFM_INLINE float    GetFrequency()   const { return m_phases[0].GetFrequency();  }
@@ -178,7 +164,7 @@ namespace SFM
 		SFM_INLINE float    GetPhase()       const { return m_phases[0].Get();           }
 		SFM_INLINE Waveform GetWaveform()    const { return m_form;                      }
 
-		float Sample(float phaseShift, float phaseMod = 1.f);
+		float Sample(float phaseShift);
 	};
 }
 

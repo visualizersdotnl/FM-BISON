@@ -29,7 +29,7 @@ namespace SFM
 		// Takes in any continuous signal
 		float Sample(float phase, float input)
 		{
-			const float curGate = oscPulse(phase, m_dutyCycle);
+			const float curGate = oscPulse(phase, 0.25f);
 			
 			// Unorthodox: both ends are a trigger
 			if (m_prevGate != curGate)
@@ -51,13 +51,6 @@ namespace SFM
 			SFM_ASSERT(rate >= kMinSandHSlewRate && rate <= kMaxSandHSlewRate)
 			m_slewRate = rate;
 		}
-
-		void SetDutyCycle(float length)
-		{
-			SFM_ASSERT(length >= kMinSandHDutyCycle && length <= kMaxSandHDutyCycle);
-			m_dutyCycle = length;
-		}
-
 		void Reset()
 		{
 			m_prevGate = -1.f;
@@ -68,8 +61,7 @@ namespace SFM
 		// Parameters
 		/* const */ unsigned m_sampleRate;
 
-		float m_slewRate  = kDefSandHSlewRate;
-		float m_dutyCycle = 0.25f; // Simply sounds the best!
+		float m_slewRate = kDefSandHSlewRate;
 
 		// State
 		float m_prevGate = 0.f;
