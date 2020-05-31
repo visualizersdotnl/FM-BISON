@@ -75,15 +75,18 @@ namespace SFM
 		static void CalculateSupersawDetuneTable();
 
 	private:
+		// FIXME:
+		// - Consider deriving from Oscillator to keep the most often used one as lightweight as possible
+		// - See: https://github.com/bipolaraudio/FM-BISON/issues/84
+	
 		/* const */ Waveform m_form;
 		alignas(16) Phase m_phases[kNumPolySupersaws];
 
 		// Oscillators with state
-		PinkNoise m_pinkOsc; // FIXME: can't I keep a global copy?
+		PinkNoise m_pinkOsc;
 		SampleAndHold m_SandH;
-
-		// FIXME: wouldn't it be wiser, memory access wise, to have local copies of this?
-		//        in that case you could also decide to allocate only the phase objects you need
+		
+		// FIXME: local copy?
 		alignas(16) static float s_supersawDetune[kNumPolySupersaws];
 		
 	public:

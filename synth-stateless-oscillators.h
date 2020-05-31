@@ -70,11 +70,14 @@ namespace SFM
 	/*
 		Band-limited oscillators (using PolyBLEP)
 
-		I've studied and adapted this implementation from: https://github.com/martinfinke/PolyBLEP
+		These functions were lifted from: https://github.com/martinfinke/PolyBLEP
 
+		A copy of the original can be found in /3rdparty/PolyBLEP:
 		- There are a lot more waveforms ready to use.
-		- I've kept the implementation and it's helper functions all in one spot.
-		- I did rename a few variables for readability.
+		- I should go over it once more to see if I got everything right (FIXME).
+
+		I've kept this implementation and it's helper functions all in one spot.
+		I did rename a few variables and functions for readability.
 	*/
 
 	template<typename T> SFM_INLINE static T Squared(const T &value)
@@ -89,56 +92,62 @@ namespace SFM
 
 	// Adapted from "Phaseshaping Oscillator Algorithms for Musical Sound Synthesis" by Jari Kleimola, Victor Lazzarini, Joseph Timoney, and Vesa Valimaki.
 	// http://www.acoustics.hut.fi/publications/papers/smc2010-phaseshaping/
-	SFM_INLINE static float PolyBLEP(float point, float width) 
+	SFM_INLINE static float PolyBLEP(double point, double DT) 
 	{
-		if (point < width)
-			return -Squared(point/width - 1.f);
-		else if (point > 1.f - width)
-			return Squared((point - 1.f)/width + 1.f);
+		if (point < DT)
+			return (float) -Squared(point/DT - 1.0);
+		else if (point > (1.0 - DT))
+			return (float) Squared((point - 1.0)/DT + 1.0);
 		else
 			return 0.f;
 	}
 	
-	SFM_INLINE static float PolyBLAMP(float point, float width)
+	SFM_INLINE static float PolyBLAMP(double point, double DT)
 	{
-		if (point < width) 
+		if (point < DT) 
 		{
-			point = point / width - 1.f;
-			return -1.f / 3.f * Squared(point) * point;
+			point = point / DT - 1.0;
+			return float(-1.0 / 3.0 * Squared(point) * point);
 		} 
-		else if (point > 1 - width) 
+		else if (point > 1 - DT) 
 		{
-			point = (point - 1.f) / width + 1.f;
-			return 1.f / 3.f * Squared(point) * point;
+			point = (point - 1.0) / DT + 1.0;
+			return float(1.0 / 3.0 * Squared(point) * point);
 		} 
 		else 
 			return 0.f;
 	}
 
-	SFM_INLINE static float oscPolySquare(float phase, float width)
+	SFM_INLINE static float oscPolySquare(float phase, float DT)
 	{
+		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
+
 		float P1 = phase + 0.5f;
 		P1 -= bitwiseOrZero(P1);
 
 		float square = phase < 0.5f ? 1.f : -1.f;
-		square += PolyBLEP(phase, width) - PolyBLEP(P1, width);
+		square += PolyBLEP(phase, DT) - PolyBLEP(P1, DT);
 
 		return square;
 	}
 
-	SFM_INLINE static float oscPolySaw(float phase, float width)
+	SFM_INLINE static float oscPolySaw(float phase, float DT)
 	{
+		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
+
 		float P1 = phase + 0.5f;
 		P1 -= bitwiseOrZero(P1);
 
 		float saw = 2.f*P1 - 1.f;
-		saw -= PolyBLEP(P1, width);
+		saw -= PolyBLEP(P1, DT);
 
 		return saw;
 	}
 
-	SFM_INLINE static float oscPolyTriangle(float phase, float width)
+	SFM_INLINE static float oscPolyTriangle(float phase, float DT)
 	{
+		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
+
 		float P1 = phase + 0.25f;
 		float P2 = phase + 0.75f;
 		P1 -= bitwiseOrZero(P1);
@@ -150,21 +159,23 @@ namespace SFM
 		else if (triangle > 1.f)
 			triangle = 2.f - triangle;
 
-		triangle += 4.f * width * (PolyBLAMP(P1, width) - PolyBLAMP(P2, width));
+		triangle += 4.f * DT * (PolyBLAMP(P1, DT) - PolyBLAMP(P2, DT));
 
 		return triangle;
 	}
 
-	SFM_INLINE static float oscPolyRectifiedSine(float phase, float width)
+	SFM_INLINE static float oscPolyRectifiedSine(float phase, float DT)
 	{
+		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
+
 		float P1 = phase + 0.25f;
 		P1 -= bitwiseOrZero(P1);
 
-//		float rectified = 2.f * sinf(kPI * P1) - 4.f/kPI; // FIXME: use oscSine()
-//		rectified += k2PI * width * PolyBLAMP(P1, width);
+//		float rectified = 2.f * sinf(kPI * P1) - 4.f/kPI;
+//		rectified += k2PI * DT * PolyBLAMP(P1, DT);
 
 		float rectified = 2.f * oscSine(0.5f * P1) - 4.f*0.5f;
-		rectified += 2.f * width * PolyBLAMP(P1, width);
+		rectified += 2.f * DT * PolyBLAMP(P1, DT);
 
 		return rectified;
 	}

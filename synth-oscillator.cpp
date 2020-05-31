@@ -9,8 +9,6 @@
 
 namespace SFM
 {
-	const float kPolyWidthAt44100Hz = 1.3f;
-
 	// Called *once* by Bison::Bison()
 	/* static */ void Oscillator::CalculateSupersawDetuneTable()
 	{	
@@ -18,11 +16,6 @@ namespace SFM
 		{
 			s_supersawDetune[iSaw] = powf(2.f, (kPolySupersawDetune[iSaw]*0.01f)/12.f);
 		}
-	}
-
-	SFM_INLINE static float CalcPolyWidth(float frequency, unsigned sampleRate, float widthRatio)
-	{
-		return frequency/(sampleRate/widthRatio);
 	}
 
 	/* static */ alignas(16) float Oscillator::s_supersawDetune[kNumPolySupersaws] = { 0.f };
@@ -34,12 +27,8 @@ namespace SFM
 		// FIXME: try to skip fmodf() if certain conditions are met
 		const float modulated = fmodf(phase+phaseShift, 1.f);
 
-		// Ratio to adjust PolyBLEP width
-		const auto sampleRate      = GetSampleRate();
-		const float polyWidthRatio = (sampleRate/44100.f)*kPolyWidthAt44100Hz;
-
-		// PolyBLEP width for (first) oscillator
-		const float polyWidth = CalcPolyWidth(GetFrequency(), sampleRate, polyWidthRatio);
+		// PolyBLEP "width"
+		const float DT = GetFrequency()/GetSampleRate();
 		
 		// This switch statement has never shown up during profiling
 		float signal = 0.f;
@@ -60,16 +49,15 @@ namespace SFM
 				break;
 				
 			case kPolyTriangle:
-				signal = oscPolyTriangle(modulated, polyWidth);
-				
+				signal = oscPolyTriangle(modulated, DT);
 				break;
 
 			case kPolySquare:
-				signal = oscPolySquare(modulated, polyWidth);
+				signal = oscPolySquare(modulated, DT);
 				break;
 
 			case kPolySaw:
-				signal = oscPolySaw(modulated, polyWidth);
+				signal = oscPolySaw(modulated, DT);
 				break;
 
 			case kPolySupersaw:
@@ -79,11 +67,12 @@ namespace SFM
 
 					const float polyWidthScale = 0.33f;
 					const float subGain = 0.354813397f; // -9dB
+					const unsigned sampleRate = GetSampleRate();
 	
 					for (unsigned iSaw = 0; iSaw < kNumPolySupersaws; ++iSaw)
 					{
 						auto &phaseObj = m_phases[iSaw];
-						const float subPolyWidth = polyWidthScale*CalcPolyWidth(phaseObj.GetFrequency(), sampleRate, polyWidthRatio);
+						const float subPolyWidth = phaseObj.GetFrequency()/sampleRate;
 						signal += oscPolySaw(phaseObj.Sample(), subPolyWidth)*subGain;
 					}
 				}
@@ -91,7 +80,7 @@ namespace SFM
 				break;
 
 			case kPolyRectSine:
-				signal = oscPolyRectifiedSine(modulated, polyWidth);
+				signal = oscPolyRectifiedSine(modulated, DT);
 				break;
 
 			/* Noise */

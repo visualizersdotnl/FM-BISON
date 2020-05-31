@@ -6,7 +6,7 @@
 
 	Period is [0..1]
 
-	Also: sinus and tangent.
+	Includes sinus and tangent.
 */
 
 #pragma once
@@ -25,6 +25,7 @@ namespace SFM
 	{
 		// Cosine is symmetrical around 0, let's get rid of negative values
 		x = fabs(x); 
+		SFM_ASSERT(x >= 0.f && x <= 1.f);
 
 		auto phase = 1.0+x;
 

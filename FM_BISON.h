@@ -43,6 +43,7 @@
 	- Fast cosine approximation by (or at least supplied by) Erik Faye-Lund
 	- A few good bits of JUCE are used (though this has little priority, as we rely on JUCE for our products) (*)
 	- Vowel (formant) filter V1 (legacy): contribution to http://www.musicdsp.org by alex@smartelectronix.com
+	- Used PolyBLEP implementation by Martin Finke (https://github.com/martinfinke/PolyBLEP) as reference
 	- A few other sources were used; these are credited in or close to the implementation
 
 	(*) - Depends on JUCE 5.4.7 or compatible!

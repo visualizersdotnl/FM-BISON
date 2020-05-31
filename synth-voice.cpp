@@ -150,14 +150,14 @@ namespace SFM
 		// Process all operators top-down
 		// It's quite verbose and algorithmically not as flexible as could be (FIXME?)
 
-		alignas(16) float opSample[kNumOperators+1] = { 0.f }; // Monaural normalized samples (one extra so we can index with -1 to avoid branching)
+		alignas(16) float opSample[kNumOperators] = { 0.f }; // Monaural normalized samples
 		float mixL = 0.f, mixR = 0.f; // Carrier mix
 
 		for (int iOp = kNumOperators-1; iOp >= 0; --iOp)
 		{
 			// Top-down
 			Operator &voiceOp = m_operators[iOp];
-			const int iOpSample = iOp+1; // See decl. of opSample[]
+			const int iOpSample = iOp;
 
 			if (true == voiceOp.enabled)
 			{
@@ -171,15 +171,17 @@ namespace SFM
 				for (unsigned iMod = 0; iMod < 3; ++iMod)
 				{
 					const int iModulator = voiceOp.modulators[iMod];
+					if (-1 != iModulator)
+					{
+						// Sanity checks
+						SFM_ASSERT(iModulator < kNumOperators);
+						SFM_ASSERT(iModulator > iOp);
 
-					// Sanity checks
-					SFM_ASSERT(-1 == iModulator || iModulator < kNumOperators);
-					SFM_ASSERT(-1 == iModulator || iModulator > iOp);
-
-					// Add sample to phase
-					// If modulator or modulator operator is disabled it's zero
-					const float sample = opSample[iModulator+1];
-					phaseShift += 1.f+sample;
+						// Add sample to phase
+						// If modulator or modulator operator is disabled it's zero
+						const float sample = opSample[iModulator];
+						phaseShift += 1.f+sample;
+					}
 				}
 
 				const float feedbackAmt = kFeedbackScale*voiceOp.feedbackAmt.Sample();
