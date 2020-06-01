@@ -31,7 +31,7 @@ namespace SFM
 		{
 			const float curGate = oscPulse(phase, 0.25f);
 			
-			// Unorthodox: both ends are a trigger
+			// Gate?
 			if (m_prevGate != curGate)
 			{
 				// Update slew rate and set signal to hold as new target

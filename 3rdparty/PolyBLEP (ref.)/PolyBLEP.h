@@ -72,7 +72,7 @@ protected:
     double freqInSecondsPerSample;
     double amplitude; // Frequency dependent gain [0.0..1.0]
     double pulseWidth; // [0.0..1.0]
-    double t; // The current phase [0.0..1.0) of the oscillator.
+    double t; // The current phase [0.0..1.0] of the oscillator.
 
     void setdt(double time);
 

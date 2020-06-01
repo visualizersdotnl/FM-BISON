@@ -27,28 +27,28 @@
 	FM. BISON hybrid FM synthesis
 	(C) visualizers.nl & bipolaraudio.nl
 
-	- Code is *very* verbose and has not been optimized yet (still in R&D stage)
-	- Currently tooled to fit the JUCE 5.x framework
-	- Synthesizer is stereo output only
-	- Parameters are often filtered a bit, this is to alleviate crackle when for ex. coupled to a MIDI controller
+	- Code is quite verbose and has not been optimized "to the bone" yet (we're still in R&D stage)
+	- Currently fitted to play nice with the JUCE framework
+	- Synthesizer is stereo output *only*
+	- Parameters are not just interpolated by also filtered to alleviate crackle during automation or MIDI control (see 'ParameterFilter')
 	- 'SFM' is a legacy prefix & namespace name
 
 	Third party credits (all of them public domain, please contact us if we're mistaken):
-	- ADSR (modified & fixed), original by Nigel Redmon (earlevel.com)
+	- ADSR (modified & fixed) by Nigel Redmon (http://www.earlevel.com)
 	- SvfLinearTrapOptimised2.hpp (modified) by Fred Anton Corvest (https://github.com/FredAntonCorvest/Common-DSP)
 	- MOOG-style ladder filter 'KrajeskiModel' (https://github.com/ddiakopoulos/MoogLadders/blob/master/src/)
 	- Reverb based on FreeVerb by Volker Böhm
-	- TinyMT by Makoto Matsumoto and Mutsuo Saito 
-	- Research (DX7 LFO LUT) from Sean Bolton's Hexter
-	- Fast cosine approximation by (or at least supplied by) Erik Faye-Lund
-	- A few good bits of JUCE are used (though this has little priority, as we rely on JUCE for our products) (*)
-	- Vowel (formant) filter V1 (legacy): contribution to http://www.musicdsp.org by alex@smartelectronix.com
-	- Used PolyBLEP implementation by Martin Finke (https://github.com/martinfinke/PolyBLEP) as reference
+	- TinyMT Mersenne-Twister random generator by Makoto Matsumoto and Mutsuo Saito 
+	- Yamaha DX7 LFO rates taken from Sean Bolton's Hexter
+	- Fast cosine approximation supplied by Erik 'Kusma' Faye-Lund
+	- There are 2 depndencies on JUCE (currently these have little priority as we use JUCE for our product line)
+	- Legacy vowel (formant) filter (V1) is a modified contribution to http://www.musicdsp.org by alex@smartelectronix.com
+	- 'PolyBLEP'-based oscillators were lifted from https://github.com/martinfinke/PolyBLEP; by various authors
 	- A few other sources were used; these are credited in or close to the implementation
 
-	(*) - Depends on JUCE 5.4.7 or compatible!
+	Depends on JUCE 5.4.7 or compatible!
 
-	The following files belong to the "Helper" part of the codebase:
+	The following files belong to the 'helper' part of the codebase (included by synth-global.h):
 		- synth-aligned-alloc.h
 		- synth-fast-cosine.*
 		- synth-fast-tan.h
@@ -61,27 +61,18 @@
 	Core goals:
 		- Yamaha DX7 style core FM with extensions
 		- Subtractive synthesis on top
-		- Low footprint use in DAWs & possibly embedded targets later
+		- Low CPU footprint in DAWs, possibly embedded targets in the future
 
 	VST/JUCE related:
 		- See PluginProcessor.cpp
 		- This library is *not* thread-safe (does not have to be) though it uses them internally
-
-	Reading material:
-		- https://www.hackaudio.com/digital-signal-processing/amplitude/peak-normalization/
-		- https://cytomic.com/files/dsp/DynamicSmoothing.pdf
-		- Your Will C. Pirkle book
  
 	Issues:
-		- Inlining strategy a bit too agressive?
-		- Class (object) design is just sloppy in places as I started with pure C, I'm also starting to
-		  use more modern C++ features here and there (I'm not religious about it)
-		- For embedded use this needs review, a lot of choices were made in favor of the VST plug-in
-		- Analyze and optimize performance! (17/01/2020)
-		- I've spotted some (potentially overzealous) inconsistent use of SFM_INLINE (29/05/2020)
-
-	Not supported yet:
-		- Polyphonic aftertouch / MPE
+		- I've spotted some potentially overzealous and inconsistent use of SFM_INLINE (29/05/2020)
+		- Class (object) design is somewhwere inbetween C and C++; this is because the project started out
+		  as a simple experiment; I've also started to use more modern C++ features here and there, but 
+		  I'm not religious about it
+		- Performance needs to be analyzed closer, especially on OSX
 
 	Optimal compiler parameters for Visual Studio (MSVC):
 		- /Ob2 /Oi /O2 /Ot
@@ -205,7 +196,7 @@ namespace SFM
 		struct VoiceRequest
 		{
 			unsigned key;       // [0..127] (MIDI)
-			float frequency;    // Supplied by JUCE (FIXME)
+			float frequency;    // By JUCE or internal table
 			float velocity;     // [0..1]
 			unsigned timeStamp; // In amount of samples relative to those passed to Render() call
 			bool monoRetrigger; // Internal: is retrigger of note in monophonic sequence

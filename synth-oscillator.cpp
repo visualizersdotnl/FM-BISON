@@ -23,12 +23,10 @@ namespace SFM
 	float Oscillator::Sample(float phaseShift)
 	{
 		const float phase = m_phases[0].Sample();
+		const float pitch = m_phases[0].GetPitch(); // For PolyBLEP
 
-		// FIXME: try to skip fmodf() if certain conditions are met
+		// FIXME: skip fmodf() if 'phaseShift' is zero?
 		const float modulated = fmodf(phase+phaseShift, 1.f);
-
-		// PolyBLEP "width"
-		const float DT = GetFrequency()/GetSampleRate();
 		
 		// This switch statement has never shown up during profiling
 		float signal = 0.f;
@@ -49,22 +47,20 @@ namespace SFM
 				break;
 				
 			case kPolyTriangle:
-				signal = oscPolyTriangle(modulated, DT);
+				signal = oscPolyTriangle(modulated, pitch);
 				break;
 
 			case kPolySquare:
-				signal = oscPolySquare(modulated, DT);
+				signal = oscPolySquare(modulated, pitch);
 				break;
 
 			case kPolySaw:
-				signal = oscPolySaw(modulated, DT);
+				signal = oscPolySaw(modulated, pitch);
 				break;
 
 			case kPolySupersaw:
 				{
-					// Modulation & feedback ignored!
-					// I *could* fix this but it'd be computationally expensive and doesn't fit the oscillator type anyway.
-
+					// Modulation & (incoming) feedback ignored; they would only result in noise for this oscillator.
 					const float polyWidthScale = 0.33f;
 					const float subGain = 0.354813397f; // -9dB
 					const unsigned sampleRate = GetSampleRate();
@@ -72,7 +68,7 @@ namespace SFM
 					for (unsigned iSaw = 0; iSaw < kNumPolySupersaws; ++iSaw)
 					{
 						auto &phaseObj = m_phases[iSaw];
-						const float subPolyWidth = polyWidthScale*(phaseObj.GetFrequency()/sampleRate);
+						const float subPolyWidth = polyWidthScale*phaseObj.GetPitch();
 						signal += oscPolySaw(phaseObj.Sample(), subPolyWidth)*subGain;
 					}
 				}
@@ -80,7 +76,7 @@ namespace SFM
 				break;
 
 			case kPolyRectSine:
-				signal = oscPolyRectifiedSine(modulated, DT);
+				signal = oscPolyRectifiedSine(modulated, pitch);
 				break;
 
 			/* Noise */
@@ -111,16 +107,14 @@ namespace SFM
 				signal = oscTriangle(modulated);
 				break;
 			
-			// Unused/Unimplemented oscillators
+			// Not implemented
 			default:
 				signal = oscWhiteNoise();
-
 				SFM_ASSERT(false);
-
 				break;
 		}
-
-		// Can not check for range here (because of, for example, kPolySupersaw)
+		
+		// I'd like to check the range here as well ([-1..1]) but for ex. pink noise or the supersaw overshoot (FIXME)
 		FloatAssert(signal);
 
 		return signal;

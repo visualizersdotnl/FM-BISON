@@ -14,7 +14,7 @@
 #include "synth-delay-line.h"
 #include "synth-oscillator.h"
 #include "synth-DX7-LFO-table.h"
-#include "synth-vowelizer.h"
+// #include "synth-vowelizer-V1.h"
 #include "synth-vowelizer-V2.h"
 #include "synth-interpolated-parameter.h"
 

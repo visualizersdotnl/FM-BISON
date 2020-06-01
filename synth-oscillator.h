@@ -3,6 +3,11 @@
 	FM. BISON hybrid FM synthesis -- Oscillator (VCO/LFO).
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
+
+	FIXME:
+		- I'm not happy about Oscillator containing specific state and multiple phase objects just to
+		  support a handful of special cases
+		- https://github.com/bipolaraudio/FM-BISON/issues/84
 */
 
 #pragma once
@@ -11,11 +16,10 @@
 #pragma warning(disable: 4324) // Tell MSVC to shut it about padding I'm aware of
 
 #include "synth-global.h"
-// #include "synth-stateless-oscillators.h"
+#include "synth-phase.h"
+#include "synth-stateless-oscillators.h"
 #include "synth-pink-noise.h"
 #include "synth-sample-and-hold.h"
-#include "synth-phase.h"
-#include "synth-MIDI.h"
 
 namespace SFM
 {
@@ -75,10 +79,6 @@ namespace SFM
 		static void CalculateSupersawDetuneTable();
 
 	private:
-		// FIXME:
-		// - Consider deriving from Oscillator to keep the most often used one as lightweight as possible
-		// - See: https://github.com/bipolaraudio/FM-BISON/issues/84
-	
 		/* const */ Waveform m_form;
 		alignas(16) Phase m_phases[kNumPolySupersaws];
 
@@ -86,7 +86,6 @@ namespace SFM
 		PinkNoise m_pinkOsc;
 		SampleAndHold m_SandH;
 		
-		// FIXME: local copy?
 		alignas(16) static float s_supersawDetune[kNumPolySupersaws];
 		
 	public:
@@ -107,7 +106,7 @@ namespace SFM
 			if (kPolySupersaw == m_form)
 			{
 				// The idea here is that an optimized (FIXME!) way of multiple detuned oscillators handsomely 
-				// beats spawning that number of actual voices, much like the original supersaw is a custom oscillator
+				// beats spawning that number of actual voices, much like the original supersaw is a custom oscillator circuit
 
 				// First saw must be at base freq.
 				SFM_ASSERT(1.f == s_supersawDetune[0]);
