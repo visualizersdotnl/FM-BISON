@@ -23,7 +23,8 @@
 
 namespace SFM
 {
-	// Number of concurrent oscillators, basically
+	// Number or oscillators in unison
+	// - "According to Duda, '7' Unison is the sweet spot for stacks/chords."
 	const unsigned kNumPolySupersaws = 7;
 
 	// Prime number detune values for supersaw (in cents, almost symmetrical)

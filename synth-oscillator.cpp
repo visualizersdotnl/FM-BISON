@@ -63,7 +63,6 @@ namespace SFM
 					// Modulation & (incoming) feedback ignored; they would only result in noise for this oscillator.
 					const float polyWidthScale = 0.33f;
 					const float subGain = 0.354813397f; // -9dB
-					const unsigned sampleRate = GetSampleRate();
 	
 					for (unsigned iSaw = 0; iSaw < kNumPolySupersaws; ++iSaw)
 					{

@@ -34,7 +34,7 @@ namespace SFM
 		Naive implementations (not band-limited)
 	*/
 
-	// Some refer to the ramp being equal to a saw, but to me this way around makes more sense.
+	// There are conflicting opinions on how a ramp or a saw looks
 	SFM_INLINE static float oscRamp(float phase)
 	{
 		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
