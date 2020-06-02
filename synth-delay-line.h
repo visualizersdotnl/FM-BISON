@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include "3rdparty/SvfLinearTrapOptimised2.hpp"
-
 #include "synth-global.h"
 // #include "synth-one-pole-filters.h"
 
@@ -17,24 +15,18 @@ namespace SFM
 	class DelayLine
 	{
 	public:
-		DelayLine(size_t size, double Q = 0.025 /* Least possible Q for SVF */) :
+		DelayLine(size_t size) :
 			m_size(size)
 ,			m_buffer((float *) mallocAligned(size * sizeof(float), 16))
 ,			m_writeIdx(0)
-,			m_Q(Q)
 ,			m_curSize(size)
 		{
 			Reset();
 		}
 
-		DelayLine(unsigned sampleRate, float lenghtInSec, float feedbackCutoffHz = 1.f) :
+		DelayLine(unsigned sampleRate, float lenghtInSec) :
 			DelayLine(size_t(sampleRate*lenghtInSec)) 
-		{
-			if (1.f == feedbackCutoffHz)
-				m_feedbackLPF.updateCoefficients(CutoffToHz(1.f, sampleRate/2), m_Q, SvfLinearTrapOptimised2::LOW_PASS_FILTER, sampleRate);
-			else
-				m_feedbackLPF.updateCoefficients(feedbackCutoffHz, m_Q, SvfLinearTrapOptimised2::LOW_PASS_FILTER, sampleRate);
-		}
+		{}
 
 		~DelayLine()
 		{
@@ -44,7 +36,6 @@ namespace SFM
 		void Reset()
 		{
 			memset(m_buffer, 0, m_size*sizeof(float));
-			m_feedbackLPF.resetState();
 		}
 
 		void Resize(size_t numSamples)
@@ -57,12 +48,6 @@ namespace SFM
 			m_writeIdx = 0;
 		}
 
-		SFM_INLINE void SetFeedbackCutoff(float cutoffHz, unsigned sampleRate)
-		{
-			SFM_ASSERT(cutoffHz >= 0.f && cutoffHz <= sampleRate/2);
-			m_feedbackLPF.updateCoefficients(cutoffHz, m_Q, SvfLinearTrapOptimised2::LOW_PASS_FILTER, sampleRate);
-		}
-
 		SFM_INLINE void Write(float sample)
 		{
 			const unsigned index = m_writeIdx % m_curSize;
@@ -70,14 +55,16 @@ namespace SFM
 			++m_writeIdx;
 		}
 
-		// For filtered feedback path (call after Write())
+		// For feedback path (call after Write())
 		SFM_INLINE void WriteFeedback(float sample, float feedback)
 		{
 			SFM_ASSERT(feedback >= 0.f && feedback <= 1.f);
 			const unsigned index = (m_writeIdx-1) % m_curSize;
-			sample = sample*feedback;
-			m_feedbackLPF.tickMono(sample);
-			m_buffer[index] += sample;
+			const float newSample = m_buffer[index] + sample*feedback;
+			m_buffer[index] = newSample;
+
+			// FIXME
+			JUCE_SNAP_TO_ZERO(m_buffer[index]);
 		}
 
 		// Delay is specified in samples relative to sample rate
@@ -89,7 +76,7 @@ namespace SFM
 			const float fraction = fracf(delay);
 			const float A = m_buffer[from];
 			const float B = m_buffer[to];
-			const float value = lerpf<float>(A, B, fraction);
+			float value = lerpf<float>(A, B, fraction);
 			return value;
 		}
 
@@ -106,11 +93,7 @@ namespace SFM
 		const size_t m_size;
 		float *m_buffer;
 		unsigned m_writeIdx;
-		const double m_Q;
 
 		size_t m_curSize;
-
-//		LowpassFilter m_feedbackLPF;
-		SvfLinearTrapOptimised2 m_feedbackLPF;
 	};
 }

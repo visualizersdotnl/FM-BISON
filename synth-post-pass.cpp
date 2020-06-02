@@ -94,6 +94,10 @@ namespace SFM
 		// Reset tube amp. filter(s)
 		m_tubeFilterPre.resetState();
 		m_tubeFilterPost.resetState();
+
+		// Reset delay feedback filters
+		m_delayFeedbackLPF_L.Reset(0.f);
+		m_delayFeedbackLPF_R.Reset(0.f);
 	}
 
 	PostPass::~PostPass()
@@ -213,8 +217,6 @@ namespace SFM
 				
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
-//			const float sampleL = *pLeftIn++;
-//			const float sampleR = *pRightIn++;
 			const float sampleL = m_pBufL[iSample];
 			const float sampleR = m_pBufR[iSample];
 				
@@ -233,35 +235,39 @@ namespace SFM
 
 			const float left     = effectL;
 			const float right    = effectR;
-			const float monaural = kMaxDelayFeedback*(left*0.5f + right*0.5f);
+			const float monaural = left*0.5f + right*0.5f;
 					
 			m_delayLineL.Write(left);
 			m_delayLineM.Write(monaural);
 			m_delayLineR.Write(right);
 
-			const float delaySamples = m_sampleRate*curDelay;
+			const float delaySamples = (m_sampleRate*curDelay)-1.f;
 			const float delayedL = m_delayLineL.Read(delaySamples);
 			const float delayedM = m_delayLineM.Read(delaySamples);
 			const float delayedR = m_delayLineR.Read(delaySamples);
 
 			// FIXME: parameter?
-			const float crossBleedAmt = 0.05f;
+			constexpr float crossBleedAmt = 0.05f;
 			const float invCrossBleedAmt = 1.f-crossBleedAmt;
-			const float crossBleed = /* fast_tanhf */ (delayedL+delayedM+delayedR);
+			const float crossBleed = delayedM;
 			const float finalL = delayedL*invCrossBleedAmt + crossBleed*crossBleedAmt;
 			const float finalR = delayedR*invCrossBleedAmt + crossBleed*crossBleedAmt;
 			
-			// Feed back
-			const float curCutoff = CutoffToHz(m_curDelayFeedbackCutoff.Sample(), m_Nyquist);
-			m_delayLineL.SetFeedbackCutoff(curCutoff, m_sampleRate);
-//			m_delayLineM.SetFeedbackCutoff(curCutoff, m_sampleRate);
-			m_delayLineR.SetFeedbackCutoff(curCutoff, m_sampleRate);
+			// Feed back (filtered, 6dB)
+			const float curCutoff = CutoffToHz(m_curDelayFeedbackCutoff.Sample(), m_Nyquist/2, 1.f);
+			const float Fc = curCutoff/m_sampleRate;
+			m_delayFeedbackLPF_L.SetCutoff(Fc);
+			m_delayFeedbackLPF_R.SetCutoff(Fc);
 
-			const float curFeedbackDry = m_curDelayFeedback.Sample();
-			const float curFeedback    = (curDelay/kMainDelayInSec)*curFeedbackDry*kMaxDelayFeedback;
-			
-			m_delayLineL.WriteFeedback(finalL, curFeedback);
-			m_delayLineR.WriteFeedback(finalR, curFeedback);
+			float curFeedbackDry = m_curDelayFeedback.Sample();
+			float curFeedback = curFeedbackDry*kMaxDelayFeedback;
+
+			const float feedbackL = m_delayFeedbackLPF_L.Apply(delayedL);
+			const float feedbackR = m_delayFeedbackLPF_R.Apply(delayedR);
+			const float feedbackM = feedbackL*0.5f + feedbackR*0.5f;
+			m_delayLineL.WriteFeedback(feedbackL, curFeedback);
+			m_delayLineM.WriteFeedback(feedbackM, curFeedback);
+			m_delayLineR.WriteFeedback(feedbackR, curFeedback);
 
 			// Mix FX with delay
 			const float wet = m_curDelayWet.Sample();
