@@ -93,7 +93,7 @@ namespace SFM
 
 		// Stop & reset all voices, clear slots & wipe requests
 		for (unsigned iVoice = 0; iVoice < kMaxVoices; ++iVoice)		
-			m_voices[iVoice].Reset(m_sampleRate);
+			m_voices[iVoice].Reset(m_sampleRate, m_Nyquist);
 
 		for (unsigned iSlot = 0; iSlot < 128; ++iSlot)
 			m_keyToVoice[iSlot] = -1;
@@ -557,9 +557,9 @@ namespace SFM
 	}
 
 	// Set up (static) operator SVF filter
-	void Bison::SetOperatorFilter(unsigned key, SvfLinearTrapOptimised2 *filterSVF, const PatchOperators::Operator &patchOp)
+	void Bison::SetOperatorFilter(unsigned key, SvfLinearTrapOptimised2 *pFilters, const PatchOperators::Operator &patchOp)
 	{
-		SFM_ASSERT(nullptr != filterSVF);
+		SFM_ASSERT(nullptr != pFilters);
 
 		// Calculate (scaled) cutoff freq. & Q
 		const float cutoffNorm = lerpf<float>(patchOp.cutoff, 1.f, CalcCutoffTracking(key, patchOp));
@@ -569,38 +569,38 @@ namespace SFM
 				
 		switch (patchOp.filterType)
 		{
+		default:
+			SFM_ASSERT(false);
+
 		case PatchOperators::Operator::kNoFilter:
-			filterSVF[0].updateCoefficients(0.0, 0.0, SvfLinearTrapOptimised2::NO_FLT_TYPE);
+			pFilters[0].updateCoefficients(0.0, 0.0, SvfLinearTrapOptimised2::NO_FLT_TYPE);
 			break;
 
 		case PatchOperators::Operator::kLowpassFilter:
-			filterSVF[0].resetState();
-			filterSVF[0].updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
+			pFilters[0].resetState();
+			pFilters[0].updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
 			break;
 
 		case PatchOperators::Operator::kHighpassFilter:
-			filterSVF[0].resetState();
-			filterSVF[0].updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
+			pFilters[0].resetState();
+			pFilters[0].updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
 			break;
 
 		case PatchOperators::Operator::kBandpassFilter:
-			filterSVF[0].resetState();
-			filterSVF[0].updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
+			pFilters[0].resetState();
+			pFilters[0].updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
 			break;
 
 		case PatchOperators::Operator::kAllPassFilter:
 			{
 				for (unsigned iAllpass = 0; iAllpass < kNumVoiceAllpasses; ++iAllpass)
 				{
-					filterSVF[iAllpass].resetState();
-					filterSVF[iAllpass].updateCoefficients(cutoffNorm, Q, SvfLinearTrapOptimised2::ALL_PASS_FILTER, m_sampleRate);
+					pFilters[iAllpass].resetState();
+					pFilters[iAllpass].updateCoefficients(cutoffNorm, Q, SvfLinearTrapOptimised2::ALL_PASS_FILTER, m_sampleRate);
 				}
 			}
 			
 			break;
-
-		default:
-			SFM_ASSERT(false);
 		}
 	}
 
@@ -806,7 +806,10 @@ namespace SFM
 				const float opVelocity = (false == patchOp.velocityInvert) ? velocity : 1.f-velocity;
 
 				// (Re)set constant/static filter
-				SetOperatorFilter(key, voiceOp.filterSVF, patchOp);
+				SetOperatorFilter(key, voiceOp.filters, patchOp);
+
+				// Reset modulator filter (FIXME: move to SetOperatorFilter()?)
+				voiceOp.modFilter.resetState();
 				
 				// Store detune jitter
 				voiceOp.detuneOffs = jitter*mt_randfc()*kMaxDetuneJitter;
@@ -957,7 +960,10 @@ namespace SFM
 				if (true == reset)
 				{
 					// (Re)set constant/static filter
-					SetOperatorFilter(key, voiceOp.filterSVF, patchOp);
+					SetOperatorFilter(key, voiceOp.filters, patchOp);
+
+					// Reset modulator filter
+					voiceOp.modFilter.resetState();
 				}
 
 				// Store detune jitter
@@ -1368,7 +1374,7 @@ namespace SFM
 					// Full reset after switch
 					if (true == m_modeSwitch)
 					{
-						voice.Reset(m_sampleRate);
+						voice.Reset(m_sampleRate, m_Nyquist);
 					}
 				}
 			}

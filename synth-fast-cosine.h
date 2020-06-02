@@ -25,7 +25,9 @@ namespace SFM
 	{
 		// Cosine is symmetrical around 0, let's get rid of negative values
 		x = fabs(x); 
-		SFM_ASSERT(x >= 0.f && x <= 1.f);
+
+		// It's fine if I don't adhere to [0..1]
+//		SFM_ASSERT(x >= 0.f && x <= 1.f);
 
 		auto phase = 1.0+x;
 

@@ -232,6 +232,10 @@ namespace SFM
 	constexpr float kPianoPedalMinReleaseMul = 1.f;
 	constexpr float kPianoPedalMaxReleaseMul = 10.f;                     // Rather arbitrary, in fact I'm not sure if this should be a feature at all! (FIXME)
 	constexpr float kDefPianoPedalReleaseMul = kPianoPedalMinReleaseMul; // So because of that, by default, the influence of this parameter is nil.
+
+	// Modulator input is *always* low passed a little bit to take the top off the unusable range of
+	// harmonically rich oscillators and emulate analog hardware a little bit
+	constexpr float kModulatorLP = 0.9f; // Normalized range [0..1]
 };
 
 #include "synth-random.h"

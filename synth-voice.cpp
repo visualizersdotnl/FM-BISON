@@ -10,19 +10,19 @@
 
 namespace SFM
 {
-	void Voice::ResetOperators(unsigned sampleRate)
+	void Voice::ResetOperators(unsigned sampleRate, unsigned Nyquist)
 	{
 		// NULL operators
 		for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
 		{
-			m_operators[iOp].Reset(sampleRate);
+			m_operators[iOp].Reset(sampleRate, Nyquist);
 		}
 	}
 
 	// Full reset
-	void Voice::Reset(unsigned sampleRate)
+	void Voice::Reset(unsigned sampleRate, unsigned Nyquist)
 	{
-		ResetOperators(sampleRate);
+		ResetOperators(sampleRate, Nyquist);
 
 		// Not bound, zero frequency, zero velocity
 		m_key = -1;
@@ -150,14 +150,13 @@ namespace SFM
 		// Process all operators top-down
 		// It's quite verbose and algorithmically not as flexible as could be (FIXME?)
 
-		alignas(16) float opSample[kNumOperators] = { 0.f }; // Monaural normalized samples
+		alignas(16) float modSamples[kNumOperators] = { 0.f }; // Samples for modulation
 		float mixL = 0.f, mixR = 0.f; // Carrier mix
 
 		for (int iOp = kNumOperators-1; iOp >= 0; --iOp)
 		{
 			// Top-down
 			Operator &voiceOp = m_operators[iOp];
-			const int iOpSample = iOp;
 
 			if (true == voiceOp.enabled)
 			{
@@ -171,7 +170,7 @@ namespace SFM
 				for (unsigned iMod = 0; iMod < 3; ++iMod)
 				{
 					const int iModulator = voiceOp.modulators[iMod];
-					if (-1 != iModulator)
+					if (-1 != iModulator) // FIXME: I can do without this
 					{
 						// Sanity checks
 						SFM_ASSERT(iModulator < kNumOperators);
@@ -179,7 +178,7 @@ namespace SFM
 
 						// Add sample to phase
 						// If modulator or modulator operator is disabled it's zero
-						const float sample = opSample[iModulator];
+						const float sample = modSamples[iModulator];
 						phaseShift += 1.f+sample;
 					}
 				}
@@ -233,24 +232,26 @@ namespace SFM
 				}
 				
 				// Apply filter
-				switch (voiceOp.filterSVF[0].getFilterType())
+				switch (voiceOp.filters[0].getFilterType())
 				{
 				case SvfLinearTrapOptimised2::NO_FLT_TYPE:
 					break;
 
 				case SvfLinearTrapOptimised2::ALL_PASS_FILTER:
 					for (unsigned iAllpass = 0; iAllpass < kNumVoiceAllpasses; ++iAllpass)
-						voiceOp.filterSVF[iAllpass].tickMono(sample);
+						voiceOp.filters[iAllpass].tickMono(sample);
 
 					break;
 
 				default:
 					// I'm assuming the filter is set up properly
-					voiceOp.filterSVF[0].tickMono(sample);
+					voiceOp.filters[0].tickMono(sample);
 				}
 
-				// Store final sample for modulation
-				opSample[iOpSample] = sample;
+				// Store filtered monaural sample for modulation
+				float modSample = sample;
+				voiceOp.modFilter.tickMono(modSample);
+				modSamples[iOp] = modSample;
 
 				// Calculate panning
 				float panning = voiceOp.panning.Sample();

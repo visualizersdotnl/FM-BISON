@@ -94,12 +94,13 @@ namespace SFM
 			bool isCarrier;
 			
 			// 12dB filter(s)
-			SvfLinearTrapOptimised2 filterSVF[kNumVoiceAllpasses];
+			SvfLinearTrapOptimised2 filters[kNumVoiceAllpasses];
+			SvfLinearTrapOptimised2 modFilter; // Set to default by Reset()
 
 			// Signal feedback
 			float feedback;
 
-			void Reset(unsigned sampleRate)
+			void Reset(unsigned sampleRate, unsigned Nyquist)
 			{
 				enabled = false;
 				
@@ -130,8 +131,15 @@ namespace SFM
 
 				isCarrier = false;
 				
-				for (auto &filter : filterSVF)
+				for (auto &filter : filters)
+				{
+					filter.updateCoefficients(1.0, 0.025, SvfLinearTrapOptimised2::NO_FLT_TYPE, sampleRate);
 					filter.resetState();
+				}
+
+				// Modulator filter has a static setting
+				modFilter.updateLowpassCoeff(CutoffToHz(kModulatorLP, Nyquist), 0.025 /* Min SVF filter Q. */, sampleRate);
+				modFilter.resetState();
 
 				feedback = 0.f;
 			}
@@ -155,10 +163,10 @@ namespace SFM
 		float m_freqGlide;
 
 	private:
-		void ResetOperators(unsigned sampleRate);
+		void ResetOperators(unsigned sampleRate, unsigned Nyquist);
 
 	public:
-		void Reset(unsigned sampleRate);
+		void Reset(unsigned sampleRate, unsigned Nyquist);
 
 		bool IsIdle()      const { return kIdle      == m_state; }
 		bool IsPlaying()   const { return kPlaying   == m_state; }
