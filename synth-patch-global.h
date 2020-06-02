@@ -70,10 +70,10 @@ namespace SFM
 		int pitchBendRange; // [0..kMaxPitchBendRange]
 
 		// LFO
-		Oscillator::Waveform LFOWaveform1; // Base #1
-		Oscillator::Waveform LFOWaveform2; // Base #2
-		Oscillator::Waveform LFOWaveform3; // Blend
-		float LFOBias;
+		Oscillator::Waveform LFOWaveform1; // Waveform A
+		Oscillator::Waveform LFOWaveform2; // Waveform B
+		Oscillator::Waveform LFOWaveform3; // FM waveform
+		float LFOBlend;
 		float LFOFMDepth; // Range [0..N]
 		float LFORate;    // Range [0.0..127.0]
 		bool  LFOKeySync;
@@ -210,7 +210,7 @@ namespace SFM
 			LFOWaveform1 = kLFOWaveforms[0]; // Sine
 			LFOWaveform2 = kLFOWaveforms[0]; // Sine
 			LFOWaveform3 = kLFOWaveforms[1]; // Silent
-			LFOBias = kDefLFOBias;           // Bias (between waveform #1 & waveform #2)
+			LFOBlend = 0.f;                  // Waveform A
 			LFOFMDepth = 0.f;                // No FM
 			LFORate = 0.f;                   // Zero Hz
 			LFOKeySync = false;              // No key sync.

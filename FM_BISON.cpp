@@ -152,14 +152,14 @@ namespace SFM
 
 		// Global
 		m_LFORatePF             = { m_sampleRate };
-		m_LFOBiasPF             = { m_sampleRate };
+		m_LFOBlendPF            = { m_sampleRate };
 		m_LFOFMDepthPF          = { m_sampleRate };
 		m_SandHSlewRatePF       = { m_sampleRate };
 		m_cutoffPF              = { m_sampleRate };
 		m_resoPF                = { m_sampleRate };
 
 		m_LFORatePF.Reset(freqLFO);
-		m_LFOBiasPF.Reset(m_patch.LFOBias);
+		m_LFOBlendPF.Reset(m_patch.LFOBlend);
 		m_LFOFMDepthPF.Reset(m_patch.LFOFMDepth);
 		m_SandHSlewRatePF.Reset(m_patch.SandHSlewRate);
 		m_cutoffPF.Reset(m_patch.cutoff);
@@ -1588,7 +1588,7 @@ namespace SFM
 					powf(2.f, curPitchBend.Sample()*(m_patch.pitchBendRange/12.f)),
 					curAmpBend.Sample()+1.f, // [0.0..2.0]
 					sampMod,
-					m_LFOBiasPF.Get(), 
+					m_LFOBlendPF.Get(), 
 					m_LFOFMDepthPF.Get());
 
 				// Sample filter envelope
@@ -1735,7 +1735,7 @@ namespace SFM
 		}
 		
 		// Filter LFO & S&H parameters (so they can be read by RenderVoices())
-		m_LFOBiasPF.Apply(m_patch.LFOBias);
+		m_LFOBlendPF.Apply(m_patch.LFOBlend);
 		m_LFOFMDepthPF.Apply(m_patch.LFOFMDepth);
 		m_SandHSlewRatePF.Apply(m_patch.SandHSlewRate);
 

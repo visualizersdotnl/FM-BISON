@@ -336,7 +336,7 @@ namespace SFM
 	
 		// Parameter filters
 		ParameterFilter m_LFORatePF;
-		ParameterFilter m_LFOBiasPF;
+		ParameterFilter m_LFOBlendPF;
 		ParameterFilter m_LFOFMDepthPF;
 		ParameterFilter m_SandHSlewRatePF;
 		ParameterFilter m_cutoffPF, m_resoPF;

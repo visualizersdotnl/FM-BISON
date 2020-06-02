@@ -24,7 +24,7 @@
 namespace SFM
 {
 	// Number or oscillators in unison
-	// - "According to Duda, '7' Unison is the sweet spot for stacks/chords."
+	// - "According to Duda, '7' Unison is the sweet spot for stacks/chords." (Serum developer)
 	const unsigned kNumPolySupersaws = 7;
 
 	// Prime number detune values for supersaw (in cents, almost symmetrical)
