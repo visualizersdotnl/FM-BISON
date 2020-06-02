@@ -53,7 +53,7 @@ namespace SFM
 		/*
 			Notes:
 				- Do not mix both Apply() functions without calling Reset() first!
-s				- Reduce input signal by approx. -3dB to -6dB 
+				- Reduce input signal by approx. -3dB to -6dB 
 		*/
 
 		SFM_INLINE float Apply(float sample, Vowel vowel)
