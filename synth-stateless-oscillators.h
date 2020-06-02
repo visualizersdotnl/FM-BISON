@@ -92,26 +92,26 @@ namespace SFM
 
 		// Adapted from "Phaseshaping Oscillator Algorithms for Musical Sound Synthesis" by Jari Kleimola, Victor Lazzarini, Joseph Timoney, and Vesa Valimaki.
 		// http://www.acoustics.hut.fi/publications/papers/smc2010-phaseshaping/
-		SFM_INLINE static float BLEP(double point, double DT /* This is, usually, just the pitch of the oscillator */) 
+		SFM_INLINE static float BLEP(double point, double dT /* This is, usually, just the pitch of the oscillator */) 
 		{
-			if (point < DT)
-				return (float) -Squared(point/DT - 1.0);
-			else if (point > (1.0 - DT))
-				return (float) Squared((point - 1.0)/DT + 1.0);
+			if (point < dT)
+				return (float) -Squared(point/dT - 1.0);
+			else if (point > (1.0 - dT))
+				return (float) Squared((point - 1.0)/dT + 1.0);
 			else
 				return 0.f;
 		}
 	
-		SFM_INLINE static float BLAMP(double point, double DT)
+		SFM_INLINE static float BLAMP(double point, double dT)
 		{
-			if (point < DT) 
+			if (point < dT) 
 			{
-				point = point / DT - 1.0;
+				point = point / dT - 1.0;
 				return float(-1.0 / 3.0 * Squared(point) * point);
 			} 
-			else if (point > 1 - DT) 
+			else if (point > 1 - dT) 
 			{
-				point = (point - 1.0) / DT + 1.0;
+				point = (point - 1.0) / dT + 1.0;
 				return float(1.0 / 3.0 * Squared(point) * point);
 			} 
 			else 
@@ -119,7 +119,7 @@ namespace SFM
 		}
 	}
 
-	SFM_INLINE static float oscPolySquare(float phase, float pitch)
+	SFM_INLINE static float oscPolySquare(float phase, double pitch)
 	{
 		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
 
@@ -132,7 +132,7 @@ namespace SFM
 		return square;
 	}
 
-	SFM_INLINE static float oscPolySaw(float phase, float pitch)
+	SFM_INLINE static float oscPolySaw(float phase, double pitch)
 	{
 		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
 
@@ -145,7 +145,7 @@ namespace SFM
 		return saw;
 	}
 
-	SFM_INLINE static float oscPolyTriangle(float phase, float pitch)
+	SFM_INLINE static float oscPolyTriangle(float phase, double pitch)
 	{
 		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
 
@@ -164,12 +164,12 @@ namespace SFM
 			triangle = 2.f - triangle;
 		}
 
-		triangle += 4.f * pitch * (Poly::BLAMP(P1, pitch) - Poly::BLAMP(P2, pitch));
+		triangle += 4.f * float(pitch) * (Poly::BLAMP(P1, pitch) - Poly::BLAMP(P2, pitch));
 
 		return triangle;
 	}
 
-	SFM_INLINE static float oscPolyRectifiedSine(float phase, float pitch)
+	SFM_INLINE static float oscPolyRectifiedSine(float phase, double pitch)
 	{
 		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
 
@@ -180,7 +180,7 @@ namespace SFM
 //		rectified += k2PI * pitch * Poly::BLAMP(P1, pitch);
 
 		float rectified = 2.f * oscSine(0.5f * P1) - 4.f*0.5f;
-		rectified += 2.f * pitch * Poly::BLAMP(P1, pitch);
+		rectified += 2.f * float(pitch) * Poly::BLAMP(P1, pitch);
 
 		return rectified;
 	}

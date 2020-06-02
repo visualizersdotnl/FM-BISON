@@ -23,7 +23,7 @@ namespace SFM
 	float Oscillator::Sample(float phaseShift)
 	{
 		const float phase = m_phases[0].Sample();
-		const float pitch = m_phases[0].GetPitch(); // For PolyBLEP
+		const double pitch = m_phases[0].GetPitch(); // For PolyBLEP
 
 		// FIXME: skip fmodf() if 'phaseShift' is zero?
 		const float modulated = fmodf(phase+phaseShift, 1.f);
@@ -60,15 +60,13 @@ namespace SFM
 
 			case kPolySupersaw:
 				{
-					// Modulation & (incoming) feedback ignored; they would only result in noise for this oscillator.
-					const float polyWidthScale = 0.33f;
+					// Modulation & (incoming) feedback ignored; they would only result in noise for this oscillator
 					const float subGain = 0.354813397f; // -9dB
 	
 					for (unsigned iSaw = 0; iSaw < kNumPolySupersaws; ++iSaw)
 					{
 						auto &phaseObj = m_phases[iSaw];
-						const float subPolyWidth = polyWidthScale*phaseObj.GetPitch();
-						signal += oscPolySaw(phaseObj.Sample(), subPolyWidth)*subGain;
+						signal += oscPolySaw(phaseObj.Sample(), 0.33*phaseObj.GetPitch())*subGain;
 					}
 				}
 
