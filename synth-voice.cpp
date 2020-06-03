@@ -138,7 +138,7 @@ namespace SFM
 		SFM_ASSERT(LFOFMDepth >= 0.f);
 		
 		// Calculate LFO
-		const float modLFO = LFOFMDepth + LFOFMDepth*m_modLFO.Sample(0.f);
+		const float modLFO = 1.f + LFOFMDepth*m_modLFO.Sample(modulation);
 		const float LFO1   = m_LFO1.Sample(modLFO);
 		const float LFO2   = m_LFO2.Sample(modLFO);
 		const float blend  = lerpf<float>(LFO1, LFO2, LFOBlend);
@@ -208,13 +208,12 @@ namespace SFM
 				// Calculate sample
 				float sample = oscillator.Sample(phaseShift+feedback);
 
-				// Apply LFO tremolo
-				const float tremolo = lerpf<float>(1.f, LFO, voiceOp.ampMod);
-				sample = lerpf<float>(sample, sample*tremolo, modulation);
+				// LFO tremolo
+				const float tremolo = LFO*voiceOp.ampMod*modulation*0.5f + 0.5f; // FIXME: not just [-1..1]?
 
 				// Apply amplitude (or 'index')
 				const float amplitude = voiceOp.amplitude.Sample();
-				sample *= amplitude;
+				sample *= amplitude*tremolo;
 
 				// Apply envelope
 				const float envelope = voiceOp.envelope.Sample();

@@ -165,6 +165,19 @@ namespace SFM
 		return saw;
 	}
 
+	SFM_INLINE static float oscPolyRamp(float phase, double pitch)
+	{
+		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
+
+		float P1 = phase;
+		P1 -= Poly::bitwiseOrZero(P1);
+
+		float ramp = 1.f - 2.f*P1;
+		ramp -= Poly::BLEP(P1, pitch);
+
+		return ramp;
+	}
+
 	SFM_INLINE static float oscPolyTriangle(float phase, double pitch)
 	{
 		SFM_ASSERT(phase >= 0.f && phase <= 1.f);

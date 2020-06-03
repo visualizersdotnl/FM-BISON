@@ -58,6 +58,7 @@ namespace SFM
 			kPolyTriangle,
 			kPolySquare,
 			kPolySaw,
+			kPolyRamp,
 			kPolySupersaw,
 			kPolyRectSine,
 
@@ -65,6 +66,7 @@ namespace SFM
 			kRamp,
 			kSaw,
 			kSquare,
+			kSquarePushed,
 			kTriangle,
 			kPulse,
 

@@ -42,8 +42,8 @@ namespace SFM
 			Oscillator::Waveform::kSine, 
 			Oscillator::Waveform::kStatic,
 			Oscillator::Waveform::kPolyTriangle,
-			Oscillator::Waveform::kPolySaw, // Cheat: should be a ramp!
-			Oscillator::Waveform::kPolySquare,
+			Oscillator::Waveform::kPolyRamp,
+			Oscillator::Waveform::kSquarePushed,
 			Oscillator::Waveform::kSampleAndHold
 	};
 
@@ -217,7 +217,7 @@ namespace SFM
 			modulationOverride = 0.f;        // Wheel input
 
 			// S&H default(s)
-			SandHSlewRate  = kDefSandHSlewRate;
+			SandHSlewRate = kDefSandHSlewRate;
 
 			// BPM sync.
 			beatSync = false;

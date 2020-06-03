@@ -6,6 +6,7 @@
 */
 
 #include "synth-oscillator.h" 
+#include "synth-distort.h"
 
 namespace SFM
 {
@@ -58,6 +59,10 @@ namespace SFM
 				signal = oscPolySaw(modulated, pitch);
 				break;
 
+			case kPolyRamp:
+				signal = oscPolyRamp(modulated, pitch);
+				break;
+
 			case kPolySupersaw:
 				{
 					// Modulation & (incoming) feedback ignored; they would only result in noise for this oscillator
@@ -99,6 +104,10 @@ namespace SFM
 
 			case kSquare:
 				signal = oscSquare(modulated);
+				break;
+
+			case kSquarePushed:
+				signal = Squarepusher(oscSine(modulated), 0.5f);
 				break;
 
 			case kTriangle:

@@ -26,8 +26,8 @@ namespace SFM
 
 	public:
 		// Constant parameters
-		float kWahDelay = 0.005f; // 5MS             
-		float kWahLookahead = kGoldenRatio*0.1f*kPI;
+		const float kWahDelay = 0.005f; // 5MS             
+		const float kWahLookahead = 0.3f;
 
 		AutoWah(unsigned sampleRate, unsigned Nyquist) :
 			m_sampleRate(sampleRate), m_Nyquist(Nyquist)
