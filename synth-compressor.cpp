@@ -61,7 +61,7 @@ namespace SFM
 			const float RMS = m_RMSDetector.Run(sampleL, sampleR);
 			const float signaldB = Lin2dB(RMS);
 			float deltadB = std::max<float>(0.f, signaldB-adjThresholddB);
-//			deltadB = m_envFollower.Apply(deltadB, m_envdB);
+			deltadB = m_envFollower.Apply(deltadB, m_envdB);
 
 			float adjRatio = 1.f/ratio;
 
