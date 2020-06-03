@@ -94,6 +94,7 @@ namespace SFM
 
 			case kSaw:
 				signal = oscSaw(modulated);
+//				signal = oscAltSaw(modulated, GetFrequency());
 				break;
 
 			case kSquare:

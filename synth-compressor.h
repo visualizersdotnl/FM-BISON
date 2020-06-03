@@ -23,7 +23,7 @@ namespace SFM
 			m_sampleRate(sampleRate)
 ,			m_outDelayL(sampleRate, kCompMaxDelay)
 ,			m_outDelayR(sampleRate, kCompMaxDelay)
-,			m_RMSDetector(sampleRate, 0.001f /* 1MS */)
+,			m_RMSDetector(sampleRate, 0.005f /* 5MS */)
 ,			m_envFollower(sampleRate)
 ,			m_curThresholddB(kDefCompThresholddB, sampleRate, kDefParameterLatency)
 ,			m_curKneedB(kDefCompKneedB, sampleRate, kDefParameterLatency)
@@ -64,7 +64,7 @@ namespace SFM
 
 		DelayLine m_outDelayL, m_outDelayR;
 		RMSDetector m_RMSDetector;
-
+		
 		AttackReleaseFollower m_envFollower;
 		float m_envdB = 0.f;
 

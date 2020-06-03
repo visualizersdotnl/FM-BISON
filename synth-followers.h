@@ -87,9 +87,9 @@ namespace SFM
 
 		float Run(float sampleL, float sampleR)
 		{
-			// Mix down to monaural & raise
-			const float monaural = sampleL*0.5f + sampleR*0.5f;
-			const float samplePow2 = fabsf(monaural*monaural);
+			// Pick rectified max. & raise
+			const float rectMax    = std::max<float>(fabsf(sampleL), fabsf(sampleR));
+			const float samplePow2 = rectMax*rectMax;
 			
 			// Pop tail
 			if (m_buffer.size() == m_numSamples)

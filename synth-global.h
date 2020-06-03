@@ -200,9 +200,9 @@ namespace SFM
 	constexpr float kMaxCompRatio       =   20.f;
 	constexpr float kDefCompRatio       = kMinCompRatio;
 	constexpr float kMinCompGaindB      =   -6.f;
-	constexpr float kMaxCompGaindB      =   24.f;
+	constexpr float kMaxCompGaindB      =   30.f;
 	constexpr float kDefCompGaindB      =    0.f;
-	constexpr float kMinCompAttack      =  0.01f; // 10 MS
+	constexpr float kMinCompAttack      = 0.001f; // 1 MS
 	constexpr float kMaxCompAttack      =    1.f; // 1 sec.
 	constexpr float kDefCompAttack      = kMinCompAttack;
 	constexpr float kMinCompRelease     =   0.1f; // 100 MS

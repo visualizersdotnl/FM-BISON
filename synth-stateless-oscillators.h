@@ -67,6 +67,26 @@ namespace SFM
 		return (cycle < duty) ? 1.f : -1.f;
 	}
 
+	// I am not sure where this *originally* came from, but I took it from Sander Vermeer's synth.
+	// Desmos link: https://www.desmos.com/calculator/l6cc64mqhk
+	SFM_INLINE static float oscAltSaw(float phase, float frequency)
+	{
+		auto residual = [](float phase, float frequency) 
+		{
+			// Strength of distortion is based on frequency; higher value means less strength
+			const float strength = 50.f/frequency;
+			const float strengthSq = strength*strength*strength*strength;
+			const float denominator = (strengthSq * 100.f * phase*phase*phase*phase*phase*phase) + 1.f;
+			return 1.f/denominator;
+		};
+
+		const float phaseMinOne = phase-1.f;
+		float saw = 2.f*phaseMinOne*phaseMinOne - 1.f;
+		saw *= residual(phase, frequency);
+
+		return saw;
+	}
+
 	/*
 		Band-limited (PolyBLEP) oscillators
 		

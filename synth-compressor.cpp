@@ -11,6 +11,20 @@
 
 namespace SFM
 {
+	// I stumbled across these 2 functions but I can't remember where; I'm using these two
+	// functions here only, though I may want to use them as my main conversion functions? (FIXME)
+	static SFM_INLINE float Lin2dB(double linear) 
+	{
+		constexpr double LOG_2_DB = 8.6858896380650365530225783783321; // = 20/ln(10)
+		return float(log(linear)*LOG_2_DB);
+	}
+	
+	static SFM_INLINE float dB2Lin(double dB) 
+	{
+		constexpr double DB_2_LOG = 0.11512925464970228420089957273422; // = ln(10)/20
+		return float(exp(dB*DB_2_LOG));
+	}
+
 	float Compressor::Apply(float *pLeft, float *pRight, unsigned numSamples)
 	{
 		float activity = 0.f;
@@ -37,38 +51,40 @@ namespace SFM
 			m_outDelayL.Write(sampleL);
 			m_outDelayR.Write(sampleR);
 
-			// Adjust threshold for soft knee
 			float adjThresholddB = thresholddB;
+
+			// Adjust threshold for soft knee
 			if (kneedB > 0.f)
 				adjThresholddB -= kneedB*0.5f;
 
 			// Calc. RMS and feed it to env. follower
 			const float RMS = m_RMSDetector.Run(sampleL, sampleR);
-			const float signaldB = (RMS != 0.f) ? GainTodB(RMS) : kMinVolumedB;
+			const float signaldB = Lin2dB(RMS);
 			float deltadB = std::max<float>(0.f, signaldB-adjThresholddB);
-
-			// FIXME: find out why it doesn't work
 //			deltadB = m_envFollower.Apply(deltadB, m_envdB);
 
-			float adjRatio = ratio;
+			float adjRatio = 1.f/ratio;
+
 			if (kneedB > 0.f)
 			{
 				// Soft knee
 				const float kneeBlend = std::min<float>(deltadB, kneedB)/kneedB;
-				adjRatio = lerpf<float>(1.f, ratio, kneeBlend*kneeBlend);
+				adjRatio = lerpf<float>(1.f, adjRatio, smoothstepf(kneeBlend*kneeBlend));
 			}
-			
+
+			// FIXME
+			float makeUpGain = 0.f;
+
 			// Calculate total gain
 			SFM_ASSERT(ratio > 0.f);
-			const float gaindB = -deltadB*(1.f - 1.f/adjRatio);
-			const float gain = dBToGain(gaindB + postGaindB);
+			/* const */ float gain = dB2Lin(deltadB*(adjRatio-1.f) + makeUpGain + postGaindB);
 
 			if (signaldB > thresholddB)
 				activity += 1.f;
 
 			// Apply to (delayed) signal
-			const auto  delayL   = (m_outDelayL.size()-1)*lookahead;
-			const auto  delayR   = (m_outDelayR.size()-1)*lookahead;
+			const auto  delayL   = m_outDelayL.size()*lookahead;
+			const auto  delayR   = m_outDelayR.size()*lookahead;
 			const float delayedL = m_outDelayL.Read(delayL);
 			const float delayedR = m_outDelayR.Read(delayR);
 
