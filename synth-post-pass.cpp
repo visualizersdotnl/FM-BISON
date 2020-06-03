@@ -255,8 +255,10 @@ namespace SFM
 			const float delayL = delayedL*invCrossBleedAmt + crossBleed*crossBleedAmt;
 			const float delayR = delayedR*invCrossBleedAmt + crossBleed*crossBleedAmt;
 
-			// Filter delay (6dB)
-			const float curCutoff = CutoffToHz(m_curDelayFeedbackCutoff.Sample(), m_Nyquist/2, 1.f);
+			// Filter delay (12dB)
+
+			// A little bit of filtering is always applied, which sounds good to me, and it makes the cutoff control more responsive
+			const float curCutoff = CutoffToHz(m_curDelayFeedbackCutoff.Sample(), m_Nyquist/2 /* ^ */, 1.f);
 			const float Fc = curCutoff/m_sampleRate;
 			m_delayFeedbackLPF_L.SetCutoff(Fc);
 			m_delayFeedbackLPF_R.SetCutoff(Fc);

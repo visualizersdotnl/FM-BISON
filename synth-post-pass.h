@@ -92,7 +92,7 @@ namespace SFM
 		DelayLine m_delayLineL;
 		DelayLine m_delayLineM;
 		DelayLine m_delayLineR;
-		LowpassFilter m_delayFeedbackLPF_L, m_delayFeedbackLPF_R;
+		LowpassFilter12dB m_delayFeedbackLPF_L, m_delayFeedbackLPF_R;
 		InterpolatedParameter<kLinInterpolate> m_curDelay;
 		InterpolatedParameter<kLinInterpolate> m_curDelayWet;
 		InterpolatedParameter<kLinInterpolate> m_curDelayFeedback;

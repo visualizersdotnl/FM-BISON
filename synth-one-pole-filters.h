@@ -48,7 +48,7 @@ namespace SFM
 		m_gain = 1.f-m_cutoff;
 	}
 
-	virtual SFM_INLINE float Apply(float input)
+	SFM_INLINE float Apply(float input)
 	{
 		m_feedback = input*m_gain + m_feedback*m_cutoff;
 		return m_feedback;
@@ -93,7 +93,7 @@ namespace SFM
 		m_gain = 1.f+m_cutoff;
 	}
 
-	virtual SFM_INLINE float Apply(float input)
+	SFM_INLINE float Apply(float input)
 	{
 		m_feedback = input*m_gain + m_feedback*m_cutoff;
 		return m_feedback;
@@ -109,6 +109,37 @@ namespace SFM
 		float m_cutoff;
 
 		float m_feedback;
+	};
+
+	/* Cascaded lowpass (12dB) */
+
+	class LowpassFilter12dB
+	{
+	public:
+		LowpassFilter12dB(float Fc = 1.f) :
+			m_filterA(Fc)
+,			m_filterB(Fc) {}
+
+	void Reset(float value)
+	{
+		m_filterA.Reset(value);
+		m_filterB.Reset(value);
+	}
+
+	void SetCutoff(float Fc)
+	{
+		m_filterA.SetCutoff(Fc);
+		m_filterB.SetCutoff(Fc);
+	}
+
+	float SFM_INLINE Apply(float input)
+	{
+		return m_filterB.Apply(m_filterA.Apply(input));
+	}
+
+	private:
+		LowpassFilter m_filterA;
+		LowpassFilter m_filterB;
 	};
 
 	/* Blockers (stereo) */
