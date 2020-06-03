@@ -90,7 +90,7 @@ namespace SFM
 			/* LFO */
 
 			case kSampleAndHold:
-				signal = m_SandH.Sample(modulated, m_pinkOsc.Sample());
+				signal = m_SandH.Sample(modulated, oscWhiteNoise());
 				break;
 
 			case kRamp:

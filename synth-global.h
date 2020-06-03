@@ -159,9 +159,9 @@ namespace SFM
 	// Reverb effect sounds best until mixed to around 50-60 percent as well (wetness)
 	constexpr float kMaxReverbWet = 0.55f;
 
-	// Chorus/Phaser speed/rate parameters (Hz)
-	constexpr float kMaxChorusSpeed = 12.f;
-	constexpr float kMaxPhaserSpeed = 8.f;
+	// Chorus/Phaser rate multipliers (Hz)
+	constexpr float kMaxChorusRate = 12.f;
+	constexpr float kMaxPhaserRate = 8.f;
 	
 	// Master output volume range & default in dB
 	constexpr int kMinVolumedB = -96;
@@ -218,8 +218,8 @@ namespace SFM
 	constexpr float kMaxWahHold          = 1.f;    // 1 sec.
 	constexpr float kDefWahHold          = kMinWahHold;
 	constexpr float kMinWahRate          = 0.f; 
-	constexpr float kMaxWahRate          = 1.284220f;  // Taken from synth-DX7-LFO-table.h
-	constexpr float kDefWahRate          = 0.435381f;  //
+	constexpr float kMaxWahRate          = 4.f;
+	constexpr float kDefWahRate          = 0.062506f; // Taken from DX7 LFO table
 
 	// Low cut (for post-pass DC blocker)
 	constexpr float kLowCutHz = 16.f;

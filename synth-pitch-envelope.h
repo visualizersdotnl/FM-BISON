@@ -10,6 +10,8 @@
 
 	If the envelope is stopped at any point it will interpolate towards P4.
 
+	The range returned is [-1..1], it should be adjusted to pitch range.
+
 	FIXME:
  		- Let envelope hold at P3 (sustain), on release interpolate to P4.
 		- Refactor code (duplication, ham-fisted approach, et cetera)
@@ -40,11 +42,10 @@ namespace SFM
 			float rateMul;
 		};
 
-		void Start(const Parameters &parameters, unsigned sampleRate, int pitchBendRange)
+		void Start(const Parameters &parameters, unsigned sampleRate)
 		{
 			m_parameters = parameters;
 			m_sampleRate = sampleRate;
-			m_pitchBendRangeMul = powf(2.f, pitchBendRange/12.f);
 
 			m_curPoint = 0;
 			m_iSample = 0;
@@ -58,7 +59,7 @@ namespace SFM
 			m_rates[3] = CalcRate(m_parameters.L4);
 		}
 
-		float Sample(bool sustained)
+		SFM_INLINE float Sample(bool sustained)
 		{
 			switch (m_curPoint)
 			{
@@ -134,7 +135,7 @@ namespace SFM
 			if (false == sustained && m_curPoint != 2)
 				++m_iSample;
 
-			return m_curLevel*m_pitchBendRangeMul;
+			return m_curLevel;
 		}
 
 		void Stop()
@@ -147,10 +148,17 @@ namespace SFM
 			m_releaseLevel = m_curLevel;
 		}
 
+		void Reset(unsigned sampleRate)
+		{
+			Parameters parameters;
+			memset(&parameters, 0, sizeof(Parameters));
+
+			Start(parameters, sampleRate);
+		}
+
 	private:
 		/* const */ Parameters m_parameters;
 		/* const */ unsigned m_sampleRate;
-		/* const */ float m_pitchBendRangeMul;
 
 		unsigned m_curPoint;
 		unsigned m_iSample;

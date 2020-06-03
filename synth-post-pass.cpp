@@ -198,14 +198,14 @@ namespace SFM
 		if (false == useBPM) // Sync. to BPM?
 		{
 			// No, use manual setting
-			SetChorusRate(cpRate, kMaxChorusSpeed);
-			SetPhaserRate(cpRate, kMaxPhaserSpeed);
+			SetChorusRate(cpRate, kMaxChorusRate);
+			SetPhaserRate(cpRate, kMaxPhaserRate);
 		}
 		else
 		{
 			// Locked to BPM
-			static_assert(kMaxChorusSpeed >= kMaxPhaserSpeed);
-			SetChorusRate(rateBPM, kMaxChorusSpeed/kMaxPhaserSpeed);
+			static_assert(kMaxChorusRate >= kMaxPhaserRate);
+			SetChorusRate(rateBPM, kMaxChorusRate/kMaxPhaserRate);
 			SetPhaserRate(rateBPM, 1.f);
 		}
 

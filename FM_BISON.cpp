@@ -205,7 +205,7 @@ namespace SFM
 		m_postDrivePF.Reset(m_patch.postDrivedB);
 		m_postWetPF.Reset(m_patch.postWet);
 		m_tubeDistPF.Reset(m_patch.tubeDistort);
-//		m_avgVelocityPF.Reset(0.f);
+		m_avgVelocityPF.Reset(0.f);
 		m_wahRatePF.Reset(m_patch.wahRate);
 		m_wahSpeakPF.Reset(m_patch.wahSpeak);
 		m_wahCutPF.Reset(m_patch.wahCut);
@@ -217,7 +217,7 @@ namespace SFM
 		m_reverbHP_PF.Reset(m_patch.reverbHP);
 		m_reverbLP_PF.Reset(m_patch.reverbLP);
 		m_reverbPreDelayPF.Reset(m_patch.reverbPreDelay);
-//		m_compLookaheadPF.Reset(0.f);
+		m_compLookaheadPF.Reset(0.f);
 		m_masterVolPF.Reset(m_patch.masterVol);
 
 		// Local
@@ -225,9 +225,9 @@ namespace SFM
 		m_modulationPF          = { m_sampleRate, kDefParameterFilterCutHz*0.6f  };
 		m_aftertouchPF          = { m_sampleRate, kDefParameterFilterCutHz*0.05f };
 
-//		m_bendWheelPF.Reset(0.f);
-//		m_modulationPF.Reset(0.f);
-//		m_aftertouchPF.Reset(0.f);
+		m_bendWheelPF.Reset(0.f);
+		m_modulationPF.Reset(0.f);
+		m_aftertouchPF.Reset(0.f);
 	}
 
 	// Cleans up after OnSetSamplingProperties()
@@ -747,7 +747,7 @@ namespace SFM
 		const float globalFreq = m_globalLFO->GetFrequency();
 		voice.m_LFO1.Initialize(m_patch.LFOWaveform1, globalFreq, m_sampleRate, phaseAdj);
 		voice.m_LFO2.Initialize(m_patch.LFOWaveform2, globalFreq, m_sampleRate, phaseAdj);
-		voice.m_modLFO.Initialize(m_patch.LFOWaveform3, globalFreq, m_sampleRate, phaseAdj);
+		voice.m_modLFO.Initialize(m_patch.LFOWaveform3, globalFreq*0.5f /* Sub osc. */, m_sampleRate, phaseAdj);
 	}
 	
 	// Initialize new voice
@@ -873,7 +873,8 @@ namespace SFM
 		voice.m_filterEnvelope.Start(m_patch.filterEnvParams, m_sampleRate, false, 1.f, envAcousticScaling);
 
 		// Start pitch envelope
-		voice.m_pitchEnvelope.Start(m_patch.pitchEnvParams, m_sampleRate, m_patch.pitchBendRange);
+		voice.m_pitchBendRange = m_patch.pitchBendRange;
+		voice.m_pitchEnvelope.Start(m_patch.pitchEnvParams, m_sampleRate);
 
 		// Voice is now playing
 		voice.m_state = Voice::kPlaying;
@@ -1035,7 +1036,8 @@ namespace SFM
 			voice.m_filterEnvelope.Start(m_patch.filterEnvParams, m_sampleRate, false, 1.f, envAcousticScaling);
 
 			// Start pitch envelope
-			voice.m_pitchEnvelope.Start(m_patch.pitchEnvParams, m_sampleRate, m_patch.pitchBendRange);
+			voice.m_pitchBendRange = m_patch.pitchBendRange;
+			voice.m_pitchEnvelope.Start(m_patch.pitchEnvParams, m_sampleRate);
 		}
 
 		// Voice is now playing
@@ -1597,7 +1599,7 @@ namespace SFM
 				float left, right;
 				voice.Sample(
 					left, right, 
-					powf(2.f, curPitchBend.Sample()*(m_patch.pitchBendRange/12.f)),
+					curPitchBend.Sample(),
 					curAmpBend.Sample()+1.f, // [0.0..2.0]
 					sampMod,
 					curLFOBlend.Sample(), 

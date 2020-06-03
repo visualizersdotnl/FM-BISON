@@ -40,6 +40,10 @@ namespace SFM
 		// Filter envelope
 		m_filterEnvelope.Reset();
 
+		// Pitch (envelope)
+		m_pitchBendRange = kDefPitchBendRange;
+		m_pitchEnvelope.Reset(sampleRate);
+
 		// Reset filter
 		m_filterSVF1.resetState();
 		m_filterSVF2.resetState();
@@ -131,6 +135,9 @@ namespace SFM
 
 			return;
 		}
+		
+		// FIXME
+//		SFM_ASSERT(pitchBend >= 0.f && pitchBend <= 1.f);
 
 		SFM_ASSERT(ampBend >= 0.f && ampBend <= 2.f);
 		SFM_ASSERT(modulation >= 0.f && modulation <= 1.f);
@@ -144,8 +151,10 @@ namespace SFM
 		const float blend  = lerpf<float>(LFO1, LFO2, LFOBlend);
 		const float LFO    = Clamp(blend);
 
-		// Sample pitch envelope (does not sustain!)
-		const float pitchEnv = m_pitchEnvelope.Sample(false);
+		// Pitch
+		const float pitchRangeOct = m_pitchBendRange/12.f;
+		const float pitchEnv = powf(2.f, m_pitchEnvelope.Sample(false)*pitchRangeOct); // Sample pitch envelope (does not sustain!)
+		pitchBend = powf(2.f, pitchBend*pitchRangeOct);
 
 		// Process all operators top-down
 		// It's quite verbose and algorithmically not as flexible as could be (FIXME?)
@@ -198,11 +207,9 @@ namespace SFM
 					feedback = m_operators[iFeedback].feedback;
 				}
 
-				// Apply pitch bend, LFO vibrato & pitch envelope
-				float vibrato = pitchBend; // Passed in as multiplier
-				vibrato *= powf(2.f, LFO*modulation*voiceOp.pitchMod + pitchEnv);
-
-				// Bend oscillator pitch accordingly
+				// Vibrato: pitch bend, pitch envelope & pitch LFO
+				const float pitchLFO = powf(2.f, LFO*voiceOp.pitchMod*modulation * pitchRangeOct);
+				const float vibrato = pitchBend*pitchEnv*pitchLFO;
 				oscillator.PitchBend(vibrato);
 
 				// Calculate sample
