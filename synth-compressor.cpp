@@ -46,7 +46,9 @@ namespace SFM
 			const float RMS = m_RMSDetector.Run(sampleL, sampleR);
 			const float signaldB = (RMS != 0.f) ? GainTodB(RMS) : kMinVolumedB;
 			float deltadB = std::max<float>(0.f, signaldB-adjThresholddB);
-			deltadB = m_envFollower.Apply(deltadB, m_envdB);
+
+			// FIXME: find out why it doesn't work
+//			deltadB = m_envFollower.Apply(deltadB, m_envdB);
 
 			float adjRatio = ratio;
 			if (kneedB > 0.f)
