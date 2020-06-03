@@ -132,6 +132,8 @@ namespace SFM
 		m_globalLFO->Initialize(freqLFO, m_sampleRate);
 
 		// Reset global interpolated parameters
+		m_curLFOBlend   = { m_patch.LFOBlend, m_sampleRate, kDefParameterLatency };
+		m_curLFOFMDepth = { m_patch.LFOFMDepth, m_sampleRate, kDefParameterLatency };
 		m_curCutoff     = { CutoffToHz(m_patch.cutoff, m_Nyquist), m_sampleRate, kDefParameterLatency };
 		m_curQ          = { ResoToQ(m_patch.resonance), m_sampleRate, kDefParameterLatency };
 		m_curPitchBend  = { 0.f, m_sampleRate, kDefParameterLatency };
@@ -1559,6 +1561,10 @@ namespace SFM
 				voice.m_filterSVF2.resetState();
 			}
 
+			// LFO
+			auto curLFOBlend   = m_curLFOBlend;
+			auto curLFOFMDepth = m_curLFOFMDepth;
+
 			// Reset to initial cutoff & Q
 			auto curCutoff = m_curCutoff;
 			auto curQ      = m_curQ;
@@ -1594,8 +1600,8 @@ namespace SFM
 					powf(2.f, curPitchBend.Sample()*(m_patch.pitchBendRange/12.f)),
 					curAmpBend.Sample()+1.f, // [0.0..2.0]
 					sampMod,
-					m_LFOBlendPF.Get(), 
-					m_LFOFMDepthPF.Get());
+					curLFOBlend.Sample(), 
+					curLFOFMDepth.Sample());
 
 				// Sample filter envelope
 				float filterEnv = filterEG.Sample();
@@ -1740,10 +1746,10 @@ namespace SFM
 			}
 		}
 		
-		// Filter LFO & S&H parameters (so they can be read by RenderVoices())
-		m_LFOBlendPF.Apply(m_patch.LFOBlend);
-		m_LFOFMDepthPF.Apply(m_patch.LFOFMDepth);
-		m_SandHSlewRatePF.Apply(m_patch.SandHSlewRate);
+		// Filter/Prepare LFO & S&H parameters (so they can be used by RenderVoices())
+		m_curLFOBlend.SetTarget(m_LFOBlendPF.Apply(m_patch.LFOBlend));
+		m_curLFOFMDepth.SetTarget(m_LFOFMDepthPF.Apply(m_patch.LFOFMDepth));
+		m_SandHSlewRatePF.Apply(m_patch.SandHSlewRate); // Does not need per-sample interpolation
 
 		// Update voice logic (pre)
 		UpdateVoicesPreRender(numSamples);
@@ -1987,6 +1993,8 @@ namespace SFM
 						  m_pBufL[0], m_pBufR[0], pLeft, pRight);
 
 		// Of all these, copies were used per voice, so skip numSamples to keep up	
+		m_curLFOBlend.Skip(numSamples);
+		m_curLFOFMDepth.Skip(numSamples);
 		m_curCutoff.Skip(numSamples);
 		m_curQ.Skip(numSamples);
 		m_curPitchBend.Skip(numSamples);

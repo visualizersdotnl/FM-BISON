@@ -62,11 +62,12 @@ namespace SFM
 			kPolySupersaw,
 			kPolyRectSine,
 
-			// Raw
+			// Raw/LFO
 			kRamp,
 			kSaw,
 			kSquare,
-			kSquarePushed,
+			kSquarePushed, // Band-limited
+			kFakeRamp,     // Band-limited
 			kTriangle,
 			kPulse,
 
@@ -88,6 +89,9 @@ namespace SFM
 		// Oscillators with state
 		PinkNoise m_pinkOsc;
 		SampleAndHold m_SandH;
+
+		// Signal
+		float m_signal = 0.f;
 		
 		alignas(16) static float s_supersawDetune[kNumPolySupersaws];
 		

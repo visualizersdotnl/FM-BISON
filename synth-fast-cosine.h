@@ -4,7 +4,7 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	Period is [0..1]
+	Period is [0..1], values outside of [0..1] work fine.
 
 	Includes sinus and tangent.
 */
@@ -25,9 +25,6 @@ namespace SFM
 	{
 		// Cosine is symmetrical around 0, let's get rid of negative values
 		x = fabs(x); 
-
-		// It's fine if I don't adhere to [0..1]
-//		SFM_ASSERT(x >= 0.f && x <= 1.f);
 
 		auto phase = 1.0+x;
 

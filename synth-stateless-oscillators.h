@@ -4,7 +4,7 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	- Phase is [0..1]
+	- Phase is [0..1], this range must be adhered to except for oscSine() and oscCos()
 	- Band-limited (PolyBLEP) oscillators are called 'oscPoly...'
 */
 
@@ -20,13 +20,11 @@ namespace SFM
 
 	SFM_INLINE static float oscSine(float phase) 
 	{
-		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
 		return fast_sinf(phase); 
 	}
 	
 	SFM_INLINE static float oscCos(float phase) 
 	{ 
-		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
 		return fast_cosf(phase); 
 	}
 
@@ -71,6 +69,8 @@ namespace SFM
 	// Desmos link: https://www.desmos.com/calculator/l6cc64mqhk
 	SFM_INLINE static float oscAltSaw(float phase, float frequency)
 	{
+		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
+
 		auto residual = [](float phase, float frequency) 
 		{
 			// Strength of distortion is based on frequency; higher value means less strength
@@ -94,7 +94,7 @@ namespace SFM
 		- A copy of the original can be found @ /3rdparty/PolyBlep/...
 		- There are a lot more waveforms ready to use (though I shouldn't go overboard considering FM)
 		
-		I've kept this implementaiton and it's helper functions all in one spot, though I did
+		I've kept this implementation and it's helper functions all in one spot, though I did
 		rename a few things to keep it consistent with my style.
 	*/
 
@@ -112,16 +112,37 @@ namespace SFM
 
 		// Adapted from "Phaseshaping Oscillator Algorithms for Musical Sound Synthesis" by Jari Kleimola, Victor Lazzarini, Joseph Timoney, and Vesa Valimaki.
 		// http://www.acoustics.hut.fi/publications/papers/smc2010-phaseshaping/
-		SFM_INLINE static float BLEP(double point, double dT /* This is, usually, just the pitch of the oscillator */) 
+		SFM_INLINE static float BLEP_Original(double point, double dT /* This is, usually, just the pitch of the oscillator */) 
 		{
 			if (point < dT)
+				// Discontinuities between 0 & 1
 				return (float) -Squared(point/dT - 1.0);
-			else if (point > (1.0 - dT))
+			else if (point > 1.0 - dT)
+				// Discontinuities between -1 & 0
 				return (float) Squared((point - 1.0)/dT + 1.0);
 			else
 				return 0.f;
 		}
 	
+		// Source: http://metafunction.co.uk/all-about-digital-oscillators-part-2-blits-bleps/
+		SFM_INLINE static float BLEP(double point, double dT /* This is, usually, just the pitch of the oscillator */) 
+		{
+			if (point < dT)
+			{
+				// Discontinuities between 0 & 1
+				point /= dT;
+				return float(point+point - point*point - 1.0);
+			}			
+			else if (point > 1.0 - dT)
+			{
+				// Discontinuities between -1 & 0
+				point = (point - 1.0)/dT;
+				return float(point*point + point+point + 1.0);
+			}
+			else
+				return 0.f;
+		}
+
 		SFM_INLINE static float BLAMP(double point, double dT)
 		{
 			if (point < dT) 
@@ -129,7 +150,7 @@ namespace SFM
 				point = point / dT - 1.0;
 				return float(-1.0 / 3.0 * Squared(point) * point);
 			} 
-			else if (point > 1 - dT) 
+			else if (point > 1.0 - dT) 
 			{
 				point = (point - 1.0) / dT + 1.0;
 				return float(1.0 / 3.0 * Squared(point) * point);

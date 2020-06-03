@@ -360,6 +360,8 @@ namespace SFM
 		ParameterFilter m_masterVolPF;
 
 		// Per-sample interpolated global parameters
+		InterpolatedParameter<kLinInterpolate> m_curLFOBlend;
+		InterpolatedParameter<kLinInterpolate> m_curLFOFMDepth;
 		InterpolatedParameter<kLinInterpolate> m_curCutoff;
 		InterpolatedParameter<kLinInterpolate> m_curQ;
 		

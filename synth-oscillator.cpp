@@ -99,7 +99,6 @@ namespace SFM
 
 			case kSaw:
 				signal = oscSaw(modulated);
-//				signal = oscAltSaw(modulated, GetFrequency());
 				break;
 
 			case kSquare:
@@ -107,7 +106,12 @@ namespace SFM
 				break;
 
 			case kSquarePushed:
-				signal = Squarepusher(oscSine(modulated), 0.5f);
+				signal = Squarepusher(oscSine(modulated), 0.3f);
+				break;
+
+			case kFakeRamp:
+				// Quick hack (FIXME)
+				signal = oscSine(modulated + (1.f + 0.075f*oscPolyTriangle(modulated, pitch)));
 				break;
 
 			case kTriangle:
@@ -124,6 +128,7 @@ namespace SFM
 		// I'd like to check the range here as well ([-1..1]) but for ex. pink noise or the supersaw overshoot (FIXME)
 		FloatAssert(signal);
 
+		m_signal = signal;
 		return signal;
 	}
 }

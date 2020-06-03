@@ -177,7 +177,7 @@ namespace SFM
 	
 	// Slew parameters for S&H
 	constexpr float kMinSandHSlewRate =    0.f;  //  0MS
-	constexpr float kMaxSandHSlewRate =  0.02f;  // 20MS
+	constexpr float kMaxSandHSlewRate =  0.05f;  // 50MS
 	constexpr float kDefSandHSlewRate = 0.005f;  //  5MS
 
 	// Reverb width range & default
