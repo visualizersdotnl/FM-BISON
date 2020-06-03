@@ -236,7 +236,7 @@ namespace SFM
 			// Write to delay line
 			const float left     = effectL;
 			const float right    = effectR;
-			const float monaural = fast_tanhf(left*0.5f + right*0.5f);
+			const float monaural = left*0.5f + right*0.5f;
 					
 			m_delayLineL.Write(left);
 			m_delayLineM.Write(monaural);
@@ -261,13 +261,14 @@ namespace SFM
 			m_delayFeedbackLPF_L.SetCutoff(Fc);
 			m_delayFeedbackLPF_R.SetCutoff(Fc);
 
+			const float filteredL = m_delayFeedbackLPF_L.Apply(delayL);
+			const float filteredR = m_delayFeedbackLPF_R.Apply(delayR);
+			const float filteredM = filteredL*0.5f + filteredR*0.5f;
+
 			// Feed back into delay line
 			float curFeedbackDry = m_curDelayFeedback.Sample();
 			float curFeedback = curFeedbackDry*kMaxDelayFeedback;
 
-			const float filteredL = m_delayFeedbackLPF_L.Apply(delayL);
-			const float filteredR = m_delayFeedbackLPF_R.Apply(delayR);
-			const float filteredM = filteredL*0.5f + filteredR*0.5f;
 			m_delayLineL.WriteFeedback(filteredL, curFeedback);
 			m_delayLineM.WriteFeedback(filteredM, curFeedback);
 			m_delayLineR.WriteFeedback(filteredR, curFeedback);
