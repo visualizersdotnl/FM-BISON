@@ -88,7 +88,7 @@ namespace SFM
 		float *m_pBufL = nullptr;
 		float *m_pBufR = nullptr;
 
-		// Delay lines
+		// Delay lines & delay's interpolated parameters
 		DelayLine m_delayLineL;
 		DelayLine m_delayLineM;
 		DelayLine m_delayLineR;
@@ -123,7 +123,7 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curPostDrivedB;
 		InterpolatedParameter<kLinInterpolate> m_curPostWet;
 
-		// Tube amp. distortion post filter & it's interpolated parameters
+		// Tube amp. distortion filter & it's interpolated parameters
 		InterpolatedParameter<kLinInterpolate> m_curAvgVelocity;
 		InterpolatedParameter<kLinInterpolate> m_curTubeDist;
 		InterpolatedParameter<kLinInterpolate> m_curTubeDrive;

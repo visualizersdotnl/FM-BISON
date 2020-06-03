@@ -292,6 +292,16 @@ namespace SFM
 
 		 ------------------------------------------------------------------------------------------------------ */
 
+		const auto numOversamples = numSamples*kOversample;
+
+		// A few magic values I figured out whilst building the basic tube amp. algorithm, which is little
+		// more than a filtered waveshaper which reacts to velocity (a bit, see tubeVelocitydB for range)
+		constexpr double preTubeFilterHz  = 3000.0;
+		constexpr double postTubeFilterHz = 2300.0;
+		constexpr double preTubeFilterQ   = 0.05;
+		constexpr double postTubeFilterQ  = 0.2;
+		constexpr float  tubeVelocitydB   = 6.f;
+
 		// Set post filter parameters
 		m_curPostCutoff.SetTarget(postCutoff);
 		m_curPostQ.SetTarget(postQ);
@@ -303,8 +313,22 @@ namespace SFM
 		m_curTubeDist.SetTarget(tubeDistort);
 		m_curTubeDrive.SetTarget(dBToGain(tubeDrivedB));
 
-		const auto numOversamples = numSamples*kOversample; 
+		const bool skipFilter  = 0.f == m_curPostWet.Get()  && 0.f == postWet;
+		const bool skipDistort = 0.f == m_curTubeDist.Get() && 0.f == tubeDistort;
 
+		if (true == skipFilter && true == skipDistort)
+		{
+			// No point in oversampling for no reason, so skip this part and move the parameters along
+			m_curPostCutoff.Skip(numOversamples);
+			m_curPostQ.Skip(numOversamples);
+			m_curPostDrivedB.Skip(numOversamples);
+			m_curPostWet.Skip(numOversamples);
+
+			m_curAvgVelocity.Skip(numOversamples);
+			m_curTubeDist.Skip(numOversamples);
+			m_curTubeDrive.Skip(numOversamples);
+		}
+		else
 		{
 			// Oversample L/R for the coming steps
 			juce::dsp::AudioBlock<float> inputBlockL(&m_pBufL, 1, numSamples);
@@ -319,8 +343,8 @@ namespace SFM
 			float *pOverR = outBlockR.getChannelPointer(0);
 
 			// Apply post filter & tube amp. distortion
-			m_tubeFilterPre.updateCoefficients(3000.0, 0.05, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_oversamplingRate);
-			m_tubeFilterPost.updateCoefficients(2300.0, 0.2, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_oversamplingRate);
+			m_tubeFilterPre.updateCoefficients(preTubeFilterHz, preTubeFilterQ, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_oversamplingRate);
+			m_tubeFilterPost.updateCoefficients(postTubeFilterHz, postTubeFilterQ, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_oversamplingRate);
 
 			for (unsigned iSample = 0; iSample < numOversamples; ++iSample)
 			{
@@ -359,7 +383,9 @@ namespace SFM
 				// Mix them
 				sampleL += postSampleL*curPostWet;
 				sampleR += postSampleR*curPostWet;
-				const float gain = dBToGain(-3.f + velocity*6.f); // [-3dB..3dB]
+				
+				const float gain = dBToGain(-tubeVelocitydB*0.5f + velocity*tubeVelocitydB);
+				
 				pOverL[iSample] = lerpf<float>(sampleL, sampleL + filteredL*gain, amount);
 				pOverR[iSample] = lerpf<float>(sampleR, sampleR + filteredR*gain, amount);
 			}

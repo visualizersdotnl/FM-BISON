@@ -37,23 +37,28 @@ namespace SFM
 			m_outDelayL.Write(sampleL);
 			m_outDelayR.Write(sampleR);
 
+			// Adjust threshold for soft knee
+			float adjThresholddB = thresholddB;
+			if (kneedB > 0.f)
+				adjThresholddB -= kneedB*0.5f;
+
 			// Calc. RMS and feed it to env. follower
 			const float RMS = m_RMSDetector.Run(sampleL, sampleR);
 			const float signaldB = (RMS != 0.f) ? GainTodB(RMS) : kMinVolumedB;
-			float deltadB = std::max<float>(0.f, signaldB-thresholddB);
+			float deltadB = std::max<float>(0.f, signaldB-adjThresholddB);
 			deltadB = m_envFollower.Apply(deltadB, m_envdB);
 
 			float adjRatio = ratio;
 			if (kneedB > 0.f)
 			{
-				// Calc. soft knee (not centered, begins at threshold)
+				// Soft knee
 				const float kneeBlend = std::min<float>(deltadB, kneedB)/kneedB;
 				adjRatio = lerpf<float>(1.f, ratio, kneeBlend*kneeBlend);
 			}
 			
 			// Calculate total gain
 			SFM_ASSERT(ratio > 0.f);
-			const float gaindB = -deltadB/adjRatio;
+			const float gaindB = -deltadB*(1.f - 1.f/adjRatio);
 			const float gain = dBToGain(gaindB + postGaindB);
 
 			if (signaldB > thresholddB)
