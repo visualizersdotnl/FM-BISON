@@ -319,6 +319,8 @@ namespace SFM
 		if (true == skipFilter && true == skipDistort)
 		{
 			// No point in oversampling for no reason, so skip this part and move the parameters along
+			// FIXME: is this true, given that there are filters involved?
+
 			m_curPostCutoff.Skip(numOversamples);
 			m_curPostQ.Skip(numOversamples);
 			m_curPostDrivedB.Skip(numOversamples);
