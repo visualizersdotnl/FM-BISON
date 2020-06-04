@@ -48,6 +48,7 @@ namespace SFM
 	class Oscillator
 	{
 	public:
+		// Supported waveforms
 		enum Waveform
 		{
 			kStatic,
@@ -59,16 +60,22 @@ namespace SFM
 			kPolySquare,
 			kPolySaw,
 			kPolyRamp,
-			kPolySupersaw,
-			kPolyRectSine,
+			kPolyRectifiedSine,
 			kPolyTrapezoid,
+			kPolyRectangle,
+			kBump,
+
+			// Very soft approximation of ramp & saw (for LFO)
+			kSoftRamp,
+			kSoftSaw,
+			
+			// Supersaw
+			kSupersaw,
 
 			// Raw/LFO
 			kRamp,
 			kSaw,
 			kSquare,
-			kFakeSquare, // Band-limited
-			kFakeRamp,   // Band-limited
 			kTriangle,
 			kPulse,
 
@@ -88,8 +95,8 @@ namespace SFM
 		alignas(16) Phase m_phases[kNumPolySupersaws];
 
 		// Oscillators with state
-		PinkNoise m_pinkOsc;
-		SampleAndHold m_SandH;
+		PinkNoise     m_pinkNoise;
+		SampleAndHold m_sampleAndHold;
 
 		// Signal
 		float m_signal = 0.f;
@@ -98,7 +105,7 @@ namespace SFM
 		
 	public:
 		Oscillator(unsigned sampleRate = 1) :
-			m_SandH(sampleRate)
+			m_sampleAndHold(sampleRate)
 		{
 			Initialize(kStatic, 0.f, sampleRate, 0.f);
 		}
@@ -108,10 +115,10 @@ namespace SFM
 			m_form = form;
 			m_phases[0].Initialize(frequency, sampleRate, phaseShift);
 			
-			m_pinkOsc = PinkNoise();
-			m_SandH   = SampleAndHold(sampleRate);
+			m_pinkNoise     = PinkNoise();
+			m_sampleAndHold = SampleAndHold(sampleRate);
 			
-			if (kPolySupersaw == m_form)
+			if (kSupersaw == m_form)
 			{
 				// The idea here is that an optimized (FIXME!) way of multiple detuned oscillators handsomely 
 				// beats spawning that number of actual voices, much like the original supersaw is a custom oscillator circuit
@@ -133,9 +140,12 @@ namespace SFM
 
 		SFM_INLINE void PitchBend(float bend)
 		{
+			if (1.f == bend)
+				return;
+
 			m_phases[0].PitchBend(bend);		
 	
-			if (kPolySupersaw == m_form)
+			if (kSupersaw == m_form)
 			{
 				// Set relative to detune (asserted in Initialize())
 				for (unsigned iSaw = 1; iSaw < kNumPolySupersaws; ++iSaw)
@@ -148,9 +158,12 @@ namespace SFM
 
 		SFM_INLINE void SetFrequency(float frequency)
 		{
+			if (GetFrequency() == frequency)
+				return;
+
 			m_phases[0].SetFrequency(frequency);
 
-			if (kPolySupersaw == m_form)
+			if (kSupersaw == m_form)
 			{
 				// Set relative to detune (asserted in Initialize())
 				for (unsigned iSaw = 1; iSaw < kNumPolySupersaws; ++iSaw)
@@ -166,7 +179,13 @@ namespace SFM
 
 		SFM_INLINE void SetSampleAndHoldSlewRate(float rate)
 		{
-			m_SandH.SetSlewRate(rate);
+			m_sampleAndHold.SetSlewRate(rate);
+		}
+
+		SFM_INLINE void SetHardSync(float frequency)
+		{
+			SFM_ASSERT(kSupersaw != m_form);
+			m_phases[0].SyncTo(frequency);
 		}
 		
 		SFM_INLINE float    GetFrequency()   const { return m_phases[0].GetFrequency();  }

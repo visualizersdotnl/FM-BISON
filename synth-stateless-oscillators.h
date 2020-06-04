@@ -29,20 +29,18 @@ namespace SFM
 	}
 
 	/*
-		Naive implementations (not band-limited)
-	*/
-
-	// There are conflicting opinions on how a ramp or a saw looks
-	SFM_INLINE static float oscRamp(float phase)
-	{
-		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
-		return phase*2.f - 1.f;
-	}
+	/*	Naive implementations (not band-limited) */
 
 	SFM_INLINE static float oscSaw(float phase)
 	{
 		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
-		return phase*-2.f + 1.f;
+		phase += 0.5f;
+		return 2.f*phase - 1.f;
+	}
+
+	SFM_INLINE static float oscRamp(float phase)
+	{
+		return -1.f*oscSaw(phase);
 	}
 
 	SFM_INLINE static float oscSquare(float phase)
@@ -60,31 +58,10 @@ namespace SFM
 	SFM_INLINE static float oscPulse(float phase, float duty)
 	{
 		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
+		SFM_ASSERT(duty >= 0.f && duty <= 1.f);
 
 		const float cycle = phase;
 		return (cycle < duty) ? 1.f : -1.f;
-	}
-
-	// I am not sure where this *originally* came from, but I took it from Sander Vermeer's synth.
-	// Desmos link: https://www.desmos.com/calculator/l6cc64mqhk
-	SFM_INLINE static float oscAltSaw(float phase, float frequency)
-	{
-		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
-
-		auto residual = [](float phase, float frequency) 
-		{
-			// Strength of distortion is based on frequency; higher value means less strength
-			const float strength = 50.f/frequency;
-			const float strengthSq = strength*strength*strength*strength;
-			const float denominator = (strengthSq * 100.f * phase*phase*phase*phase*phase*phase) + 1.f;
-			return 1.f/denominator;
-		};
-
-		const float phaseMinOne = phase-1.f;
-		float saw = 2.f*phaseMinOne*phaseMinOne - 1.f;
-		saw *= residual(phase, frequency);
-
-		return saw;
 	}
 
 	/*
@@ -197,7 +174,7 @@ namespace SFM
 		P1 -= Poly::bitwiseOrZero(P1);
 
 		float ramp = 1.f - 2.f*P1;
-		ramp -= Poly::BLEP(P1, pitch);
+		ramp += Poly::BLEP(P1, pitch);
 
 		return ramp;
 	}

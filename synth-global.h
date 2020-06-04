@@ -236,7 +236,6 @@ namespace SFM
 	// Modulator input is *always* low passed a little bit to take the top off the unusable range of
 	// harmonically rich oscillators and emulate analog hardware a little bit
 	constexpr float kModulatorLP    =  0.9f;  // Normalized range [0..1]
-	constexpr float kLFOModulatorLP = 0.95f; // Normalized range [0..1]
 };
 
 #include "synth-random.h"

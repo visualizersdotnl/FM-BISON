@@ -337,7 +337,7 @@ namespace SFM
 		// Parameter filters
 		ParameterFilter m_LFORatePF;
 		ParameterFilter m_LFOBlendPF;
-		ParameterFilter m_LFOFMDepthPF;
+		ParameterFilter m_LFOModDepthPF;
 		ParameterFilter m_SandHSlewRatePF;
 		ParameterFilter m_cutoffPF, m_resoPF;
 		ParameterFilter m_effectWetPF, m_effectRatePF;
@@ -361,7 +361,7 @@ namespace SFM
 
 		// Per-sample interpolated global parameters
 		InterpolatedParameter<kLinInterpolate> m_curLFOBlend;
-		InterpolatedParameter<kLinInterpolate> m_curLFOFMDepth;
+		InterpolatedParameter<kLinInterpolate> m_curLFOModDepth;
 		InterpolatedParameter<kLinInterpolate> m_curCutoff;
 		InterpolatedParameter<kLinInterpolate> m_curQ;
 		

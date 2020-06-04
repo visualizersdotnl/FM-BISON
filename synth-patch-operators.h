@@ -20,23 +20,23 @@ namespace SFM
 {
 	// Frequency control ranges
 	// IMPORTANT: coarse may *never* be 0!
-	const int kCoarseMin     = -4;
-	const int kCoarseMax     = 32;
-	const int kFineRange     = 24;    // Semitones
-	const float kDetuneRange = 100.f; // Cents
+	constexpr int kCoarseMin     = -4;
+	constexpr int kCoarseMax     = 32;
+	constexpr int kFineRange     = 24;    // Semitones
+	constexpr float kDetuneRange = 100.f; // Cents
+
+	constexpr unsigned kNumOperatorWaveforms = 7;
 
 	const Oscillator::Waveform kOperatorWaveforms[7] =
 	{
-			Oscillator::Waveform::kSine,          // Sine
-			Oscillator::Waveform::kPolyTriangle,  // Triangle
-			Oscillator::Waveform::kPolySquare,	  // Square
-			Oscillator::Waveform::kPinkNoise,     // Pink noise
-			Oscillator::Waveform::kPolySaw,       // Saw
-			Oscillator::Waveform::kPolySupersaw,  // Supersaw
-			Oscillator::Waveform::kPolyRectSine   // Rectified sine
+			Oscillator::Waveform::kSine,             // Sine
+			Oscillator::Waveform::kPolyTriangle,     // Triangle
+			Oscillator::Waveform::kPolySquare,	     // Square
+			Oscillator::Waveform::kPinkNoise,        // Pink noise
+			Oscillator::Waveform::kPolySaw,          // Saw
+			Oscillator::Waveform::kSupersaw,         // Supersaw
+			Oscillator::Waveform::kPolyRectifiedSine // Rectified sine
 	};
-
-	const unsigned kNumOperatorWaveforms = 7;
 
 	struct PatchOperators
 	{

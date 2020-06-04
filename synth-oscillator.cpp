@@ -23,6 +23,8 @@ namespace SFM
 
 	float Oscillator::Sample(float phaseShift)
 	{
+		constexpr float defaultDuty = 0.25f;
+
 		const float phase = m_phases[0].Sample();
 		const double pitch = m_phases[0].GetPitch(); // For PolyBLEP
 
@@ -63,7 +65,49 @@ namespace SFM
 				signal = oscPolyRamp(modulated, pitch);
 				break;
 
-			case kPolySupersaw:
+			case kPolyRectifiedSine:
+				signal = oscPolyRectifiedSine(modulated, pitch);
+				break;
+
+			case kPolyTrapezoid:
+				signal = oscPolyTrapezoid(modulated, pitch);
+				break;
+
+			case kPolyRectangle:
+				signal = oscPolyRectangle(modulated, pitch, defaultDuty);
+				break;
+
+			case kBump:
+				signal = Squarepusher(oscSine(modulated), 0.3f);
+				break;
+
+			/*
+				These 2 functions are a quick hack (FIXME) to approximate a ramp and a saw
+				with gentle slopes. They were made for the LFO.
+			*/
+			
+			case kSoftRamp:
+				{
+					const float ramp = oscSine(modulated + 0.1f*oscSine(modulated));
+					const float squared = Squarepusher(ramp, 0.4f);
+					signal = lerpf<float>(ramp, squared, 0.4f);
+				}
+				
+				break;
+
+			case kSoftSaw:
+				{
+					const float saw = oscSine(modulated - 0.1f*oscSine(modulated));
+					const float squared = Squarepusher(saw, 0.4f);
+					signal = lerpf<float>(saw, squared, 0.4f);
+				}
+				
+				break;
+
+
+			/* Supersaw */
+
+			case kSupersaw:
 				{
 					// Modulation & (incoming) feedback ignored; they would only result in noise for this oscillator
 					const float subGain = 0.354813397f; // -9dB
@@ -77,25 +121,24 @@ namespace SFM
 
 				break;
 
-			case kPolyRectSine:
-				signal = oscPolyRectifiedSine(modulated, pitch);
-				break;
-
-			case kPolyTrapezoid:
-				signal = oscPolyTrapezoid(modulated, pitch);
-				break;
-
 			/* Noise */
-				
+			
+			case kWhiteNoise:
+				signal = oscWhiteNoise();
+				break;
+			
 			case kPinkNoise:
-				signal = m_pinkOsc.Sample();
+				{
+//				signal = oscSine(modulated + 0.1f*oscSine(modulated));
+//				float ramp = oscSine(modulated + 0.1f*oscSine(modulated));
+				float ramp = oscSine(modulated - 0.1f*oscSine(modulated));
+				float squared = Squarepusher(ramp, 0.4f);
+				signal = lerpf<float>(ramp, squared, 0.4f);
+//				signal = Squarepusher(oscSine(modulated + 0.1f*oscSine(modulated)), 0.4f);
+//				signal = m_pinkNoise.Sample();
 				break;
-
+				}
 			/* LFO */
-
-			case kSampleAndHold:
-				signal = m_SandH.Sample(modulated, oscWhiteNoise());
-				break;
 
 			case kRamp:
 				signal = oscRamp(modulated);
@@ -109,18 +152,18 @@ namespace SFM
 				signal = oscSquare(modulated);
 				break;
 
-			case kFakeSquare:
-				// Quick (unused, 04/06/2020) hack (FIXME)
-				signal = Squarepusher(oscSine(modulated), 0.3f);
-				break;
-
-			case kFakeRamp:
-				// Quick hack (FIXME)
-				signal = oscSine(modulated + (1.f + 0.075f*oscPolyTriangle(modulated, pitch)));
-				break;
-
 			case kTriangle:
 				signal = oscTriangle(modulated);
+				break;
+
+			case kPulse:
+				signal = oscPulse(modulated, defaultDuty);
+				break;
+
+			/* S&H */
+
+			case kSampleAndHold:
+				signal = m_sampleAndHold.Sample(modulated, oscWhiteNoise());
 				break;
 			
 			// Not implemented

@@ -26,13 +26,13 @@ namespace SFM
 
 		~SampleAndHold() {}
 
-		// Takes in any continuous signal
-		float Sample(float phase, float input)
+		// Takes in any signal
+		SFM_INLINE float Sample(float phase, float input)
 		{
 			const float curGate = oscPulse(phase, m_curDuty);
 			
 			// Gate?
-			if (m_prevGate != curGate && 1.f == curGate)
+			if (m_prevGate != curGate)
 			{
 				// Update slew rate and set signal to hold as new target
 				const float curSignal = m_curSignal.Sample();
@@ -43,7 +43,9 @@ namespace SFM
 
 			m_prevGate = curGate;
 
-			return m_curSignal.Sample(); // Slew towards target signal
+			// Slew towards target signal
+			// Clamp to be 100% sure we're within [-1..1]
+			return Clamp(m_curSignal.Sample()); 
 		}
 
 		void SetSlewRate(float rate)
@@ -65,8 +67,8 @@ namespace SFM
 		float m_slewRate = kDefSandHSlewRate;
 
 		// State
-		/* const */ float m_curDuty = 0.25f;
-		float m_prevGate = 0.f;
+		/* const */ float m_curDuty = 0.5f;
+		float m_prevGate = -1.f;
 		InterpolatedParameter<kLinInterpolate> m_curSignal;
 	};
 }

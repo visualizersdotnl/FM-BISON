@@ -149,7 +149,6 @@ namespace SFM
 		// LFO
 		Oscillator m_LFO1, m_LFO2;
 		Oscillator m_modLFO;
-		SvfLinearTrapOptimised2 m_LFOModFilter;
 
 		// Main filter(s), used in FM_BISON.cpp
 		SvfLinearTrapOptimised2 m_filterSVF1, m_filterSVF2;
@@ -186,6 +185,6 @@ namespace SFM
 		float GetSummedOutput(); /* const */
 
 		// Render "dry" FM voice (see impl. for param. ranges)
-		void Sample(float &left, float &right, float pitchBend, float ampBend, float modulation, float LFOBias, float LFOFMDepth);
+		void Sample(float &left, float &right, float pitchBend, float ampBend, float modulation, float LFOBias, float LFOModDepth);
 	};
 }

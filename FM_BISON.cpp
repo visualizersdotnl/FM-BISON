@@ -132,14 +132,14 @@ namespace SFM
 		m_globalLFO->Initialize(freqLFO, m_sampleRate);
 
 		// Reset global interpolated parameters
-		m_curLFOBlend   = { m_patch.LFOBlend, m_sampleRate, kDefParameterLatency };
-		m_curLFOFMDepth = { m_patch.LFOFMDepth, m_sampleRate, kDefParameterLatency };
-		m_curCutoff     = { CutoffToHz(m_patch.cutoff, m_Nyquist), m_sampleRate, kDefParameterLatency };
-		m_curQ          = { ResoToQ(m_patch.resonance), m_sampleRate, kDefParameterLatency };
-		m_curPitchBend  = { 0.f, m_sampleRate, kDefParameterLatency };
-		m_curAmpBend    = { 0.f, m_sampleRate, kDefParameterLatency };
-		m_curModulation = { 0.f, m_sampleRate, kDefParameterLatency * 1.5f /* Longer */ };
-		m_curAftertouch = { 0.f, m_sampleRate, kDefParameterLatency * 3.f  /* Longer */ };
+		m_curLFOBlend    = { m_patch.LFOBlend, m_sampleRate, kDefParameterLatency };
+		m_curLFOModDepth = { m_patch.LFOModDepth, m_sampleRate, kDefParameterLatency };
+		m_curCutoff      = { CutoffToHz(m_patch.cutoff, m_Nyquist), m_sampleRate, kDefParameterLatency };
+		m_curQ           = { ResoToQ(m_patch.resonance), m_sampleRate, kDefParameterLatency };
+		m_curPitchBend   = { 0.f, m_sampleRate, kDefParameterLatency };
+		m_curAmpBend     = { 0.f, m_sampleRate, kDefParameterLatency };
+		m_curModulation  = { 0.f, m_sampleRate, kDefParameterLatency * 1.5f /* Longer */ };
+		m_curAftertouch  = { 0.f, m_sampleRate, kDefParameterLatency * 3.f  /* Longer */ };
 
 		/*
 			Reset parameter filters; they reduce automation/MIDI noise (by a default cut Hz, mostly)
@@ -155,14 +155,14 @@ namespace SFM
 		// Global
 		m_LFORatePF             = { m_sampleRate };
 		m_LFOBlendPF            = { m_sampleRate };
-		m_LFOFMDepthPF          = { m_sampleRate };
+		m_LFOModDepthPF         = { m_sampleRate };
 		m_SandHSlewRatePF       = { m_sampleRate };
 		m_cutoffPF              = { m_sampleRate };
 		m_resoPF                = { m_sampleRate };
 
 		m_LFORatePF.Reset(freqLFO);
 		m_LFOBlendPF.Reset(m_patch.LFOBlend);
-		m_LFOFMDepthPF.Reset(m_patch.LFOFMDepth);
+		m_LFOModDepthPF.Reset(m_patch.LFOModDepth);
 		m_SandHSlewRatePF.Reset(m_patch.SandHSlewRate);
 		m_cutoffPF.Reset(m_patch.cutoff);
 		m_resoPF.Reset(m_patch.resonance);
@@ -744,13 +744,12 @@ namespace SFM
 			: m_globalLFO->Get(); // Adopt running phase
 
 		phaseAdj += CalcPhaseJitter(jitter);
+
 		const float globalFreq = m_globalLFO->GetFrequency();
 
 		voice.m_LFO1.Initialize(m_patch.LFOWaveform1, globalFreq, m_sampleRate, phaseAdj);
 		voice.m_LFO2.Initialize(m_patch.LFOWaveform2, globalFreq, m_sampleRate, phaseAdj);
-		voice.m_modLFO.Initialize(m_patch.LFOWaveform3, globalFreq*0.5f /* Minus 1 octave (sub.) */, m_sampleRate, phaseAdj);
-
-		voice.m_LFOModFilter.resetState();
+		voice.m_modLFO.Initialize(m_patch.LFOWaveform3, globalFreq, m_sampleRate, phaseAdj);
 	}
 	
 	// Initialize new voice
@@ -1536,7 +1535,7 @@ namespace SFM
 			const float slewRate = m_SandHSlewRatePF.Get();
 			voice.m_LFO1.SetSampleAndHoldSlewRate(slewRate);
 			voice.m_LFO2.SetSampleAndHoldSlewRate(slewRate);
-			voice.m_modLFO.SetSampleAndHoldSlewRate(kMinSandHSlewRate); // As modulator, slew causes artifacts (slight discontinuities)
+			voice.m_modLFO.SetSampleAndHoldSlewRate(slewRate);
 
 			// Global amp. allows use to fade the voice in and out within this frame
 			InterpolatedParameter<kLinInterpolate> globalAmp(1.f, std::min<unsigned>(128, numSamples));
@@ -1567,8 +1566,8 @@ namespace SFM
 			}
 
 			// LFO
-			auto curLFOBlend   = m_curLFOBlend;
-			auto curLFOFMDepth = m_curLFOFMDepth;
+			auto curLFOBlend    = m_curLFOBlend;
+			auto curLFOModDepth = m_curLFOModDepth;
 
 			// Reset to initial cutoff & Q
 			auto curCutoff = m_curCutoff;
@@ -1606,7 +1605,7 @@ namespace SFM
 					curAmpBend.Sample()+1.f, // [0.0..2.0]
 					sampMod,
 					curLFOBlend.Sample(), 
-					curLFOFMDepth.Sample());
+					curLFOModDepth.Sample());
 
 				// Sample filter envelope
 				float filterEnv = filterEG.Sample();
@@ -1753,7 +1752,7 @@ namespace SFM
 		
 		// Filter/Prepare LFO & S&H parameters (so they can be used by RenderVoices())
 		m_curLFOBlend.SetTarget(m_LFOBlendPF.Apply(m_patch.LFOBlend));
-		m_curLFOFMDepth.SetTarget(m_LFOFMDepthPF.Apply(m_patch.LFOFMDepth));
+		m_curLFOModDepth.SetTarget(m_LFOModDepthPF.Apply(m_patch.LFOModDepth));
 		m_SandHSlewRatePF.Apply(m_patch.SandHSlewRate); // Does not need per-sample interpolation
 
 		// Update voice logic (pre)
@@ -1999,7 +1998,7 @@ namespace SFM
 
 		// Of all these, copies were used per voice, so skip numSamples to keep up	
 		m_curLFOBlend.Skip(numSamples);
-		m_curLFOFMDepth.Skip(numSamples);
+		m_curLFOModDepth.Skip(numSamples);
 		m_curCutoff.Skip(numSamples);
 		m_curQ.Skip(numSamples);
 		m_curPitchBend.Skip(numSamples);

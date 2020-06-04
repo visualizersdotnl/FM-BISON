@@ -35,15 +35,16 @@ namespace SFM
 		0.08333333335f, // 1/32T 	
 	};
 
-	constexpr unsigned kNumLFOWaveforms = 6;
+	constexpr unsigned kNumLFOWaveforms = 7;
 
-	const Oscillator::Waveform kLFOWaveforms[kNumOperatorWaveforms] =
+	const Oscillator::Waveform kLFOWaveforms[kNumLFOWaveforms] =
 	{
-			Oscillator::Waveform::kSine, 
 			Oscillator::Waveform::kStatic,
+			Oscillator::Waveform::kSine, 
 			Oscillator::Waveform::kPolyTriangle,
-			Oscillator::Waveform::kFakeRamp,
-			Oscillator::Waveform::kPolyTrapezoid,
+			Oscillator::Waveform::kBump,
+			Oscillator::Waveform::kSoftSaw,
+			Oscillator::Waveform::kSoftRamp,
 			Oscillator::Waveform::kSampleAndHold
 	};
 
@@ -72,10 +73,10 @@ namespace SFM
 		// LFO
 		Oscillator::Waveform LFOWaveform1; // Waveform A
 		Oscillator::Waveform LFOWaveform2; // Waveform B
-		Oscillator::Waveform LFOWaveform3; // FM waveform
+		Oscillator::Waveform LFOWaveform3; // Mod. waveform
 		float LFOBlend;
-		float LFOFMDepth; // Range [0..N]
-		float LFORate;    // Range [0.0..100.0]
+		float LFOModDepth; 
+		float LFORate; // Range [0.0..100.0]
 		bool  LFOKeySync;
 		float modulationOverride; // If non-zero overrides Render() modulation parameter, which is typically the mod. wheel (MIDI)
 
@@ -207,11 +208,11 @@ namespace SFM
 			pitchBendRange = kDefPitchBendRange;
 
 			// LFO
-			LFOWaveform1 = kLFOWaveforms[0]; // Sine
-			LFOWaveform2 = kLFOWaveforms[0]; // Sine
-			LFOWaveform3 = kLFOWaveforms[1]; // Silent
+			LFOWaveform1 = kLFOWaveforms[1]; // Sine
+			LFOWaveform2 = kLFOWaveforms[1]; // Sine
+			LFOWaveform3 = kLFOWaveforms[1]; // Sine
 			LFOBlend = 0.f;                  // Waveform A
-			LFOFMDepth = 0.f;                // No FM
+			LFOModDepth = 0.f;               // No modulation
 			LFORate = 0.f;                   // Zero Hz
 			LFOKeySync = false;              // No key sync.
 			modulationOverride = 0.f;        // Wheel input

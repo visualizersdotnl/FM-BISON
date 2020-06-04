@@ -37,10 +37,6 @@ namespace SFM
 		m_LFO2   = Oscillator(sampleRate);
 		m_modLFO = Oscillator(sampleRate);
 
-		// Same as Voice::m_modFilter (to tame LFO FM a little)
-		m_LFOModFilter.updateLowpassCoeff(CutoffToHz(kLFOModulatorLP, Nyquist), 0.025 /* Min SVF filter Q. */, sampleRate);
-		m_LFOModFilter.resetState();
-
 		// Filter envelope
 		m_filterEnvelope.Reset();
 
@@ -129,7 +125,7 @@ namespace SFM
 	// Bright
 	constexpr float kFeedbackScale = 1.f;
 
-	void Voice::Sample(float &left, float &right, float pitchBend, float ampBend, float modulation, float LFOBlend, float LFOFMDepth)
+	void Voice::Sample(float &left, float &right, float pitchBend, float ampBend, float modulation, float LFOBlend, float LFOModDepth)
 	{
 		if (kIdle == m_state)
 		{
@@ -146,18 +142,29 @@ namespace SFM
 		SFM_ASSERT(ampBend >= 0.f && ampBend <= 2.f);
 		SFM_ASSERT(modulation >= 0.f && modulation <= 1.f);
 		SFM_ASSERT(LFOBlend >= 0.f && LFOBlend <= 1.f);
-		SFM_ASSERT(LFOFMDepth >= 0.f);
+		SFM_ASSERT(LFOModDepth >= 0.f);
 		
 		// Calculate LFO value
-		float modLFO = m_modLFO.Sample(0.F);
-		m_LFOModFilter.tickMono(modLFO); // Take the edge off
-		modLFO = 1.f + LFOFMDepth*modLFO;
+		const float modLFO = m_modLFO.Sample(0.f); // Multiply by LFOModDepth? (FIXME)
 
-		const float LFO1 = m_LFO1.Sample(modLFO);
-		const float LFO2 = m_LFO2.Sample(modLFO);
+		auto modulate = [](float input, float modulation, float depth)
+		{
+			const float absMod = fabsf(modulation);
+
+			float sample = input;
+			if (modulation > 0.f)
+				if (sample > 0.f) sample *= absMod;
+			else
+				if (sample < 0.f) sample *= absMod; // Invert waveform too? (FIXME)
+
+			return lerpf<float>(input, sample, depth);
+		};
+
+		const float LFO1 = modulate(m_LFO1.Sample(0.f), modLFO, LFOModDepth);
+		const float LFO2 = modulate(m_LFO2.Sample(0.f), modLFO, LFOModDepth);
 		const float blend = lerpf<float>(LFO1, LFO2, LFOBlend);
 
-		const float LFO = Clamp(blend); // FIXME: I'm never happy with Clamp() calls
+		const float LFO = Clamp(blend); // FIXME: disable Clamp() and solve issue
 
 		// Calc. pitch envelope & bend multipliers
 		const float pitchRangeOct = m_pitchBendRange/12.f;
