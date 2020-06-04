@@ -35,13 +35,10 @@ namespace SFM
 			if (m_prevGate != curGate && 1.f == curGate)
 			{
 				// Update slew rate and set signal to hold as new target
-				const float curSignal = m_curSignal.Get();
+				const float curSignal = m_curSignal.Sample();
 				m_curSignal.SetRate(m_sampleRate, m_slewRate);
 				m_curSignal.Set(curSignal);
 				m_curSignal.SetTarget(input);
-
-				// Randomize duty cycle a little
-				m_curDuty = 0.25f + 0.5f*mt_randf();
 			}
 
 			m_prevGate = curGate;
@@ -68,7 +65,7 @@ namespace SFM
 		float m_slewRate = kDefSandHSlewRate;
 
 		// State
-		float m_curDuty = 0.25f;
+		/* const */ float m_curDuty = 0.25f;
 		float m_prevGate = 0.f;
 		InterpolatedParameter<kLinInterpolate> m_curSignal;
 	};

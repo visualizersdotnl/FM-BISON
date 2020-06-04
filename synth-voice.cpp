@@ -38,7 +38,7 @@ namespace SFM
 		m_modLFO = Oscillator(sampleRate);
 
 		// Same as Voice::m_modFilter (to tame LFO FM a little)
-		m_LFOModFilter.updateLowpassCoeff(CutoffToHz(kModulatorLP, Nyquist), 0.025 /* Min SVF filter Q. */, sampleRate);
+		m_LFOModFilter.updateLowpassCoeff(CutoffToHz(kLFOModulatorLP, Nyquist), 0.025 /* Min SVF filter Q. */, sampleRate);
 		m_LFOModFilter.resetState();
 
 		// Filter envelope
@@ -149,7 +149,7 @@ namespace SFM
 		SFM_ASSERT(LFOFMDepth >= 0.f);
 		
 		// Calculate LFO value
-		float modLFO = m_modLFO.Sample(modulation);
+		float modLFO = m_modLFO.Sample(0.F);
 		m_LFOModFilter.tickMono(modLFO); // Take the edge off
 		modLFO = 1.f + LFOFMDepth*modLFO;
 
@@ -159,7 +159,7 @@ namespace SFM
 
 		const float LFO = Clamp(blend); // FIXME: I'm never happy with Clamp() calls
 
-		// Pitch
+		// Calc. pitch envelope & bend multipliers
 		const float pitchRangeOct = m_pitchBendRange/12.f;
 		const float pitchEnv = powf(2.f, m_pitchEnvelope.Sample(false)*pitchRangeOct); // Sample pitch envelope (does not sustain!)
 		pitchBend = powf(2.f, pitchBend*pitchRangeOct);
