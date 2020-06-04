@@ -149,8 +149,9 @@ namespace SFM
 		// LFO
 		Oscillator m_LFO1, m_LFO2;
 		Oscillator m_modLFO;
+		SvfLinearTrapOptimised2 m_LFOModFilter;
 
-		// Main filter(s)
+		// Main filter(s), used in FM_BISON.cpp
 		SvfLinearTrapOptimised2 m_filterSVF1, m_filterSVF2;
 		
 		// Filter (amplitude) envelope

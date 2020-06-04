@@ -61,13 +61,14 @@ namespace SFM
 			kPolyRamp,
 			kPolySupersaw,
 			kPolyRectSine,
+			kPolyTrapezoid,
 
 			// Raw/LFO
 			kRamp,
 			kSaw,
 			kSquare,
-			kSquarePushed, // Band-limited
-			kFakeRamp,     // Band-limited
+			kFakeSquare, // Band-limited
+			kFakeRamp,   // Band-limited
 			kTriangle,
 			kPulse,
 

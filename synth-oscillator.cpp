@@ -81,6 +81,10 @@ namespace SFM
 				signal = oscPolyRectifiedSine(modulated, pitch);
 				break;
 
+			case kPolyTrapezoid:
+				signal = oscPolyTrapezoid(modulated, pitch);
+				break;
+
 			/* Noise */
 				
 			case kPinkNoise:
@@ -105,7 +109,8 @@ namespace SFM
 				signal = oscSquare(modulated);
 				break;
 
-			case kSquarePushed:
+			case kFakeSquare:
+				// Quick (unused, 04/06/2020) hack (FIXME)
 				signal = Squarepusher(oscSine(modulated), 0.3f);
 				break;
 

@@ -488,8 +488,8 @@ namespace SFM
 		const float sweepR = 0.5f*fast_sinf((1.f-phase)+sweepMod);
 		
 		// 2 sweeping samples (FIXME: parametrize, though it's not a priority)
-		const float delay  = m_sampleRate*0.005f; // 50ms delay
-		const float spread = m_sampleRate*0.003f; // Sweep 30ms
+		const float delay  = m_sampleRate*0.005f; // 50MS delay
+		const float spread = m_sampleRate*0.003f; // Sweep 30MS
 		
 		SFM_ASSERT(delay  < m_chorusDL.size());
 		SFM_ASSERT(spread < m_chorusDL.size());

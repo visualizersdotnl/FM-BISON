@@ -176,7 +176,7 @@ namespace SFM
 	constexpr float kDefMonoGlideAtt = 0.33f;   // [0..1], the larger the punchier
 	
 	// Slew parameters for S&H
-	constexpr float kMinSandHSlewRate =    0.f;  //  0MS
+	constexpr float kMinSandHSlewRate = 0.001f;  //  1MS
 	constexpr float kMaxSandHSlewRate =  0.05f;  // 50MS
 	constexpr float kDefSandHSlewRate = 0.005f;  //  5MS
 
@@ -194,7 +194,7 @@ namespace SFM
 	constexpr float kMaxCompThresholdB  =    6.f; // A little higher than just 1 dB so we can bypass compression by default
 	constexpr float kDefCompThresholddB = kMaxCompThresholdB;
 	constexpr float kMinCompKneedB      =    0.f;
-	constexpr float kMaxCompKneedB      =    6.f;
+	constexpr float kMaxCompKneedB      =   12.f;
 	constexpr float kDefCompKneedB      = kMinCompKneedB;
 	constexpr float kMinCompRatio       =    1.f;
 	constexpr float kMaxCompRatio       =   20.f;
@@ -219,7 +219,7 @@ namespace SFM
 	constexpr float kDefWahHold          = kMinWahHold;
 	constexpr float kMinWahRate          = 0.f; 
 	constexpr float kMaxWahRate          = 4.f;
-	constexpr float kDefWahRate          = 0.062506f; // Taken from DX7 LFO table
+	constexpr float kDefWahRate          = 0.1f;
 
 	// Low cut (for post-pass DC blocker)
 	constexpr float kLowCutHz = 16.f;

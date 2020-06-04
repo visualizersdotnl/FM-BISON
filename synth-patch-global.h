@@ -35,7 +35,7 @@ namespace SFM
 		0.08333333335f, // 1/32T 	
 	};
 
-	constexpr unsigned kNumLFOWaveforms = 5;
+	constexpr unsigned kNumLFOWaveforms = 6;
 
 	const Oscillator::Waveform kLFOWaveforms[kNumOperatorWaveforms] =
 	{
@@ -43,6 +43,7 @@ namespace SFM
 			Oscillator::Waveform::kStatic,
 			Oscillator::Waveform::kPolyTriangle,
 			Oscillator::Waveform::kFakeRamp,
+			Oscillator::Waveform::kPolyTrapezoid,
 			Oscillator::Waveform::kSampleAndHold
 	};
 
@@ -74,7 +75,7 @@ namespace SFM
 		Oscillator::Waveform LFOWaveform3; // FM waveform
 		float LFOBlend;
 		float LFOFMDepth; // Range [0..N]
-		float LFORate;    // Range [0.0..127.0]
+		float LFORate;    // Range [0.0..100.0]
 		bool  LFOKeySync;
 		float modulationOverride; // If non-zero overrides Render() modulation parameter, which is typically the mod. wheel (MIDI)
 

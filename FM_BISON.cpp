@@ -745,9 +745,12 @@ namespace SFM
 
 		phaseAdj += CalcPhaseJitter(jitter);
 		const float globalFreq = m_globalLFO->GetFrequency();
+
 		voice.m_LFO1.Initialize(m_patch.LFOWaveform1, globalFreq, m_sampleRate, phaseAdj);
 		voice.m_LFO2.Initialize(m_patch.LFOWaveform2, globalFreq, m_sampleRate, phaseAdj);
-		voice.m_modLFO.Initialize(m_patch.LFOWaveform3, globalFreq*0.5f /* Sub osc. */, m_sampleRate, phaseAdj);
+		voice.m_modLFO.Initialize(m_patch.LFOWaveform3, globalFreq*0.5f /* Minus 1 octave (sub.) */, m_sampleRate, phaseAdj);
+
+		voice.m_LFOModFilter.resetState();
 	}
 	
 	// Initialize new voice

@@ -37,6 +37,10 @@ namespace SFM
 		m_LFO2   = Oscillator(sampleRate);
 		m_modLFO = Oscillator(sampleRate);
 
+		// Same as Voice::m_modFilter (to tame LFO FM a little)
+		m_LFOModFilter.updateLowpassCoeff(CutoffToHz(kModulatorLP, Nyquist), 0.025 /* Min SVF filter Q. */, sampleRate);
+		m_LFOModFilter.resetState();
+
 		// Filter envelope
 		m_filterEnvelope.Reset();
 
@@ -136,7 +140,7 @@ namespace SFM
 			return;
 		}
 		
-		// FIXME
+		// FIXME: why is this out of range whilst 'ampBend' isn't?
 //		SFM_ASSERT(pitchBend >= 0.f && pitchBend <= 1.f);
 
 		SFM_ASSERT(ampBend >= 0.f && ampBend <= 2.f);
@@ -144,12 +148,16 @@ namespace SFM
 		SFM_ASSERT(LFOBlend >= 0.f && LFOBlend <= 1.f);
 		SFM_ASSERT(LFOFMDepth >= 0.f);
 		
-		// Calculate LFO
-		const float modLFO = 1.f + LFOFMDepth*m_modLFO.Sample(modulation);
-		const float LFO1   = m_LFO1.Sample(modLFO);
-		const float LFO2   = m_LFO2.Sample(modLFO);
-		const float blend  = lerpf<float>(LFO1, LFO2, LFOBlend);
-		const float LFO    = Clamp(blend);
+		// Calculate LFO value
+		float modLFO = m_modLFO.Sample(modulation);
+		m_LFOModFilter.tickMono(modLFO); // Take the edge off
+		modLFO = 1.f + LFOFMDepth*modLFO;
+
+		const float LFO1 = m_LFO1.Sample(modLFO);
+		const float LFO2 = m_LFO2.Sample(modLFO);
+		const float blend = lerpf<float>(LFO1, LFO2, LFOBlend);
+
+		const float LFO = Clamp(blend); // FIXME: I'm never happy with Clamp() calls
 
 		// Pitch
 		const float pitchRangeOct = m_pitchBendRange/12.f;
