@@ -120,8 +120,8 @@ namespace SFM
 			
 			if (kSupersaw == m_form)
 			{
-				// The idea here is that an optimized (FIXME!) way of multiple detuned oscillators handsomely 
-				// beats spawning that number of actual voices, much like the original supersaw is a custom oscillator circuit
+				// Instead of spawning multiple (detuned) voices I opted for multiple phase objects
+				// which is about as good as it gets performance wise
 
 				// First saw must be at base freq.
 				SFM_ASSERT(1.f == s_supersawDetune[0]);

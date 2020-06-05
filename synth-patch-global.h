@@ -35,7 +35,7 @@ namespace SFM
 		0.08333333335f, // 1/32T 	
 	};
 
-	constexpr unsigned kNumLFOWaveforms = 7;
+	constexpr unsigned kNumLFOWaveforms = 9;
 
 	const Oscillator::Waveform kLFOWaveforms[kNumLFOWaveforms] =
 	{
@@ -45,6 +45,8 @@ namespace SFM
 			Oscillator::Waveform::kBump,
 			Oscillator::Waveform::kSoftSaw,
 			Oscillator::Waveform::kSoftRamp,
+			Oscillator::Waveform::kPolySaw,
+			Oscillator::Waveform::kPolyRamp,
 			Oscillator::Waveform::kSampleAndHold
 	};
 

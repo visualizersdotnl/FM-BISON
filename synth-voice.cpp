@@ -253,9 +253,11 @@ namespace SFM
 				}
 				
 				// Apply filter
+				bool hasFilter = true;
 				switch (voiceOp.filters[0].getFilterType())
 				{
 				case SvfLinearTrapOptimised2::NO_FLT_TYPE:
+					hasFilter = false;
 					break;
 
 				case SvfLinearTrapOptimised2::ALL_PASS_FILTER:
@@ -269,9 +271,12 @@ namespace SFM
 					voiceOp.filters[0].tickMono(sample);
 				}
 
-				// Store filtered monaural sample for modulation
+				// Store (filtered) sample for modulation
 				float modSample = sample;
-				voiceOp.modFilter.tickMono(modSample);
+				
+				if (false == hasFilter) // Only apply if no specific filter applied
+					voiceOp.modFilter.tickMono(modSample);
+
 				modSamples[iOp] = modSample;
 
 				// Calculate panning
