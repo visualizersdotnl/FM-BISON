@@ -243,7 +243,7 @@ namespace SFM
 			m_delayLineR.Write(right);
 			
 			// Sample delay line
-			const float delaySamples = (m_sampleRate*curDelay)-1.f;
+			const float delaySamples = m_sampleRate*curDelay;
 			const float delayedL = m_delayLineL.Read(delaySamples);
 			const float delayedM = m_delayLineM.Read(delaySamples);
 			const float delayedR = m_delayLineR.Read(delaySamples);
@@ -256,7 +256,7 @@ namespace SFM
 			const float delayR = delayedR*invCrossBleedAmt + crossBleed*crossBleedAmt;
 
 			// Filter delay (12dB)
-			const float curCutoff = CutoffToHz(m_curDelayFeedbackCutoff.Sample(), m_Nyquist, 1.f);
+			const float curCutoff = CutoffToHz(m_curDelayFeedbackCutoff.Sample(), m_Nyquist/2 /* More responsive */, 1.f);
 			const float Fc = curCutoff/m_sampleRate;
 			m_delayFeedbackLPF_L.SetCutoff(Fc);
 			m_delayFeedbackLPF_R.SetCutoff(Fc);
@@ -483,7 +483,8 @@ namespace SFM
 		// Sweep LFOs
 		const float phase = m_chorusSweep.Sample();
 		
-		// FIXME: this violates the [0..1] range but fast_sinf() doesn't have any problems with it
+		// This violates the [0..1] range but fast_sinf() doesn't have any problems with it
+		// so I'll skip expensive fmodf() calls
 		const float sweepL = 0.5f*fast_sinf(phase+sweepMod);
 		const float sweepR = 0.5f*fast_sinf((1.f-phase)+sweepMod);
 		
@@ -494,7 +495,7 @@ namespace SFM
 		SFM_ASSERT(delay  < m_chorusDL.size());
 		SFM_ASSERT(spread < m_chorusDL.size());
 		
-		// Take sweeped L/R samples (lowpassed to circumvent artifacts)
+		// Take sweeped L/R samples (filtered to circumvent artifacts)
 		const float chorusL = m_chorusDL.Read(delay + spread*m_chorusSweepLPF1.Apply(sweepL));
 		const float chorusR = m_chorusDL.Read(delay + spread*m_chorusSweepLPF2.Apply(sweepR));
 		
@@ -506,7 +507,7 @@ namespace SFM
 
 	void PostPass::ApplyPhaser(float sampleL, float sampleR, float &outL, float &outR, float wetness)
 	{
-		// Sweep LFO (lowpassed for pleasing effect)
+		// Sweep LFO (filtered for pleasing effect)
 		const float sweepMod = m_phaserSweepLPF.Apply(oscTriangle(m_phaserSweep.Sample()));
 		
 		// Sweep cutoff frequency around center
