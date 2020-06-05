@@ -51,7 +51,7 @@ namespace SFM
 		// Supported waveforms
 		enum Waveform
 		{
-			kStatic,
+			kNone,
 
 			// Band-limited
 			kSine,
@@ -107,7 +107,7 @@ namespace SFM
 		Oscillator(unsigned sampleRate = 1) :
 			m_sampleAndHold(sampleRate)
 		{
-			Initialize(kStatic, 0.f, sampleRate, 0.f);
+			Initialize(kNone, 0.f, sampleRate, 0.f);
 		}
 
 		void Initialize(Waveform form, float frequency, unsigned sampleRate, float phaseShift)
@@ -131,6 +131,7 @@ namespace SFM
 					auto &phase = m_phases[iSaw];
 					const float detune = s_supersawDetune[iSaw];
 					phase.Initialize(frequency*detune, sampleRate, phaseShift);
+					phase.SetPitchScale(frequency);
 				}
 			}
 		}
@@ -167,6 +168,7 @@ namespace SFM
 				{
 					auto &phase = m_phases[iSaw];
 					phase.SetFrequency(frequency*s_supersawDetune[iSaw]);
+					phase.SetPitchScale(frequency);
 				}
 			}
 		}

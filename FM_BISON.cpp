@@ -757,26 +757,15 @@ namespace SFM
 	SFM_INLINE static void CalcLFOFreq(float &frequency /* Set to base freq. */, float &modFrequency, int speedAdj)
 	{
 		SFM_ASSERT(frequency > 0.f);
-		
+		SFM_ASSERT(speedAdj >= kMinLFOModSpeed && speedAdj <= kMaxLFOModSpeed);
+
 		const float freqSpeedAdj = powf(2.f, speedAdj);
-		if (speedAdj <= 0)
-		{
-			// Slow down modulator
-			modFrequency = frequency*freqSpeedAdj;
-		}
-		else
-		{
-			// Set modulator to base freq. and speed up LFO frequency
-			modFrequency = frequency;
-			frequency *= freqSpeedAdj;
-		}
+		modFrequency = frequency*freqSpeedAdj;
 	}
 
 	// LFO initialization
 	void Bison::InitializeLFO(Voice &voice, float jitter)
 	{
-		SFM_ASSERT(LFOModSpeedAdj >= -2 && LFOModSpeedAdj <= 2); // See synth-patch-global.h
-		
 		// Initialize LFOs
 		float phaseAdj = (true == m_patch.LFOKeySync)
 			? 0.f // Synchronized 
@@ -785,7 +774,7 @@ namespace SFM
 		phaseAdj += CalcPhaseJitter(jitter);
 
 		float frequency = m_globalLFO->GetFrequency(), modFrequency;
-		CalcLFOFreq(frequency, modFrequency, m_patch.LFOModSpeedAdj);
+		CalcLFOFreq(frequency, modFrequency, m_patch.LFOModSpeed);
 
 		voice.m_LFO1.Initialize(m_patch.LFOWaveform1, frequency, m_sampleRate, phaseAdj);
 		voice.m_LFO2.Initialize(m_patch.LFOWaveform2, frequency, m_sampleRate, phaseAdj);
@@ -1561,7 +1550,8 @@ namespace SFM
 
 			// Update LFO frequencies
 			float frequency = m_globalLFO->GetFrequency(), modFrequency;
-			CalcLFOFreq(frequency, modFrequency, m_patch.LFOModSpeedAdj);
+//			float frequency = 80.f, modFrequency;
+			CalcLFOFreq(frequency, modFrequency, m_patch.LFOModSpeed);
 			
 			voice.m_LFO1.SetFrequency(frequency);
 			voice.m_LFO2.SetFrequency(frequency);

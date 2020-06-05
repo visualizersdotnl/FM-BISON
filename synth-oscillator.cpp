@@ -35,7 +35,7 @@ namespace SFM
 		float signal = 0.f;
 		switch (m_form)
 		{
-			case kStatic:
+			case kNone:
 				signal = 0.f;
 				break;
 

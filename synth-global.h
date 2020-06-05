@@ -235,6 +235,10 @@ namespace SFM
 
 	// Modulator input is low passed a little bit for certain waveforms to "take the top off"
 	constexpr float kModulatorLP = 0.9f; // Normalized range [0..1]
+
+	// LFO modulation speed in steps (exponential)
+	constexpr int kMinLFOModSpeed = -8;
+	constexpr int kMaxLFOModSpeed =  8;
 };
 
 #include "synth-random.h"

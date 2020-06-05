@@ -22,6 +22,7 @@ namespace SFM
 		unsigned m_sampleRate;
 		double   m_pitch;
 		double   m_phase;
+		double   m_pitchScale;
 
 	public:
 		Phase()
@@ -39,12 +40,12 @@ namespace SFM
 			m_frequency = frequency;
 			m_sampleRate = sampleRate;
 			m_pitch = CalculatePitch(frequency, sampleRate);
-			m_phase = fmod(phaseShift, 1.f);
+			m_phase = fmod(phaseShift, 1.0);
+			m_pitchScale = 1.0;
 
 			SFM_ASSERT(m_phase >= 0.0 && m_phase <= 1.0);
 		}
 
-		// Pitch bend
 		SFM_INLINE void PitchBend(float bend)
 		{
 			SFM_ASSERT(0.f != bend);
@@ -55,6 +56,18 @@ namespace SFM
 		{
 			m_pitch = CalculatePitch(frequency, m_sampleRate);
 			m_frequency = frequency;
+		}
+		
+		// Stretches the pitch according to the ratio between both frequencies
+		SFM_INLINE void SetPitchScale(float frequency)
+		{
+			SFM_ASSERT(frequency > 0.f);
+			
+			double ratio = 1.0;
+			if (m_frequency > 0.0)
+				ratio = frequency/m_frequency;
+			
+			m_pitchScale = ratio;
 		}
 
 		SFM_INLINE float    GetFrequency()    const { return float(m_frequency);  }
@@ -72,14 +85,14 @@ namespace SFM
 			/* const */ float curPhase = float(m_phase);
 			SFM_ASSERT(curPhase >= 0.f && curPhase <= 1.f);
 
-			m_phase += m_pitch;
+			m_phase += m_pitch*m_pitchScale;
 			
 			return curPhase;
 		}
 
 		SFM_INLINE void Skip(unsigned count)
 		{
-			m_phase = fmod(m_phase + m_pitch*count, 1.0);
+			m_phase = fmod(m_phase + m_pitch*m_pitchScale*count, 1.0);
 		}
 	};
 }

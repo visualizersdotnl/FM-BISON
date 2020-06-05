@@ -149,15 +149,8 @@ namespace SFM
 
 		auto modulate = [](float input, float modulation, float depth)
 		{
-			const float absMod = fabsf(modulation);
-
-			float sample = input;
-			if (modulation > 0.f)
-				if (sample > 0.f) sample *= absMod;
-			else
-				if (sample < 0.f) sample *= absMod; // Invert waveform too? (FIXME)
-
-			return lerpf<float>(input, sample, depth);
+			float sample = input*modulation;
+			return Clamp(lerpf<float>(input, sample, depth));
 		};
 
 		const float LFO1 = modulate(m_LFO1.Sample(0.f), modLFO, LFOModDepth);

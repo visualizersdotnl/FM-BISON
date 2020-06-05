@@ -39,7 +39,7 @@ namespace SFM
 
 	const Oscillator::Waveform kLFOWaveforms[kNumLFOWaveforms] =
 	{
-			Oscillator::Waveform::kStatic,
+			Oscillator::Waveform::kNone,
 			Oscillator::Waveform::kSine, 
 			Oscillator::Waveform::kPolyTriangle,
 			Oscillator::Waveform::kBump,
@@ -77,9 +77,9 @@ namespace SFM
 		Oscillator::Waveform LFOWaveform2; // Waveform B
 		Oscillator::Waveform LFOWaveform3; // Mod. waveform
 		float LFOBlend;
-		int   LFOModSpeedAdj; // Range [-2..2]
+		int   LFOModSpeed; // [kMinLFOModSpeed..kMaxLFOModSpeed]
 		float LFOModDepth; 
-		float LFORate; // Range [0.0..100.0]
+		float LFORate; // [0.0..100.0]
 		bool  LFOKeySync;
 		float modulationOverride; // If non-zero overrides Render() modulation parameter, which is typically the mod. wheel (MIDI)
 
@@ -213,9 +213,9 @@ namespace SFM
 			// LFO
 			LFOWaveform1 = kLFOWaveforms[1]; // Sine
 			LFOWaveform2 = kLFOWaveforms[1]; // Sine
-			LFOWaveform3 = kLFOWaveforms[1]; // Sine
+			LFOWaveform3 = kLFOWaveforms[0]; // None
 			LFOBlend = 0.f;                  // Waveform A
-			LFOModSpeedAdj = 0;              // Full speed modulation
+			LFOModSpeed = 0;                 // Equal speed
 			LFOModDepth = 0.f;               // No modulation
 			LFORate = 0.f;                   // Zero Hz
 			LFOKeySync = false;              // No key sync.
