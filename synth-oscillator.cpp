@@ -111,7 +111,7 @@ namespace SFM
 				{
 					// Modulation & (incoming) feedback ignored; they would only result in noise for this oscillator
 					constexpr float subGain = 0.354813397f; // -9dB
-					constexpr float pitchScale = 0.33;
+					constexpr double pitchScale = 0.33;
 
 					signal = oscPolySaw(phase, pitchScale*pitch)*subGain;
 	

@@ -100,7 +100,7 @@ namespace SFM
 			// Signal feedback
 			float feedback;
 
-			void Reset(unsigned sampleRate, unsigned Nyquist)
+			void Reset(unsigned sampleRate)
 			{
 				enabled = false;
 				
@@ -165,10 +165,10 @@ namespace SFM
 		float m_freqGlide;
 
 	private:
-		void ResetOperators(unsigned sampleRate, unsigned Nyquist);
+		void ResetOperators(unsigned sampleRate);
 
 	public:
-		void Reset(unsigned sampleRate, unsigned Nyquist);
+		void Reset(unsigned sampleRate);
 
 		bool IsIdle()      const { return kIdle      == m_state; }
 		bool IsPlaying()   const { return kPlaying   == m_state; }

@@ -93,7 +93,7 @@ namespace SFM
 
 		// Stop & reset all voices, clear slots & wipe requests
 		for (unsigned iVoice = 0; iVoice < kMaxVoices; ++iVoice)		
-			m_voices[iVoice].Reset(m_sampleRate, m_Nyquist);
+			m_voices[iVoice].Reset(m_sampleRate);
 
 		for (unsigned iSlot = 0; iSlot < 128; ++iSlot)
 			m_keyToVoice[iSlot] = -1;
@@ -759,7 +759,7 @@ namespace SFM
 		SFM_ASSERT(frequency > 0.f);
 		SFM_ASSERT(speedAdj >= kMinLFOModSpeed && speedAdj <= kMaxLFOModSpeed);
 
-		const float freqSpeedAdj = powf(2.f, speedAdj);
+		const float freqSpeedAdj = powf(2.f, float(speedAdj));
 		modFrequency = frequency*freqSpeedAdj;
 	}
 
@@ -1403,7 +1403,7 @@ namespace SFM
 					// Full reset after switch
 					if (true == m_modeSwitch)
 					{
-						voice.Reset(m_sampleRate, m_Nyquist);
+						voice.Reset(m_sampleRate);
 					}
 				}
 			}

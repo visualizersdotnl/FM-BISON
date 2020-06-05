@@ -10,19 +10,19 @@
 
 namespace SFM
 {
-	void Voice::ResetOperators(unsigned sampleRate, unsigned Nyquist)
+	void Voice::ResetOperators(unsigned sampleRate)
 	{
 		// NULL operators
 		for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
 		{
-			m_operators[iOp].Reset(sampleRate, Nyquist);
+			m_operators[iOp].Reset(sampleRate);
 		}
 	}
 
 	// Full reset
-	void Voice::Reset(unsigned sampleRate, unsigned Nyquist)
+	void Voice::Reset(unsigned sampleRate)
 	{
-		ResetOperators(sampleRate, Nyquist);
+		ResetOperators(sampleRate);
 
 		// Not bound, zero frequency, zero velocity
 		m_key = -1;

@@ -21,11 +21,15 @@
 namespace SFM
 {
 	// BPM sync. mode note ratios, adopted from the Arturia Keystep
-	constexpr size_t kNumBeatSyncRatios = 8;
+	constexpr size_t kNumBeatSyncRatios = 12;
 
 	static const float kBeatSyncRatios[kNumBeatSyncRatios]
 	{
-		1.0f,           //  1/4
+		4.f,            // 1/1
+		2.6666666667f,  // 1/1T
+		2.f,            // 1/2
+		1.3333333336f,  // 1/2T
+		1.f,            //  1/4
 		0.6666666668f,  // 1/4T
 		0.5f,           //  1/8
 		0.3333333334f,  // 1/8T
