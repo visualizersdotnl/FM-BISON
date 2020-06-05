@@ -559,7 +559,7 @@ namespace SFM
 	}
 
 	// Set up (static) operator SVF filter
-	void Bison::SetOperatorFilter(unsigned key, SvfLinearTrapOptimised2 *pFilters, const PatchOperators::Operator &patchOp)
+	void Bison::SetOperatorFilters(unsigned key, SvfLinearTrapOptimised2 *pFilters, SvfLinearTrapOptimised2 &modFilter, const PatchOperators::Operator &patchOp)
 	{
 		SFM_ASSERT(nullptr != pFilters);
 
@@ -604,6 +604,23 @@ namespace SFM
 			
 			break;
 		}
+		
+		switch (patchOp.waveform)
+		{
+			// These waveforms shall remain unaltered
+			case Oscillator::kSine:
+			case Oscillator::kCosine:
+			case Oscillator::kPolyTriangle:
+				modFilter.updateCoefficients(16.0, 0.025, SvfLinearTrapOptimised2::NO_FLT_TYPE, m_sampleRate);
+				break;
+			
+			// Filter the remaining waveforms a little to "take the top off"
+			default:
+				modFilter.updateLowpassCoeff(CutoffToHz(kModulatorLP, m_Nyquist), 0.025, m_sampleRate);
+				break;
+		}
+		
+		modFilter.resetState();
 	}
 
 	// Calculate operator frequency
@@ -810,10 +827,7 @@ namespace SFM
 				const float opVelocity = (false == patchOp.velocityInvert) ? velocity : 1.f-velocity;
 
 				// (Re)set constant/static filter
-				SetOperatorFilter(key, voiceOp.filters, patchOp);
-
-				// Reset modulator filter (FIXME: move to SetOperatorFilter()?)
-				voiceOp.modFilter.resetState();
+				SetOperatorFilters(key, voiceOp.filters, voiceOp.modFilter, patchOp);
 				
 				// Store detune jitter
 				voiceOp.detuneOffs = jitter*mt_randfc()*kMaxDetuneJitter;
@@ -965,10 +979,7 @@ namespace SFM
 				if (true == reset)
 				{
 					// (Re)set constant/static filter
-					SetOperatorFilter(key, voiceOp.filters, patchOp);
-
-					// Reset modulator filter
-					voiceOp.modFilter.resetState();
+					SetOperatorFilters(key, voiceOp.filters, voiceOp.modFilter, patchOp);
 				}
 
 				// Store detune jitter

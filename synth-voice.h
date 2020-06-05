@@ -131,14 +131,15 @@ namespace SFM
 
 				isCarrier = false;
 				
+				// Reset operator filter(s)
 				for (auto &filter : filters)
 				{
-					filter.updateCoefficients(1.0, 0.025, SvfLinearTrapOptimised2::NO_FLT_TYPE, sampleRate);
+					filter.updateCoefficients(16.0, 0.025, SvfLinearTrapOptimised2::NO_FLT_TYPE, sampleRate);
 					filter.resetState();
 				}
 
-				// Modulator filter has a static setting
-				modFilter.updateLowpassCoeff(CutoffToHz(kModulatorLP, Nyquist), 0.025 /* Min SVF filter Q. */, sampleRate);
+				// Reset modulator filter
+				modFilter.updateCoefficients(16.0, 0.025, SvfLinearTrapOptimised2::NO_FLT_TYPE, sampleRate);
 				modFilter.resetState();
 
 				feedback = 0.f;

@@ -232,7 +232,7 @@ namespace SFM
 		void FreeVoice(int index);    // Free voice
 		void StealVoice(int index);   // Steal voice
 
-		void SetOperatorFilter(unsigned key, SvfLinearTrapOptimised2 *filterSVF, const PatchOperators::Operator &patchOp);
+		void SetOperatorFilters(unsigned key, SvfLinearTrapOptimised2 *filterSVF, SvfLinearTrapOptimised2 &modFilter, const PatchOperators::Operator &patchOp);
 		float CalcOpFreq(float fundamentalFreq, float detuneOffs, const PatchOperators::Operator &patchOp);
 		float CalcOpIndex(unsigned key, float velocity, const PatchOperators::Operator &patchOp);
 		void InitializeLFO(Voice &voice, float jitter);

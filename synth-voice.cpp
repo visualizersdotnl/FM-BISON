@@ -253,11 +253,11 @@ namespace SFM
 				}
 				
 				// Apply filter
-				bool hasFilter = true;
+				bool hasOpFilter = true;
 				switch (voiceOp.filters[0].getFilterType())
 				{
 				case SvfLinearTrapOptimised2::NO_FLT_TYPE:
-					hasFilter = false;
+					hasOpFilter = false;
 					break;
 
 				case SvfLinearTrapOptimised2::ALL_PASS_FILTER:
@@ -274,8 +274,11 @@ namespace SFM
 				// Store (filtered) sample for modulation
 				float modSample = sample;
 				
-				if (false == hasFilter) // Only apply if no specific filter applied
+				if (false == hasOpFilter && SvfLinearTrapOptimised2::NO_FLT_TYPE == voiceOp.modFilter.getFilterType())
+				{
+					// Only apply if no operator filter applied and modulator filter set
 					voiceOp.modFilter.tickMono(modSample);
+				}
 
 				modSamples[iOp] = modSample;
 
