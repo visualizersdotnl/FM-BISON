@@ -138,9 +138,6 @@ namespace SFM
 
 		SFM_INLINE void PitchBend(float bend)
 		{
-			if (1.f == bend)
-				return;
-
 			m_phases[0].PitchBend(bend);		
 	
 			if (kSupersaw == m_form)
@@ -156,9 +153,6 @@ namespace SFM
 
 		SFM_INLINE void SetFrequency(float frequency)
 		{
-			if (GetFrequency() == frequency)
-				return;
-
 			m_phases[0].SetFrequency(frequency);
 
 			if (kSupersaw == m_form)

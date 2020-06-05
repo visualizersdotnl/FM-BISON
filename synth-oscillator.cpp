@@ -110,12 +110,15 @@ namespace SFM
 			case kSupersaw:
 				{
 					// Modulation & (incoming) feedback ignored; they would only result in noise for this oscillator
-					const float subGain = 0.354813397f; // -9dB
+					constexpr float subGain = 0.354813397f; // -9dB
+					constexpr float pitchScale = 0.33;
+
+					signal = oscPolySaw(phase, pitchScale*pitch)*subGain;
 	
-					for (unsigned iSaw = 0; iSaw < kNumPolySupersaws; ++iSaw)
+					for (unsigned iSaw = 1; iSaw < kNumPolySupersaws; ++iSaw)
 					{
 						auto &phaseObj = m_phases[iSaw];
-						signal += oscPolySaw(phaseObj.Sample(), 0.33*phaseObj.GetPitch())*subGain;
+						signal += oscPolySaw(phaseObj.Sample(), pitchScale*phaseObj.GetPitch())*subGain;
 					}
 				}
 
