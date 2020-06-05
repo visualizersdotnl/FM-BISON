@@ -28,7 +28,6 @@ namespace SFM
 		return fast_cosf(phase); 
 	}
 
-	/*
 	/*	Naive implementations (not band-limited) */
 
 	SFM_INLINE static float oscSaw(float phase)

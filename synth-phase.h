@@ -11,6 +11,7 @@
 #pragma once
 
 #include "synth-global.h"
+#include "synth-stateless-oscillators.h"
 
 namespace SFM
 {
@@ -21,7 +22,6 @@ namespace SFM
 		unsigned m_sampleRate;
 		double   m_pitch;
 		double   m_phase;
-		double   m_syncRatio;
 
 	public:
 		Phase()
@@ -40,19 +40,8 @@ namespace SFM
 			m_sampleRate = sampleRate;
 			m_pitch = CalculatePitch(frequency, sampleRate);
 			m_phase = fmod(phaseShift, 1.f);
-			m_syncRatio = 1.f;
 
 			SFM_ASSERT(m_phase >= 0.0 && m_phase <= 1.0);
-		}
-		
-		// Synchronize to freq. (hard sync.)
-		SFM_INLINE void SyncTo(float frequency)
-		{
-			double ratio = 1.f;
-			if (0.0 != m_frequency)
-				ratio = frequency/m_frequency; // FIXME: is this correct?
-
-			m_syncRatio = ratio;
 		}
 
 		// Pitch bend
@@ -75,14 +64,16 @@ namespace SFM
 
 		SFM_INLINE float Sample()
 		{
-			while (m_phase >= 1.0)
+			if (m_phase >= 1.0)
+			{
 				m_phase -= 1.0;
-
-			const float curPhase = float(m_phase);
+			}
+			
+			/* const */ float curPhase = float(m_phase);
 			SFM_ASSERT(curPhase >= 0.f && curPhase <= 1.f);
 
-			m_phase += m_pitch*m_syncRatio;
-
+			m_phase += m_pitch;
+			
 			return curPhase;
 		}
 

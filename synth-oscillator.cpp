@@ -128,16 +128,9 @@ namespace SFM
 				break;
 			
 			case kPinkNoise:
-				{
-//				signal = oscSine(modulated + 0.1f*oscSine(modulated));
-//				float ramp = oscSine(modulated + 0.1f*oscSine(modulated));
-				float ramp = oscSine(modulated - 0.1f*oscSine(modulated));
-				float squared = Squarepusher(ramp, 0.4f);
-				signal = lerpf<float>(ramp, squared, 0.4f);
-//				signal = Squarepusher(oscSine(modulated + 0.1f*oscSine(modulated)), 0.4f);
-//				signal = m_pinkNoise.Sample();
+				signal = m_pinkNoise.Sample();
 				break;
-				}
+
 			/* LFO */
 
 			case kRamp:

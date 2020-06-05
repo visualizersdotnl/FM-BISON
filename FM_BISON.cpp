@@ -752,21 +752,44 @@ namespace SFM
 		SFM_ASSERT(jitter >= 0.f && jitter <= 1.f);
 		return jitter*mt_randf()*0.25f; // [0..90] deg.
 	}
-
-	SFM_INLINE void Bison::InitializeLFO(Voice &voice, float jitter)
+	
+	// Calculate LFO frequencies
+	SFM_INLINE static void CalcLFOFreq(float &frequency /* Set to base freq. */, float &modFrequency, int speedAdj)
 	{
-		// Initialize LFOs (FIXME: move to function)
+		SFM_ASSERT(frequency > 0.f);
+		
+		const float freqSpeedAdj = powf(2.f, speedAdj);
+		if (speedAdj <= 0)
+		{
+			// Slow down modulator
+			modFrequency = frequency*freqSpeedAdj;
+		}
+		else
+		{
+			// Set modulator to base freq. and speed up LFO frequency
+			modFrequency = frequency;
+			frequency *= freqSpeedAdj;
+		}
+	}
+
+	// LFO initialization
+	void Bison::InitializeLFO(Voice &voice, float jitter)
+	{
+		SFM_ASSERT(LFOModSpeedAdj >= -2 && LFOModSpeedAdj <= 2); // See synth-patch-global.h
+		
+		// Initialize LFOs
 		float phaseAdj = (true == m_patch.LFOKeySync)
 			? 0.f // Synchronized 
 			: m_globalLFO->Get(); // Adopt running phase
 
 		phaseAdj += CalcPhaseJitter(jitter);
 
-		const float globalFreq = m_globalLFO->GetFrequency();
+		float frequency = m_globalLFO->GetFrequency(), modFrequency;
+		CalcLFOFreq(frequency, modFrequency, m_patch.LFOModSpeedAdj);
 
-		voice.m_LFO1.Initialize(m_patch.LFOWaveform1, globalFreq, m_sampleRate, phaseAdj);
-		voice.m_LFO2.Initialize(m_patch.LFOWaveform2, globalFreq, m_sampleRate, phaseAdj);
-		voice.m_modLFO.Initialize(m_patch.LFOWaveform3, globalFreq, m_sampleRate, phaseAdj);
+		voice.m_LFO1.Initialize(m_patch.LFOWaveform1, frequency, m_sampleRate, phaseAdj);
+		voice.m_LFO2.Initialize(m_patch.LFOWaveform2, frequency, m_sampleRate, phaseAdj);
+		voice.m_modLFO.Initialize(m_patch.LFOWaveform3, modFrequency, m_sampleRate, phaseAdj);
 	}
 	
 	// Initialize new voice
@@ -1537,10 +1560,12 @@ namespace SFM
 			constexpr float voiceGain = 0.354813397f; // dBToGain(kVoiceGaindB);
 
 			// Update LFO frequencies
-			const float freqLFO = context.freqLFO;
-			voice.m_LFO1.SetFrequency(freqLFO);
-			voice.m_LFO2.SetFrequency(freqLFO);
-			voice.m_modLFO.SetFrequency(freqLFO);
+			float frequency = m_globalLFO->GetFrequency(), modFrequency;
+			CalcLFOFreq(frequency, modFrequency, m_patch.LFOModSpeedAdj);
+			
+			voice.m_LFO1.SetFrequency(frequency);
+			voice.m_LFO2.SetFrequency(frequency);
+			voice.m_modLFO.SetFrequency(modFrequency);
 			
 			// Update LFO S&H parameters
 			const float slewRate = m_SandHSlewRatePF.Get();

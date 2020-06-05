@@ -131,9 +131,6 @@ namespace SFM
 					auto &phase = m_phases[iSaw];
 					const float detune = s_supersawDetune[iSaw];
 					phase.Initialize(frequency*detune, sampleRate, phaseShift);
-					
-					// Hard sync. to base freq.
-					phase.SyncTo(frequency);
 				}
 			}
 		}
@@ -170,9 +167,6 @@ namespace SFM
 				{
 					auto &phase = m_phases[iSaw];
 					phase.SetFrequency(frequency*s_supersawDetune[iSaw]);
-					
-					// Hard sync. to base freq.
-					phase.SyncTo(frequency);
 				}
 			}
 		}
@@ -180,12 +174,6 @@ namespace SFM
 		SFM_INLINE void SetSampleAndHoldSlewRate(float rate)
 		{
 			m_sampleAndHold.SetSlewRate(rate);
-		}
-
-		SFM_INLINE void SetHardSync(float frequency)
-		{
-			SFM_ASSERT(kSupersaw != m_form);
-			m_phases[0].SyncTo(frequency);
 		}
 		
 		SFM_INLINE float    GetFrequency()   const { return m_phases[0].GetFrequency();  }

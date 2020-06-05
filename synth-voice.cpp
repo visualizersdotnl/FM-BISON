@@ -231,11 +231,11 @@ namespace SFM
 				float sample = oscillator.Sample(phaseShift+feedback);
 
 				// LFO tremolo
-				const float tremolo = LFO*voiceOp.ampMod*modulation*0.5f + 0.5f; // FIXME: not just [-1..1]?
+				const float tremolo = fabsf(LFO*modulation);
 
 				// Apply amplitude (or 'index')
 				const float amplitude = voiceOp.amplitude.Sample();
-				sample *= amplitude*tremolo;
+				sample = lerpf<float>(sample*amplitude, sample*amplitude*tremolo, voiceOp.ampMod);
 
 				// Apply envelope
 				const float envelope = voiceOp.envelope.Sample();
@@ -274,7 +274,7 @@ namespace SFM
 				// Store (filtered) sample for modulation
 				float modSample = sample;
 				
-				if (false == hasOpFilter && SvfLinearTrapOptimised2::NO_FLT_TYPE == voiceOp.modFilter.getFilterType())
+				if (false == hasOpFilter && SvfLinearTrapOptimised2::NO_FLT_TYPE != voiceOp.modFilter.getFilterType())
 				{
 					// Only apply if no operator filter applied and modulator filter set
 					voiceOp.modFilter.tickMono(modSample);

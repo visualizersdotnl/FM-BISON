@@ -77,6 +77,7 @@ namespace SFM
 		Oscillator::Waveform LFOWaveform2; // Waveform B
 		Oscillator::Waveform LFOWaveform3; // Mod. waveform
 		float LFOBlend;
+		int   LFOModSpeedAdj; // Range [-2..2]
 		float LFOModDepth; 
 		float LFORate; // Range [0.0..100.0]
 		bool  LFOKeySync;
@@ -214,6 +215,7 @@ namespace SFM
 			LFOWaveform2 = kLFOWaveforms[1]; // Sine
 			LFOWaveform3 = kLFOWaveforms[1]; // Sine
 			LFOBlend = 0.f;                  // Waveform A
+			LFOModSpeedAdj = 0;              // Full speed modulation
 			LFOModDepth = 0.f;               // No modulation
 			LFORate = 0.f;                   // Zero Hz
 			LFOKeySync = false;              // No key sync.
