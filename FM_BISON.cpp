@@ -1997,7 +1997,9 @@ namespace SFM
 		{
 			const unsigned divisor = sumDiv[iOp];
 			const float RMS = (divisor > 0) ? sqrtf(powerSums[iOp]/divisor) : 0.f;
-			m_opRMS[iOp].Apply(RMS);
+			constexpr float kGainMin3dB = 0.707f;
+			const float normalized = std::min<float>(1.f, RMS/kGainMin3dB);
+			m_opRMS[iOp].Apply(normalized);
 		}
 
 		// Normalize accum. to avg. velocity

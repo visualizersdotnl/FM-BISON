@@ -187,15 +187,11 @@ namespace SFM
 			return m_postPass->GetCompressorActivity();
 		}
 
+		// Value is operator normalized RMS
 		float GetOperatorRMS(unsigned iOp) const
 		{
 			SFM_ASSERT(iOp < kNumOperators);
-
-			// Normalize @ -3dB
-			constexpr float kGainMin3dB = 0.707f;
-			const float RMS = std::min<float>(1.f, m_opRMS[iOp].Get()/kGainMin3dB);
-
-			return RMS;
+			return m_opRMS[iOP].Get();
 		}
 
 	private:
