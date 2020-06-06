@@ -191,7 +191,9 @@ namespace SFM
 		float GetOperatorRMS(unsigned iOp) const
 		{
 			SFM_ASSERT(iOp < kNumOperators);
-			return m_opRMS[iOp].Get();
+			const float RMS = m_opRMS[iOp].Get();		
+			constexpr float kGainMin3dB = 0.707f;
+			return std::min<float>(1.f, RMS/kGainMin3dB);
 		}
 
 	private:
