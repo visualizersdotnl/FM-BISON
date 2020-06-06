@@ -191,7 +191,7 @@ namespace SFM
 		float GetOperatorRMS(unsigned iOp) const
 		{
 			SFM_ASSERT(iOp < kNumOperators);
-			return m_opRMS[iOP].Get();
+			return m_opRMS[iOp].Get();
 		}
 
 	private:
