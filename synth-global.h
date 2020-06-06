@@ -165,7 +165,7 @@ namespace SFM
 	
 	// Master output volume range & default in dB
 	constexpr int kMinVolumedB = -96;
-	constexpr int kMaxVolumedB =   6;
+	constexpr int kMaxVolumedB =   3;
 	constexpr int kDefVolumedB = -12;
 	constexpr int kVolumeRangedB = kMaxVolumedB-kMinVolumedB;
 
@@ -234,11 +234,14 @@ namespace SFM
 	constexpr float kDefPianoPedalReleaseMul = kPianoPedalMinReleaseMul; // So because of that, by default, the influence of this parameter is nil.
 
 	// Modulator input is low passed a little bit for certain waveforms to "take the top off"
-	constexpr float kModulatorLP = 0.9f; // Normalized range [0..1]
+	constexpr float kModulatorLP = 0.875f; // Normalized range [0..1]
 
 	// LFO modulation speed in steps (exponential)
 	constexpr int kMinLFOModSpeed = -8;
 	constexpr int kMaxLFOModSpeed =  8;
+
+	// Operator RMS calc. filter frequency (the larger the faster and jittery)
+	const float kOpRMSFilterCutoffHz = 500.f;
 };
 
 #include "synth-random.h"

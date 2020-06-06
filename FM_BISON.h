@@ -190,7 +190,12 @@ namespace SFM
 		float GetOperatorRMS(unsigned iOp) const
 		{
 			SFM_ASSERT(iOp < kNumOperators);
-			return m_opRMS[iOp].Get();
+
+			// Normalize @ -3dB
+			constexpr float kGainMin3dB = 0.707f;
+			const float RMS = std::min<float>(1.f, m_opRMS[iOp].Get()/kGainMin3dB);
+
+			return RMS;
 		}
 
 	private:
@@ -412,7 +417,7 @@ namespace SFM
 		int m_keyToVoice[128];
 
 		// Per operator RMS (filtered)
-		LowpassFilter m_opRMS[kNumOperators];
+		LowpassFilter12dB m_opRMS[kNumOperators];
 	};
 }
  

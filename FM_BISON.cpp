@@ -229,11 +229,11 @@ namespace SFM
 		m_modulationPF.Reset(0.f);
 		m_aftertouchPF.Reset(0.f);
 
-		// Reset operator RMS values
+		// Reset operator RMS filters
 		for (auto &opRMS : m_opRMS)
 		{
 			opRMS.Reset(0.f);
-			opRMS.SetCutoff(kDefParameterFilterCutHz / m_sampleRate);
+			opRMS.SetCutoff(kOpRMSFilterCutoffHz / m_sampleRate);
 		}
 	}
 
@@ -1964,8 +1964,14 @@ namespace SFM
 			}
 		}
 
-		// Calculate RMS for each operator (for visualization only, so remove or comment this out if unnecessary)
-		float sums[kNumOperators] = { 0.f };
+		/*
+			Calculate RMS for each operator (for visualization only, so remove or comment this out if unnecessary)
+		*/
+
+		// Sum up
+		float powerSums[kNumOperators] = { 0.f };
+		unsigned sumDiv[kNumOperators] = { 0 };
+
 		for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
 		{
 			Voice &voice = m_voices[iVoice];
@@ -1977,14 +1983,21 @@ namespace SFM
 					Voice::Operator &voiceOp = voice.m_operators[iOp];
 
 					if (true == voiceOp.enabled)
-						sums[iOp] += voiceOp.curGain*voiceOp.curGain;
+					{
+						const float absGain = fabsf(voiceOp.curGain);
+						powerSums[iOp] += absGain*absGain;
+						++sumDiv[iOp];
+					}
 				}
 			}
 		}
-
+		
+		// Calc. RMS
 		for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
 		{
-			m_opRMS[iOp].Apply(sqrtf(sums[iOp]/(std::max<unsigned>(1, m_voiceCount))));
+			const unsigned divisor = sumDiv[iOp];
+			const float RMS = (divisor > 0) ? sqrtf(powerSums[iOp]/divisor) : 0.f;
+			m_opRMS[iOp].Apply(RMS);
 		}
 
 		// Normalize accum. to avg. velocity

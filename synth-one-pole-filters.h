@@ -124,6 +124,8 @@ namespace SFM
 	{
 		m_filterA.Reset(value);
 		m_filterB.Reset(value);
+
+		m_current = 0.f;
 	}
 
 	void SetCutoff(float Fc)
@@ -132,14 +134,22 @@ namespace SFM
 		m_filterB.SetCutoff(Fc);
 	}
 
-	float SFM_INLINE Apply(float input)
+	SFM_INLINE float Apply(float input)
 	{
-		return m_filterB.Apply(m_filterA.Apply(input));
+		m_current = m_filterB.Apply(m_filterA.Apply(input));
+		return m_current;
+	}
+
+	SFM_INLINE float Get() const
+	{
+		return m_current;
 	}
 
 	private:
 		LowpassFilter m_filterA;
 		LowpassFilter m_filterB;
+
+		float m_current = 0.f;
 	};
 
 	/* Blockers (stereo) */

@@ -150,7 +150,7 @@ namespace SFM
 				// Reset env. follower
 				envGain.SetSampleRate(sampleRate);
 				envGain.SetAttack(1.f);
-				envGain.SetRelease(10.f);
+				envGain.SetRelease(1.f);
 				curGain = 0.f;
 			}
 
