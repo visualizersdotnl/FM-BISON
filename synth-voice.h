@@ -24,6 +24,7 @@
 #include "synth-one-pole-filters.h"
 // #include "synth-pitch-envelope.h"
 #include "synth-MIDI.h"
+#include "synth-followers.h"
 
 namespace SFM
 {
@@ -78,6 +79,7 @@ namespace SFM
 			// Feedback (R)
 			// See: https://www.reddit.com/r/FMsynthesis/comments/85jfrb/dx7_feedback_implementation/
 			InterpolatedParameter<kLinInterpolate> feedbackAmt;
+			float feedback; // Signal feedback
 
 			// LFO influence
 			float ampMod;
@@ -97,9 +99,11 @@ namespace SFM
 			SvfLinearTrapOptimised2 filters[kNumVoiceAllpasses];
 			SvfLinearTrapOptimised2 modFilter; // Set to default by Reset()
 
-			// Signal feedback
-			float feedback;
+			// Gain follower
+			AttackReleaseFollower envGain;
+			float curGain;
 
+			// This function is called by Voice::Reset()
 			void Reset(unsigned sampleRate)
 			{
 				enabled = false;
@@ -120,6 +124,7 @@ namespace SFM
 
 				iFeedback   = -1;
 				feedbackAmt = { 0.f, sampleRate, kDefParameterLatency };
+				feedback = 0.f;
 
 				ampMod   = 0.f;
 				pitchMod = 0.f;
@@ -142,7 +147,11 @@ namespace SFM
 				modFilter.updateCoefficients(16.0, 0.025, SvfLinearTrapOptimised2::NO_FLT_TYPE, sampleRate);
 				modFilter.resetState();
 
-				feedback = 0.f;
+				// Reset env. follower
+				envGain.SetSampleRate(sampleRate);
+				envGain.SetAttack(1.f);
+				envGain.SetRelease(10.f);
+				curGain = 0.f;
 			}
 
 		} m_operators[kNumOperators];

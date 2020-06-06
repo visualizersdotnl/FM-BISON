@@ -274,6 +274,10 @@ namespace SFM
 				}
 
 				modSamples[iOp] = modSample;
+				
+				// Follow abs. output (excluding 'ampBend')
+				const float absModSample = fabsf(modSample);
+				voiceOp.envGain.Apply(absModSample, voiceOp.curGain);
 
 				// Calculate panning
 				float panning = voiceOp.panning.Sample();

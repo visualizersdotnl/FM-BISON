@@ -94,6 +94,7 @@
 #include "synth-post-pass.h"
 #include "synth-phase.h"
 #include "synth-voice.h"
+// #include "synth-followers.h"
 
 #include "synth-MIDI.h" // Purely for 2 constants
 
@@ -186,7 +187,14 @@ namespace SFM
 			return m_postPass->GetCompressorActivity();
 		}
 
+		float GetOperatorRMS(unsigned iOp) const
+		{
+			SFM_ASSERT(iOp < kNumOperators);
+			return m_opRMS[iOp].Get();
+		}
+
 	private:
+
 		/*
 			Voice management
 		*/
@@ -306,7 +314,7 @@ namespace SFM
 		float RenderVoices(const VoiceRenderParameters &context, const std::vector<unsigned> &voiceIndices, unsigned numSamples, float *pDestL, float *pDestR) const;
 
 		/*
-			Vars.
+			Variables.
 		*/
 
 		// Sample rate related (driven by JUCE)
@@ -402,6 +410,9 @@ namespace SFM
 
 		// Key-to-voice mapping table
 		int m_keyToVoice[128];
+
+		// Per operator RMS (filtered)
+		LowpassFilter m_opRMS[kNumOperators];
 	};
 }
  

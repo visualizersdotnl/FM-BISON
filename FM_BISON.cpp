@@ -228,6 +228,13 @@ namespace SFM
 		m_bendWheelPF.Reset(0.f);
 		m_modulationPF.Reset(0.f);
 		m_aftertouchPF.Reset(0.f);
+
+		// Reset operator RMS values
+		for (auto &opRMS : m_opRMS)
+		{
+			opRMS.Reset(0.f);
+			opRMS.SetCutoff(kDefParameterFilterCutHz / m_sampleRate);
+		}
 	}
 
 	// Cleans up after OnSetSamplingProperties()
@@ -257,7 +264,7 @@ namespace SFM
 
 		Monophonic mode:
 		- Each note uses it's own velocity for all calculations, instead of carrying over the
-		  initial one (like I can hear my TG77 do)
+		  initial one (like I can hear my Yamaha TG77 do)
 		- When a note is released, the last note in the sequence will play; to restart lift all keys
 		- Glide speed and velocity attenuation can be controlled through parameters
 
@@ -833,12 +840,15 @@ namespace SFM
 			voiceOp.enabled   = patchOp.enabled;
 			voiceOp.isCarrier = patchOp.isCarrier;
 
+			// Rese gain
+			voiceOp.curGain = 0.f;
+
 			if (true == voiceOp.enabled)
 			{
 				// Operator velocity
 				const float opVelocity = (false == patchOp.velocityInvert) ? velocity : 1.f-velocity;
 
-				// (Re)set constant/static filter
+				// (Re)set constant/static filters
 				SetOperatorFilters(key, voiceOp.filters, voiceOp.modFilter, patchOp);
 				
 				// Store detune jitter
@@ -878,6 +888,7 @@ namespace SFM
 				// Feedback
 				voiceOp.iFeedback = patchOp.feedback;
 				voiceOp.feedbackAmt = { patchOp.feedbackAmt, m_sampleRate, kDefParameterLatency };
+				voiceOp.feedback = 0.f;
 				
 				// LFO influence
 				voiceOp.ampMod   = patchOp.ampMod;
@@ -983,6 +994,9 @@ namespace SFM
 			voiceOp.enabled   = patchOp.enabled;
 			voiceOp.isCarrier = patchOp.isCarrier;
 
+			// Rese gain
+			voiceOp.curGain = 0.f;
+
 			if (true == voiceOp.enabled)
 			{
 				// Operator velocity
@@ -990,7 +1004,7 @@ namespace SFM
 
 				if (true == reset)
 				{
-					// (Re)set constant/static filter
+					// (Re)set constant/static filters
 					SetOperatorFilters(key, voiceOp.filters, voiceOp.modFilter, patchOp);
 				}
 
@@ -1948,6 +1962,29 @@ namespace SFM
 				accumVelocity += contexts[0].accumVelocity;
 				accumVelocity += contexts[1].accumVelocity;
 			}
+		}
+
+		// Calculate RMS for each operator (for visualization only, so remove or comment this out if unnecessary)
+		float sums[kNumOperators] = { 0.f };
+		for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
+		{
+			Voice &voice = m_voices[iVoice];
+
+			if (false == voice.IsIdle())
+			{
+				for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
+				{
+					Voice::Operator &voiceOp = voice.m_operators[iOp];
+
+					if (true == voiceOp.enabled)
+						sums[iOp] += voiceOp.curGain*voiceOp.curGain;
+				}
+			}
+		}
+
+		for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
+		{
+			m_opRMS[iOp].Apply(sqrtf(sums[iOp]/(std::max<unsigned>(1, m_voiceCount))));
 		}
 
 		// Normalize accum. to avg. velocity
