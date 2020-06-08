@@ -207,13 +207,13 @@ namespace SFM
 
 #if !defined(SFM_DISABLE_PARAMETER_FILTER)			
 
-		ParameterFilter(unsigned sampleRate, float cutHz = kDefParameterFilterCutHz) :
-			LowpassFilter(cutHz/sampleRate)
+		ParameterFilter(unsigned sampleRate, unsigned blockSize, float cutHz = kDefParameterFilterCutHz) :
+			LowpassFilter(CutoffHzToBlockHz(cutHz, sampleRate, blockSize) / blockSize)
 		{}
 
 #else
 
-		ParameterFilter(unsigned sampleRate, float cutHz = kDefParameterFilterCutHz) :
+		ParameterFilter(unsigned blockHz, float cutHz = kDefParameterFilterCutHz) :
 			LowpassFilter(1.f) // Bypass
 		{}
 

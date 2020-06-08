@@ -134,12 +134,12 @@ namespace SFM
 		// Reset global interpolated parameters
 		m_curLFOBlend    = { m_patch.LFOBlend, m_sampleRate, kDefParameterLatency };
 		m_curLFOModDepth = { m_patch.LFOModDepth, m_sampleRate, kDefParameterLatency };
-		m_curCutoff      = { CutoffToHz(m_patch.cutoff, m_Nyquist), m_sampleRate, kDefParameterLatency };
+		m_curCutoff      = { CutoffToHz(m_patch.cutoff, m_Nyquist), m_samplesPerBlock, kDefParameterLatency };
 		m_curQ           = { ResoToQ(m_patch.resonance), m_sampleRate, kDefParameterLatency };
-		m_curPitchBend   = { 0.f, m_sampleRate, kDefParameterLatency };
-		m_curAmpBend     = { 0.f, m_sampleRate, kDefParameterLatency };
-		m_curModulation  = { 0.f, m_sampleRate, kDefParameterLatency * 1.5f /* Longer */ };
-		m_curAftertouch  = { 0.f, m_sampleRate, kDefParameterLatency * 3.f  /* Longer */ };
+		m_curPitchBend   = { 0.f, m_samplesPerBlock, kDefParameterLatency };
+		m_curAmpBend     = { 0.f, m_samplesPerBlock, kDefParameterLatency };
+		m_curModulation  = { 0.f, m_samplesPerBlock, kDefParameterLatency * 1.5f /* Longer */ };
+		m_curAftertouch  = { 0.f, m_samplesPerBlock, kDefParameterLatency * 3.f  /* Longer */ };
 
 		/*
 			Reset parameter filters; they reduce automation/MIDI noise (by a default cut Hz, mostly)
@@ -153,12 +153,12 @@ namespace SFM
 		*/
 
 		// Global
-		m_LFORatePF             = { m_sampleRate };
-		m_LFOBlendPF            = { m_sampleRate };
-		m_LFOModDepthPF         = { m_sampleRate };
-		m_SandHSlewRatePF       = { m_sampleRate };
-		m_cutoffPF              = { m_sampleRate };
-		m_resoPF                = { m_sampleRate };
+		m_LFORatePF             = { m_sampleRate, m_samplesPerBlock };
+		m_LFOBlendPF            = { m_sampleRate, m_samplesPerBlock };
+		m_LFOModDepthPF         = { m_sampleRate, m_samplesPerBlock };
+		m_SandHSlewRatePF       = { m_sampleRate, m_samplesPerBlock };
+		m_cutoffPF              = { m_sampleRate, m_samplesPerBlock };
+		m_resoPF                = { m_sampleRate, m_samplesPerBlock };
 
 		m_LFORatePF.Reset(freqLFO);
 		m_LFOBlendPF.Reset(m_patch.LFOBlend);
@@ -168,31 +168,31 @@ namespace SFM
 		m_resoPF.Reset(m_patch.resonance);
 
 		// PostPass
-		m_effectWetPF           = { m_sampleRate }; 
-		m_effectRatePF          = { m_sampleRate };
-		m_delayPF               = { m_sampleRate, kDefParameterFilterCutHz * 0.05f /* Slower */ };
-		m_delayWetPF            = { m_sampleRate };
-		m_delayFeedbackPF       = { m_sampleRate };
-		m_delayFeedbackCutoffPF = { m_sampleRate };
-		m_tubeDistPF            = { oversamplingRate };
-		m_postCutoffPF          = { oversamplingRate };
-		m_postResoPF            = { oversamplingRate };
-		m_postDrivePF           = { oversamplingRate };
-		m_postWetPF             = { oversamplingRate, kDefParameterFilterCutHz*0.3f /* Slower */ };
-		m_avgVelocityPF         = { oversamplingRate, kDefParameterFilterCutHz*0.1f /* Slower */ };
-		m_wahRatePF             = { m_sampleRate };
-		m_wahSpeakPF            = { m_sampleRate };
-		m_wahCutPF              = { m_sampleRate };
-		m_wahWetPF              = { m_sampleRate };
-		m_reverbWetPF           = { m_sampleRate };
-		m_reverbRoomSizePF      = { m_sampleRate };
-		m_reverbDampeningPF     = { m_sampleRate };
-		m_reverbWidthPF         = { m_sampleRate };
-		m_reverbHP_PF           = { m_sampleRate };
-		m_reverbLP_PF           = { m_sampleRate };
-		m_reverbPreDelayPF      = { m_sampleRate };
-		m_compLookaheadPF       = { m_sampleRate, kDefParameterFilterCutHz*0.5f /* Slower */ };
-		m_masterVolPF           = { m_sampleRate };
+		m_effectWetPF           = { m_sampleRate, m_samplesPerBlock }; 
+		m_effectRatePF          = { m_sampleRate, m_samplesPerBlock };
+		m_delayPF               = { m_sampleRate, m_samplesPerBlock, kDefParameterFilterCutHz * 0.05f /* Slower */ };
+		m_delayWetPF            = { m_sampleRate, m_samplesPerBlock };
+		m_delayFeedbackPF       = { m_sampleRate, m_samplesPerBlock };
+		m_delayFeedbackCutoffPF = { m_sampleRate, m_samplesPerBlock };
+		m_tubeDistPF            = { oversamplingRate, m_samplesPerBlock };
+		m_postCutoffPF          = { oversamplingRate, m_samplesPerBlock };
+		m_postResoPF            = { oversamplingRate, m_samplesPerBlock };
+		m_postDrivePF           = { oversamplingRate, m_samplesPerBlock };
+		m_postWetPF             = { oversamplingRate, m_samplesPerBlock, kDefParameterFilterCutHz*0.3f /* Slower */ };
+		m_avgVelocityPF         = { oversamplingRate, m_samplesPerBlock, kDefParameterFilterCutHz*0.1f /* Slower */ };
+		m_wahRatePF             = { m_sampleRate, m_samplesPerBlock };
+		m_wahSpeakPF            = { m_sampleRate, m_samplesPerBlock };
+		m_wahCutPF              = { m_sampleRate, m_samplesPerBlock };
+		m_wahWetPF              = { m_sampleRate, m_samplesPerBlock };
+		m_reverbWetPF           = { m_sampleRate, m_samplesPerBlock };
+		m_reverbRoomSizePF      = { m_sampleRate, m_samplesPerBlock };
+		m_reverbDampeningPF     = { m_sampleRate, m_samplesPerBlock };
+		m_reverbWidthPF         = { m_sampleRate, m_samplesPerBlock };
+		m_reverbHP_PF           = { m_sampleRate, m_samplesPerBlock };
+		m_reverbLP_PF           = { m_sampleRate, m_samplesPerBlock };
+		m_reverbPreDelayPF      = { m_sampleRate, m_samplesPerBlock };
+		m_compLookaheadPF       = { m_sampleRate, m_samplesPerBlock, kDefParameterFilterCutHz*0.5f /* Slower */ };
+		m_masterVolPF           = { m_sampleRate, m_samplesPerBlock };
 
 		m_effectWetPF.Reset(m_patch.cpWet);
 		m_effectRatePF.Reset(m_patch.cpRate);
@@ -221,9 +221,9 @@ namespace SFM
 		m_masterVolPF.Reset(m_patch.masterVol);
 
 		// Local
-		m_bendWheelPF           = { m_sampleRate, kDefParameterFilterCutHz*0.6f  };
-		m_modulationPF          = { m_sampleRate, kDefParameterFilterCutHz*0.6f  };
-		m_aftertouchPF          = { m_sampleRate, kDefParameterFilterCutHz*0.05f };
+		m_bendWheelPF           = { m_sampleRate, m_samplesPerBlock, kDefParameterFilterCutHz*0.6f  };
+		m_modulationPF          = { m_sampleRate, m_samplesPerBlock, kDefParameterFilterCutHz*0.6f  };
+		m_aftertouchPF          = { m_sampleRate, m_samplesPerBlock, kDefParameterFilterCutHz*0.05f };
 
 		m_bendWheelPF.Reset(0.f);
 		m_modulationPF.Reset(0.f);
@@ -233,7 +233,7 @@ namespace SFM
 		for (auto &opRMS : m_opRMS)
 		{
 			opRMS.Reset(0.f);
-			opRMS.SetCutoff(kOpRMSFilterCutoffHz / m_sampleRate);
+			opRMS.SetCutoff(CutoffHzToBlockHz(kOpRMSFilterCutoffHz_Up, m_sampleRate, m_samplesPerBlock) / m_samplesPerBlock);
 		}
 	}
 
@@ -1978,6 +1978,9 @@ namespace SFM
 
 			if (false == voice.IsIdle())
 			{
+				// In case there are only modulators the voice will be terminated in it's first frame, which in turn will result
+				// in zero RMS on all VU meters
+
 				for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
 				{
 					Voice::Operator &voiceOp = voice.m_operators[iOp];
@@ -1986,8 +1989,11 @@ namespace SFM
 					{
 						const float absGain = fabsf(voiceOp.curGain);
 						powerSums[iOp] += absGain*absGain;
-						++sumDiv[iOp];
+
+						Log("Sum iVoice iOp " + std::to_string(iVoice) + " " + std::to_string(iOp) + " = " + std::to_string(powerSums[iOp]));
 					}
+
+					++sumDiv[iOp];
 				}
 			}
 		}
@@ -1996,7 +2002,19 @@ namespace SFM
 		for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
 		{
 			const unsigned divisor = sumDiv[iOp];
-			const float RMS = (divisor > 0) ? sqrtf(powerSums[iOp]/divisor) : 0.f;
+
+			const float RMS = (divisor > 0) 
+				? sqrtf(powerSums[iOp]/divisor) 
+				: 0.f;
+			
+			auto &opRMS  = m_opRMS[iOp];
+			const auto prevVal = opRMS.Get();
+
+			if (RMS >= prevVal)
+				opRMS.SetCutoff(CutoffHzToBlockHz(kOpRMSFilterCutoffHz_Up, m_sampleRate, m_samplesPerBlock) / m_samplesPerBlock);
+			else
+				opRMS.SetCutoff(CutoffHzToBlockHz(kOpRMSFilterCutoffHz_Down, m_sampleRate, m_samplesPerBlock) / m_samplesPerBlock);
+
 			m_opRMS[iOp].Apply(RMS);
 		}
 

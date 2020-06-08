@@ -78,7 +78,7 @@ namespace SFM
 	// Max. fixed frequency (have fun with it!)
 	constexpr float kMaxFixedHz = 96000.f;
 
-	// Default parameter cutoff (in Hz) (for ParameterFilter)
+	// Default parameter cutoff (FIXME: see CutoffHzToBlockHz())
 	constexpr float kDefParameterFilterCutHz = 5000.f;
 
 	// Default parameter latency (used for per-sample interpolation of parameters and controls)
@@ -240,8 +240,9 @@ namespace SFM
 	constexpr int kMinLFOModSpeed = -8;
 	constexpr int kMaxLFOModSpeed =  8;
 
-	// Operator RMS calc. filter frequency (the larger the faster and jittery)
-	const float kOpRMSFilterCutoffHz = 500.f;
+	// For operator RMS calc. (in Hz per sample, see FIXME above)
+	constexpr float kOpRMSFilterCutoffHz_Up   = 6000.f;
+	constexpr float kOpRMSFilterCutoffHz_Down =  500.f;
 };
 
 #include "synth-random.h"

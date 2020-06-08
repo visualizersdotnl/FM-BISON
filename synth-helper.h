@@ -155,7 +155,7 @@ namespace SFM
 
 	/* ----------------------------------------------------------------------------------------------------
 
-		Helper functions for (SVF) filter.
+		Helper functions for filters.
 
 	 ------------------------------------------------------------------------------------------------------ */
 
@@ -168,7 +168,7 @@ namespace SFM
 		return minCutoff + cutoff*(maxCutoff-minCutoff);
 	}
 
-	// Normalized resonance [0..1] to Q
+	// Normalized resonance [0..1] to Q (for SVF filter)
 	SFM_INLINE static float ResoToQ(float resonance)
 	{
 		// Allowed: [0.025..40.0]
@@ -177,6 +177,16 @@ namespace SFM
 		const float Q = kMinFilterResonance + resonance*(kMaxFilterResonance-kMinFilterResonance);
 		SFM_ASSERT(Q <= 40.f);
 		return Q;
+	}
+
+	// Used for ParameterFilter and other per-block filters
+	// FIXME: because I made a very basic mistake of defining cutoff frequencies on a per-sample rate whilst they were samples only once per block
+	SFM_INLINE static float CutoffHzToBlockHz(float cutoffPerSampleHz, unsigned sampleRate, unsigned blockSize)
+	{
+		SFM_ASSERT(blockSize > 0);
+		SFM_ASSERT(sampleRate > blockSize);
+		const float divisor = sampleRate/float(blockSize);
+		return cutoffPerSampleHz/divisor;
 	}
 
 	// Snap floating point value to zero (taken from JUCE)
