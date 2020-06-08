@@ -2010,8 +2010,6 @@ namespace SFM
 				opRMS.SetCutoff(CutoffHzToBlockHz(kOpRMSFilterCutoffHz_Up, m_sampleRate, m_samplesPerBlock) / m_samplesPerBlock);
 			else if (RMS < prevVal)
 				opRMS.SetCutoff(CutoffHzToBlockHz(kOpRMSFilterCutoffHz_Down, m_sampleRate, m_samplesPerBlock) / m_samplesPerBlock);
-			else
-				opRMS.SetCutoff(1.f);
 
 			opRMS.Apply(RMS);
 		}
