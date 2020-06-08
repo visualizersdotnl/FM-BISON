@@ -241,8 +241,8 @@ namespace SFM
 	constexpr int kMaxLFOModSpeed =  8;
 
 	// For operator RMS calc. (in Hz per sample, see FIXME above)
-	constexpr float kOpRMSFilterCutoffHz_Up   = 6000.f;
-	constexpr float kOpRMSFilterCutoffHz_Down =  500.f;
+	constexpr float kOpRMSFilterCutoffHz_Up   =  1000.f;
+	constexpr float kOpRMSFilterCutoffHz_Down =   500.f;
 };
 
 #include "synth-random.h"

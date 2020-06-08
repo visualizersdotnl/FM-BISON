@@ -229,11 +229,11 @@ namespace SFM
 		m_modulationPF.Reset(0.f);
 		m_aftertouchPF.Reset(0.f);
 
-		// Reset operator RMS filters
+		// Reset RMS filters
 		for (auto &opRMS : m_opRMS)
 		{
 			opRMS.Reset(0.f);
-			opRMS.SetCutoff(CutoffHzToBlockHz(kOpRMSFilterCutoffHz_Up, m_sampleRate, m_samplesPerBlock) / m_samplesPerBlock);
+			opRMS.SetCutoff(1.f);
 		}
 	}
 
@@ -1987,13 +1987,10 @@ namespace SFM
 
 					if (true == voiceOp.enabled)
 					{
-						const float absGain = fabsf(voiceOp.curGain);
-						powerSums[iOp] += absGain*absGain;
-
-						Log("Sum iVoice iOp " + std::to_string(iVoice) + " " + std::to_string(iOp) + " = " + std::to_string(powerSums[iOp]));
+						const float curGain = voiceOp.curGain;
+						powerSums[iOp] += curGain*curGain;
+						++sumDiv[iOp];
 					}
-
-					++sumDiv[iOp];
 				}
 			}
 		}
@@ -2001,21 +1998,22 @@ namespace SFM
 		// Calc. RMS
 		for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
 		{
+			constexpr float kGain3dB = 1.41253757f;
 			const unsigned divisor = sumDiv[iOp];
-
-			const float RMS = (divisor > 0) 
-				? sqrtf(powerSums[iOp]/divisor) 
-				: 0.f;
+			float RMS = (divisor > 0) ? sqrtf(powerSums[iOp]/divisor) : 0.f;
+			RMS = std::min<float>(RMS, kGain3dB)/kGain3dB;
 			
-			auto &opRMS  = m_opRMS[iOp];
+			auto &opRMS = m_opRMS[iOp];
+
 			const auto prevVal = opRMS.Get();
-
-			if (RMS >= prevVal)
+			if (RMS > prevVal)
 				opRMS.SetCutoff(CutoffHzToBlockHz(kOpRMSFilterCutoffHz_Up, m_sampleRate, m_samplesPerBlock) / m_samplesPerBlock);
-			else
+			else if (RMS < prevVal)
 				opRMS.SetCutoff(CutoffHzToBlockHz(kOpRMSFilterCutoffHz_Down, m_sampleRate, m_samplesPerBlock) / m_samplesPerBlock);
+			else
+				opRMS.SetCutoff(1.f);
 
-			m_opRMS[iOp].Apply(RMS);
+			opRMS.Apply(RMS);
 		}
 
 		// Normalize accum. to avg. velocity

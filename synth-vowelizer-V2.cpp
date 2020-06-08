@@ -10,6 +10,7 @@
 */
 
 #include "synth-vowelizer-V2.h"
+#include "synth-distort.h"
 
 namespace SFM
 {
@@ -50,7 +51,7 @@ namespace SFM
 			const float frequency = float(frequencies[iFormant]);
 			
 			// Divide frequency by half of bandwidth and soft clip it to get a pseudo-Q
-			const float normalizedQ = fast_tanhf(frequency/halfBandWidth);
+			const float normalizedQ = ZoelzerClip(frequency/halfBandWidth);
 			const float Q = 0.5f + 19.5f*smoothstepf(normalizedQ);
 
 			m_filterBP[iFormant].updateCoefficients(frequency, Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
