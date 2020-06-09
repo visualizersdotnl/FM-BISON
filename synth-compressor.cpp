@@ -83,7 +83,7 @@ namespace SFM
 			if (0.f == postGaindB)
 			{
 				const float A = 1.f - 1.f/ratio;
-				const float makeUpEstimate = adjThresholddB + -A/2.f;
+				const float makeUpEstimate = adjThresholddB * -A/2.f;
 				m_autoFollower.Apply(deltadB - makeUpEstimate, m_autoFollow);
 				deltadB -= m_autoFollow + makeUpEstimate;
 			}
