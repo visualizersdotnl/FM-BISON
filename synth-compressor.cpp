@@ -63,10 +63,6 @@ namespace SFM
 			float deltadB = std::max<float>(0.f, signaldB-adjThresholddB);
 			deltadB = m_envFollower.Apply(deltadB, m_envdB);
 
-			// FIXME: highly questionable
-			constexpr float kGain3dB = 1.41253757f;
-			deltadB = std::min<float>(dBToGain(deltadB), kGain3dB) / kGain3dB;
-
 			float adjRatio = 1.f/ratio;
 
 			if (kneedB > 0.f)
