@@ -63,6 +63,10 @@ namespace SFM
 			float deltadB = std::max<float>(0.f, signaldB-adjThresholddB);
 			deltadB = m_envFollower.Apply(deltadB, m_envdB);
 
+			// FIXME: highly questionable
+			constexpr float kGain3dB = 1.41253757f;
+			deltadB = std::min<float>(dBToGain(deltadB), kGain3dB) / kGain3dB;
+
 			float adjRatio = 1.f/ratio;
 
 			if (kneedB > 0.f)
@@ -72,12 +76,21 @@ namespace SFM
 				adjRatio = lerpf<float>(1.f, adjRatio, smoothstepf(kneeBlend*kneeBlend));
 			}
 
-			// FIXME
-			float makeUpGain = 0.f;
+			// Adjust by ratio
+			deltadB *= adjRatio-1.f;
+
+			// https://github.com/ptrv/auto_compressor/blob/master/Source/PluginProcessor.cpp
+			if (0.f == postGaindB)
+			{
+				const float A = 1.f - 1.f/ratio;
+				const float makeUpEstimate = adjThresholddB + -A/2.f;
+				m_autoFollower.Apply(deltadB - makeUpEstimate, m_autoFollow);
+				deltadB -= m_autoFollow + makeUpEstimate;
+			}
 
 			// Calculate total gain
 			SFM_ASSERT(ratio > 0.f);
-			/* const */ float gain = dB2Lin(deltadB*(adjRatio-1.f) + makeUpGain + postGaindB);
+			/* const */ float gain = dB2Lin(deltadB + postGaindB);
 
 			if (signaldB > thresholddB)
 				activity += 1.f;
