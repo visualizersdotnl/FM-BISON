@@ -194,20 +194,20 @@ namespace SFM
 	constexpr float kMaxCompThresholdB  =    6.f; // A little higher than just 1 dB so we can bypass compression by default
 	constexpr float kDefCompThresholddB = kMaxCompThresholdB;
 	constexpr float kMinCompKneedB      =    0.f;
-	constexpr float kMaxCompKneedB      =   12.f;
+	constexpr float kMaxCompKneedB      =   24.f;
 	constexpr float kDefCompKneedB      = kMinCompKneedB;
 	constexpr float kMinCompRatio       =    1.f;
-	constexpr float kMaxCompRatio       =   20.f;
+	constexpr float kMaxCompRatio       =   10.f;
 	constexpr float kDefCompRatio       = kMinCompRatio;
 	constexpr float kMinCompGaindB      =   -6.f;
 	constexpr float kMaxCompGaindB      =   30.f;
 	constexpr float kDefCompGaindB      =    0.f;
 	constexpr float kMinCompAttack      = 0.001f; // 1 MS
 	constexpr float kMaxCompAttack      =    1.f; // 1 sec.
-	constexpr float kDefCompAttack      = kMinCompAttack;
+	constexpr float kDefCompAttack      =  0.01f; // 10 MS
 	constexpr float kMinCompRelease     =   0.1f; // 100 MS
 	constexpr float kMaxCompRelease     =    1.f; // 1 sec.
-	constexpr float kDefCompRelease     = kMaxCompRelease;
+	constexpr float kDefCompRelease     =   0.5f; // 500 MS
 
 	// Auto-wah range & defaults
 	constexpr float kDefWahResonance     = 0.5f;   // 50%

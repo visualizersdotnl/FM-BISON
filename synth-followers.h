@@ -90,6 +90,19 @@ namespace SFM
 			return state;
 		}
 
+		// Used by Compressor in case where a *lower* value means we're in attack phase
+		SFM_INLINE float ApplyRev(float sample, float &state)
+		{
+			if (sample < state)
+				// Attack
+				m_attEnv.Apply(sample, state);
+			else
+				// Release
+				m_relEnv.Apply(sample, state);
+
+			return state;
+		}
+
 	private:
 		SignalFollower m_attEnv;
 		SignalFollower m_relEnv;

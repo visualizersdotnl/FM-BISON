@@ -10,9 +10,8 @@
 #include "synth-compressor.h"
 
 namespace SFM
-{
-	// I stumbled across these 2 functions but I can't remember where; I'm using these two
-	// functions here only, though I may want to use them as my main conversion functions? (FIXME)
+{	
+	// FIXME: use?
 	static SFM_INLINE float Lin2dB(double linear) 
 	{
 		constexpr double LOG_2_DB = 8.6858896380650365530225783783321; // = 20/ln(10)
@@ -40,8 +39,8 @@ namespace SFM
 			const float curRelease  = m_curRelease.Sample();
 			const float kneedB      = m_curKneedB.Sample();
 
-			m_envFollower.SetAttack(curAttack   *  1000.f);
-			m_envFollower.SetRelease(curRelease *  1000.f);
+			m_gainEnv.SetAttack(curAttack   *  1000.f);
+			m_gainEnv.SetRelease(curRelease *  1000.f);
 
 			// Input
 			const float sampleL = pLeft[iSample];
@@ -50,45 +49,47 @@ namespace SFM
 			// Delay input signal
 			m_outDelayL.Write(sampleL);
 			m_outDelayR.Write(sampleR);
+			
+			// Get RMS in dB
+			const float RMS = m_RMSDetector.Run(sampleL, sampleR);
+			const float RMSdB = GainTodB(RMS);
+			
+			// Calculate slope
+			SFM_ASSERT(ratio > 0.f);
+			float slope = 1.f - (1.f/ratio);
 
 			float adjThresholddB = thresholddB;
-
-			// Adjust threshold for soft knee
-			if (kneedB > 0.f)
-				adjThresholddB -= kneedB*0.5f;
-
-			// Calc. RMS and feed it to env. follower
-			const float RMS = m_RMSDetector.Run(sampleL, sampleR);
-			const float signaldB = Lin2dB(RMS);
-			float deltadB = std::max<float>(0.f, signaldB-adjThresholddB);
-			deltadB = m_envFollower.Apply(deltadB, m_envdB);
-
-			float adjRatio = 1.f/ratio;
-
 			if (kneedB > 0.f)
 			{
-				// Soft knee
-				const float kneeBlend = std::min<float>(deltadB, kneedB)/kneedB;
-				adjRatio = lerpf<float>(1.f, adjRatio, smoothstepf(kneeBlend*kneeBlend));
+				// Adjust slope & threshold for soft knee
+				const float halfKneedB = kneedB*0.5f;
+				if (RMSdB > thresholddB-halfKneedB && RMSdB < thresholddB+halfKneedB)
+				{
+					// Define soft knee edges
+					const float kneeBottomdB = thresholddB - kneedB*0.5f;
+					const float kneeTopdB    = std::fmin(kMaxCompThresholdB, thresholddB + kneedB*0.5f);
+
+					// Calculate [0..1] delta
+					const float delta = std::fmin(1.f, (RMSdB - kneeBottomdB)/kneedB);
+					SFM_ASSERT(delta >= 0.f && delta <= 1.f);
+
+					// "Schminterpolate"
+					slope = lerpf<float>(0.f, slope, smoothstepf(delta*delta));
+
+					// This is now the new zero dB adj. point
+					adjThresholddB = kneeBottomdB;
+				}
 			}
+					
+			// Calc. gain reduction
+			const float gaindB = std::min<float>(0.f, slope*(adjThresholddB - RMSdB));
+			float envdB = m_gainEnv.ApplyRev(gaindB, m_gain);
 
-			// Adjust by ratio
-			deltadB *= adjRatio-1.f;
+			// Convert to linear (and add post gain)
+			const float newGain = dBToGain(envdB + postGaindB);
 
-			// https://github.com/ptrv/auto_compressor/blob/master/Source/PluginProcessor.cpp
-			if (0.f == postGaindB)
-			{
-				const float A = 1.f - 1.f/ratio;
-				const float makeUpEstimate = adjThresholddB * -A/2.f;
-				m_autoFollower.Apply(deltadB - makeUpEstimate, m_autoFollow);
-				deltadB -= m_autoFollow + makeUpEstimate;
-			}
-
-			// Calculate total gain
-			SFM_ASSERT(ratio > 0.f);
-			/* const */ float gain = dB2Lin(deltadB + postGaindB);
-
-			if (signaldB > thresholddB)
+			// Gain reduction equals activity
+			if (gaindB < 0.f)
 				activity += 1.f;
 
 			// Apply to (delayed) signal
@@ -97,11 +98,10 @@ namespace SFM
 			const float delayedL = m_outDelayL.Read(delayL);
 			const float delayedR = m_outDelayR.Read(delayR);
 
-			pLeft[iSample]  = delayedL*gain;
-			pRight[iSample] = delayedR*gain;
+			pLeft[iSample]  = delayedL*newGain;
+			pRight[iSample] = delayedR*newGain;
 		}
 
-		// There's absolutely zero science going on here:
 		SFM_ASSERT(0 != numSamples);
 		activity = activity/numSamples;
 
