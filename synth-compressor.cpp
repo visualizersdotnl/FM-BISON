@@ -109,7 +109,7 @@ namespace SFM
 		SFM_ASSERT(0 != numSamples);
 		bite = bite/numSamples;
 
-		Log("Compressor bite: " + std::to_string(bite));
+//		Log("Compressor bite: " + std::to_string(bite));
 
 		return bite;
 	}
