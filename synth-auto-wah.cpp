@@ -77,7 +77,7 @@ namespace SFM
 			const float RMS = m_RMSDetector.Run(sampleL, sampleR);
 			const float signaldB = (0.f != RMS) ? Lin2dB(RMS) : kMinVolumedB;
 			const float envdB = m_envFollower.Apply(signaldB, m_envdB);
-			const float envGain = std::min<float>(dB2Lin(envdB), kGain3dB) / kGain3dB; // Effectively scales it back a bit, why? (FIXME)
+			const float envGain = fast_tanhf(dB2Lin(envdB));
 
 			// Grab (delayed) signal
 			const float lookahead = m_lookahead*wetness; // Lookahead is proportional to wetness, a hack to make sure we do not cause a delay when 100% dry (FIXME)
@@ -116,7 +116,7 @@ namespace SFM
 			filteredL += remainderL;
 			filteredR += remainderR;
 
-			// Vowelize (V2)
+			// "Vowelize" (until I have an actual formant filter)
 			const VowelizerV2::Vowel vowelA = VowelizerV2::kOO;
 			const VowelizerV2::Vowel vowelB = VowelizerV2::kA;
 			const float vowBlend = envGain;

@@ -194,24 +194,24 @@ namespace SFM
 	constexpr float kMinCompGaindB      =   -6.f;
 	constexpr float kMaxCompGaindB      =   60.f;
 	constexpr float kDefCompGaindB      =    0.f;
-	constexpr float kMinCompAttack      =  0.05f; // 50 MS
+	constexpr float kMinCompAttack      =  0.05f; // 50MS
 	constexpr float kMaxCompAttack      =    1.f; // 1 sec.
-	constexpr float kDefCompAttack      = 0.125f; // 125 MS
-	constexpr float kMinCompRelease     =   0.1f; // 100 MS
+	constexpr float kDefCompAttack      = 0.125f; // 125MS
+	constexpr float kMinCompRelease     =   0.1f; // 100MS
 	constexpr float kMaxCompRelease     =    1.f; // 1 sec.
-	constexpr float kDefCompRelease     =   0.5f; // 500 MS
+	constexpr float kDefCompRelease     =   0.5f; // 500MS
 
 	// Auto-wah range & defaults
-	constexpr float kDefWahResonance     = 0.5f;   // 50%
-	constexpr float kMinWahAttack        = 0.01f;  // 10MS
-	constexpr float kMaxWahAttack        = 1.f;    // 1 sec.
-	constexpr float kDefWahAttack        = kMinWahAttack; 
-	constexpr float kMinWahHold          = 0.001f; // 1MS
-	constexpr float kMaxWahHold          = 1.f;    // 1 sec.
-	constexpr float kDefWahHold          = kMinWahHold;
-	constexpr float kMinWahRate          = 0.f; 
-	constexpr float kMaxWahRate          = 4.f;
-	constexpr float kDefWahRate          = 0.1f;
+	constexpr float kDefWahResonance     =   0.5f; // 50%
+	constexpr float kMinWahAttack        =  0.05f; // 50MS
+	constexpr float kMaxWahAttack        =    1.f; // 1 sec.
+	constexpr float kDefWahAttack        = 0.125f; // 125MS 
+	constexpr float kMinWahHold          =  0.01f; // 10MS
+	constexpr float kMaxWahHold          =    1.f; // 1 sec.
+	constexpr float kDefWahHold          =   0.5f; // 500MS
+	constexpr float kMinWahRate          =    0.f; //
+	constexpr float kMaxWahRate          =    4.f; //
+	constexpr float kDefWahRate          =   0.1f; // Hz
 
 	// Low cut (for post-pass)
 	constexpr float kLowCutHz = 16.f;

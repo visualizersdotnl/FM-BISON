@@ -3,11 +3,6 @@
 	FM. BISON hybrid FM synthesis -- A vowel (formant) filter.
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
-
-	Nice article on the subject: https://www.soundonsound.com/techniques/formant-synthesis
-
-	This implementation simply band passes the signal in parallel with 3 different frequencies and widths.
-	It is in no shape or form what I'd want it to be.
 */
 
 #include "synth-vowelizer-V2.h"
@@ -29,7 +24,7 @@ namespace SFM
 	{
 		SFM_ASSERT(vowel < kNumVowels);
 
-		const float bandWidth = 150.f; // 100.0, according to the article (link on top) is the avg. male voice
+		const float bandWidth = 150.f; // 100.0 (Hz), according to the article I read is the avg. male voice
 		const float halfBandWidth = bandWidth*0.5f;
 
 		// Filter and store lower frequencies (below half band width)
