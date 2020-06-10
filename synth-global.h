@@ -47,9 +47,6 @@
 // Define to disable all FX (including per-voice filter)
 // #define SFM_DISABLE_FX
 
-// Define to disable ParameterFilter (chiefly a MIDI-crackle countermeasure)
-// #define SFM_DISABLE_PARAMETER_FILTER
-
 #include "synth-log.h"
 #include "synth-math.h"
 
@@ -70,19 +67,14 @@ namespace SFM
 	// FIXME: make this or rather using the second thread at all a setting?
 	constexpr unsigned kSingleThreadMaxVoices = 32;
 
-	// Reasonable audible spectrum
-	// Source: https://en.wikipedia.org/wiki/Hearing_range
-	constexpr float kAudibleLowHz = 31.f;
-	constexpr float kAudibleHighHz = 20000.f; 
-
 	// Max. fixed frequency (have fun with it!)
 	constexpr float kMaxFixedHz = 96000.f;
 
-	// Default parameter cutoff (FIXME: see CutoffHzToBlockHz())
-	constexpr float kDefParameterFilterCutHz = 5000.f;
-
 	// Default parameter latency (used for per-sample interpolation of parameters and controls)
-	constexpr float kDefParameterLatency = 0.016f; // 16ms (reasonable ASIO default is 16ms, approx. 60FPS)
+	constexpr float kDefParameterLatency = 0.01f; // 10MS
+
+	// Default ParameterFilter slew (in MS, sampled per frame (Render() call))
+	constexpr float kDefParameterFilterMS = 3.f;
 
 	// Polyphony constraints
 	constexpr unsigned kMinVoices  = 1;
@@ -134,10 +126,10 @@ namespace SFM
 	constexpr float kMaxPostFilterDrivedB   =  6.f;
 	constexpr float kDefPostFilterDrivedB   =  0.f;
 
-	// Tube amp. distortion
-	constexpr float kMinTubeDrivedB =  6.f;
-	constexpr float kMaxTubeDrivedB = 24.f;
-	constexpr float kDefTubeDrivedB = 16.f;
+	// Tube distortion drive range
+	constexpr float kMinTubeDrive =   0.f;
+	constexpr float kMaxTubeDrive = 100.f;
+	constexpr float kDefTubeDrive =  10.f;
 
 	// Envelope rate multiplier range (or 'global')
 	// Range (as in seconds) taken from Arturia DX7-V (http://downloads.arturia.com/products/dx7-v/manual/dx7-v_Manual_1_0_EN.pdf)
@@ -221,7 +213,7 @@ namespace SFM
 	constexpr float kMaxWahRate          = 4.f;
 	constexpr float kDefWahRate          = 0.1f;
 
-	// Low cut (for post-pass DC blocker)
+	// Low cut (for post-pass)
 	constexpr float kLowCutHz = 16.f;
 
 	// Size of main delay effect's line in seconds
@@ -239,10 +231,6 @@ namespace SFM
 	// LFO modulation speed in steps (exponential)
 	constexpr int kMinLFOModSpeed = -8;
 	constexpr int kMaxLFOModSpeed =  8;
-
-	// For operator RMS calc. (in Hz per sample, see FIXME above)
-	constexpr float kOpRMSFilterCutoffHz_Up   =  5000.f;
-	constexpr float kOpRMSFilterCutoffHz_Down =   500.f;
 };
 
 #include "synth-random.h"

@@ -11,19 +11,6 @@
 
 namespace SFM
 {	
-	// FIXME: move these to synth-helper.h?
-	static SFM_INLINE float Lin2dB(double linear) 
-	{
-		constexpr double LOG_2_DB = 8.6858896380650365530225783783321;
-		return float(log(linear)*LOG_2_DB);
-	}
-	
-	static SFM_INLINE float dB2Lin(double dB) 
-	{
-		constexpr double DB_2_LOG = 0.11512925464970228420089957273422;
-		return float(exp(dB*DB_2_LOG));
-	}
-
 	float Compressor::Apply(float *pLeft, float *pRight, unsigned numSamples, bool autoGain)
 	{
 		float bite = 0.f;
@@ -53,14 +40,14 @@ namespace SFM
 			// Get RMS in dB
 			// Suggests that RMS isn't the best way: http://c4dm.eecs.qmul.ac.uk/audioengineering/compressors/documents/Reiss-Tutorialondynamicrangecompression.pdf (FIXME)
 			const float RMS = m_RMSDetector.Run(sampleL, sampleR);
-			const float RMSdB = GainTodB(RMS);
+			const float signaldB = (0.f != RMS) ? Lin2dB(RMS) : kMinVolumedB;
 
 			// Calculate slope
 			SFM_ASSERT(ratio > 0.f);
 			float slope = 1.f - (1.f/ratio);
 
 			// Signal delta					
-			const float deltadB = thresholddB-RMSdB;
+			const float deltadB = thresholddB-signaldB;
 			
 			// Calc. gain reduction
 			float gaindB = std::min<float>(0.f, slope*deltadB);
@@ -104,9 +91,9 @@ namespace SFM
 			}
 		
 			// Convert to linear gain
-			const float newGain = dBToGain(envdB);
+			const float newGain = dB2Lin(envdB);
 
-			if (envdB < 0.f)
+			if (gaindB < 0.f)
 				bite += 1.f;
 
 			// Apply to (delayed) signal
@@ -121,6 +108,8 @@ namespace SFM
 
 		SFM_ASSERT(0 != numSamples);
 		bite = bite/numSamples;
+
+		Log("Compressor bite: " + std::to_string(bite));
 
 		return bite;
 	}

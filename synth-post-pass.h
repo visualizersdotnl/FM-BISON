@@ -43,7 +43,7 @@ namespace SFM
 		           float cpRate, float cpWet, bool isChorus,
 		           float delayInSec, float delayWet, float delayFeedback, float delayFeedbackCutoff,
 		           float postCutoff, float postQ, float postDrivedB, float postWet,
-		           float avgVelocity /* <- [0..1] */, float tubeDistort, float tubeDrivedB,
+		           float tubeDistort, float tubeDrive,
 		           float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
 		           float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead, bool compAutoGain,
 		           float masterVol,
@@ -116,21 +116,19 @@ namespace SFM
 		juce::dsp::Oversampling<float> m_oversamplingL;
 		juce::dsp::Oversampling<float> m_oversamplingR;
 
-		// Post filter & it's interpolated parameters
+		// Post filter & interpolated parameters
 		KrajeskiMoog m_postFilter;
 		InterpolatedParameter<kLinInterpolate> m_curPostCutoff;
 		InterpolatedParameter<kLinInterpolate> m_curPostQ;
 		InterpolatedParameter<kLinInterpolate> m_curPostDrivedB;
 		InterpolatedParameter<kLinInterpolate> m_curPostWet;
 
-		// Tube amp. distortion filter & it's interpolated parameters
-		InterpolatedParameter<kLinInterpolate> m_curAvgVelocity;
+		// Tube distortion filter & interpolated parameters
 		InterpolatedParameter<kLinInterpolate> m_curTubeDist;
 		InterpolatedParameter<kLinInterpolate> m_curTubeDrive;
-		SvfLinearTrapOptimised2 m_tubeFilterPre;
-		SvfLinearTrapOptimised2 m_tubeFilterPost;
+		SvfLinearTrapOptimised2 m_tubeFilterAA;
 		
-		// Low cut filter (DC blocker)
+		// Low cut filter
 		LowBlocker m_lowCutFilter;
 				
 		// External effects

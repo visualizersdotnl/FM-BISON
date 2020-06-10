@@ -75,9 +75,9 @@ namespace SFM
 			// Calc. RMS and feed it to env. follower
 			// We normalize between infinity and 3dB so 'envGain' is easy to use
 			const float RMS = m_RMSDetector.Run(sampleL, sampleR);
-			const float signaldB = (RMS != 0.f) ? GainTodB(RMS) : kMinVolumedB;
+			const float signaldB = (0.f != RMS) ? Lin2dB(RMS) : kMinVolumedB;
 			const float envdB = m_envFollower.Apply(signaldB, m_envdB);
-			const float envGain = std::min<float>(dBToGain(envdB)*kGain3dB, kGain3dB) / kGain3dB; // Add a little boost, or shall I use peaks? (FIXME)
+			const float envGain = std::min<float>(dB2Lin(envdB), kGain3dB) / kGain3dB; // Effectively scales it back a bit, why? (FIXME)
 
 			// Grab (delayed) signal
 			const float lookahead = m_lookahead*wetness; // Lookahead is proportional to wetness, a hack to make sure we do not cause a delay when 100% dry (FIXME)

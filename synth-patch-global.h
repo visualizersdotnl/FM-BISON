@@ -189,9 +189,9 @@ namespace SFM
 			kNumModTargets
 		} aftertouchMod;
 
-		// Tube amp. distortion amount & max. dB (bumps harmonics and soft clips)
+		// Tube distortion: amount & drive (drives cubic distortion)
 		float tubeDistort;
-		float tubeDrivedB; // [0..kMaxTubeDrivedB]
+		float tubeDrive; // [kMinTubeDrive..kMaxTubeDrive]
 
 		// Piano pedal
 		float pianoPedalFalloff;
@@ -321,9 +321,9 @@ namespace SFM
 			// No aftertouch modulation
 			aftertouchMod = kNoAftertouch;
 
-			// No tube amp. distortion
+			// No tube distortion
 			tubeDistort = 0.f;
-			tubeDrivedB = kDefTubeDrivedB;
+			tubeDrive = kDefTubeDrive;
 
 			// Default piano pedal settings
 			pianoPedalFalloff    = kDefPianoPedalFalloff;

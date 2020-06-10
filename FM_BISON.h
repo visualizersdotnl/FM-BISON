@@ -93,7 +93,7 @@
 #include "synth-post-pass.h"
 #include "synth-phase.h"
 #include "synth-voice.h"
-// #include "synth-followers.h"
+#include "synth-followers.h"
 
 #include "synth-MIDI.h" // Purely for 2 constants
 
@@ -304,15 +304,13 @@ namespace SFM
 			
 			std::vector<unsigned> voiceIndices;
 
-			unsigned numSamples;
-			float *pDestL;
-			float *pDestR;
-
-			float accumVelocity = 0.f;
+			unsigned numSamples = 0;
+			float *pDestL = nullptr;
+			float *pDestR = nullptr;
 		};
 
 		static void VoiceRenderThread(Bison *pInst, VoiceThreadContext *pContext);
-		float RenderVoices(const VoiceRenderParameters &context, const std::vector<unsigned> &voiceIndices, unsigned numSamples, float *pDestL, float *pDestR) const;
+		void RenderVoices(const VoiceRenderParameters &context, const std::vector<unsigned> &voiceIndices, unsigned numSamples, float *pDestL, float *pDestR) const;
 
 		/*
 			Variables.
@@ -343,7 +341,37 @@ namespace SFM
 		// Sustain?
 		bool m_sustain;
 	
-		// Parameter filters
+		// Parameter followers (basically slew, against crackle)
+		class ParameterFilter
+		{
+		public:
+			ParameterFilter() {}
+
+			ParameterFilter(unsigned sampleRate, float MS = kDefParameterFilterMS) :
+				m_sigEnv(sampleRate, MS)
+			{
+			}
+
+			void Reset(float value)
+			{
+				m_state = value;
+			}
+
+			float Apply(float sample)
+			{
+				return m_sigEnv.Apply(sample, m_state);
+			}
+
+			float Get() const 
+			{
+				return m_state;
+			}
+
+		private:
+			SignalFollower m_sigEnv;
+			float m_state = 0.f;
+		};
+
 		ParameterFilter m_LFORatePF;
 		ParameterFilter m_LFOBlendPF;
 		ParameterFilter m_LFOModDepthPF;
@@ -355,8 +383,7 @@ namespace SFM
 		ParameterFilter m_postResoPF;
 		ParameterFilter m_postDrivePF;
 		ParameterFilter m_postWetPF;
-		ParameterFilter m_tubeDistPF;
-		ParameterFilter m_avgVelocityPF;
+		ParameterFilter m_tubeDistPF, m_tubeDrivePF;
 		ParameterFilter m_wahRatePF, m_wahSpeakPF, m_wahCutPF, m_wahWetPF;
 		ParameterFilter m_reverbWetPF;
 		ParameterFilter m_reverbRoomSizePF;
@@ -413,7 +440,6 @@ namespace SFM
 		int m_keyToVoice[128];
 
 		// Per operator RMS (filtered)
-		LowpassFilter m_opRMS[kNumOperators];
+		LowpassFilter12dB m_opRMS[kNumOperators];
 	};
 }
- 

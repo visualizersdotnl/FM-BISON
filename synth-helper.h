@@ -67,12 +67,6 @@ namespace SFM
 		return float(kBaseHz * pow(2.0, (note - 69.0) / 12.0 /* 1 octave equals 12 semitones */));
 	}
 
-	// Is frequency audible?
-	SFM_INLINE static bool InAudibleSpectrum(float frequency)
-	{
-		return frequency >= kAudibleLowHz && frequency <= kAudibleHighHz;
-	}
-
 	/* ----------------------------------------------------------------------------------------------------
 
 		dB/Gain
@@ -88,6 +82,22 @@ namespace SFM
 	{
 		SFM_ASSERT(level >= 0.f && level <= 1.f);
 		return dBToGain(-kVolumeRangedB + level*kVolumeRangedB);
+	}
+
+	// The following 2 functions were procured from some code I stumbled across by "ChunkWare Music Software",
+	// and I've added them to the arsenal; I haven't done any testing but they're probably a bit less
+	// precise than their textbook counterparts but perhaps faster
+
+	SFM_INLINE static float Lin2dB(double linear) 
+	{
+		constexpr double LOG_2_DB = 8.6858896380650365530225783783321;
+		return float(log(linear)*LOG_2_DB);
+	}
+	
+	SFM_INLINE static float dB2Lin(double dB) 
+	{
+		constexpr double DB_2_LOG = 0.11512925464970228420089957273422;
+		return float(exp(dB*DB_2_LOG));
 	}
 
 	/* ----------------------------------------------------------------------------------------------------
@@ -177,16 +187,6 @@ namespace SFM
 		const float Q = kMinFilterResonance + resonance*(kMaxFilterResonance-kMinFilterResonance);
 		SFM_ASSERT(Q <= 40.f);
 		return Q;
-	}
-
-	// Used for ParameterFilter and other per-block filters
-	// FIXME: because I made a very basic mistake of defining cutoff frequencies on a per-sample rate whilst they were sampled only once per block
-	SFM_INLINE static float CutoffHzToBlockHz(float cutoffPerSampleHz, unsigned sampleRate, unsigned blockSize)
-	{
-		SFM_ASSERT(blockSize > 0);
-		SFM_ASSERT(sampleRate > blockSize);
-		const float divisor = sampleRate/float(blockSize);
-		return cutoffPerSampleHz/divisor;
 	}
 
 	// Snap floating point value to zero (taken from JUCE)

@@ -5,7 +5,7 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	Ref.: https://www.earlevel.com/main/2012/12/15/a-one-pole-filter/
-	2 filters, a DC blocker and a (MIDI) parameter/control filter.
+	2 filters & a (stereo) blocker.
 
 	There are more single pole filters in this codebase but they usually have a special purpose which
 	makes their implementation a tad different (for example see synth-reverb.h), so I chose not to
@@ -152,7 +152,7 @@ namespace SFM
 		float m_current = 0.f;
 	};
 
-	/* Blockers (stereo) */
+	/* Blocker (stereo) */
 	
 	class LowBlocker 
 	{
@@ -194,30 +194,4 @@ namespace SFM
 		float m_feedbackL; 
 		float m_feedbackR;
 	};
-
-	/* 
-		Parameter (control) filter
-	*/
-
-	class ParameterFilter : public LowpassFilter
-	{
-	public:
-		ParameterFilter() :
-			LowpassFilter(1.f) {} // Does (next to) nothing
-
-#if !defined(SFM_DISABLE_PARAMETER_FILTER)			
-
-		ParameterFilter(unsigned sampleRate, unsigned blockSize, float cutHz = kDefParameterFilterCutHz) :
-			LowpassFilter(CutoffHzToBlockHz(cutHz, sampleRate, blockSize) / blockSize)
-		{}
-
-#else
-
-		ParameterFilter(unsigned blockHz, float cutHz = kDefParameterFilterCutHz) :
-			LowpassFilter(1.f) // Bypass
-		{}
-
-#endif
-	};
 }
-							   

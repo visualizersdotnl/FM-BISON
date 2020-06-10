@@ -8,10 +8,10 @@
 	- Yamaha Reface CP-style chorus & phaser
 	- Reverb
 	- Post filter (24dB)
-	- Tube amp. distortion
+	- Tube distortion
 	- Master volume
 	- Compressor
-	- DC blocker
+	- Low cut
 */
 
 #include "synth-post-pass.h"
@@ -23,7 +23,7 @@ namespace SFM
 	// Remedies sampling artifacts whilst sweeping a delay line
 	const float kSweepCutoffHz = 50.f;
 
-	// Oversampling factor for 24dB MOOG filter & tube amp. distortion
+	// Oversampling factor for 24dB MOOG filter & tube distortion
 	const unsigned kOversampleStages = 2;
 	const unsigned kOversample = 4; // 2^kOversampleStages
 
@@ -47,7 +47,7 @@ namespace SFM
 		
 		// CP
 ,		m_chorusOrPhaser(-1)
-,		m_chorusDL(sampleRate/10  /* 100ms. max. chorus delay */)
+,		m_chorusDL(sampleRate/10  /* 100MS max. chorus delay */)
 ,		m_chorusSweep(sampleRate), m_chorusSweepMod(sampleRate)
 ,		m_chorusSweepLPF1(kSweepCutoffHz/sampleRate), m_chorusSweepLPF2(kSweepCutoffHz/sampleRate)
 ,		m_phaserSweep(sampleRate)
@@ -65,19 +65,18 @@ namespace SFM
 ,		m_curPostDrivedB(0.f, m_oversamplingRate, kDefParameterLatency)
 ,		m_curPostWet(0.f, m_oversamplingRate, kDefParameterLatency)
 		
-		// Tube amp. distort
-,		m_curAvgVelocity(0.f, m_oversamplingRate, kDefParameterLatency * 2.f /* Slower! */)
+		// Tube distort
 ,		m_curTubeDist(0.f, m_oversamplingRate, kDefParameterLatency)
-,		m_curTubeDrive(kDefTubeDrivedB, m_oversamplingRate, kDefParameterLatency)
+,		m_curTubeDrive(kDefTubeDrive, m_oversamplingRate, kDefParameterLatency)
 
-		// DC blocker
+		// Low cut
 ,		m_lowCutFilter(kLowCutHz, sampleRate)
 
 		// External effects
 ,		m_wah(sampleRate, Nyquist)
 ,		m_reverb(sampleRate, Nyquist)
 ,		m_compressor(sampleRate)
-,		m_compressorBite(CutoffHzToBlockHz(1000.f, m_sampleRate, maxSamplesPerBlock) / maxSamplesPerBlock) // Smoothens out the "bite" indicator
+,		m_compressorBite(5.f / (sampleRate/maxSamplesPerBlock))
 		
 		// CP wetness & master volume
 ,		m_curEffectWet(0.f, sampleRate, kDefParameterLatency)
@@ -91,9 +90,8 @@ namespace SFM
 		m_oversamplingL.initProcessing(maxSamplesPerBlock);
 		m_oversamplingR.initProcessing(maxSamplesPerBlock);
 
-		// Reset tube amp. filter(s)
-		m_tubeFilterPre.resetState();
-		m_tubeFilterPost.resetState();
+		// Reset tube distortion AA filter
+		m_tubeFilterAA.resetState();
 
 		// Reset delay feedback filters
 		m_delayFeedbackLPF_L.Reset(0.f);
@@ -112,7 +110,7 @@ namespace SFM
 	                     float cpRate, float cpWet, bool isChorus,
 	                     float delayInSec, float delayWet, float delayFeedback, float delayFeedbackCutoff,
 	                     float postCutoff, float postQ, float postDrivedB, float postWet,
-						 float avgVelocity, float tubeDistort, float tubeDrivedB,
+						 float tubeDistort, float tubeDrive,
 	                     float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
 	                     float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead, bool compAutoGain,
 	                     float masterVol,
@@ -130,9 +128,8 @@ namespace SFM
 		SFM_ASSERT(delayWet >= 0.f && delayWet <= 1.f);
 		SFM_ASSERT(delayFeedback >= 0.f && delayFeedback <= 1.f);
 		SFM_ASSERT(masterVol >= kMinVolumedB && masterVol <= kMaxVolumedB);
-		SFM_ASSERT(avgVelocity >= 0.f && avgVelocity <= 1.f);
 		SFM_ASSERT(tubeDistort >= 0.f && tubeDistort <= 1.f);
-		SFM_ASSERT(tubeDrivedB >= kMinTubeDrivedB && tubeDrivedB <= kMaxTubeDrivedB);
+		SFM_ASSERT(tubeDrive >= kMinTubeDrive && tubeDrive <= kMaxTubeDrive);
 
 		// Only adapt the BPM if it fits in the delay line (Ableton does this so why won't we?)
 		const bool useBPM = false == (rateBPM < 1.f/kMainDelayInSec);
@@ -281,7 +278,7 @@ namespace SFM
 
 		/* ----------------------------------------------------------------------------------------------------
 
-			Oversampled: 24dB ladder filter, tube amp. distortion
+			Oversampled: 24dB ladder filter, tube distortion
 
 			JUCE says:
 			" Choose between FIR or IIR filtering depending on your needs in term of latency and phase 
@@ -294,108 +291,78 @@ namespace SFM
 
 		const auto numOversamples = numSamples*kOversample;
 
-		// A few magic values I figured out whilst building the basic tube amp. algorithm, which is little
-		// more than a filtered waveshaper which reacts to velocity (a bit, see tubeVelocitydB for range)
-		constexpr double preTubeFilterHz  = 3000.0;
-		constexpr double postTubeFilterHz = 2300.0;
-		constexpr double preTubeFilterQ   = 0.05;
-		constexpr double postTubeFilterQ  = 0.2;
-		constexpr float  tubeVelocitydB   = 6.f;
-
 		// Set post filter parameters
 		m_curPostCutoff.SetTarget(postCutoff);
 		m_curPostQ.SetTarget(postQ);
 		m_curPostDrivedB.SetTarget(postDrivedB);
 		m_curPostWet.SetTarget(postWet);
 		
-		// Set tube dist. parameters
-		m_curAvgVelocity.SetTarget(avgVelocity);
+		// Set tube distortion parameters
 		m_curTubeDist.SetTarget(tubeDistort);
-		m_curTubeDrive.SetTarget(dBToGain(tubeDrivedB));
+		m_curTubeDrive.SetTarget(tubeDrive);
 
-		const bool skipFilter  = 0.f == m_curPostWet.Get()  && 0.f == postWet;
-		const bool skipDistort = 0.f == m_curTubeDist.Get() && 0.f == tubeDistort;
+		// Oversample L/R for the coming steps
+		juce::dsp::AudioBlock<float> inputBlockL(&m_pBufL, 1, numSamples);
+		juce::dsp::AudioBlock<float> inputBlockR(&m_pBufR, 1, numSamples);
 
-		if (true == skipFilter && true == skipDistort)
+		auto outBlockL = m_oversamplingL.processSamplesUp(inputBlockL);
+		auto outBlockR = m_oversamplingR.processSamplesUp(inputBlockR);
+
+		SFM_ASSERT(numOversamples == outBlockL.getNumSamples());
+
+		float *pOverL = outBlockL.getChannelPointer(0);
+		float *pOverR = outBlockR.getChannelPointer(0);
+
+		// Apply post filter & tube distortion
+		m_tubeFilterAA.updateLowpassCoeff(m_oversamplingRate/4, 0.025, m_oversamplingRate); // Anti-aliasing filter
+
+		for (unsigned iSample = 0; iSample < numOversamples; ++iSample)
 		{
-			// No point in oversampling for no reason, so skip this part and move the parameters along
-			// FIXME: is this true, given that there are filters involved?
+			float sampleL = pOverL[iSample]; 
+			float sampleR = pOverR[iSample];
+				
+			// Apply 24dB post filter
+			float filteredL = sampleL, filteredR = sampleR;
 
-			m_curPostCutoff.Skip(numOversamples);
-			m_curPostQ.Skip(numOversamples);
-			m_curPostDrivedB.Skip(numOversamples);
-			m_curPostWet.Skip(numOversamples);
+			const float curPostCutoff = m_curPostCutoff.Sample();
+			const float curPostQ = m_curPostQ.Sample();
+			const float curPostDrive = dBToGain(m_curPostDrivedB.Sample());
+			const float curPostWet = m_curPostWet.Sample();
 
-			m_curAvgVelocity.Skip(numOversamples);
-			m_curTubeDist.Skip(numOversamples);
-			m_curTubeDrive.Skip(numOversamples);
+			m_postFilter.SetParameters(curPostCutoff, curPostQ, curPostDrive);
+			m_postFilter.Apply(filteredL, filteredR);
+
+			const float postSampleL = filteredL;
+			const float postSampleR = filteredR;
+
+			// Apply distortion				
+			filteredL = sampleL; 
+			filteredR = sampleR;
+
+			const float amount = m_curTubeDist.Sample();
+			const float drive  = m_curTubeDrive.Sample();
+				
+			filteredL = ClassicCubicClip(filteredL*drive);
+			filteredR = ClassicCubicClip(filteredR*drive);
+				
+			// Also has a nice sound to it!
+//			filteredL = ZoelzerClip(filteredL*drive);
+//			filteredR = ZoelzerClip(filteredR*drive);
+				
+			// Remove (most if not all) aliasing
+			m_tubeFilterAA.tick(filteredL, filteredR);
+
+			// Mix them
+			sampleL += postSampleL*curPostWet;
+			sampleR += postSampleR*curPostWet;
+				
+			pOverL[iSample] = lerpf<float>(sampleL, sampleL+filteredL, amount);
+			pOverR[iSample] = lerpf<float>(sampleR, sampleR+filteredR, amount);
 		}
-		else
-		{
-			// Oversample L/R for the coming steps
-			juce::dsp::AudioBlock<float> inputBlockL(&m_pBufL, 1, numSamples);
-			juce::dsp::AudioBlock<float> inputBlockR(&m_pBufR, 1, numSamples);
 
-			auto outBlockL = m_oversamplingL.processSamplesUp(inputBlockL);
-			auto outBlockR = m_oversamplingR.processSamplesUp(inputBlockR);
-
-			SFM_ASSERT(numOversamples == outBlockL.getNumSamples());
-
-			float *pOverL = outBlockL.getChannelPointer(0);
-			float *pOverR = outBlockR.getChannelPointer(0);
-
-			// Apply post filter & tube amp. distortion
-			m_tubeFilterPre.updateCoefficients(preTubeFilterHz, preTubeFilterQ, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_oversamplingRate);
-			m_tubeFilterPost.updateCoefficients(postTubeFilterHz, postTubeFilterQ, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_oversamplingRate);
-
-			for (unsigned iSample = 0; iSample < numOversamples; ++iSample)
-			{
-				float sampleL = pOverL[iSample]; 
-				float sampleR = pOverR[iSample];
-				
-				// Apply 24dB post filter
-				float filteredL = sampleL, filteredR = sampleR;
-
-				const float curPostCutoff = m_curPostCutoff.Sample();
-				const float curPostQ = m_curPostQ.Sample();
-				const float curPostDrive = dBToGain(m_curPostDrivedB.Sample());
-				const float curPostWet = m_curPostWet.Sample();
-
-				m_postFilter.SetParameters(curPostCutoff, curPostQ, curPostDrive);
-				m_postFilter.Apply(filteredL, filteredR);
-
-				const float postSampleL = filteredL;
-				const float postSampleR = filteredR;
-
-				// Apply distortion				
-				filteredL = sampleL; 
-				filteredR = sampleR;
-
-				const float amount            = m_curTubeDist.Sample();
-				const float velLin            = m_curAvgVelocity.Sample();
-				const float velocity          = velLin*velLin;
-				constexpr float driveVelRange = 0.25f*(kMaxTubeDrivedB-kMinTubeDrivedB);
-				const float drive             = m_curTubeDrive.Sample() + dBToGain(driveVelRange*velocity);
-
-				m_tubeFilterPre.tick(filteredL, filteredR);
-				filteredL = ZoelzerClip(filteredL*drive);
-				filteredR = ZoelzerClip(filteredR*drive);
-				m_tubeFilterPost.tick(filteredL, filteredR);
-
-				// Mix them
-				sampleL += postSampleL*curPostWet;
-				sampleR += postSampleR*curPostWet;
-				
-				const float gain = dBToGain(-tubeVelocitydB*0.5f + velocity*tubeVelocitydB);
-				
-				pOverL[iSample] = lerpf<float>(sampleL, sampleL + filteredL*gain, amount);
-				pOverR[iSample] = lerpf<float>(sampleR, sampleR + filteredR*gain, amount);
-			}
-
-			// Downsample (result) (FIXME: do I need to reset?)
-			m_oversamplingL.processSamplesDown(inputBlockL);
-			m_oversamplingR.processSamplesDown(inputBlockR);
-		}
+		// Downsample (result) (FIXME: do I need to reset?)
+		m_oversamplingL.processSamplesDown(inputBlockL);
+		m_oversamplingR.processSamplesDown(inputBlockR);
 
 		/* ----------------------------------------------------------------------------------------------------
 
@@ -427,7 +394,7 @@ namespace SFM
 
 		/* ----------------------------------------------------------------------------------------------------
 
-			Final pass: DC blocker, master value
+			Final pass: Low cut, master value
 
 		 ------------------------------------------------------------------------------------------------------ */
 
@@ -441,12 +408,13 @@ namespace SFM
 
 			m_lowCutFilter.Apply(sampleL, sampleR);
 
-			const float gain = dBToGain(m_curMasterVol.Sample());
+			const float gain = dBToGain(m_curMasterVol.Sample()); // FIXME: remove dBToGain()
 			sampleL *= gain;
 			sampleR *= gain;
 
-			pLeftOut[iSample]  = sampleL;
-			pRightOut[iSample] = sampleR;
+			// Clamp() is proper common practice according to a CCRMA talk I saw recently
+			pLeftOut[iSample]  = Clamp(sampleL);
+			pRightOut[iSample] = Clamp(sampleR);
 		}
 
 #if !defined(SFM_DISABLE_FX)

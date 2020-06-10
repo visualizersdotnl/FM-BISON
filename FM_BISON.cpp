@@ -144,21 +144,22 @@ namespace SFM
 		/*
 			Reset parameter filters; they reduce automation/MIDI noise (by a default cut Hz, mostly)
 
-			They're kept in this class since they are pretty VST-specific and might need tweaking or another target such as 
-			embedded hardware. Plus it's not very pretty either.
+			They are kept *only* in this class since they're not a pretty sight and may need to be
+			removed or overhauled for other (non) VST projects.
 
-			Where I commented out any Reset() calls it's because they were reset to zero on construction.
-			
-			They can also be turned off completely (see top of synth-global.h)
+			Their sample rate is the amount of calls it takes, approximately, to render a second
+			of audio: sample rate divided by (max.) block size.
 		*/
 
+		const unsigned sampleRatePF = m_sampleRate/m_samplesPerBlock;
+
 		// Global
-		m_LFORatePF             = { m_sampleRate, m_samplesPerBlock };
-		m_LFOBlendPF            = { m_sampleRate, m_samplesPerBlock };
-		m_LFOModDepthPF         = { m_sampleRate, m_samplesPerBlock };
-		m_SandHSlewRatePF       = { m_sampleRate, m_samplesPerBlock };
-		m_cutoffPF              = { m_sampleRate, m_samplesPerBlock };
-		m_resoPF                = { m_sampleRate, m_samplesPerBlock };
+		m_LFORatePF             = { sampleRatePF };
+		m_LFOBlendPF            = { sampleRatePF };
+		m_LFOModDepthPF         = { sampleRatePF };
+		m_SandHSlewRatePF       = { sampleRatePF };
+		m_cutoffPF              = { sampleRatePF };
+		m_resoPF                = { sampleRatePF };
 
 		m_LFORatePF.Reset(freqLFO);
 		m_LFOBlendPF.Reset(m_patch.LFOBlend);
@@ -168,31 +169,31 @@ namespace SFM
 		m_resoPF.Reset(m_patch.resonance);
 
 		// PostPass
-		m_effectWetPF           = { m_sampleRate, m_samplesPerBlock }; 
-		m_effectRatePF          = { m_sampleRate, m_samplesPerBlock };
-		m_delayPF               = { m_sampleRate, m_samplesPerBlock, kDefParameterFilterCutHz * 0.05f /* Slower */ };
-		m_delayWetPF            = { m_sampleRate, m_samplesPerBlock };
-		m_delayFeedbackPF       = { m_sampleRate, m_samplesPerBlock };
-		m_delayFeedbackCutoffPF = { m_sampleRate, m_samplesPerBlock };
-		m_tubeDistPF            = { oversamplingRate, m_samplesPerBlock };
-		m_postCutoffPF          = { oversamplingRate, m_samplesPerBlock };
-		m_postResoPF            = { oversamplingRate, m_samplesPerBlock };
-		m_postDrivePF           = { oversamplingRate, m_samplesPerBlock };
-		m_postWetPF             = { oversamplingRate, m_samplesPerBlock, kDefParameterFilterCutHz*0.3f /* Slower */ };
-		m_avgVelocityPF         = { oversamplingRate, m_samplesPerBlock, kDefParameterFilterCutHz*0.1f /* Slower */ };
-		m_wahRatePF             = { m_sampleRate, m_samplesPerBlock };
-		m_wahSpeakPF            = { m_sampleRate, m_samplesPerBlock };
-		m_wahCutPF              = { m_sampleRate, m_samplesPerBlock };
-		m_wahWetPF              = { m_sampleRate, m_samplesPerBlock };
-		m_reverbWetPF           = { m_sampleRate, m_samplesPerBlock };
-		m_reverbRoomSizePF      = { m_sampleRate, m_samplesPerBlock };
-		m_reverbDampeningPF     = { m_sampleRate, m_samplesPerBlock };
-		m_reverbWidthPF         = { m_sampleRate, m_samplesPerBlock };
-		m_reverbHP_PF           = { m_sampleRate, m_samplesPerBlock };
-		m_reverbLP_PF           = { m_sampleRate, m_samplesPerBlock };
-		m_reverbPreDelayPF      = { m_sampleRate, m_samplesPerBlock };
-		m_compLookaheadPF       = { m_sampleRate, m_samplesPerBlock, kDefParameterFilterCutHz*0.5f /* Slower */ };
-		m_masterVolPF           = { m_sampleRate, m_samplesPerBlock };
+		m_effectWetPF           = { sampleRatePF }; 
+		m_effectRatePF          = { sampleRatePF };
+		m_delayPF               = { sampleRatePF };
+		m_delayWetPF            = { sampleRatePF };
+		m_delayFeedbackPF       = { sampleRatePF };
+		m_delayFeedbackCutoffPF = { sampleRatePF };
+		m_tubeDistPF            = { sampleRatePF };
+		m_tubeDrivePF           = { sampleRatePF };
+		m_postCutoffPF          = { sampleRatePF };
+		m_postResoPF            = { sampleRatePF };
+		m_postDrivePF           = { sampleRatePF };
+		m_postWetPF             = { sampleRatePF };
+		m_wahRatePF             = { sampleRatePF };
+		m_wahSpeakPF            = { sampleRatePF };
+		m_wahCutPF              = { sampleRatePF };
+		m_wahWetPF              = { sampleRatePF };
+		m_reverbWetPF           = { sampleRatePF };
+		m_reverbRoomSizePF      = { sampleRatePF };
+		m_reverbDampeningPF     = { sampleRatePF };
+		m_reverbWidthPF         = { sampleRatePF };
+		m_reverbHP_PF           = { sampleRatePF };
+		m_reverbLP_PF           = { sampleRatePF };
+		m_reverbPreDelayPF      = { sampleRatePF };
+		m_compLookaheadPF       = { sampleRatePF };
+		m_masterVolPF           = { sampleRatePF };
 
 		m_effectWetPF.Reset(m_patch.cpWet);
 		m_effectRatePF.Reset(m_patch.cpRate);
@@ -205,7 +206,7 @@ namespace SFM
 		m_postDrivePF.Reset(m_patch.postDrivedB);
 		m_postWetPF.Reset(m_patch.postWet);
 		m_tubeDistPF.Reset(m_patch.tubeDistort);
-		m_avgVelocityPF.Reset(0.f);
+		m_tubeDrivePF.Reset(m_patch.tubeDrive);
 		m_wahRatePF.Reset(m_patch.wahRate);
 		m_wahSpeakPF.Reset(m_patch.wahSpeak);
 		m_wahCutPF.Reset(m_patch.wahCut);
@@ -221,9 +222,9 @@ namespace SFM
 		m_masterVolPF.Reset(m_patch.masterVol);
 
 		// Local
-		m_bendWheelPF           = { m_sampleRate, m_samplesPerBlock, kDefParameterFilterCutHz*0.6f  };
-		m_modulationPF          = { m_sampleRate, m_samplesPerBlock, kDefParameterFilterCutHz*0.6f  };
-		m_aftertouchPF          = { m_sampleRate, m_samplesPerBlock, kDefParameterFilterCutHz*0.05f };
+		m_bendWheelPF  = { sampleRatePF };
+		m_modulationPF = { sampleRatePF };
+		m_aftertouchPF = { sampleRatePF };
 
 		m_bendWheelPF.Reset(0.f);
 		m_modulationPF.Reset(0.f);
@@ -233,7 +234,7 @@ namespace SFM
 		for (auto &opRMS : m_opRMS)
 		{
 			opRMS.Reset(0.f);
-			opRMS.SetCutoff(1.f);
+			opRMS.SetCutoff(10.f / sampleRatePF);
 		}
 	}
 
@@ -1541,18 +1542,15 @@ namespace SFM
 	{
 		SFM_ASSERT(nullptr != pInst);
 		SFM_ASSERT(nullptr != pContext);
-		pContext->accumVelocity = pInst->RenderVoices(pContext->parameters, pContext->voiceIndices, pContext->numSamples, pContext->pDestL, pContext->pDestR);
+		pInst->RenderVoices(pContext->parameters, pContext->voiceIndices, pContext->numSamples, pContext->pDestL, pContext->pDestR);
 	}
 
 	// Renders a set of voices
-	// - Returns accumulated velocity
 	// - Stick to variables supplied through a context *or* make very sure you read only!
 	// - Assumes that each voice is active
-	float Bison::RenderVoices(const VoiceRenderParameters &context, const std::vector<unsigned> &voiceIndices, unsigned numSamples, float *pDestL, float *pDestR) const
+	void Bison::RenderVoices(const VoiceRenderParameters &context, const std::vector<unsigned> &voiceIndices, unsigned numSamples, float *pDestL, float *pDestR) const
 	{
 		SFM_ASSERT(nullptr != pDestL && nullptr != pDestR);
-
-		float accumVelocity = 0.f;
 
 		for (auto iVoice : voiceIndices)
 		{
@@ -1592,9 +1590,6 @@ namespace SFM
 					globalAmp.Set(0.f);
 					globalAmp.SetTarget(1.f);
 				}
-
-				// Add to average velocity
-				accumVelocity += voice.m_velocity;
 			}
 	
 			if (true == context.resetFilter)
@@ -1695,8 +1690,6 @@ namespace SFM
 				pDestR[iSample] += amplitude * right;
 			}
 		}
-
-		return accumVelocity;
 	}
 
 	/* ----------------------------------------------------------------------------------------------------
@@ -1884,8 +1877,6 @@ namespace SFM
 		// Start rendering voices, if necessary
 		const unsigned numVoices = m_voiceCount;
 
-		float accumVelocity = 0.f;
-
 		if (0 != numVoices)
 		{
 			// Swap 2 branches for multiplications later on
@@ -1922,7 +1913,6 @@ namespace SFM
 				context.pDestR = m_pBufR[0];
 			
 				VoiceRenderThread(this, &context);
-				accumVelocity += context.accumVelocity;
 			}
 			else
 			{
@@ -1956,10 +1946,6 @@ namespace SFM
 					m_pBufL[0][iSample] += m_pBufL[1][iSample];
 					m_pBufR[0][iSample] += m_pBufR[1][iSample];
 				}
-				
-				// Add accum. velocity
-				accumVelocity += contexts[0].accumVelocity;
-				accumVelocity += contexts[1].accumVelocity;
 			}
 		}
 
@@ -1969,7 +1955,7 @@ namespace SFM
 
 		// Sum up
 		float powerSums[kNumOperators] = { 0.f };
-		unsigned sumDiv[kNumOperators] = { 0 };
+		unsigned sumDiv[kNumOperators] = { 1 };
 
 		for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
 		{
@@ -1997,25 +1983,12 @@ namespace SFM
 		// Calc. RMS
 		for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
 		{
-			constexpr float kGain3dB = 1.41253757f;
 			const unsigned divisor = sumDiv[iOp];
-			float RMS = (divisor > 0) ? sqrtf(powerSums[iOp]/divisor) : 0.f;
-			RMS = std::min<float>(RMS*kGain3dB, kGain3dB)/kGain3dB; // Boost it a bit
+			const float RMS = (divisor > 0) ? sqrtf(powerSums[iOp]/divisor) : 0.f;
 				
 			auto &opRMS = m_opRMS[iOp];
-
-			const auto prevVal = opRMS.Get();
-			if (RMS > prevVal)
-				opRMS.SetCutoff(CutoffHzToBlockHz(kOpRMSFilterCutoffHz_Up, m_sampleRate, m_samplesPerBlock) / m_samplesPerBlock);
-			else if (RMS < prevVal)
-				opRMS.SetCutoff(CutoffHzToBlockHz(kOpRMSFilterCutoffHz_Down, m_sampleRate, m_samplesPerBlock) / m_samplesPerBlock);
-
 			opRMS.Apply(RMS);
 		}
-
-		// Normalize accum. to avg. velocity
-		const float avgVelocity = (numVoices > 0) ? accumVelocity/numVoices : 0.f;
-		SFM_ASSERT(avgVelocity <= 1.f);
 				
 		// Update voice logic (post)
 		UpdateVoicesPostRender();
@@ -2056,14 +2029,13 @@ namespace SFM
 						  m_delayWetPF.Apply(m_patch.delayWet),
 						  m_delayFeedbackPF.Apply(m_patch.delayFeedback),
 						  m_delayFeedbackCutoffPF.Apply(m_patch.delayFeedbackCutoff),
-						  /* MOOG-style 24dB filter + Tube amp. distort */
+						  /* MOOG-style 24dB filter + Tube distort */
 		                  postCutoffHz, // Filtered above
 						  m_postResoPF.Apply(m_patch.postResonance),
 						  m_postDrivePF.Apply(m_patch.postDrivedB),
 		                  m_postWetPF.Apply(postWet),
-						  m_avgVelocityPF.Apply(avgVelocity),
 						  m_tubeDistPF.Apply(m_patch.tubeDistort),
-						  m_patch.tubeDrivedB, // FIXME: filter?
+						  m_tubeDrivePF.Apply(m_patch.tubeDrive),
 						  /* Reverb */
 						  m_reverbWetPF.Apply(m_patch.reverbWet),
 						  m_reverbRoomSizePF.Apply(m_patch.reverbRoomSize),

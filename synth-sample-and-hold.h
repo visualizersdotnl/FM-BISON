@@ -38,6 +38,13 @@ namespace SFM
 				const float curSignal = m_curSignal.Sample();
 				m_curSignal.SetRate(m_sampleRate, m_slewRate);
 				m_curSignal.Set(curSignal);
+
+				// This was just a dumb test but in fact it's more pleasing to the ear
+				// than just using the (white noise) input signal
+				const unsigned index = unsigned(truncf(fabsf(input*127.f)));
+				const float noteFreq = float(g_MIDIToFreqLUT[index]);
+				input = sinf(noteFreq*k2PI);				
+
 				m_curSignal.SetTarget(input);
 			}
 

@@ -1,8 +1,11 @@
 
 /*
-	FM. BISON hybrid FM synthesis -- Clip & distortion functions.
+	FM. BISON hybrid FM synthesis -- All sorts of clip, distort & other wave shaping functions.
 	(C) 2018- visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
+
+	- I'm not using each and every one of these
+	- There's tons more in Will Pirkle's code (came with the book) up for grabs!
 */
 
 #pragma once
@@ -28,19 +31,6 @@ namespace SFM
 		return sample;
 	}
 
-	// Typical soft clip by Nigel Redmon
-	SFM_INLINE static float NigelClip(float sample)
-	{
-		if (sample > 1.f)
-			sample = 1.f;
-		else if (sample < -1.f)
-			sample = -1.f;
-		else
-			sample = sample * (2.f-fabsf(sample));
-
-		return sample;
-	}
-
 	// Udo Zölzer's soft clip (https://github.com/johannesmenzel/SRPlugins/wiki/DSP-ALGORITHMS-Saturation)
 	// I'm more comfortable with double precision when using exp() et cetera
 	SFM_INLINE static float ZoelzerClip(double sample)
@@ -53,7 +43,14 @@ namespace SFM
 		return float(sample);
 	}
 
-	// Cubic distortion
+	// Cubic distortion #1
+	SFM_INLINE float ClassicCubicClip(float sample)
+	{
+		sample = Clamp(sample);
+		return sample - sample*sample*sample/3.f;
+	}
+
+	// Cubic distortion #2 (with variable amount)
 	SFM_INLINE float CubicClip(float sample, float amount)
 	{	
 		SFM_ASSERT(amount >= 0.f && amount <= 1.f);
