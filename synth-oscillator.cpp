@@ -82,8 +82,7 @@ namespace SFM
 				break;
 
 			/*
-				These 2 functions are a quick hack (FIXME) to approximate a ramp and a saw
-				with gentle slopes. They were made for the LFO.
+				These 2 functions are a quick hack (FIXME) to approximate a ramp and a saw with a very gentle slope (LFO)
 			*/
 			
 			case kSoftRamp:
