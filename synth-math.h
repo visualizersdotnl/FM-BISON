@@ -47,7 +47,7 @@ namespace SFM
 	}
 
 	// (HLSL) saturate
-	SFM_INLINE float saturatef(float value)
+	SFM_INLINE static float saturatef(float value)
 	{
 		if (value < 0.f)
 			return 0.f;
@@ -59,12 +59,37 @@ namespace SFM
 	}
 	
 	// Approx. sinf() derived from mr. Bhaskara's theorem
-	SFM_INLINE float BhaskaraSinf(float x)
+	SFM_INLINE static float BhaskaraSinf(float x)
 	{
 		return 16.f * x * (kPI-x) / (5.f * kPI*kPI - 4.f * x * (kPI-x));
+	}
+
+
+	// Langrage interpolator; number of values pointed to by pX and pY much match order,
+	// 'xPos' is the X value whose Y we'll interpolate 
+	SFM_INLINE static float LagrangeInterpolation(float *pX, float *pY, unsigned order, float xPos)
+	{
+		SFM_ASSERT(nullptr != pX && nullptr != pY);
+		SFM_ASSERT(order > 0);
+		
+		float result = 0.f;
+
+		for (unsigned iY = 0; iY < order; ++iY)
+		{
+			float length = 1.f;
+			
+			for (unsigned iX = 0; iX < order; ++iX)
+			{
+				if (iX != iY)
+					length *= (xPos - pX[iX]) / (pX[iY]-pX[iX]);
+			}
+
+			result += length*pY[iY];
+		}
+
+		return result;
 	}
 }
 
 #include "synth-fast-cosine.h"
 #include "synth-fast-tan.h"
-

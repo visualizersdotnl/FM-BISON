@@ -68,7 +68,7 @@ namespace SFM
 		AttackReleaseFollower m_gainEnv;
 		float m_gain = 0.f;
 
-		SignalFollower m_autoEnv;
+		AttackReleaseFollower m_autoEnv;
 		float m_auto = 0.f;
 
 		// Interpolated parameters

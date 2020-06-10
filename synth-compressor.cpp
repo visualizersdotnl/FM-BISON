@@ -39,8 +39,11 @@ namespace SFM
 			const float curRelease  = m_curRelease.Sample();
 			const float kneedB      = m_curKneedB.Sample();
 
-			m_gainEnv.SetAttack(curAttack   *  1000.f);
-			m_gainEnv.SetRelease(curRelease *  1000.f);
+			m_gainEnv.SetAttack(curAttack * 1000.f);
+			m_gainEnv.SetRelease(curRelease * 1000.f);
+
+			m_autoEnv.SetAttack(curAttack * 100.f);
+			m_autoEnv.SetRelease(curRelease * 1000.f);
 
 			// Input
 			const float sampleL = pLeft[iSample];
@@ -53,48 +56,41 @@ namespace SFM
 			// Get RMS in dB
 			const float RMS = m_RMSDetector.Run(sampleL, sampleR);
 			const float RMSdB = GainTodB(RMS);
-			
+
 			// Calculate slope
 			SFM_ASSERT(ratio > 0.f);
 			float slope = 1.f - (1.f/ratio);
 
 			float adjThresholddB = thresholddB;
-			if (kneedB > 0.f)
-			{
-				// Adjust slope & threshold for soft knee
-				const float halfKneedB = kneedB*0.5f;
-				if (RMSdB > thresholddB-halfKneedB && RMSdB < thresholddB+halfKneedB)
-				{
-					// Define soft knee edges
-					const float kneeBottomdB = thresholddB - kneedB*0.5f;
-					const float kneeTopdB    = std::fmin(kMaxCompThresholdB, thresholddB + kneedB*0.5f);
-
-					// Calculate [0..1] delta
-					const float delta = std::fmin(1.f, (RMSdB - kneeBottomdB)/kneedB);
-					SFM_ASSERT(delta >= 0.f && delta <= 1.f);
-
-					// "Schminterpolate"
-					slope = lerpf<float>(0.f, slope, smoothstepf(delta*delta));
-
-					// This is now the new zero dB adj. point
-					adjThresholddB = kneeBottomdB;
-				}
-			}
 					
 			// Calc. gain reduction
 			const float gaindB = std::min<float>(0.f, slope*(adjThresholddB - RMSdB));
 			float envdB = m_gainEnv.ApplyRev(gaindB, m_gain);
 
-			// Convert to linear (and add post gain)
-			const float newGain = dBToGain(envdB + postGaindB);
+			const float estimatedB = adjThresholddB * -slope/2.f;
+			const float smoothdB = m_autoEnv.ApplyRev(envdB - estimatedB, m_auto);
+
+			if (0.f == postGaindB)
+			{
+				// Automatic
+				envdB -= smoothdB + estimatedB;
+			}
+			else
+			{
+				// Post gain
+				envdB += postGaindB;
+			}
+		
+			// To linear
+			const float newGain = dBToGain(envdB);
 
 			// Gain reduction equals activity
 			if (gaindB < 0.f)
 				activity += 1.f;
 
 			// Apply to (delayed) signal
-			const auto  delayL   = m_outDelayL.size()*lookahead;
-			const auto  delayR   = m_outDelayR.size()*lookahead;
+			const auto  delayL   = (m_outDelayL.size()-1)*lookahead;
+			const auto  delayR   = (m_outDelayR.size()-1)*lookahead;
 			const float delayedL = m_outDelayL.Read(delayL);
 			const float delayedR = m_outDelayR.Read(delayR);
 

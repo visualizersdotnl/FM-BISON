@@ -202,11 +202,11 @@ namespace SFM
 	constexpr float kMinCompGaindB      =   -6.f;
 	constexpr float kMaxCompGaindB      =   60.f;
 	constexpr float kDefCompGaindB      =    0.f;
-	constexpr float kMinCompAttack      = 0.125f; // 125 MS
+	constexpr float kMinCompAttack      =  0.05f; // 50 MS
 	constexpr float kMaxCompAttack      =    1.f; // 1 sec.
 	constexpr float kDefCompAttack      =  0.01f; // 10 MS
 	constexpr float kMinCompRelease     =   0.1f; // 100 MS
-	constexpr float kMaxCompRelease     =    1.f; // 1 sec.
+	constexpr float kMaxCompRelease     =   0.5f; // 500 MS
 	constexpr float kDefCompRelease     =   0.5f; // 500 MS
 
 	// Auto-wah range & defaults

@@ -77,12 +77,12 @@ namespace SFM
 			const float RMS = m_RMSDetector.Run(sampleL, sampleR);
 			const float signaldB = (RMS != 0.f) ? GainTodB(RMS) : kMinVolumedB;
 			const float envdB = m_envFollower.Apply(signaldB, m_envdB);
-			const float envGain = std::min<float>(dBToGain(envdB), kGain3dB) / kGain3dB;
+			const float envGain = std::min<float>(dBToGain(envdB)*kGain3dB, kGain3dB) / kGain3dB; // Add a little boost, or shall I use peaks? (FIXME)
 
 			// Grab (delayed) signal
 			const float lookahead = m_lookahead*wetness; // Lookahead is proportional to wetness, a hack to make sure we do not cause a delay when 100% dry (FIXME)
-			const auto  delayL    = m_outDelayL.size()*lookahead;
-			const auto  delayR    = m_outDelayR.size()*lookahead;
+			const auto  delayL    = (m_outDelayL.size()-1)*lookahead;
+			const auto  delayR    = (m_outDelayR.size()-1)*lookahead;
 			const float delayedL  = m_outDelayL.Read(delayL);
 			const float delayedR  = m_outDelayR.Read(delayR);
 

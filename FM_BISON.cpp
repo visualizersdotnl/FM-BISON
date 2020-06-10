@@ -2001,8 +2001,8 @@ namespace SFM
 			constexpr float kGain3dB = 1.41253757f;
 			const unsigned divisor = sumDiv[iOp];
 			float RMS = (divisor > 0) ? sqrtf(powerSums[iOp]/divisor) : 0.f;
-			RMS = std::min<float>(RMS, kGain3dB)/kGain3dB;
-			
+			RMS = std::min<float>(RMS*kGain3dB, kGain3dB)/kGain3dB; // Boost it a bit
+				
 			auto &opRMS = m_opRMS[iOp];
 
 			const auto prevVal = opRMS.Get();
