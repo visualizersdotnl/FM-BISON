@@ -1,7 +1,7 @@
 
 //
 // Modified to fit FM. BISON:
-// - Fitted to compile without dependencies
+// - Compiles without dependencies
 // - Stereo support
 // - Unrolled loop
 // - Added a few setup functions
