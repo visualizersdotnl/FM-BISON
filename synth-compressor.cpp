@@ -24,7 +24,7 @@ namespace SFM
 		return float(exp(dB*DB_2_LOG));
 	}
 
-	float Compressor::Apply(float *pLeft, float *pRight, unsigned numSamples)
+	float Compressor::Apply(float *pLeft, float *pRight, unsigned numSamples, bool autoGain)
 	{
 		float bite = 0.f;
 
@@ -88,18 +88,18 @@ namespace SFM
 			// Apply gain envelope
 			float envdB = m_gainEnv.ApplyRev(gaindB, m_gain);
 
-			// Automatic gain adjustment (nicked from: https://github.com/ptrv/auto_compressor/blob/master/Source/PluginProcessor.cpp)
+			// Automatic gain (level) adjustment (nicked from: https://github.com/ptrv/auto_compressor/blob/master/Source/PluginProcessor.cpp)
 			const float estimatedB = thresholddB * -slope/2.f;
-			const float smoothdB = m_autoEnv.ApplyRev(envdB - estimatedB, m_autoSig);
+			const float autodB = m_autoEnv.ApplyRev(envdB - estimatedB, m_autoSig);
 
-			if (0.f == postGaindB)
+			if (true == autoGain)
 			{
-				// Instead of post gain we'll use the smoothened value plus it's bias to rectify overall gain
-				envdB -= smoothdB + estimatedB;
+				// Adjust gain (see above); post gain *not* applied
+				envdB -= autodB + estimatedB;
 			}
 			else
 			{
-				// Apply post gain (manual control)
+				// Apply post gain (manual)
 				envdB += postGaindB;
 			}
 		

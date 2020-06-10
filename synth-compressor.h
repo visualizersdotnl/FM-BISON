@@ -57,7 +57,7 @@ namespace SFM
 		}
 		
 		// Returns "bite"
-		float Apply(float *pLeft, float *pRight, unsigned numSamples);
+		float Apply(float *pLeft, float *pRight, unsigned numSamples, bool autoGain);
 
 	private:
 		const unsigned m_sampleRate;

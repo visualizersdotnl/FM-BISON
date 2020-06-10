@@ -1564,7 +1564,6 @@ namespace SFM
 
 			// Update LFO frequencies
 			float frequency = m_globalLFO->GetFrequency(), modFrequency;
-//			float frequency = 80.f, modFrequency;
 			CalcLFOFreq(frequency, modFrequency, m_patch.LFOModSpeed);
 			
 			voice.m_LFO1.SetFrequency(frequency);
@@ -2081,6 +2080,7 @@ namespace SFM
 						  m_patch.compAttack,
 						  m_patch.compRelease,
 						  m_compLookaheadPF.Apply(m_patch.compLookahead),
+						  m_patch.compAutoGain,
 						  /* Master volume */
 						  m_masterVolPF.Apply(m_patch.masterVol),
 						  /* Buffers */

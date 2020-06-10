@@ -141,6 +141,7 @@ namespace SFM
 		float compAttack;
 		float compRelease;
 		float compLookahead;
+		bool compAutoGain;
 
 		// Filter parameters
 		enum FilterType
@@ -279,6 +280,7 @@ namespace SFM
 			compAttack = kDefCompAttack;
 			compRelease = kDefCompRelease;
 			compLookahead = 0.f; // No lookahead
+			compAutoGain = false;
 			
 			// Little to no filtering
 			filterType = kLowpassFilter;
