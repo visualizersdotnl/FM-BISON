@@ -341,13 +341,13 @@ namespace SFM
 		// Sustain?
 		bool m_sustain;
 	
-		// Parameter followers (basically slew, against crackle)
-		class ParameterFilter
+		// Parameter slew (called each Render(), against artifacts; crackle, mostly)
+		class ParameterSlew
 		{
 		public:
-			ParameterFilter() {}
+			ParameterSlew() {}
 
-			ParameterFilter(unsigned sampleRate, float MS = kDefParameterFilterMS) :
+			ParameterSlew(unsigned sampleRate, float MS = kDefParameterSlewMS) :
 				m_sigEnv(sampleRate, MS)
 			{
 			}
@@ -372,28 +372,28 @@ namespace SFM
 			float m_state = 0.f;
 		};
 
-		ParameterFilter m_LFORatePF;
-		ParameterFilter m_LFOBlendPF;
-		ParameterFilter m_LFOModDepthPF;
-		ParameterFilter m_SandHSlewRatePF;
-		ParameterFilter m_cutoffPF, m_resoPF;
-		ParameterFilter m_effectWetPF, m_effectRatePF;
-		ParameterFilter m_delayPF, m_delayWetPF, m_delayFeedbackPF, m_delayFeedbackCutoffPF;
-		ParameterFilter m_postCutoffPF;
-		ParameterFilter m_postResoPF;
-		ParameterFilter m_postDrivePF;
-		ParameterFilter m_postWetPF;
-		ParameterFilter m_tubeDistPF, m_tubeDrivePF;
-		ParameterFilter m_wahRatePF, m_wahSpeakPF, m_wahCutPF, m_wahWetPF;
-		ParameterFilter m_reverbWetPF;
-		ParameterFilter m_reverbRoomSizePF;
-		ParameterFilter m_reverbDampeningPF;
-		ParameterFilter m_reverbWidthPF;
-		ParameterFilter m_reverbHP_PF;
-		ParameterFilter m_reverbLP_PF;
-		ParameterFilter m_reverbPreDelayPF;
-		ParameterFilter m_compLookaheadPF;
-		ParameterFilter m_masterVolPF;
+		ParameterSlew m_LFORatePS;
+		ParameterSlew m_LFOBlendPS;
+		ParameterSlew m_LFOModDepthPS;
+		ParameterSlew m_SandHSlewRatePS;
+		ParameterSlew m_cutoffPS, m_resoPS;
+		ParameterSlew m_effectWetPS, m_effectRatePS;
+		ParameterSlew m_delayPS, m_delayWetPS, m_delayFeedbackPS, m_delayFeedbackCutoffPS;
+		ParameterSlew m_postCutoffPS;
+		ParameterSlew m_postResoPS;
+		ParameterSlew m_postDrivePS;
+		ParameterSlew m_postWetPS;
+		ParameterSlew m_tubeDistPS, m_tubeDrivePS;
+		ParameterSlew m_wahRatePS, m_wahSpeakPS, m_wahCutPS, m_wahWetPS;
+		ParameterSlew m_reverbWetPS;
+		ParameterSlew m_reverbRoomSizePS;
+		ParameterSlew m_reverbDampeningPS;
+		ParameterSlew m_reverbWidthPS;
+		ParameterSlew m_reverbHP_PS;
+		ParameterSlew m_reverbLP_PS;
+		ParameterSlew m_reverbPreDelayPS;
+		ParameterSlew m_compLookaheadPS;
+		ParameterSlew m_masterVolPS;
 
 		// Per-sample interpolated global parameters
 		InterpolatedParameter<kLinInterpolate> m_curLFOBlend;
@@ -402,9 +402,9 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curQ;
 		
 		// Not in patch but supplied as parameters:
-		ParameterFilter m_bendWheelPF;
-		ParameterFilter m_modulationPF; // Can be overridden by patch parameter
-		ParameterFilter m_aftertouchPF;
+		ParameterSlew m_bendWheelPS;
+		ParameterSlew m_modulationPS; // Can be overridden by patch parameter
+		ParameterSlew m_aftertouchPS;
 
 		// Not in patch but supplied as parameters:
 		InterpolatedParameter<kLinInterpolate> m_curPitchBend;

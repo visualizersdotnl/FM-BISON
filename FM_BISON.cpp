@@ -151,90 +151,90 @@ namespace SFM
 			of audio: sample rate divided by (max.) block size.
 		*/
 
-		const unsigned sampleRatePF = m_sampleRate/m_samplesPerBlock;
+		const unsigned sampleRatePS = m_sampleRate/m_samplesPerBlock;
 
 		// Global
-		m_LFORatePF             = { sampleRatePF };
-		m_LFOBlendPF            = { sampleRatePF };
-		m_LFOModDepthPF         = { sampleRatePF };
-		m_SandHSlewRatePF       = { sampleRatePF };
-		m_cutoffPF              = { sampleRatePF };
-		m_resoPF                = { sampleRatePF };
+		m_LFORatePS             = { sampleRatePS };
+		m_LFOBlendPS            = { sampleRatePS };
+		m_LFOModDepthPS         = { sampleRatePS };
+		m_SandHSlewRatePS       = { sampleRatePS };
+		m_cutoffPS              = { sampleRatePS };
+		m_resoPS                = { sampleRatePS };
 
-		m_LFORatePF.Reset(freqLFO);
-		m_LFOBlendPF.Reset(m_patch.LFOBlend);
-		m_LFOModDepthPF.Reset(m_patch.LFOModDepth);
-		m_SandHSlewRatePF.Reset(m_patch.SandHSlewRate);
-		m_cutoffPF.Reset(m_patch.cutoff);
-		m_resoPF.Reset(m_patch.resonance);
+		m_LFORatePS.Reset(freqLFO);
+		m_LFOBlendPS.Reset(m_patch.LFOBlend);
+		m_LFOModDepthPS.Reset(m_patch.LFOModDepth);
+		m_SandHSlewRatePS.Reset(m_patch.SandHSlewRate);
+		m_cutoffPS.Reset(m_patch.cutoff);
+		m_resoPS.Reset(m_patch.resonance);
 
 		// PostPass
-		m_effectWetPF           = { sampleRatePF }; 
-		m_effectRatePF          = { sampleRatePF };
-		m_delayPF               = { sampleRatePF };
-		m_delayWetPF            = { sampleRatePF };
-		m_delayFeedbackPF       = { sampleRatePF };
-		m_delayFeedbackCutoffPF = { sampleRatePF };
-		m_tubeDistPF            = { sampleRatePF };
-		m_tubeDrivePF           = { sampleRatePF };
-		m_postCutoffPF          = { sampleRatePF };
-		m_postResoPF            = { sampleRatePF };
-		m_postDrivePF           = { sampleRatePF };
-		m_postWetPF             = { sampleRatePF };
-		m_wahRatePF             = { sampleRatePF };
-		m_wahSpeakPF            = { sampleRatePF };
-		m_wahCutPF              = { sampleRatePF };
-		m_wahWetPF              = { sampleRatePF };
-		m_reverbWetPF           = { sampleRatePF };
-		m_reverbRoomSizePF      = { sampleRatePF };
-		m_reverbDampeningPF     = { sampleRatePF };
-		m_reverbWidthPF         = { sampleRatePF };
-		m_reverbHP_PF           = { sampleRatePF };
-		m_reverbLP_PF           = { sampleRatePF };
-		m_reverbPreDelayPF      = { sampleRatePF };
-		m_compLookaheadPF       = { sampleRatePF };
-		m_masterVolPF           = { sampleRatePF };
+		m_effectWetPS           = { sampleRatePS }; 
+		m_effectRatePS          = { sampleRatePS };
+		m_delayPS               = { sampleRatePS, 100.f /* 100MS */ };
+		m_delayWetPS            = { sampleRatePS };
+		m_delayFeedbackPS       = { sampleRatePS };
+		m_delayFeedbackCutoffPS = { sampleRatePS };
+		m_tubeDistPS            = { sampleRatePS };
+		m_tubeDrivePS           = { sampleRatePS };
+		m_postCutoffPS          = { sampleRatePS };
+		m_postResoPS            = { sampleRatePS };
+		m_postDrivePS           = { sampleRatePS };
+		m_postWetPS             = { sampleRatePS };
+		m_wahRatePS             = { sampleRatePS };
+		m_wahSpeakPS            = { sampleRatePS };
+		m_wahCutPS              = { sampleRatePS };
+		m_wahWetPS              = { sampleRatePS };
+		m_reverbWetPS           = { sampleRatePS };
+		m_reverbRoomSizePS      = { sampleRatePS };
+		m_reverbDampeningPS     = { sampleRatePS };
+		m_reverbWidthPS         = { sampleRatePS };
+		m_reverbHP_PS           = { sampleRatePS };
+		m_reverbLP_PS           = { sampleRatePS };
+		m_reverbPreDelayPS      = { sampleRatePS, 100.f /* 100MS */ };
+		m_compLookaheadPS       = { sampleRatePS, 100.f /* 100MS */ };
+		m_masterVolPS           = { sampleRatePS };
 
-		m_effectWetPF.Reset(m_patch.cpWet);
-		m_effectRatePF.Reset(m_patch.cpRate);
-		m_delayPF.Reset(m_patch.delayInSec);
-		m_delayWetPF.Reset(m_patch.delayWet);
-		m_delayFeedbackPF.Reset(m_patch.delayFeedback);
-		m_delayFeedbackCutoffPF.Reset(m_patch.delayFeedbackCutoff);
-		m_postCutoffPF.Reset(m_patch.postCutoff);
-		m_postResoPF.Reset(m_patch.postResonance);
-		m_postDrivePF.Reset(m_patch.postDrivedB);
-		m_postWetPF.Reset(m_patch.postWet);
-		m_tubeDistPF.Reset(m_patch.tubeDistort);
-		m_tubeDrivePF.Reset(m_patch.tubeDrive);
-		m_wahRatePF.Reset(m_patch.wahRate);
-		m_wahSpeakPF.Reset(m_patch.wahSpeak);
-		m_wahCutPF.Reset(m_patch.wahCut);
-		m_wahWetPF.Reset(m_patch.wahWet);
-		m_reverbWetPF.Reset(m_patch.reverbWet);
-		m_reverbRoomSizePF.Reset(m_patch.reverbRoomSize);
-		m_reverbDampeningPF.Reset(m_patch.reverbDampening);
-		m_reverbWidthPF.Reset(m_patch.reverbWidth);
-		m_reverbHP_PF.Reset(m_patch.reverbHP);
-		m_reverbLP_PF.Reset(m_patch.reverbLP);
-		m_reverbPreDelayPF.Reset(m_patch.reverbPreDelay);
-		m_compLookaheadPF.Reset(0.f);
-		m_masterVolPF.Reset(m_patch.masterVol);
+		m_effectWetPS.Reset(m_patch.cpWet);
+		m_effectRatePS.Reset(m_patch.cpRate);
+		m_delayPS.Reset(m_patch.delayInSec);
+		m_delayWetPS.Reset(m_patch.delayWet);
+		m_delayFeedbackPS.Reset(m_patch.delayFeedback);
+		m_delayFeedbackCutoffPS.Reset(m_patch.delayFeedbackCutoff);
+		m_postCutoffPS.Reset(m_patch.postCutoff);
+		m_postResoPS.Reset(m_patch.postResonance);
+		m_postDrivePS.Reset(m_patch.postDrivedB);
+		m_postWetPS.Reset(m_patch.postWet);
+		m_tubeDistPS.Reset(m_patch.tubeDistort);
+		m_tubeDrivePS.Reset(m_patch.tubeDrive);
+		m_wahRatePS.Reset(m_patch.wahRate);
+		m_wahSpeakPS.Reset(m_patch.wahSpeak);
+		m_wahCutPS.Reset(m_patch.wahCut);
+		m_wahWetPS.Reset(m_patch.wahWet);
+		m_reverbWetPS.Reset(m_patch.reverbWet);
+		m_reverbRoomSizePS.Reset(m_patch.reverbRoomSize);
+		m_reverbDampeningPS.Reset(m_patch.reverbDampening);
+		m_reverbWidthPS.Reset(m_patch.reverbWidth);
+		m_reverbHP_PS.Reset(m_patch.reverbHP);
+		m_reverbLP_PS.Reset(m_patch.reverbLP);
+		m_reverbPreDelayPS.Reset(m_patch.reverbPreDelay);
+		m_compLookaheadPS.Reset(0.f);
+		m_masterVolPS.Reset(m_patch.masterVol);
 
 		// Local
-		m_bendWheelPF  = { sampleRatePF };
-		m_modulationPF = { sampleRatePF };
-		m_aftertouchPF = { sampleRatePF };
+		m_bendWheelPS  = { sampleRatePS };
+		m_modulationPS = { sampleRatePS };
+		m_aftertouchPS = { sampleRatePS };
 
-		m_bendWheelPF.Reset(0.f);
-		m_modulationPF.Reset(0.f);
-		m_aftertouchPF.Reset(0.f);
+		m_bendWheelPS.Reset(0.f);
+		m_modulationPS.Reset(0.f);
+		m_aftertouchPS.Reset(0.f);
 
 		// Reset RMS filters
 		for (auto &opRMS : m_opRMS)
 		{
 			opRMS.Reset(0.f);
-			opRMS.SetCutoff(10.f / sampleRatePF);
+			opRMS.SetCutoff(10.f / sampleRatePS);
 		}
 	}
 
@@ -1569,7 +1569,7 @@ namespace SFM
 			voice.m_modLFO.SetFrequency(modFrequency);
 			
 			// Update LFO S&H parameters
-			const float slewRate = m_SandHSlewRatePF.Get();
+			const float slewRate = m_SandHSlewRatePS.Get();
 			voice.m_LFO1.SetSampleAndHoldSlewRate(slewRate);
 			voice.m_LFO2.SetSampleAndHoldSlewRate(slewRate);
 			voice.m_modLFO.SetSampleAndHoldSlewRate(slewRate);
@@ -1622,8 +1622,8 @@ namespace SFM
 			auto& filterEG      = voice.m_filterEnvelope;
 
 			// Second filter lags behind a little to add a bit of "gritty sparkle"
-			LowpassFilter secondCutoffLPF(5000.f/m_sampleRate);
-			secondCutoffLPF.Reset(curCutoff.Get());
+			LowpassFilter secondCutoffLPS(5000.f/m_sampleRate);
+			secondCutoffLPS.Reset(curCutoff.Get());
 					
 			for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 			{
@@ -1668,7 +1668,7 @@ namespace SFM
 					{
 						SFM_ASSERT(SvfLinearTrapOptimised2::NO_FLT_TYPE != context.filterType2);
 
-						const float secondCutoff = lerpf<float>(context.fullCutoff, secondCutoffLPF.Apply(sampCutoff), filterEnv); 
+						const float secondCutoff = lerpf<float>(context.fullCutoff, secondCutoffLPS.Apply(sampCutoff), filterEnv); 
 						const float secondQ      = std::min<float>(kMaxFilterResonance, sampQ+context.secondQOffs);
 						voice.m_filterSVF2.updateCoefficients(secondCutoff, secondQ, context.filterType2, m_sampleRate);
 						voice.m_filterSVF2.tick(filteredL, filteredR);
@@ -1762,7 +1762,7 @@ namespace SFM
 		{
 			// Set LFO speed in (DX7) range
 			freqLFO = MIDI_To_LFO_Hz(m_patch.LFORate);
-			m_globalLFO->SetFrequency(m_LFORatePF.Apply(freqLFO));
+			m_globalLFO->SetFrequency(m_LFORatePS.Apply(freqLFO));
 		}
 		else
 		{
@@ -1771,21 +1771,21 @@ namespace SFM
 
 			if (false == m_resetPhaseBPM)
 			{
-				m_globalLFO->SetFrequency(m_LFORatePF.Apply(freqLFO));
+				m_globalLFO->SetFrequency(m_LFORatePS.Apply(freqLFO));
 			}
 			else
 			{
 				// Full reset; likely to be used when (re)starting a track
 				// This *must* be done prior to UpdateVoicesPreRender()
 				m_globalLFO->Initialize(freqLFO, m_sampleRate);
-				m_LFORatePF.Reset(freqLFO); // Reset ParameterFilter
+				m_LFORatePS.Reset(freqLFO); // Reset ParameterFilter
 			}
 		}
 		
 		// Filter/Prepare LFO & S&H parameters (so they can be used by RenderVoices())
-		m_curLFOBlend.SetTarget(m_LFOBlendPF.Apply(m_patch.LFOBlend));
-		m_curLFOModDepth.SetTarget(m_LFOModDepthPF.Apply(m_patch.LFOModDepth));
-		m_SandHSlewRatePF.Apply(m_patch.SandHSlewRate); // Does not need per-sample interpolation
+		m_curLFOBlend.SetTarget(m_LFOBlendPS.Apply(m_patch.LFOBlend));
+		m_curLFOModDepth.SetTarget(m_LFOModDepthPS.Apply(m_patch.LFOModDepth));
+		m_SandHSlewRatePS.Apply(m_patch.SandHSlewRate); // Does not need per-sample interpolation
 
 		// Update voice logic (pre)
 		UpdateVoicesPreRender(numSamples);
@@ -1799,8 +1799,8 @@ namespace SFM
 		static_assert(16.f >= kMaxFilterResonance);
 		
 		// Set target cutoff (Hz) & Q
-		const float normCutoff = m_cutoffPF.Apply(m_patch.cutoff);
-		const float resonance = m_resoPF.Apply(m_patch.resonance);
+		const float normCutoff = m_cutoffPS.Apply(m_patch.cutoff);
+		const float resonance = m_resoPS.Apply(m_patch.resonance);
 
 		// Using smoothstepf() to add a little curvature, chiefly intended to appease basic MIDI controls
 		/* const */ float cutoff = CutoffToHz(smoothstepf(normCutoff), m_Nyquist);
@@ -1850,7 +1850,7 @@ namespace SFM
 		m_curFilterType = filterType1;
 
 		// Set pitch & amp. wheel & modulation target values
-		const float bendWheelFiltered = m_bendWheelPF.Apply(bendWheel);
+		const float bendWheelFiltered = m_bendWheelPS.Apply(bendWheel);
 		if (false == m_patch.pitchIsAmpMod)
 		{
 			// Wheel modulates pitch
@@ -1865,9 +1865,9 @@ namespace SFM
 		}
 
 		// Set modulation & aftertouch target values
-		m_curModulation.SetTarget(m_modulationPF.Apply(modulation));
+		m_curModulation.SetTarget(m_modulationPS.Apply(modulation));
 
-		const float aftertouchFiltered = m_aftertouchPF.Apply(aftertouch);
+		const float aftertouchFiltered = m_aftertouchPS.Apply(aftertouch);
 		m_curAftertouch.SetTarget(aftertouchFiltered);
 
 		// Clear L/R buffers
@@ -1980,7 +1980,7 @@ namespace SFM
 			}
 		}
 		
-		// Calc. RMS
+		// Calc. & filter RMS
 		for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
 		{
 			const unsigned divisor = sumDiv[iOp];
@@ -2000,7 +2000,7 @@ namespace SFM
 		m_globalLFO->Skip(numSamples);
 
 		// Calculate post-pass filter cutoff freq.
-		const float postNormCutoff = m_postCutoffPF.Apply(m_patch.postCutoff);
+		const float postNormCutoff = m_postCutoffPS.Apply(m_patch.postCutoff);
 		const float postCutoffHz = CutoffToHz(postNormCutoff, m_Nyquist/2 /* Nice range; check synth-post-pass.cpp for max. range */, 0.f);
 
 		// Feed either a flat or aftertouch parameter to the post-pass to define the filter's wetness
@@ -2016,34 +2016,34 @@ namespace SFM
 						  m_patch.wahResonance,
 						  m_patch.wahAttack,
 						  m_patch.wahHold,
-						  m_wahRatePF.Apply(m_patch.wahRate),
-						  m_wahSpeakPF.Apply(m_patch.wahSpeak),
-						  m_wahCutPF.Apply(m_patch.wahCut),
-						  m_wahWetPF.Apply(m_patch.wahWet),
+						  m_wahRatePS.Apply(m_patch.wahRate),
+						  m_wahSpeakPS.Apply(m_patch.wahSpeak),
+						  m_wahCutPS.Apply(m_patch.wahCut),
+						  m_wahWetPS.Apply(m_patch.wahWet),
 		                  /* Chorus/Phaser */
-						  m_effectRatePF.Apply(m_patch.cpRate), 
-						  m_effectWetPF.Apply(m_patch.cpWet), 
+						  m_effectRatePS.Apply(m_patch.cpRate), 
+						  m_effectWetPS.Apply(m_patch.cpWet), 
 						  false == m_patch.cpIsPhaser,
 						  /* Delay */
-						  m_delayPF.Apply(m_patch.delayInSec),
-						  m_delayWetPF.Apply(m_patch.delayWet),
-						  m_delayFeedbackPF.Apply(m_patch.delayFeedback),
-						  m_delayFeedbackCutoffPF.Apply(m_patch.delayFeedbackCutoff),
+						  m_delayPS.Apply(m_patch.delayInSec),
+						  m_delayWetPS.Apply(m_patch.delayWet),
+						  m_delayFeedbackPS.Apply(m_patch.delayFeedback),
+						  m_delayFeedbackCutoffPS.Apply(m_patch.delayFeedbackCutoff),
 						  /* MOOG-style 24dB filter + Tube distort */
 		                  postCutoffHz, // Filtered above
-						  m_postResoPF.Apply(m_patch.postResonance),
-						  m_postDrivePF.Apply(m_patch.postDrivedB),
-		                  m_postWetPF.Apply(postWet),
-						  m_tubeDistPF.Apply(m_patch.tubeDistort),
-						  m_tubeDrivePF.Apply(m_patch.tubeDrive),
+						  m_postResoPS.Apply(m_patch.postResonance),
+						  m_postDrivePS.Apply(m_patch.postDrivedB),
+		                  m_postWetPS.Apply(postWet),
+						  m_tubeDistPS.Apply(m_patch.tubeDistort),
+						  m_tubeDrivePS.Apply(m_patch.tubeDrive),
 						  /* Reverb */
-						  m_reverbWetPF.Apply(m_patch.reverbWet),
-						  m_reverbRoomSizePF.Apply(m_patch.reverbRoomSize),
-						  m_reverbDampeningPF.Apply(m_patch.reverbDampening),
-						  m_reverbWidthPF.Apply(m_patch.reverbWidth),
-						  m_reverbLP_PF.Apply(m_patch.reverbLP),
-						  m_reverbHP_PF.Apply(m_patch.reverbHP),
-						  m_reverbPreDelayPF.Apply(m_patch.reverbPreDelay),
+						  m_reverbWetPS.Apply(m_patch.reverbWet),
+						  m_reverbRoomSizePS.Apply(m_patch.reverbRoomSize),
+						  m_reverbDampeningPS.Apply(m_patch.reverbDampening),
+						  m_reverbWidthPS.Apply(m_patch.reverbWidth),
+						  m_reverbLP_PS.Apply(m_patch.reverbLP),
+						  m_reverbHP_PS.Apply(m_patch.reverbHP),
+						  m_reverbPreDelayPS.Apply(m_patch.reverbPreDelay),
 						  /* Compressor (FIXME: apply more ParameterFilter if necessary) */
 						  m_patch.compThresholddB,
 						  m_patch.compKneedB,
@@ -2051,10 +2051,10 @@ namespace SFM
 						  m_patch.compGaindB,
 						  m_patch.compAttack,
 						  m_patch.compRelease,
-						  m_compLookaheadPF.Apply(m_patch.compLookahead),
+						  m_compLookaheadPS.Apply(m_patch.compLookahead),
 						  m_patch.compAutoGain,
 						  /* Master volume */
-						  m_masterVolPF.Apply(m_patch.masterVol),
+						  m_masterVolPS.Apply(m_patch.masterVol),
 						  /* Buffers */
 						  m_pBufL[0], m_pBufR[0], pLeft, pRight);
 

@@ -1,6 +1,6 @@
 
 /*
-	FM. BISON hybrid FM synthesis -- Signal follower, A/R follower, RMS detector (basically "all things sidechain").
+	FM. BISON hybrid FM synthesis -- Signal follower, A/R (envelope) follower, RMS detector.
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 */
@@ -11,6 +11,7 @@
 
 namespace SFM
 {
+	// Also useful in cases where a bit of slew needs to be applied to a signal (or parameter)
 	class SignalFollower
 	{
 	public:

@@ -73,8 +73,8 @@ namespace SFM
 	// Default parameter latency (used for per-sample interpolation of parameters and controls)
 	constexpr float kDefParameterLatency = 0.01f; // 10MS
 
-	// Default ParameterFilter slew (in MS, sampled per frame (Render() call))
-	constexpr float kDefParameterFilterMS = 3.f;
+	// Default ParameterSlew MS (sampled per frame (Render() call))
+	constexpr float kDefParameterSlewMS = 3.f;
 
 	// Polyphony constraints
 	constexpr unsigned kMinVoices  = 1;
@@ -122,9 +122,9 @@ namespace SFM
 	constexpr float kDefReverbFilter = 1.f;
 
 	// Default post-pass filter drive range & default (dB)	
-	constexpr float kMinPostFilterDrivedB   = -3.f;
-	constexpr float kMaxPostFilterDrivedB   =  6.f;
-	constexpr float kDefPostFilterDrivedB   =  0.f;
+	constexpr float kMinPostFilterDrivedB  = -3.f;
+	constexpr float kMaxPostFilterDrivedB  =  6.f;
+	constexpr float kDefPostFilterDrivedB  =  0.f;
 
 	// Tube distortion drive range
 	constexpr float kMinTubeDrive =   0.f;
