@@ -7,6 +7,7 @@
 	Nice article on the subject: https://www.soundonsound.com/techniques/formant-synthesis
 
 	This implementation simply band passes the signal in parallel with 3 different frequencies and widths.
+	It is in no shape or form what I'd want it to be.
 */
 
 #include "synth-vowelizer-V2.h"

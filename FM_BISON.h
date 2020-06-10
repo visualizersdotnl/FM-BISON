@@ -42,7 +42,6 @@
 	- Yamaha DX7 LFO rates taken from Sean Bolton's Hexter
 	- Fast cosine approximation supplied by Erik 'Kusma' Faye-Lund
 	- There are 2 depndencies on JUCE (currently these have little priority as we use JUCE for our product line)
-	- Legacy vowel (formant) filter (V1) is a modified contribution to http://www.musicdsp.org by alex@smartelectronix.com
 	- 'PolyBLEP'-based oscillators were lifted from https://github.com/martinfinke/PolyBLEP; by various authors (I keep a copy in /3rdparty as ref.)
 	- And a few bits and bytes left and right; these are often credited in or close to the implementation
 

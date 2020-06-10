@@ -14,7 +14,6 @@
 #include "synth-delay-line.h"
 #include "synth-oscillator.h"
 #include "synth-DX7-LFO-table.h"
-// #include "synth-vowelizer-V1.h"
 #include "synth-vowelizer-V2.h"
 #include "synth-interpolated-parameter.h"
 
@@ -35,10 +34,7 @@ namespace SFM
 ,			m_outDelayR(sampleRate, kWahDelay)
 ,			m_RMSDetector(sampleRate, 0.001f /* 1MS */)
 ,			m_envFollower(sampleRate, kDefWahAttack, kDefWahHold)
-
-,			m_vowelizerV2_1(sampleRate)
-,			m_vowelizerV2_2(sampleRate)
-
+,			m_vowelizerV2_1(sampleRate), m_vowelizerV2_2(sampleRate)
 ,			m_curResonance(0.f, sampleRate, kDefParameterLatency)
 ,			m_curAttack(kDefWahAttack, sampleRate, kDefParameterLatency)
 ,			m_curHold(kDefWahHold, sampleRate, kDefParameterLatency)
@@ -87,8 +83,6 @@ namespace SFM
 		SvfLinearTrapOptimised2 m_preFilterHP;
 		SvfLinearTrapOptimised2 m_preFilterLP[3];
 		SvfLinearTrapOptimised2 m_postFilterLP;
-
-//		Vowelizer m_vowelizerL, m_vowelizerR;
 
 		VowelizerV2 m_vowelizerV2_1;
 		VowelizerV2 m_vowelizerV2_2;

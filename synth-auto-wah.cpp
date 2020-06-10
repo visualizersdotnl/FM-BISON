@@ -133,13 +133,6 @@ namespace SFM
 			filteredL = lerpf<float>(filteredL, vowelL, vowelize);
 			filteredR = lerpf<float>(filteredR, vowelR, vowelize);
 
-			// Vowelize (legacy)
-//			const float vowBlend = envGain;
-//			const float vowelL = m_vowelizerL.Apply(filteredL*0.707f, Vowelizer::kU, vowBlend);
-//			const float vowelR = m_vowelizerR.Apply(filteredR*0.707f, Vowelizer::kU, vowBlend);
-//			filteredL = lerpf<float>(filteredL, vowelL, vowelize);
-//			filteredR = lerpf<float>(filteredR, vowelR, vowelize);
-
 			// Mix with dry (delayed) signal
 			pLeft[iSample]  = lerpf<float>(delayedL, filteredL, wetness);
 			pRight[iSample] = lerpf<float>(delayedR, filteredR, wetness);
