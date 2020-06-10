@@ -62,9 +62,6 @@ namespace SFM
 			const unsigned index = (m_writeIdx-1) % m_curSize;
 			const float newSample = m_buffer[index] + sample*feedback;
 			m_buffer[index] = newSample;
-
-			// FIXME
-			JUCE_SNAP_TO_ZERO(m_buffer[index]);
 		}
 
 		// Delay is specified in samples relative to sample rate

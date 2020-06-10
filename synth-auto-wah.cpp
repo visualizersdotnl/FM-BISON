@@ -59,7 +59,7 @@ namespace SFM
 			const float lowCut    = m_curCut.Sample()*0.125f; // Nyquist/8 is more than enough!
 			const float wetness   = m_curWet.Sample();
 			
-			m_envFollower.SetAttack(curAttack *   100.f); // This is *weird* (FIXME)
+			m_envFollower.SetAttack(curAttack *   100.f); // This is *weird* (FIXME: might uncover a few related problems?)
 			m_envFollower.SetRelease(curHold  *  1000.f);
 
 			m_LFO.SetFrequency(m_curRate.Sample());

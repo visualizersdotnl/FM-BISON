@@ -54,9 +54,9 @@ namespace SFM
 			return m_oversamplingRate;
 		}
 
-		float GetCompressorActivity() const
+		float GetCompressorBite() const
 		{
-			return m_compressorActivity.Get();
+			return m_compressorBite.Get();
 		}
 
 	private:
@@ -139,8 +139,7 @@ namespace SFM
 		Compressor m_compressor;
 
 		// Exposed to be used, chiefly, as indicator
-		LowpassFilter m_compressorActivity;
-//		float m_compressorActivity = 0.f;
+		LowpassFilter12dB m_compressorBite;
 
 		// Misc.
 		InterpolatedParameter<kLinInterpolate> m_curEffectWet;

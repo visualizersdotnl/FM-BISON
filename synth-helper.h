@@ -180,7 +180,7 @@ namespace SFM
 	}
 
 	// Used for ParameterFilter and other per-block filters
-	// FIXME: because I made a very basic mistake of defining cutoff frequencies on a per-sample rate whilst they were samples only once per block
+	// FIXME: because I made a very basic mistake of defining cutoff frequencies on a per-sample rate whilst they were sampled only once per block
 	SFM_INLINE static float CutoffHzToBlockHz(float cutoffPerSampleHz, unsigned sampleRate, unsigned blockSize)
 	{
 		SFM_ASSERT(blockSize > 0);

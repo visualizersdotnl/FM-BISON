@@ -180,11 +180,11 @@ namespace SFM
 		unsigned GetSamplesPerBlock() const { return m_samplesPerBlock; }
 		unsigned GetNyquist() const         { return m_Nyquist;         }
 		
-		// Value can be used to visually represent compressor activity
-		float GetCompressorActivity() const
+		// Value can be used to visually represent compressor "bite" (when RMS falls below threshold dB)
+		float GetCompressorBite() const
 		{
 			SFM_ASSERT(nullptr != m_postPass);
-			return m_postPass->GetCompressorActivity();
+			return m_postPass->GetCompressorBite();
 		}
 
 		// Value is operator normalized RMS

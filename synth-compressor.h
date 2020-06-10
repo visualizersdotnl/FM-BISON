@@ -56,7 +56,7 @@ namespace SFM
 			m_curLookahead.SetTarget(lookahead);
 		}
 		
-		// Returns activity
+		// Returns "bite"
 		float Apply(float *pLeft, float *pRight, unsigned numSamples);
 
 	private:
@@ -69,7 +69,7 @@ namespace SFM
 		float m_gain = 0.f;
 
 		AttackReleaseFollower m_autoEnv;
-		float m_auto = 0.f;
+		float m_autoSig = 0.f;
 
 		// Interpolated parameters
 		InterpolatedParameter<kLinInterpolate> m_curThresholddB;

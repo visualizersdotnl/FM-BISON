@@ -11,22 +11,22 @@
 
 namespace SFM
 {	
-	// FIXME: use?
+	// FIXME: move these to synth-helper.h?
 	static SFM_INLINE float Lin2dB(double linear) 
 	{
-		constexpr double LOG_2_DB = 8.6858896380650365530225783783321; // = 20/ln(10)
+		constexpr double LOG_2_DB = 8.6858896380650365530225783783321;
 		return float(log(linear)*LOG_2_DB);
 	}
 	
 	static SFM_INLINE float dB2Lin(double dB) 
 	{
-		constexpr double DB_2_LOG = 0.11512925464970228420089957273422; // = ln(10)/20
+		constexpr double DB_2_LOG = 0.11512925464970228420089957273422;
 		return float(exp(dB*DB_2_LOG));
 	}
 
 	float Compressor::Apply(float *pLeft, float *pRight, unsigned numSamples)
 	{
-		float activity = 0.f;
+		float bite = 0.f;
 
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
@@ -42,9 +42,6 @@ namespace SFM
 			m_gainEnv.SetAttack(curAttack * 1000.f);
 			m_gainEnv.SetRelease(curRelease * 1000.f);
 
-			m_autoEnv.SetAttack(curAttack * 100.f);
-			m_autoEnv.SetRelease(curRelease * 1000.f);
-
 			// Input
 			const float sampleL = pLeft[iSample];
 			const float sampleR = pRight[iSample];
@@ -54,6 +51,7 @@ namespace SFM
 			m_outDelayR.Write(sampleR);
 			
 			// Get RMS in dB
+			// Suggests that RMS isn't the best way: http://c4dm.eecs.qmul.ac.uk/audioengineering/compressors/documents/Reiss-Tutorialondynamicrangecompression.pdf (FIXME)
 			const float RMS = m_RMSDetector.Run(sampleL, sampleR);
 			const float RMSdB = GainTodB(RMS);
 
@@ -61,32 +59,55 @@ namespace SFM
 			SFM_ASSERT(ratio > 0.f);
 			float slope = 1.f - (1.f/ratio);
 
-			float adjThresholddB = thresholddB;
-					
+			// Signal delta					
+			const float deltadB = thresholddB-RMSdB;
+			
 			// Calc. gain reduction
-			const float gaindB = std::min<float>(0.f, slope*(adjThresholddB - RMSdB));
+			float gaindB = std::min<float>(0.f, slope*deltadB);
+				
+			// Soft knee?
+			if (kneedB > 0.f && gaindB < 0.f)
+			{
+				const float kneeHalfdB   = kneedB*0.5f;
+				const float kneeBottomdB = thresholddB - kneeHalfdB;
+				const float kneeTopdB    = thresholddB + kneeHalfdB;
+
+				if (deltadB >= kneeBottomdB && deltadB < kneeTopdB)
+				{
+					// Apply soft knee (interpolate between zero compression and full compression)
+					// FIXME: eliminate LangrangeInterpolation(), just simplify the calculation in-place
+					float xPoints[2], yPoints[2];
+					xPoints[0] = kneeBottomdB;
+					xPoints[1] = kneeTopdB;
+					yPoints[0] = 0.f;
+					yPoints[1] = gaindB;
+					gaindB = LagrangeInterpolation(xPoints, yPoints, 2, deltadB);
+				}
+			}
+
+			// Apply gain envelope
 			float envdB = m_gainEnv.ApplyRev(gaindB, m_gain);
 
-			const float estimatedB = adjThresholddB * -slope/2.f;
-			const float smoothdB = m_autoEnv.ApplyRev(envdB - estimatedB, m_auto);
+			// Automatic gain adjustment (nicked from: https://github.com/ptrv/auto_compressor/blob/master/Source/PluginProcessor.cpp)
+			const float estimatedB = thresholddB * -slope/2.f;
+			const float smoothdB = m_autoEnv.ApplyRev(envdB - estimatedB, m_autoSig);
 
 			if (0.f == postGaindB)
 			{
-				// Automatic
+				// Instead of post gain we'll use the smoothened value plus it's bias to rectify overall gain
 				envdB -= smoothdB + estimatedB;
 			}
 			else
 			{
-				// Post gain
+				// Apply post gain (manual control)
 				envdB += postGaindB;
 			}
 		
-			// To linear
+			// Convert to linear gain
 			const float newGain = dBToGain(envdB);
 
-			// Gain reduction equals activity
-			if (gaindB < 0.f)
-				activity += 1.f;
+			if (envdB < 0.f)
+				bite += 1.f;
 
 			// Apply to (delayed) signal
 			const auto  delayL   = (m_outDelayL.size()-1)*lookahead;
@@ -99,10 +120,8 @@ namespace SFM
 		}
 
 		SFM_ASSERT(0 != numSamples);
-		activity = activity/numSamples;
+		bite = bite/numSamples;
 
-//		Log("Compressor activity: " +  std::to_string(activity));
-
-		return activity;
+		return bite;
 	}
 }
