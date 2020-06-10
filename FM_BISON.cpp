@@ -234,7 +234,7 @@ namespace SFM
 		for (auto &opRMS : m_opRMS)
 		{
 			opRMS.Reset(0.f);
-			opRMS.SetCutoff(10.f / sampleRatePS);
+			opRMS.SetCutoff(5.f / sampleRatePS);
 		}
 	}
 
@@ -1984,8 +1984,14 @@ namespace SFM
 		for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
 		{
 			const unsigned divisor = sumDiv[iOp];
-			const float RMS = (divisor > 0) ? sqrtf(powerSums[iOp]/divisor) : 0.f;
-				
+			float RMS = (divisor > 0) ? sqrtf(powerSums[iOp]/divisor) : 0.f;
+			
+			// Make smaller values a *bit* more visisble (hack, FIXME)
+			if (RMS < 0.1f)
+			{
+				RMS *= 2.f;
+			}
+			
 			auto &opRMS = m_opRMS[iOp];
 			opRMS.Apply(RMS);
 		}
