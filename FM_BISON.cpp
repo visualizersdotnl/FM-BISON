@@ -852,7 +852,7 @@ namespace SFM
 				SetOperatorFilters(key, voiceOp.filters, voiceOp.modFilter, patchOp);
 				
 				// Store detune jitter
-				voiceOp.detuneOffs = jitter*mt_randfc()*kMaxDetuneJitter;
+				voiceOp.detuneOffs = jitter*mt_randfc()*patchOp.detune*kMaxDetuneJitter;
 	
 				const float frequency = CalcOpFreq(fundamentalFreq, voiceOp.detuneOffs, patchOp);
 				const float amplitude = CalcOpIndex(key, opVelocity, patchOp);
@@ -1008,7 +1008,7 @@ namespace SFM
 				}
 
 				// Store detune jitter
-				voiceOp.detuneOffs = jitter*mt_randfc()*kMaxDetuneJitter;
+				voiceOp.detuneOffs = jitter*mt_randfc()*patchOp.detune*kMaxDetuneJitter;
 				
 				const float frequency = CalcOpFreq(fundamentalFreq, voiceOp.detuneOffs, patchOp);
 				const float amplitude = CalcOpIndex(key, opVelocity, patchOp);
@@ -2052,6 +2052,7 @@ namespace SFM
 						  m_patch.compRelease,
 						  m_compLookaheadPS.Apply(m_patch.compLookahead),
 						  m_patch.compAutoGain,
+						  m_patch.compRMSToPeak,
 						  /* Master volume */
 						  m_masterVolPS.Apply(m_patch.masterVol),
 						  /* Buffers */

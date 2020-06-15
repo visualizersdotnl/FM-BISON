@@ -144,6 +144,7 @@ namespace SFM
 		float compRelease;
 		float compLookahead;
 		bool compAutoGain;
+		float compRMSToPeak;
 
 		// Filter parameters
 		enum FilterType
@@ -283,6 +284,7 @@ namespace SFM
 			compRelease = kDefCompRelease;
 			compLookahead = 0.f; // No lookahead
 			compAutoGain = false;
+			compRMSToPeak = 0.f; // 100% RMS
 			
 			// Little to no filtering
 			filterType = kLowpassFilter;

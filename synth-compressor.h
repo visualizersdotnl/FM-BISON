@@ -63,7 +63,7 @@ namespace SFM
 		}
 		
 		// Returns "bite" (can be used for a visual indicator)
-		float Apply(float *pLeft, float *pRight, unsigned numSamples, bool autoGain);
+		float Apply(float *pLeft, float *pRight, unsigned numSamples, bool autoGain, float RMSToPeak /* FIXME: interpolate as well? */);
 
 	private:
 		const unsigned m_sampleRate;

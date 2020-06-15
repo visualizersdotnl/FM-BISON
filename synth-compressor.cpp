@@ -11,8 +11,10 @@
 
 namespace SFM
 {	
-	float Compressor::Apply(float *pLeft, float *pRight, unsigned numSamples, bool autoGain)
+	float Compressor::Apply(float *pLeft, float *pRight, unsigned numSamples, bool autoGain, float RMSToPeak)
 	{
+		SFM_ASSERT(RMSToPeak >= 0.f && RMSToPeak <= 1.f);
+		
 		float bite = 0.f;
 
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
@@ -38,9 +40,10 @@ namespace SFM
 			m_outDelayR.Write(sampleR);
 			
 			// Get RMS in dB
-			// Suggests that RMS isn't the best way: http://c4dm.eecs.qmul.ac.uk/audioengineering/compressors/documents/Reiss-Tutorialondynamicrangecompression.pdf (FIXME)
-			const float RMSToPeak = 0.f; // FIXME
-			const float signaldB = lerpf<float>(m_RMS.Run(sampleL, sampleR), m_peak.Run(sampleL, sampleR), RMSToPeak);
+			// Suggests that RMS isn't the best way: http://c4dm.eecs.qmul.ac.uk/audioengineering/compressors/documents/Reiss-Tutorialondynamicrangecompression.pdf
+			const float RMSdB = m_RMS.Run(sampleL, sampleR);
+			const float peakdB = m_peak.Run(sampleL, sampleR);
+			const float signaldB = lerpf<float>(RMSdB, peakdB, RMSToPeak);
 
 			// Calculate slope
 			SFM_ASSERT(ratio > 0.f);

@@ -45,7 +45,7 @@ namespace SFM
 		           float postCutoff, float postQ, float postDrivedB, float postWet,
 		           float tubeDistort, float tubeDrive,
 		           float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
-		           float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead, bool compAutoGain,
+		           float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead, bool compAutoGain, float compRMSToPeak,
 		           float masterVol,
 		           const float *pLeftIn, const float *pRightIn, float *pLeftOut, float *pRightOut);
 
