@@ -39,7 +39,8 @@ namespace SFM
 			
 			// Get RMS in dB
 			// Suggests that RMS isn't the best way: http://c4dm.eecs.qmul.ac.uk/audioengineering/compressors/documents/Reiss-Tutorialondynamicrangecompression.pdf (FIXME)
-			const float signaldB = m_RMS.Run(sampleL, sampleR);
+			const float RMSToPeak = 0.f; // FIXME
+			const float signaldB = lerpf<float>(m_RMS.Run(sampleL, sampleR), m_peak.Run(sampleL, sampleR), RMSToPeak);
 
 			// Calculate slope
 			SFM_ASSERT(ratio > 0.f);

@@ -105,6 +105,11 @@ namespace SFM
 			return (0.f != peakEnv) ? Lin2dB(peakEnv) : kMinVolumedB;
 		}
 
+		SFM_INLINE float GetLin() const
+		{
+			return m_peakEnv.Get();
+		}
+
 	private:
 		FollowerEnvelope m_peakEnv;
 	};
