@@ -95,7 +95,7 @@ namespace SFM
 			const float rectMax = GetRectifiedMaximum(sampleL, sampleR);
 			
 			// Apply & return
-			return m_peakEnv.Apply(rectMax);
+			m_peakEnv.Apply(rectMax);
 			return GetdB();
 		}
 
