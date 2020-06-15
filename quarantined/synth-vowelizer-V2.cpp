@@ -24,7 +24,7 @@ namespace SFM
 	{
 		SFM_ASSERT(vowel < kNumVowels);
 
-		const float bandWidth = 150.f; // 100.0 (Hz), according to the article I read is the avg. male voice
+		const float bandWidth = 100.f; // 100.0 (Hz), according to the article I read is the avg. male voice
 		const float halfBandWidth = bandWidth*0.5f;
 
 		// Filter and store lower frequencies (below half band width)
