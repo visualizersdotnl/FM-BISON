@@ -15,7 +15,7 @@
 
 namespace SFM
 {
-	// For now this one is only used here, so I won't move it to synth-helper.h (yet)
+	// Stereo linking (and rectification)
 	SFM_INLINE static float GetRectifiedMaximum(float sampleL, float sampleR)
 	{
 		return std::max<float>(fabsf(sampleL), fabsf(sampleR));
@@ -96,11 +96,13 @@ namespace SFM
 			
 			// Apply & return
 			return m_peakEnv.Apply(rectMax);
+			return GetdB();
 		}
 
-		SFM_INLINE float Get() const
+		SFM_INLINE float GetdB() const
 		{
-			return m_peakEnv.Get();
+			const float peakEnv = m_peakEnv.Get();
+			return (0.f != peakEnv) ? Lin2dB(peakEnv) : kMinVolumedB;
 		}
 
 	private:
