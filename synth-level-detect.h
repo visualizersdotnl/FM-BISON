@@ -15,12 +15,6 @@
 
 namespace SFM
 {
-	// Stereo linking (and rectification)
-	SFM_INLINE static float GetRectifiedMaximum(float sampleL, float sampleR)
-	{
-		return std::max<float>(fabsf(sampleL), fabsf(sampleR));
-	}
-
 	class RMS
 	{
 	public:
@@ -80,7 +74,7 @@ namespace SFM
 	{
 	public:
 		Peak(unsigned sampleRate, float attackInSec, float releaseInSec) :
-			m_peakEnv(sampleRate, attackInSec, releaseInSec)
+			m_peakEnv(sampleRate, attackInSec*1000.f, releaseInSec*1000.f) // FollowerEnvelope wants MS!
 		{
 		}
 

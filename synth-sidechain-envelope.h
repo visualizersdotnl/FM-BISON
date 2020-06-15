@@ -109,6 +109,11 @@ namespace SFM
 			return m_state;
 		}
 
+		SFM_INLINE float ApplyStereo(float sampleL, float sampleR)
+		{
+			return Apply(GetRectifiedMaximum(sampleL, sampleR));
+		}
+
 		SFM_INLINE float Get() const
 		{
 			return m_state;

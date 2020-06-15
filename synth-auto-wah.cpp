@@ -58,8 +58,8 @@ namespace SFM
 			const float lowCut    = m_curCut.Sample()*0.125f; // Nyquist/8 is more than enough!
 			const float wetness   = m_curWet.Sample();
 			
-			m_sideEnv.SetAttack(curAttack *   100.f); // FIXME: why a tenth of?
-			m_sideEnv.SetRelease(curHold  *  1000.f);
+			m_sideEnv.SetAttack(curAttack *  100.f); // FIXME: why a tenth of?
+			m_sideEnv.SetRelease(curHold  * 1000.f);
 
 			m_LFO.SetFrequency(m_curRate.Sample());
 
@@ -113,6 +113,7 @@ namespace SFM
 			filteredL += remainderL;
 			filteredR += remainderR;
 
+#if 1
 			// "Vowelize" (until I have an actual formant filter)
 			const VowelizerV2::Vowel vowelA = VowelizerV2::kOO;
 			const VowelizerV2::Vowel vowelB = VowelizerV2::kA;
@@ -126,6 +127,10 @@ namespace SFM
 			
 			const float vowelL = lerpf<float>(vowelL_1, vowelL_2, vowBlend);
 			const float vowelR = lerpf<float>(vowelR_1, vowelR_2, vowBlend);
+#else
+			float vowelL = filteredL, vowelR = filteredR;
+			m_formantFilter.Apply(vowelL, vowelR);
+#endif
 
 			filteredL = lerpf<float>(filteredL, vowelL, vowelize);
 			filteredR = lerpf<float>(filteredR, vowelR, vowelize);

@@ -119,6 +119,12 @@ namespace SFM
 		return sample;
 	}
 
+	// Stereo linking (and rectification)
+	SFM_INLINE static float GetRectifiedMaximum(float sampleL, float sampleR)
+	{
+		return std::max<float>(fabsf(sampleL), fabsf(sampleR));
+	}
+
 	/* ----------------------------------------------------------------------------------------------------
 
 		Checks & assertions.

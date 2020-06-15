@@ -15,10 +15,10 @@
 
 namespace SFM
 {
-	constexpr float kCompMaxDelay = 0.01f;        // 10MS
-	constexpr float kCompRMSWindowSec = 0.005f;   // 5MS
-	constexpr float kCompPeakAttackSec = 0.001f;  // 1MS
-	constexpr float kCompPeakReleaseSec = 0.005f; // 5MS
+	constexpr float kCompMaxDelay = 0.01f;      // 10MS
+	constexpr float kCompRMSWindowSec = 0.005f; // 5MS
+	constexpr float kCompPeakAttack = 0.001f;   // 1MS
+	constexpr float kCompPeakRelease = 0.005f;  // 5MS
 
 	class Compressor
 	{
@@ -29,7 +29,7 @@ namespace SFM
 ,			m_outDelayL(sampleRate, kCompMaxDelay)
 ,			m_outDelayR(sampleRate, kCompMaxDelay)
 ,			m_RMS(sampleRate, kCompRMSWindowSec)
-,			m_peak(sampleRate, kCompPeakAttackSec, kCompPeakReleaseSec)
+,			m_peak(sampleRate, kCompPeakAttack, kCompPeakRelease)
 ,			m_gainEnv(sampleRate), m_autoGainEnv(sampleRate)
 ,			m_curThresholddB(kDefCompThresholddB, sampleRate, kDefParameterLatency)
 ,			m_curKneedB(kDefCompKneedB, sampleRate, kDefParameterLatency)

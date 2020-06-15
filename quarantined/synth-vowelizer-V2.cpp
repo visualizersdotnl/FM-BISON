@@ -47,6 +47,7 @@ namespace SFM
 			const float frequency = float(frequencies[iFormant]);
 			
 			// Divide frequency by half of bandwidth and soft clip it to get a pseudo-Q
+			// This is wrong as it narrows higher frequencies, but since it's quarantined I won't fix it
 			const float normalizedQ = ZoelzerClip(frequency/halfBandWidth);
 			const float Q = 0.5f + 19.5f*smoothstepf(normalizedQ);
 

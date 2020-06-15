@@ -37,6 +37,7 @@ namespace SFM
 ,			m_RMS(sampleRate, kWahRMSWindowSec)
 ,			m_sideEnv(sampleRate, kDefWahAttack, kDefWahHold)
 ,			m_vowelizerV2_1(sampleRate), m_vowelizerV2_2(sampleRate)
+,			m_formantFilter(sampleRate, 16 /* FIXME */)
 ,			m_curResonance(0.f, sampleRate, kDefParameterLatency)
 ,			m_curAttack(kDefWahAttack, sampleRate, kDefParameterLatency)
 ,			m_curHold(kDefWahHold, sampleRate, kDefParameterLatency)
@@ -84,9 +85,11 @@ namespace SFM
 		SvfLinearTrapOptimised2 m_preFilterHP;
 		SvfLinearTrapOptimised2 m_preFilterLP[3];
 		SvfLinearTrapOptimised2 m_postFilterLP;
-
+		
+		// FIXME
 		VowelizerV2 m_vowelizerV2_1;
 		VowelizerV2 m_vowelizerV2_2;
+		FormantFilter m_formantFilter;
 
 		Oscillator m_LFO;
 
