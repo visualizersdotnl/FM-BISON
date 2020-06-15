@@ -229,11 +229,12 @@ namespace SFM
 		m_modulationPS.Reset(0.f);
 		m_aftertouchPS.Reset(0.f);
 
-		// Reset RMS filters
-		for (auto &opRMS : m_opRMS)
+		// Reset peak filters
+		for (auto &opPeak : m_opPeaks)
 		{
-			opRMS.Reset(0.f);
-			opRMS.SetCutoff(5.f / sampleRatePS);
+			opPeak.SetSampleRate(sampleRate);
+			opPeak.SetAttack(0.1f);
+			opPeak.SetRelease(1.f);
 		}
 	}
 
@@ -1921,9 +1922,14 @@ namespace SFM
 				VoiceThreadContext contexts[2] = { parameters, parameters };
 				
 				// Split voices up 50/50
-				const size_t half = voiceIndices.size();
-				contexts[0].voiceIndices = std::vector<unsigned>(voiceIndices.begin(), voiceIndices.begin() + half);
-				contexts[1].voiceIndices = std::vector<unsigned>(voiceIndices.begin() + half, voiceIndices.end());
+//				const size_t half = voiceIndices.size();
+//				contexts[0].voiceIndices = std::vector<unsigned>(voiceIndices.begin(), voiceIndices.begin() + half);
+//				contexts[1].voiceIndices = std::vector<unsigned>(voiceIndices.begin() + half, voiceIndices.end());
+				
+				// Handle voices > kSingleThreadMaxVoices
+				const size_t remainder = voiceIndices.size()-kSingleThreadMaxVoices;
+				contexts[0].voiceIndices = std::vector<unsigned>(voiceIndices.begin(), voiceIndices.begin() + kSingleThreadMaxVoices);
+				contexts[1].voiceIndices = std::vector<unsigned>(voiceIndices.begin() + kSingleThreadMaxVoices, voiceIndices.end());
 
 				contexts[0].numSamples = contexts[1].numSamples = numSamples;
 
@@ -1947,23 +1953,22 @@ namespace SFM
 		}
 
 		/*
-			Calculate RMS for each operator (for visualization only; remove or comment out if unnecessary)
-
-			FIXME: write more useful calculation, especially for modulators
+			Calculate peak for each operator (for visualization only; remove or comment out if unnecessary)
 		*/
 
-		// Sum up
-		float powerSums[kNumOperators] = { 0.f };
-		unsigned sumDiv[kNumOperators] = { 1 };
+		// Find peaks
+		float peaks[kNumOperators] = { 0.f };
 
-		for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
+		if (0 == m_voiceCount)
 		{
-			Voice &voice = m_voices[iVoice];
-
-			if (false == voice.IsIdle())
+			for (auto &opPeak : m_opPeaks)
+				opPeak.Apply(0.f);
+		}
+		else
+		{
+			for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
 			{
-				// In case there are only modulators the voice will be terminated in it's first frame, which in turn will result
-				// in zero RMS on all VU meters
+				Voice &voice = m_voices[iVoice];
 
 				for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
 				{
@@ -1971,21 +1976,17 @@ namespace SFM
 
 					if (true == voiceOp.enabled)
 					{
-						const float curGain = voiceOp.envGain.Get();
-						powerSums[iOp] += curGain*curGain;
-						++sumDiv[iOp];
+						const float curGain = voiceOp.envGain.Get(); // Abs.
+
+						if (curGain >= m_opPeaks[iOp].Get())
+							// Raise
+							m_opPeaks[iOp].Apply(curGain);
+						else
+							// Fall
+							m_opPeaks[iOp].Apply(0.f);
 					}
 				}
 			}
-		}
-		
-		// Calculate RMS & add it to running envelope
-		for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
-		{
-			const unsigned divisor = sumDiv[iOp];
-			const float RMS = (divisor > 0) ? sqrtf(powerSums[iOp]/divisor) : 0.f;
-			auto &opRMS = m_opRMS[iOp];
-			opRMS.Apply(RMS);
 		}
 				
 		// Update voice logic (post)

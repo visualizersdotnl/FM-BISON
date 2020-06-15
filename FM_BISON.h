@@ -169,12 +169,11 @@ namespace SFM
 			return m_postPass->GetCompressorBite();
 		}
 
-		// Value is operator normalized RMS
-		float GetOperatorRMS(unsigned iOp) const
+		// Value is operator normalized peak
+		float GetOperatorPeak(unsigned iOp) const
 		{
 			SFM_ASSERT(iOp < kNumOperators);
-			const float RMS = m_opRMS[iOp].Get();
-			return RMS;
+			return m_opPeaks[iOp].Get();
 		}
 
 	private:
@@ -422,7 +421,7 @@ namespace SFM
 		// Key-to-voice mapping table
 		int m_keyToVoice[128];
 
-		// Per operator RMS (filtered)
-		LowpassFilter12dB m_opRMS[kNumOperators];
+		// Per operator peaks
+		FollowerEnvelope m_opPeaks[kNumOperators];
 	};
 }

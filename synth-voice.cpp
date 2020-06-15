@@ -276,7 +276,10 @@ namespace SFM
 				modSamples[iOp] = modSample;
 
 				// Add sample to gain envelope (for VU meter)
-				voiceOp.envGain.Apply(fabsf(modSample));
+				const float gainSample = (voiceOp.isCarrier)
+					? fabsf(modSample)
+					: fabsf(modSample)/amplitude;
+				voiceOp.envGain.Apply(gainSample);
 				
 				// Calculate panning
 				float panning = voiceOp.panning.Sample();
