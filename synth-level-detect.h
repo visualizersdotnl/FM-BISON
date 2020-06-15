@@ -1,17 +1,17 @@
 
 /*
-	FM. BISON hybrid FM synthesis -- Peak, RMS & crest (area between peak and RMS) detection.
+	FM. BISON hybrid FM synthesis -- Peak & RMS detection.
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	FIXME:
-		- Write peak detection
-		- Offer information about the crest, if that's of any use at all?
+		- Evaluate crest detection (should be easy given we have RMS and Peak)
 */
 
 #pragma once
 
 #include "synth-global.h"
+#include "synth-sidechain-envelope.h"
 
 namespace SFM
 {
@@ -24,7 +24,7 @@ namespace SFM
 	class RMS
 	{
 	public:
-		RMS(unsigned sampleRate, float lengthInSec) :
+		RMS(unsigned sampleRate, float lengthInSec /* Window size */) :
 			m_numSamples(unsigned(sampleRate*lengthInSec))
 		{
 			SFM_ASSERT(m_numSamples > 0);
@@ -74,5 +74,36 @@ namespace SFM
 	private:
 		const unsigned m_numSamples;
 		std::deque<float> m_buffer;
+	};
+
+	class Peak
+	{
+	public:
+		Peak(unsigned sampleRate, float attackInSec, float releaseInSec) :
+			m_peakEnv(sampleRate, attackInSec, releaseInSec)
+		{
+		}
+
+		SFM_INLINE void Reset()
+		{
+			m_peakEnv.Reset();
+		}
+
+		SFM_INLINE float Run(float sampleL, float sampleR)
+		{
+			// Pick rect. max.
+			const float rectMax = GetRectifiedMaximum(sampleL, sampleR);
+			
+			// Apply & return
+			return m_peakEnv.Apply(rectMax);
+		}
+
+		SFM_INLINE float Get() const
+		{
+			return m_peakEnv.Get();
+		}
+
+	private:
+		FollowerEnvelope m_peakEnv;
 	};
 }

@@ -23,7 +23,7 @@ namespace SFM
 	// Constant parameters
 	constexpr float kWahDelay = 0.005f; // 5MS             
 	constexpr float kWahLookahead = 0.3f;
-	constexpr float kWahRMSWindowLen = 0.001f; // 1MS
+	constexpr float kWahRMSWindowSec = 0.001f; // 1MS
 
 	class AutoWah
 	{
@@ -34,7 +34,7 @@ namespace SFM
 			m_sampleRate(sampleRate), m_Nyquist(Nyquist)
 ,			m_outDelayL(sampleRate, kWahDelay)
 ,			m_outDelayR(sampleRate, kWahDelay)
-,			m_RMS(sampleRate, kWahRMSWindowLen)
+,			m_RMS(sampleRate, kWahRMSWindowSec)
 ,			m_sideEnv(sampleRate, kDefWahAttack, kDefWahHold)
 ,			m_vowelizerV2_1(sampleRate), m_vowelizerV2_2(sampleRate)
 ,			m_curResonance(0.f, sampleRate, kDefParameterLatency)

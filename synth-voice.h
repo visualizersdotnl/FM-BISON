@@ -144,7 +144,7 @@ namespace SFM
 				modFilter.updateCoefficients(16.0, 0.025, SvfLinearTrapOptimised2::NO_FLT_TYPE, sampleRate);
 				modFilter.resetState();
 
-				// Reset gain envelope
+				// Reset gain envelope (fast (1MS) attack, slower 10MS release)
 				envGain.SetSampleRate(sampleRate);
 				envGain.SetAttack(1.f);
 				envGain.SetRelease(10.f);
