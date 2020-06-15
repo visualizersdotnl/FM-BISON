@@ -11,7 +11,6 @@
 #include "synth-stateless-oscillators.h"
 #include "synth-phase.h"
 #include "synth-interpolated-parameter.h"
-#include "synth-MIDI.h"
 
 namespace SFM
 {
@@ -29,7 +28,7 @@ namespace SFM
 		// Takes in any signal
 		SFM_INLINE float Sample(float phase, float input)
 		{
-			const float curGate = oscPulse(phase, m_curDuty);
+			const float curGate = oscPulse(phase, 0.5f); // oscSquare()
 			
 			// Gate?
 			if (m_prevGate != curGate)
@@ -74,7 +73,6 @@ namespace SFM
 		float m_slewRate = kDefSandHSlewRate;
 
 		// State
-		/* const */ float m_curDuty = 0.5f;
 		float m_prevGate = -1.f;
 		InterpolatedParameter<kLinInterpolate> m_curSignal;
 	};

@@ -12,9 +12,8 @@
 
 #include "FM_BISON.h"
 
-#include "synth-MIDI.h"
-#include "synth-patch-global.h"
-#include "synth-math.h"
+#include "synth-global.h"
+#include "patch/synth-patch-global.h"
 // #include "synth-voice.h"
 // #include "synth-one-pole-filters.h"
 // #include "synth-post-pass.h"
@@ -841,8 +840,7 @@ namespace SFM
 			voiceOp.enabled   = patchOp.enabled;
 			voiceOp.isCarrier = patchOp.isCarrier;
 
-			// Rese gain
-			voiceOp.curGain = 0.f;
+			voiceOp.envGain.Reset();
 
 			if (true == voiceOp.enabled)
 			{
@@ -995,8 +993,7 @@ namespace SFM
 			voiceOp.enabled   = patchOp.enabled;
 			voiceOp.isCarrier = patchOp.isCarrier;
 
-			// Rese gain
-			voiceOp.curGain = 0.f;
+			voiceOp.envGain.Reset();
 
 			if (true == voiceOp.enabled)
 			{
@@ -1950,7 +1947,9 @@ namespace SFM
 		}
 
 		/*
-			Calculate RMS for each operator (for visualization only, so remove or comment this out if unnecessary)
+			Calculate RMS for each operator (for visualization only; remove or comment out if unnecessary)
+
+			FIXME: write more useful calculation, especially for modulators
 		*/
 
 		// Sum up
@@ -1972,7 +1971,7 @@ namespace SFM
 
 					if (true == voiceOp.enabled)
 					{
-						const float curGain = voiceOp.curGain;
+						const float curGain = voiceOp.envGain.Get();
 						powerSums[iOp] += curGain*curGain;
 						++sumDiv[iOp];
 					}
@@ -1980,18 +1979,11 @@ namespace SFM
 			}
 		}
 		
-		// Calc. & filter RMS
+		// Calculate RMS & add it to running envelope
 		for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
 		{
 			const unsigned divisor = sumDiv[iOp];
-			float RMS = (divisor > 0) ? sqrtf(powerSums[iOp]/divisor) : 0.f;
-			
-			// Make smaller values a *bit* more visisble (hack, FIXME)
-			if (RMS < 0.1f)
-			{
-				RMS *= 2.f;
-			}
-			
+			const float RMS = (divisor > 0) ? sqrtf(powerSums[iOp]/divisor) : 0.f;
 			auto &opRMS = m_opRMS[iOp];
 			opRMS.Apply(RMS);
 		}

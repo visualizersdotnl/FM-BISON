@@ -4,7 +4,7 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 	
-	Thank you Tammo Hinrichs for a few good tips!
+	Big thank you to Tammo Hinrichs for a few good tips!
 */
 
 #include "synth-compressor.h"
@@ -39,8 +39,7 @@ namespace SFM
 			
 			// Get RMS in dB
 			// Suggests that RMS isn't the best way: http://c4dm.eecs.qmul.ac.uk/audioengineering/compressors/documents/Reiss-Tutorialondynamicrangecompression.pdf (FIXME)
-			const float RMS = m_RMSDetector.Run(sampleL, sampleR);
-			const float signaldB = (0.f != RMS) ? Lin2dB(RMS) : kMinVolumedB;
+			const float signaldB = m_RMS.Run(sampleL, sampleR);
 
 			// Calculate slope
 			SFM_ASSERT(ratio > 0.f);
@@ -73,11 +72,11 @@ namespace SFM
 			}
 
 			// Apply gain envelope
-			float envdB = m_gainEnv.ApplyRev(gaindB, m_gain);
+			float envdB = m_gainEnv.ApplyReverse(gaindB);
 
 			// Automatic gain (level) adjustment (nicked from: https://github.com/ptrv/auto_compressor/blob/master/Source/PluginProcessor.cpp)
 			const float estimatedB = thresholddB * -slope/2.f;
-			const float autodB = m_autoEnv.ApplyRev(envdB - estimatedB, m_autoSig);
+			const float autodB = m_autoGainEnv.ApplyReverse(envdB - estimatedB);
 
 			if (true == autoGain)
 			{
@@ -94,7 +93,7 @@ namespace SFM
 			const float newGain = dB2Lin(envdB);
 
 			if (gaindB < 0.f)
-				bite += 1.f;
+				bite += 1.f; // Register "bite"
 
 			// Apply to (delayed) signal
 			const auto  delayL   = (m_outDelayL.size()-1)*lookahead;

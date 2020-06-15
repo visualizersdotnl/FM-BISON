@@ -14,6 +14,7 @@
 
 namespace SFM
 {
+	// All values above 100 are identical (as the DX7's MIDI range is, mistakenly, [0..100])
 	static const float kDX7_LFO_To_Hz[128] = // MIDI range
 	{
 		 0.062506f,  0.124815f,  0.311474f,  0.435381f,  0.619784f,

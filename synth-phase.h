@@ -4,8 +4,8 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	- Phase period is [0..1].
-	- Works with double precision internally.
+	- Phase period is [0..1]
+	- Uses double precision internally
 */
 
 #pragma once

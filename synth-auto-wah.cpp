@@ -4,8 +4,7 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	FIXME:
-		- Interpolate between more formants or perhaps write and use an all new formant (vowel) filter?
+	FIXME: replace lackluster "formant filter"
 */
 
 #include "synth-auto-wah.h"
@@ -38,7 +37,7 @@ namespace SFM
 				const float sampleR = pRight[iSample];
 
 				// Keep running RMS calc.
-				/* const float RMS = */ m_RMSDetector.Run(sampleL, sampleR);
+				m_RMS.Run(sampleL, sampleR);
 
 				// Feed delay line
 				m_outDelayL.Write(sampleL);
@@ -59,8 +58,8 @@ namespace SFM
 			const float lowCut    = m_curCut.Sample()*0.125f; // Nyquist/8 is more than enough!
 			const float wetness   = m_curWet.Sample();
 			
-			m_envFollower.SetAttack(curAttack *   100.f); // This is *weird* (FIXME: might uncover a few related problems?)
-			m_envFollower.SetRelease(curHold  *  1000.f);
+			m_sideEnv.SetAttack(curAttack *   100.f); // FIXME: why a tenth of?
+			m_sideEnv.SetRelease(curHold  *  1000.f);
 
 			m_LFO.SetFrequency(m_curRate.Sample());
 
@@ -72,12 +71,10 @@ namespace SFM
 			m_outDelayL.Write(sampleL);
 			m_outDelayR.Write(sampleR);
 
-			// Calc. RMS and feed it to env. follower
-			// We normalize between infinity and 3dB so 'envGain' is easy to use
-			const float RMS = m_RMSDetector.Run(sampleL, sampleR);
-			const float signaldB = (0.f != RMS) ? Lin2dB(RMS) : kMinVolumedB;
-			const float envdB = m_envFollower.Apply(signaldB, m_envdB);
-			const float envGain = fast_tanhf(dB2Lin(envdB));
+			// Calc. RMS and feed it to sidechain
+			const float signaldB = m_RMS.Run(sampleL, sampleR);
+			const float envdB = m_sideEnv.Apply(signaldB);
+			const float envGain = fast_tanhf(dB2Lin(envdB)); // Soft-clip gain, sounds good
 
 			// Grab (delayed) signal
 			const float lookahead = m_lookahead*wetness; // Lookahead is proportional to wetness, a hack to make sure we do not cause a delay when 100% dry (FIXME)

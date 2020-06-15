@@ -13,9 +13,9 @@
 	The range returned is [-1..1], it should be adjusted to pitch range.
 
 	FIXME:
- 		- Let envelope hold at P3 (sustain), on release interpolate to P4.
+ 		- Let envelope hold at P3 (sustain), on release interpolate to P4
 		- Refactor code (duplication, ham-fisted approach, et cetera)
-		- Check this with Dexed's or your DX7's behaviour, probably totally different :-)
+		- Review interpolation (logarithmic seems more appropriate)
 */
 
 #pragma once

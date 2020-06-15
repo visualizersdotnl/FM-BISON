@@ -45,17 +45,7 @@
 	- 'PolyBLEP'-based oscillators were lifted from https://github.com/martinfinke/PolyBLEP; by various authors (I keep a copy in /3rdparty as ref.)
 	- And a few bits and bytes left and right; these are often credited in or close to the implementation
 
-	Depends on JUCE 5.4.7 or compatible!
-
-	The following files belong to the 'helper' part of the codebase (included by synth-global.h):
-		- synth-aligned-alloc.h
-		- synth-fast-cosine.*
-		- synth-fast-tan.h
-		- synth-helper.h
-		- synth-log.*
-		- synth-math.h
-		- synth-ring-buffer.h
-		- synth-random.*
+	** Depends on JUCE 5.4.7 or compatible! **
 	
 	Core goals:
 		- Yamaha DX7 style core FM with extensions
@@ -82,20 +72,13 @@
 
 #pragma once
 
-// C++
-#include <deque>
-#include <thread>
-
 #include "synth-global.h"
 
-#include "synth-patch-global.h"
-// #include "synth-one-pole-filters.h"
+#include "patch/synth-patch-global.h"
 #include "synth-post-pass.h"
 #include "synth-phase.h"
 #include "synth-voice.h"
-#include "synth-followers.h"
-
-#include "synth-MIDI.h" // Purely for 2 constants
+#include "synth-sidechain-envelope.h"
 
 namespace SFM
 {

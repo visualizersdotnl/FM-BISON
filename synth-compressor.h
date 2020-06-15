@@ -8,23 +8,26 @@
 #pragma once
 
 #include "synth-global.h"
-#include "synth-followers.h"
+#include "synth-sidechain-envelope.h"
 #include "synth-delay-line.h"
 #include "synth-interpolated-parameter.h"
+#include "synth-level-detect.h"
 
 namespace SFM
 {
+	constexpr float kCompMaxDelay = 0.01f;      // 10MS
+	constexpr float kCompRMSWindowLen = 0.005f; // 5MS
+
 	class Compressor
 	{
 	public:
-		const float kCompMaxDelay = 0.01f; // 10MS
 
 		Compressor(unsigned sampleRate) :
 			m_sampleRate(sampleRate)
 ,			m_outDelayL(sampleRate, kCompMaxDelay)
 ,			m_outDelayR(sampleRate, kCompMaxDelay)
-,			m_RMSDetector(sampleRate, 0.005f /* 5MS */)
-,			m_gainEnv(sampleRate), m_autoEnv(sampleRate)
+,			m_RMS(sampleRate, kCompRMSWindowLen)
+,			m_gainEnv(sampleRate), m_autoGainEnv(sampleRate)
 ,			m_curThresholddB(kDefCompThresholddB, sampleRate, kDefParameterLatency)
 ,			m_curKneedB(kDefCompKneedB, sampleRate, kDefParameterLatency)
 ,			m_curRatio(kDefCompRatio, sampleRate, kDefParameterLatency)
@@ -56,20 +59,17 @@ namespace SFM
 			m_curLookahead.SetTarget(lookahead);
 		}
 		
-		// Returns "bite"
+		// Returns "bite" (can be used for a visual indicator)
 		float Apply(float *pLeft, float *pRight, unsigned numSamples, bool autoGain);
 
 	private:
 		const unsigned m_sampleRate;
 
 		DelayLine m_outDelayL, m_outDelayR;
-		RMSDetector m_RMSDetector;
+		RMS m_RMS;
 		
-		AttackReleaseFollower m_gainEnv;
-		float m_gain = 0.f;
-
-		AttackReleaseFollower m_autoEnv;
-		float m_autoSig = 0.f;
+		FollowerEnvelope m_gainEnv;
+		FollowerEnvelope m_autoGainEnv;
 
 		// Interpolated parameters
 		InterpolatedParameter<kLinInterpolate> m_curThresholddB;

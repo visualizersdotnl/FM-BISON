@@ -6,7 +6,7 @@
 
 	FIXME:
 		- Supply all parameters at once using a single SetParameters() function
-		- Look at Will Pirkle's book for his algorithm and perhaps consider adapting it
+		- Consider using Will Pirkle's algorithm (refer to book)
 */
 
 #pragma once

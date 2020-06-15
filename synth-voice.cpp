@@ -275,8 +275,8 @@ namespace SFM
 
 				modSamples[iOp] = modSample;
 
-				// Store sample for VU meter
-				voiceOp.envGain.Apply(fabsf(modSample), voiceOp.curGain);
+				// Add sample to gain envelope (for VU meter)
+				voiceOp.envGain.Apply(fabsf(modSample));
 				
 				// Calculate panning
 				float panning = voiceOp.panning.Sample();

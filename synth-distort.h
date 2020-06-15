@@ -4,8 +4,8 @@
 	(C) 2018- visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	- I'm not using each and every one of these
-	- There's tons more in Will Pirkle's code (came with the book) up for grabs!
+	- This is a collection, not all are used
+	- There's tons more in Will Pirkle's code (came with the book) if you're looking for more
 */
 
 #pragma once
@@ -57,7 +57,7 @@ namespace SFM
 		return sample - amount*(1.f/3.f) * (sample*sample*sample);
 	}
 
-	// Squarepusher distortion
+	// "Squarepusher" (or just 'arctangent distortion')
 	SFM_INLINE static float Squarepusher(float sample, float amount)
 	{
 		const float scaledAmt = 1.f + amount*31.f;

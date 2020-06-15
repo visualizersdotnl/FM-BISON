@@ -18,13 +18,11 @@
 
 #include "synth-global.h"
 #include "synth-oscillator.h"
-#include "synth-patch-global.h"
+#include "patch/synth-patch-global.h"
 #include "synth-envelope.h"
 #include "synth-interpolated-parameter.h"
 #include "synth-one-pole-filters.h"
-// #include "synth-pitch-envelope.h"
-#include "synth-MIDI.h"
-#include "synth-followers.h"
+#include "synth-sidechain-envelope.h"
 
 namespace SFM
 {
@@ -99,9 +97,8 @@ namespace SFM
 			SvfLinearTrapOptimised2 filters[kNumVoiceAllpasses];
 			SvfLinearTrapOptimised2 modFilter; // Set to default by Reset()
 
-			// Gain follower
-			AttackReleaseFollower envGain;
-			float curGain;
+			// Gain envelope
+			FollowerEnvelope envGain;
 
 			// This function is called by Voice::Reset()
 			void Reset(unsigned sampleRate)
@@ -147,11 +144,10 @@ namespace SFM
 				modFilter.updateCoefficients(16.0, 0.025, SvfLinearTrapOptimised2::NO_FLT_TYPE, sampleRate);
 				modFilter.resetState();
 
-				// Reset env. follower
+				// Reset gain envelope
 				envGain.SetSampleRate(sampleRate);
 				envGain.SetAttack(1.f);
 				envGain.SetRelease(10.f);
-				curGain = 0.f;
 			}
 
 		} m_operators[kNumOperators];

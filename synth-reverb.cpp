@@ -10,6 +10,7 @@
 namespace SFM
 {
 	// Defaults are tuned for 44.1KHz, so we need to adjust
+	// FIXME: is linear adjustment right?
 	SFM_INLINE static size_t ScaleNumSamples(unsigned sampleRate, size_t numSamples)
 	{
 		const float scale = sampleRate/44100.f;
@@ -17,11 +18,11 @@ namespace SFM
 	}
 
 	/*
-		Default taken from a decent implementation (can't remember the URL)
+		Defaults taken from a decent FreeVerb implementation
 	*/
 
 	// Added to R
-	const unsigned kStereoSpread = 23;
+	constexpr unsigned kStereoSpread = 23;
 
 	// L
 	const size_t kCombSizes[kReverbNumCombs] = {
@@ -44,10 +45,10 @@ namespace SFM
 	};
 
 	// FIXME: test variations (https://christianfloisand.wordpress.com/tag/all-pass-filter/ mentions slightly modulating the first pass)
-	const float kAllPassDefFeedback = 0.5f; // Def: 0.5
+	constexpr float kAllPassDefFeedback = 0.5f; // Def: 0.5
 	
-	const float kDefaultRoomSize = 0.8f;
-	const float kDefaultWidth = 2.f;
+	constexpr float kDefaultRoomSize = 0.8f;
+	constexpr float kDefaultWidth = 2.f;
 
 	Reverb::Reverb(unsigned sampleRate, unsigned Nyquist) :
 		m_sampleRate(sampleRate), m_Nyquist(Nyquist)

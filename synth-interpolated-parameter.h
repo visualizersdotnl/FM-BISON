@@ -11,10 +11,10 @@
 
 	Adjusting the rate requires subsequently (re)setting the (target) value; this is
 	a bit of an annoyance at times (see synth-post-pass.cpp for example), so in my own
-	rewrite I should address this.
+	rewrite I should address this (FIXME).
 
 	FIXME: 
-		- Replace JUCE implementation currently used for convenience
+		- Replace JUCE implementation
 		- I'm not entirely happy with the latter 2 constructors, the top one becomes ambiguous when I set the last
 		  parameter to a default value (kDefParameterLatency), which is the case 99% of the time
 */

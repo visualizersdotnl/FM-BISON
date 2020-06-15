@@ -1,6 +1,6 @@
 
 /*
-	FM. BISON hybrid FM synthesis -- Global includes, constants & utility functions.
+	FM. BISON hybrid FM synthesis -- Global includes, constants & utility functions: include on top of every header or autonomous CPP.
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 */
@@ -47,9 +47,6 @@
 // Define to disable all FX (including per-voice filter)
 // #define SFM_DISABLE_FX
 
-#include "synth-log.h"
-#include "synth-math.h"
-
 namespace SFM
 {
 	/*
@@ -77,8 +74,8 @@ namespace SFM
 	constexpr float kDefParameterSlewMS = 3.f;
 
 	// Polyphony constraints
-	constexpr unsigned kMinVoices  = 1;
-	constexpr unsigned kMaxVoices  = 128;
+	constexpr unsigned kMinVoices = 1;
+	constexpr unsigned kMaxVoices = 128;
 
 	// Default number of vioces
 	constexpr unsigned kDefMaxVoices = 32; // Very safe and fast
@@ -122,9 +119,9 @@ namespace SFM
 	constexpr float kDefReverbFilter = 1.f;
 
 	// Default post-pass filter drive range & default (dB)	
-	constexpr float kMinPostFilterDrivedB  = -3.f;
-	constexpr float kMaxPostFilterDrivedB  =  6.f;
-	constexpr float kDefPostFilterDrivedB  =  0.f;
+	constexpr float kMinPostFilterDrivedB = -3.f;
+	constexpr float kMaxPostFilterDrivedB =  6.f;
+	constexpr float kDefPostFilterDrivedB =  0.f;
 
 	// Tube distortion drive range
 	constexpr float kMinTubeDrive =   0.f;
@@ -233,10 +230,14 @@ namespace SFM
 	constexpr int kMaxLFOModSpeed =  8;
 };
 
-#include "synth-random.h"
-#include "synth-helper.h"
-// #include "synth-math.h"
-// #include "synth-fast-tan.h"
-// #include "synth-fast-cosine.h"
-#include "synth-aligned-alloc.h"
-#include "synth-ring-buffer.h"
+// All helper functionality is at your disposal by default
+// I might *not* want to do this if the set grows significantly bigger
+#include "helper/synth-log.h"
+#include "helper/synth-math.h"
+#include "helper/synth-random.h"
+#include "helper/synth-helper.h"
+#include "helper/synth-fast-tan.h"
+#include "helper/synth-fast-cosine.h"
+#include "helper/synth-aligned-alloc.h"
+#include "helper/synth-ring-buffer.h"
+#include "helper/synth-MIDI.h"

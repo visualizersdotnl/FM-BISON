@@ -4,14 +4,15 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
+	- Auto-wah
 	- Delay
 	- Yamaha Reface CP-style chorus & phaser
-	- Reverb
 	- Post filter (24dB)
 	- Tube distortion
-	- Master volume
+	- Reverb
 	- Compressor
 	- Low cut
+	- Master volume & final clamp
 */
 
 #include "synth-post-pass.h"

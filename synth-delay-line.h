@@ -8,7 +8,6 @@
 #pragma once
 
 #include "synth-global.h"
-// #include "synth-one-pole-filters.h"
 
 namespace SFM
 {
