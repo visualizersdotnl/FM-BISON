@@ -2,13 +2,21 @@
 
 FM. BISON - A hybrid FM synthesis engine.
 
-# IMPORTANT ISSUES 
+# IMPORTANT
 
 - Basic documentation will be written at some point; for now just explore our code, it has it's share of comments
 - Github issue list is complete, please at least give it a once over as this project is under *heavy* development.
 - Currently there are 2 dependencies on JUCE 5.4.x
 - Not a lot of optimization has been done; it is reasonably fast, but since we are in R&D flexibility is more important
 - All third-party code and resources (well, almost) we've used are credited on top of FM_BISON.h!
+
+# FOLDER GUIDE
+
+- /3rdparty: Third-party code (mostly adapted & modified, which in turn is commented on top of files)
+- /helper: Codebase's "helper" functionality (basics included through synth-global.h)
+- /quarantined: Code that must be phased out because it's not up to snuff
+- /patch: FM. BISON's patch headers, laying out the entire structure an instance uses to render an instrument
+- /promotion: Promotional material (graphics, audio renders et cetera)
 
 # TRAILER (30/04/2020)
 
