@@ -114,8 +114,8 @@ namespace SFM
 			filteredR += remainderR;
 
 			// "Vowelize" (until I have a better formant filter)
-			const Vowel vowelA = Vowel::kA;
-			const Vowel vowelB = Vowel::kEE;
+			const Vowel vowelA = Vowel::kOO;
+			const Vowel vowelB = Vowel::kA;
 			const float vowBlend = envGain;
 
 			float vowelL_1 = filteredL, vowelR_1 = filteredR;

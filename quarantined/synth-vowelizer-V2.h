@@ -4,12 +4,8 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	We must get rid of this in favour of an actual formant filter as soon as possible!
+	We must get rid of this in favour of a better formant filter as soon as possible!
 	I've started writing one below the implementation of VowelizerV2.
-
-	For new vocoder or formant filter if you will:
-	- Ref.: https://www.youtube.com/watch?v=nPFzhwAJhGI
-	- Process 2 signals: one to filter and follow, and a waveform to shape
 */
 
 #pragma once

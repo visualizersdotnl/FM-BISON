@@ -38,7 +38,7 @@ namespace SFM
 			
 			// Calculate Q (higher frequency means wider response)
 			const float normalizedFreq = frequency/magnitude;
-			const float Q = 0.05f + 39.f*normalizedFreq;
+			const float Q = 0.025f + (19.f-0.025f)*normalizedFreq; // [0.025..40.0]
 
 			m_filterBP[iFormant].updateCoefficients(frequency, Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
 
