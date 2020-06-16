@@ -107,7 +107,7 @@ namespace SFM
 
 	void PostPass::Apply(unsigned numSamples,
 	                     float rateBPM,
-	                     float wahResonance, float wahAttack, float wahHold, float wahRate, float wahSpeak, float wahCut, float wahWet,
+	                     float wahResonance, float wahAttack, float wahHold, float wahRate, float wahSpeak, float wahSpeakVowel, float wahCut, float wahWet,
 	                     float cpRate, float cpWet, bool isChorus,
 	                     float delayInSec, float delayWet, float delayFeedback, float delayFeedbackCutoff,
 	                     float postCutoff, float postQ, float postDrivedB, float postWet,
@@ -117,8 +117,8 @@ namespace SFM
 	                     float masterVol,
 	                     const float *pLeftIn, const float *pRightIn, float *pLeftOut, float *pRightOut)
 	{
-		// Other parameters are checked in functions they're passed to!
-		// FIXME: is this complete?
+		// Other parameters should be checked in functions they're passed to; however, this list can be incomplete; when
+		// running into such a situation promptly fix it!
 		SFM_ASSERT(nullptr != pLeftIn  && nullptr != pRightIn);
 		SFM_ASSERT(nullptr != pLeftOut && nullptr != pRightOut);
 		SFM_ASSERT(numSamples > 0);
@@ -153,7 +153,7 @@ namespace SFM
 		if (true == useBPM)
 			wahRate = rateBPM; // FIXME: test this!
 
-		m_wah.SetParameters(wahResonance, wahAttack, wahHold, wahRate, wahSpeak, wahCut, wahWet);
+		m_wah.SetParameters(wahResonance, wahAttack, wahHold, wahRate, wahSpeak, wahSpeakVowel, wahCut, wahWet);
 		m_wah.Apply(m_pBufL, m_pBufR, numSamples);
 
 		/* ----------------------------------------------------------------------------------------------------

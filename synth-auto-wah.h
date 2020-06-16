@@ -10,11 +10,11 @@
 #include "3rdparty/SvfLinearTrapOptimised2.hpp"
 
 #include "synth-global.h"
- #include "synth-sidechain-envelope.h"
+#include "synth-sidechain-envelope.h"
 #include "synth-delay-line.h"
 #include "synth-oscillator.h"
 #include "synth-DX7-LFO-table.h"
-#include "quarantined/synth-vowelizer-V2.h"
+#include "quarantined/synth-vowelizer-V1.h"
 #include "synth-interpolated-parameter.h"
 #include "synth-level-detect.h"
 
@@ -36,8 +36,6 @@ namespace SFM
 ,			m_outDelayR(sampleRate, kWahDelay)
 ,			m_RMS(sampleRate, kWahRMSWindowSec)
 ,			m_sideEnv(sampleRate, kDefWahAttack, kDefWahHold)
-,			m_vowelizerV2_1(sampleRate), m_vowelizerV2_2(sampleRate)
-,			m_formantFilter(sampleRate, 3)
 ,			m_curResonance(0.f, sampleRate, kDefParameterLatency)
 ,			m_curAttack(kDefWahAttack, sampleRate, kDefParameterLatency)
 ,			m_curHold(kDefWahHold, sampleRate, kDefParameterLatency)
@@ -47,18 +45,19 @@ namespace SFM
 ,			m_curWet(0.f, sampleRate, kDefParameterLatency)
 ,			m_lookahead(kWahLookahead)
 		{
-			m_LFO.Initialize(Oscillator::Waveform::kSine, kDefWahRate, m_sampleRate, 0.f);
+			m_LFO.Initialize(Oscillator::Waveform::kTriangle, kDefWahRate, m_sampleRate, 0.f);
 		}
 
 		~AutoWah() {}
 
-		SFM_INLINE void SetParameters(float resonance, float attack, float hold, float rate, float speak, float cut, float wetness)
+		SFM_INLINE void SetParameters(float resonance, float attack, float hold, float rate, float speak, float speakVowel, float cut, float wetness)
 		{
 			SFM_ASSERT(resonance >= 0.f && resonance <= 1.f);
 			SFM_ASSERT(attack >= kMinWahAttack && attack <= kMaxWahAttack);
 			SFM_ASSERT(hold >= kMinWahHold && hold <= kMaxWahHold);
 			SFM_ASSERT(rate >= kMinWahRate && rate <= kMaxWahRate);
 			SFM_ASSERT(speak >= 0.f && speak <= 1.f);
+			SFM_ASSERT(speakVowel >= 0.f && speakVowel <= kMaxWahSpeakVowel);
 			SFM_ASSERT(cut >= 0.f && cut <= 1.f);
 			SFM_ASSERT(wetness >= 0.f && wetness <= 1.f);
 
@@ -67,6 +66,7 @@ namespace SFM
 			m_curHold.SetTarget(hold);
 			m_curRate.SetTarget(rate);
 			m_curSpeak.SetTarget(speak);
+			m_curSpeakVowel.SetTarget(speakVowel);
 			m_curCut.SetTarget(cut);
 			m_curWet.SetTarget(wetness);
 		}
@@ -86,12 +86,7 @@ namespace SFM
 		SvfLinearTrapOptimised2 m_preFilterLP[3];
 		SvfLinearTrapOptimised2 m_postFilterLP;
 		
-		// FIXME (the old VowelizerV2 is broken but sounds sort of OK)
-		VowelizerV2 m_vowelizerV2_1;
-		VowelizerV2 m_vowelizerV2_2;
-	
-		// FIXME
-		FormantFilter m_formantFilter;
+		VowelizerV1 m_vowelizerV1;
 
 		Oscillator m_LFO;
 
@@ -101,6 +96,7 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curHold;
 		InterpolatedParameter<kLinInterpolate> m_curRate;
 		InterpolatedParameter<kLinInterpolate> m_curSpeak;
+		InterpolatedParameter<kLinInterpolate> m_curSpeakVowel;
 		InterpolatedParameter<kLinInterpolate> m_curCut;
 		InterpolatedParameter<kLinInterpolate> m_curWet;
 

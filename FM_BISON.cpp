@@ -2017,6 +2017,7 @@ namespace SFM
 						  m_patch.wahHold,
 						  m_wahRatePS.Apply(m_patch.wahRate),
 						  m_wahSpeakPS.Apply(m_patch.wahSpeak),
+						  m_patch.wahSpeakVowel,
 						  m_wahCutPS.Apply(m_patch.wahCut),
 						  m_wahWetPS.Apply(m_patch.wahWet),
 		                  /* Chorus/Phaser */

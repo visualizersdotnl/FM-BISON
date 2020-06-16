@@ -39,7 +39,7 @@ namespace SFM
 
 		void Apply(unsigned numSamples,
 		           float rateBPM, /* See impl. for details! */
-				   float wahResonance, float wahAttack, float wahHold, float wahRate, float wahSpeak, float wahCut, float wahWet,
+				   float wahResonance, float wahAttack, float wahHold, float wahRate, float wahSpeak, float wahSpeakVowel, float wahCut, float wahWet,
 		           float cpRate, float cpWet, bool isChorus,
 		           float delayInSec, float delayWet, float delayFeedback, float delayFeedbackCutoff,
 		           float postCutoff, float postQ, float postDrivedB, float postWet,

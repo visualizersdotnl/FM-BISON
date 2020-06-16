@@ -20,7 +20,7 @@ namespace SFM
 
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples)
 	{
-		constexpr float kGain3dB = 1.41253757f;
+//		constexpr float kGain3dB = 1.41253757f;
 
 		if (0.f == m_curWet.Get() && 0.f == m_curWet.GetTarget())
 		{
@@ -28,6 +28,7 @@ namespace SFM
 			m_curAttack.Skip(numSamples);
 			m_curHold.Skip(numSamples);
 			m_curSpeak.Skip(numSamples);
+			m_curSpeakVowel.Skip(numSamples);
 			m_curCut.Skip(numSamples);
 			m_curWet.Skip(numSamples);
 
@@ -54,7 +55,8 @@ namespace SFM
 			const float resonance = m_curResonance.Sample();
 			const float curAttack = m_curAttack.Sample();
 			const float curHold   = m_curHold.Sample();
-			const float vowelize  = m_curSpeak.Sample();
+			const float voxWet    = m_curSpeak.Sample();
+			const float voxVow    = m_curSpeakVowel.Sample();
 			const float lowCut    = m_curCut.Sample()*0.125f; // Nyquist/8 is more than enough!
 			const float wetness   = m_curWet.Sample();
 			
@@ -92,11 +94,21 @@ namespace SFM
 			const float remainderL = delayedL-preFilteredL;
 			const float remainderR = delayedR-preFilteredR;
 			
+			// Sample LFO
 			const float LFO = m_LFO.Sample(0.f);
 
-			float filteredL = preFilteredL, filteredR = preFilteredR;
+#if 0
+			// Vowelize (pre-LP)
+			float vowelL = preFilteredL, vowelR = preFilteredR;
+			m_vowelizerV1.Apply(vowelL, vowelR, voxVow);
+
+			float filteredL = lerpf<float>(preFilteredL, vowelL, voxWet);
+			float filteredR = lerpf<float>(preFilteredR, vowelR, voxWet);
+#endif
 
 			// Post filter (LP)
+			float filteredL = preFilteredL, filteredR = preFilteredR;
+
 			const float cutoff = kCutRange + (envGain * (1.f - 2.f*kCutRange)) + LFO*kCutRange;
 
 			SFM_ASSERT(cutoff >= 0.f && cutoff <= 1.f);
@@ -113,30 +125,13 @@ namespace SFM
 			filteredL += remainderL;
 			filteredR += remainderR;
 
-			// "Vowelize" (until I have a better formant filter)
-			const Vowel vowelA = Vowel::kOO;
-			const Vowel vowelB = Vowel::kA;
-			const float vowBlend = envGain;
+#if 1
+			// Vowelize (post-LP)
+			float vowelL = filteredL, vowelR = filteredR;
+			m_vowelizerV1.Apply(vowelL, vowelR, voxVow);
 
-			float vowelL_1 = filteredL, vowelR_1 = filteredR;
-			m_vowelizerV2_1.Apply(vowelL_1, vowelR_1, vowelA);
-
-			float vowelL_2 = filteredL, vowelR_2 = filteredR;
-			m_vowelizerV2_1.Apply(vowelL_2, vowelR_2, vowelB);
-			
-			float vowelL = lerpf<float>(vowelL_1, vowelL_2, vowBlend);
-			float vowelR = lerpf<float>(vowelR_1, vowelR_2, vowBlend);
-
-			filteredL = lerpf<float>(filteredL, vowelL, vowelize);
-			filteredR = lerpf<float>(filteredR, vowelR, vowelize);
-
-#if 0
-			// Formant pass
-			float formCarrierL = filteredL, formCarrierR = filteredR;
-			m_formantFilter.Apply(formCarrierL, formCarrierR, vowelL, vowelR);
-
-			filteredL = lerpf<float>(filteredL, formCarrierL, vowelize);
-			filteredR = lerpf<float>(filteredR, formCarrierR, vowelize);
+			filteredL = lerpf<float>(filteredL, vowelL, voxWet);
+			filteredR = lerpf<float>(filteredR, vowelR, voxWet);
 #endif
 
 			// Mix with dry (delayed) signal

@@ -123,6 +123,7 @@ namespace SFM
 		float wahHold;
 		float wahRate;
 		float wahSpeak;
+		float wahSpeakVowel; // [0..kMaxWahSpeakVowel]
 		float wahCut;
 		float wahWet;
 		
@@ -263,6 +264,7 @@ namespace SFM
 			wahHold = kDefWahHold;
 			wahRate = kDefWahRate;
 			wahSpeak = 0.f;
+			wahSpeakVowel = 0.f; // [0..kMaxWahSpeakVowel]
 			wahCut = 0.f;
 			wahWet = 0.f;
 			
