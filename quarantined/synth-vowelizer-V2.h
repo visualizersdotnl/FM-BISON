@@ -6,6 +6,10 @@
 
 	We must get rid of this in favour of an actual formant filter as soon as possible!
 	I've started writing one below the implementation of VowelizerV2.
+
+	For new vocoder or formant filter if you will:
+	- Ref.: https://www.youtube.com/watch?v=nPFzhwAJhGI
+	- Process 2 signals: one to filter and follow, and a waveform to shape
 */
 
 #pragma once
@@ -18,20 +22,29 @@
 
 namespace SFM
 {
+	enum Vowel
+	{
+		kEE,
+		kOO,
+		kI,
+		kE,
+		kU,
+		kA,
+		kNumVowels
+	};
+
+	static const float kVowelFrequencies[kNumVowels][3] =
+	{
+		/* EE */ { 270.f, 2300.f, 3000.f },
+		/* OO */ { 300.f,  870.f, 3000.f },
+		/* I  */ { 400.f, 2000.f, 2250.f },
+		/* E  */ { 530.f, 1850.f, 2500.f },
+		/* U  */ { 640.f, 1200.f, 2400.f },
+		/* A  */ { 660.f, 1700.f, 2400.f }
+	};
+
 	class VowelizerV2
 	{
-	public:
-		enum Vowel
-		{
-			kEE,
-			kOO,
-			kI,
-			kE,
-			kU,
-			kA,
-			kNumVowels
-		};
-
 	public:
 		VowelizerV2(unsigned sampleRate) :
 			m_sampleRate(sampleRate)
@@ -56,18 +69,11 @@ namespace SFM
 
 	/*
 		Ref.: https://www.youtube.com/watch?v=nPFzhwAJhGI
-
-		This should (become) a rather standard vocoder; the only real problem I have to tackle is that I don't
-		really have any valid input to 'vocode' yet; I'm looking for a good sounding way to bend any input
-		towards sounding like one out of a limited set of vowels.
-
-		Idea: use the 3 frequencies in the Vowelizer_V2 table to feed 3 instances each operating at a
-		      a sidechain signal (impulse train preferred) with *that* frequency?
+		
+		WIP!
 	*/
 
-	constexpr unsigned kMaxFormantBands  =   32;
-	constexpr float kDefFormantAttackMS  = 0.1f; // 0.1MS
-	constexpr float kDefFormantReleaseMS = 0.2f; // 0.2MS
+	constexpr unsigned kMaxFormantBands  = 32;
 
 	class FormantFilter
 	{
@@ -87,83 +93,79 @@ namespace SFM
 			SFM_ASSERT(MS > 0.f);
 
 			for (unsigned iBand = 0; iBand < m_numBands; ++iBand)
-				m_analysisEnv[iBand].SetAttack(MS);
+				m_analysisEnv[iBand].SetTimeCoeff(MS);
 		}
 
-		SFM_INLINE void SetRelease(float MS)
+		void Apply(float &left, float &right, float inputL, float inputR)
 		{
-			SFM_ASSERT(MS > 0.f);
+			// Signal to be analyzed
+			const float inL = inputL;
+			const float inR = inputR;
 
-			for (unsigned iBand = 0; iBand < m_numBands; ++iBand)
-				m_analysisEnv[iBand].SetRelease(MS);
-		}
-
-		void Apply(float &left, float &right)
-		{
-			// FIXME: analysis (sidechain) input
-			const float inL = left;
-			const float inR = right;
+			// Signal to be 'excited'
+			const float carrierL = left;
+			const float carrierR = right;
 			
-			// Synth. input
-			const float synthL = left;
-			const float synthR = right;
-
 			// Accum. output
 			float outL = 0.f;
 			float outR = 0.f;
 
-			// Process bands
+			// Process: filter analysis, gain calculation, filter carrier with gain applied, add to result
 			for (unsigned iBand = 0; iBand < m_numBands; ++iBand)
 			{
-				// Filter analysis input
 				float _inL = inL, _inR = inR;
 				m_analysisBP[iBand].tick(_inL, _inR);
 				
-				// Calculate gain
-				const float gain = m_analysisEnv[iBand].ApplyStereo(_inL, _inR);
+				// Calculate gain using envelope
+//				const float bandGain = m_analysisEnv[iBand].Apply(GetRectifiedMaximum(_inL, _inR), m_envSig);
+				const float bandGain = m_analysisEnv[iBand].Apply(_inL*0.5f + _inR*0.5f, m_envSig);
 
-				// Filter synth. input
-				float _synthL = synthL, _synthR = synthR;
-				m_synthesisBP[iBand].tick(_synthL, _synthR);
+				// Filter carrier signal modulated by analysis gain
+				float _carrierL = carrierL*bandGain, _carrierR = carrierR*bandGain; 
+				m_synthesisBP[iBand].tick(_carrierL, _carrierR);
 
-				// Apply gain to synth. input and add (FIXME: gain adj.)
-				outL += _synthL*gain;
-				outR += _synthR*gain;
+				// Apply gain to carrier and add (FIXME: gain adj.)
+				outL += _carrierL;
+				outR += _carrierR;
 			}
 
-			left = outL;
+			left  = outL;
 			right = outR;
 		}
 
 	private:
-		const unsigned m_sampleRate;
-		const unsigned m_numBands;
-		const float m_bandWidthRatio;
+		unsigned m_sampleRate;
+		unsigned m_numBands;
+
+		float m_bandWidthRatio = 1.f;
 
 		void PrepareBands()
 		{
-			SFM_ASSERT(m_numBands > 0 && m_numBands < kMaxFormantBands);
+			SFM_ASSERT(m_numBands > 0 && m_numBands <= kMaxFormantBands);
 			SFM_ASSERT(m_bandWidthRatio > 0.f && m_bandWidthRatio <= 2.f);
 
-			for (unsigned iBand = 0; iBand < m_numBands; ++iBand)
+			for (unsigned iBand = 1; iBand <= m_numBands; ++iBand)
 			{
-				// Nicked from Romain Nichon's talk
+				m_analysisBP[iBand-1].resetState();
+				m_synthesisBP[iBand-1].resetState();
+
+				// Nicked from Romain Nichon's talk (he believes in a top freq. of 15541Hs)
 				const float frequency = 25.f*powf(2.f, (iBand+1)*(9.f/m_numBands));
 				const float bandWidth = (frequency - 25.f*powf(2.f, iBand*(9.f/m_numBands)))*m_bandWidthRatio;
-				const float Q = 0.025f + frequency/bandWidth;
-
-				// FIXME: restrict to [0.025..40] range
-				m_analysisBP[iBand].updateCoefficients(frequency, Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
-				m_synthesisBP[iBand].updateCoefficients(frequency, Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
-
-				m_analysisEnv[iBand].SetSampleRate(m_sampleRate);
-				m_analysisEnv[iBand].SetAttack(kDefFormantAttackMS);
-				m_analysisEnv[iBand].SetRelease(kDefFormantReleaseMS);
+				const float Q = 0.025f + std::min(39.5f, frequency/bandWidth);
+				m_analysisBP[iBand-1].updateCoefficients(frequency, Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
+				m_synthesisBP[iBand-1].updateCoefficients(frequency, Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
+				
+				// Set up followers
+				m_analysisEnv[iBand-1].SetSampleRate(m_sampleRate);
+				m_analysisEnv[iBand-1].SetTimeCoeff(1.f); // 1MS
 			}
 		}
 
 		SvfLinearTrapOptimised2 m_analysisBP[kMaxFormantBands];
 		SvfLinearTrapOptimised2 m_synthesisBP[kMaxFormantBands];
-		FollowerEnvelope m_analysisEnv[kMaxFormantBands];
+
+		SignalFollower m_analysisEnv[kMaxFormantBands];
+		float m_envSig = 0.f;
 	};
 }

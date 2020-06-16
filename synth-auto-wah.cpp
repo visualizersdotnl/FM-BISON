@@ -113,10 +113,9 @@ namespace SFM
 			filteredL += remainderL;
 			filteredR += remainderR;
 
-#if 1
-			// "Vowelize" (until I have an actual formant filter)
-			const VowelizerV2::Vowel vowelA = VowelizerV2::kOO;
-			const VowelizerV2::Vowel vowelB = VowelizerV2::kA;
+			// "Vowelize" (until I have a better formant filter)
+			const Vowel vowelA = Vowel::kA;
+			const Vowel vowelB = Vowel::kEE;
 			const float vowBlend = envGain;
 
 			float vowelL_1 = filteredL, vowelR_1 = filteredR;
@@ -125,15 +124,20 @@ namespace SFM
 			float vowelL_2 = filteredL, vowelR_2 = filteredR;
 			m_vowelizerV2_1.Apply(vowelL_2, vowelR_2, vowelB);
 			
-			const float vowelL = lerpf<float>(vowelL_1, vowelL_2, vowBlend);
-			const float vowelR = lerpf<float>(vowelR_1, vowelR_2, vowBlend);
-#else
-			float vowelL = filteredL, vowelR = filteredR;
-			m_formantFilter.Apply(vowelL, vowelR);
-#endif
+			float vowelL = lerpf<float>(vowelL_1, vowelL_2, vowBlend);
+			float vowelR = lerpf<float>(vowelR_1, vowelR_2, vowBlend);
 
 			filteredL = lerpf<float>(filteredL, vowelL, vowelize);
 			filteredR = lerpf<float>(filteredR, vowelR, vowelize);
+
+#if 0
+			// Formant pass
+			float formCarrierL = filteredL, formCarrierR = filteredR;
+			m_formantFilter.Apply(formCarrierL, formCarrierR, vowelL, vowelR);
+
+			filteredL = lerpf<float>(filteredL, formCarrierL, vowelize);
+			filteredR = lerpf<float>(filteredR, formCarrierR, vowelize);
+#endif
 
 			// Mix with dry (delayed) signal
 			pLeft[iSample]  = lerpf<float>(delayedL, filteredL, wetness);
