@@ -72,6 +72,8 @@
 
 #pragma once
 
+#include <thread>
+
 #include "synth-global.h"
 
 #include "patch/synth-patch-global.h"
