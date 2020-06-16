@@ -10,7 +10,7 @@
 #include "3rdparty/SvfLinearTrapOptimised2.hpp"
 
 #include "synth-global.h"
-#include "synth-sidechain-envelope.h"
+ #include "synth-sidechain-envelope.h"
 #include "synth-delay-line.h"
 #include "synth-oscillator.h"
 #include "synth-DX7-LFO-table.h"
