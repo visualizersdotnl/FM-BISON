@@ -125,10 +125,12 @@ namespace SFM
 	constexpr float kMaxPostFilterDrivedB =  6.f;
 	constexpr float kDefPostFilterDrivedB =  0.f;
 
-	// Tube distortion drive range
-	constexpr float kMinTubeDrive =   0.f;
-	constexpr float kMaxTubeDrive = 100.f;
-	constexpr float kDefTubeDrive =  10.f;
+	// Tube distortion drive & offset
+	constexpr float kMinTubeDrive  =   0.f;
+	constexpr float kMaxTubeDrive  = 100.f;
+	constexpr float kDefTubeDrive  =  10.f;
+	constexpr float kMinTubeOffset = -0.1f;
+	constexpr float kMaxTubeOffset =  0.1f;
 
 	// Envelope rate multiplier range (or 'global')
 	// Range (as in seconds) taken from Arturia DX7-V (http://downloads.arturia.com/products/dx7-v/manual/dx7-v_Manual_1_0_EN.pdf)

@@ -69,6 +69,7 @@ namespace SFM
 		// Tube distort
 ,		m_curTubeDist(0.f, m_oversamplingRate, kDefParameterLatency)
 ,		m_curTubeDrive(kDefTubeDrive, m_oversamplingRate, kDefParameterLatency)
+,		m_curTubeOffset(0.f, m_oversamplingRate, kDefParameterLatency)
 
 		// Low cut
 ,		m_lowCutFilter(kLowCutHz, sampleRate)
@@ -111,7 +112,7 @@ namespace SFM
 	                     float cpRate, float cpWet, bool isChorus,
 	                     float delayInSec, float delayWet, float delayFeedback, float delayFeedbackCutoff,
 	                     float postCutoff, float postQ, float postDrivedB, float postWet,
-						 float tubeDistort, float tubeDrive,
+						 float tubeDistort, float tubeDrive, float tubeOffset,
 	                     float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
 	                     float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead, bool compAutoGain, float compRMSToPeak,
 	                     float masterVol,
@@ -131,6 +132,7 @@ namespace SFM
 		SFM_ASSERT(masterVol >= kMinVolumedB && masterVol <= kMaxVolumedB);
 		SFM_ASSERT(tubeDistort >= 0.f && tubeDistort <= 1.f);
 		SFM_ASSERT(tubeDrive >= kMinTubeDrive && tubeDrive <= kMaxTubeDrive);
+		SFM_ASSERT(tubeOffset >= kMinTubeOffset && tubeOffset <= kMaxTubeOffset);
 
 		// Only adapt the BPM if it fits in the delay line (Ableton does this so why won't we?)
 		const bool useBPM = false == (rateBPM < 1.f/kMainDelayInSec);
@@ -301,11 +303,13 @@ namespace SFM
 		// Set tube distortion parameters
 		m_curTubeDist.SetTarget(tubeDistort);
 		m_curTubeDrive.SetTarget(tubeDrive);
+		m_curTubeOffset.SetTarget(tubeOffset);
 
 		// Oversample L/R for the coming steps
 		juce::dsp::AudioBlock<float> inputBlockL(&m_pBufL, 1, numSamples);
 		juce::dsp::AudioBlock<float> inputBlockR(&m_pBufR, 1, numSamples);
 
+		// FIXME: use *one* instance!
 		auto outBlockL = m_oversamplingL.processSamplesUp(inputBlockL);
 		auto outBlockR = m_oversamplingR.processSamplesUp(inputBlockR);
 
@@ -342,13 +346,13 @@ namespace SFM
 
 			const float amount = m_curTubeDist.Sample();
 			const float drive  = m_curTubeDrive.Sample();
-				
-			filteredL = ClassicCubicClip(filteredL*drive);
-			filteredR = ClassicCubicClip(filteredR*drive);
-				
-			// Also has a nice sound to it!
-//			filteredL = ZoelzerClip(filteredL*drive);
-//			filteredR = ZoelzerClip(filteredR*drive);
+			const float offset = m_curTubeOffset.Sample();
+			
+			filteredL = ClassicCubicClip((offset + filteredL)*drive);
+			filteredR = ClassicCubicClip((offset + filteredR)*drive);
+			
+			// Remove DC offset
+			m_tubeDCBlocker.Apply(filteredL, filteredR);
 				
 			// Remove (most if not all) aliasing
 			m_tubeFilterAA.tick(filteredL, filteredR);

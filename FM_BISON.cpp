@@ -2044,6 +2044,7 @@ namespace SFM
 		                  m_postWetPS.Apply(postWet),
 						  m_tubeDistPS.Apply(m_patch.tubeDistort),
 						  m_tubeDrivePS.Apply(m_patch.tubeDrive),
+						  m_patch.tubeOffset,
 						  /* Reverb */
 						  m_reverbWetPS.Apply(m_patch.reverbWet),
 						  m_reverbRoomSizePS.Apply(m_patch.reverbRoomSize),

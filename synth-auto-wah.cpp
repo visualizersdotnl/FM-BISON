@@ -17,7 +17,7 @@ namespace SFM
 	constexpr double kPreLowCutQ   =    0.5;
 	constexpr float  kResoMax      =   0.7f;
 	constexpr float  kCutRange     =  0.05f;
-	constexpr float  kVoxRateScale =    4.f;
+	constexpr float  kVoxRateScale =    2.f;
 
 //	constexpr float kVoxGhostNoiseGain = 0.35481338923357547f; // -9dB
 	constexpr float kVoxGhostNoiseGain = 0.3f;
@@ -121,20 +121,22 @@ namespace SFM
 			filteredL += remainderL;
 			filteredR += remainderR;
 			
-			// Vowelize: calc. S&H LFO
+			// Calc. vox. LFO A (sample) and B (amplitude)
 			const float voxPhase = m_voxOscPhase.Sample();
 			const float oscInput = mt_randfc();
-			const float voxLFO = lerpf<float>(1.f, m_voxSandH.Sample(voxPhase, oscInput), 1.f-expf(-voxMod*4.f));
-			const float absVoxLFO = fabsf(voxLFO);
+			const float voxOsc   = m_voxSandH.Sample(voxPhase, oscInput);
+			const float toLFO    = 1.f-expf(-voxMod*4.f);
+			const float voxLFO_A = lerpf<float>(0.f, voxOsc, toLFO);
+			const float voxLFO_B = lerpf<float>(1.f, fabsf(voxOsc), toLFO);
 			
-			// Vowelize: calc. "ghost" noise
+			// Calc. vox. "ghost" noise
 			const float ghostRand = (rand()%256)/255.f; // Coarse random sounds better than mt_randf()
-			const float ghostSig = ghostRand*kVoxGhostNoiseGain;
-			const float ghostEnv = m_voxGhostEnv.Apply(envGain*absVoxLFO * voxGhost);
-			const float ghost = ghostSig*ghostEnv;
+			const float ghostSig  = ghostRand*kVoxGhostNoiseGain;
+			const float ghostEnv  = m_voxGhostEnv.Apply(envGain * voxLFO_B * voxGhost);
+			const float ghost     = ghostSig*ghostEnv;
 						
 			// Calc. vowel (cheap trick to avoid clamp)
-			float vowel = voxVow+voxLFO;
+			float vowel = voxVow+voxLFO_A;
 			if (vowel < 0.f)
 				vowel -= vowel;
 			else if (vowel > kMaxWahSpeakVowel)

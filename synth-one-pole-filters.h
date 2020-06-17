@@ -5,7 +5,10 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	Ref.: https://www.earlevel.com/main/2012/12/15/a-one-pole-filter/
-	2 filters & a (stereo) blocker.
+
+	- LP, HP 
+	- Low cut (stereo)
+	- DC blocker (stereo)
 
 	There are more single pole filters in this codebase but they usually have a special purpose which
 	makes their implementation a tad different (for example see synth-reverb.h), so I chose not to
@@ -152,7 +155,7 @@ namespace SFM
 		float m_current = 0.f;
 	};
 
-	/* Blocker (stereo) */
+	/* Low cut (stereo) */
 	
 	class LowBlocker 
 	{
@@ -193,5 +196,35 @@ namespace SFM
 
 		float m_feedbackL; 
 		float m_feedbackR;
+	};
+
+	/* DC blocker (stereo) */
+
+	class DCBlocker
+	{
+	public:
+		DCBlocker() {}
+		~DCBlocker() {}
+
+		SFM_INLINE void Apply(float &sampleL, float &sampleR)
+		{
+			const float outL = sampleL - m_prevSample[0] + R*m_feedback[0];
+			const float outR = sampleR - m_prevSample[1] + R*m_feedback[1];
+
+			m_prevSample[0] = sampleL;
+			m_prevSample[1] = sampleR;
+
+			m_feedback[0] = outL;
+			m_feedback[1] = outR;
+
+			sampleL = outL;
+			sampleR = outR;
+		}
+
+	private:
+		const float R = 0.995f;
+		
+		float m_prevSample[2] = { 0.f };
+		float m_feedback[2]   = { 0.f };
 	};
 }

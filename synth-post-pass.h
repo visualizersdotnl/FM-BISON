@@ -44,7 +44,7 @@ namespace SFM
 		           float cpRate, float cpWet, bool isChorus,
 		           float delayInSec, float delayWet, float delayFeedback, float delayFeedbackCutoff,
 		           float postCutoff, float postQ, float postDrivedB, float postWet,
-		           float tubeDistort, float tubeDrive,
+		           float tubeDistort, float tubeDrive, float tubeOffset,
 		           float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
 		           float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead, bool compAutoGain, float compRMSToPeak,
 		           float masterVol,
@@ -124,9 +124,11 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curPostDrivedB;
 		InterpolatedParameter<kLinInterpolate> m_curPostWet;
 
-		// Tube distortion filter & interpolated parameters
+		// Tube distortion filter (AA), DC blocker & interpolated parameters
 		InterpolatedParameter<kLinInterpolate> m_curTubeDist;
 		InterpolatedParameter<kLinInterpolate> m_curTubeDrive;
+		InterpolatedParameter<kLinInterpolate> m_curTubeOffset;
+		DCBlocker m_tubeDCBlocker;	
 		SvfLinearTrapOptimised2 m_tubeFilterAA;
 		
 		// Low cut filter
