@@ -135,7 +135,8 @@ namespace SFM
 			const float ghost     = ghostSig*ghostEnv;
 
 			// I dislike frequent fmodf() calls but according to MSVC's profiler we're in the clear
-			const float vowel = fabsf(fmodf(voxVow+voxLFO_A, kMaxWahSpeakVowel));
+			// I add a small amount to the maximum since we need to actually reach kMaxWahSpeakVowel
+			const float vowel = fabsf(fmodf(voxVow+voxLFO_A, kMaxWahSpeakVowel + 0.001f));
 		
 			// Filter and mix
 			float vowelL = filteredL + ghost, vowelR = filteredR + ghost;

@@ -47,6 +47,8 @@ namespace SFM
 ,			m_curWet(0.f, sampleRate, kDefParameterLatency)
 		{
 			m_voxOscPhase.Initialize(kDefWahRate, sampleRate);
+			m_voxSandH.SetSlewRate(kWahVoxSandHSlewRate);
+			
 			m_LFO.Initialize(Oscillator::Waveform::kTriangle, kDefWahRate, m_sampleRate, 0.f);
 		}
 
