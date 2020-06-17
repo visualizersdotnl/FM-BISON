@@ -15,9 +15,10 @@ namespace SFM
 	constexpr float kPI = 3.1415926535897932384626433832795f;
 	constexpr float kHalfPI = kPI*0.5f;
 	constexpr float k2PI = 2.f*kPI;
-	constexpr float kEpsilon = 5.96e-08f; // Max. error for single precision (32-bit).
+	constexpr float kEpsilon = 5.96e-08f; // Max. error for single precision (32-bit)
 	constexpr float kGoldenRatio = 1.61803398875f;
 	constexpr float kRootHalf = 0.70710678118f;
+	constexpr float kExp = 2.7182818284f;
 
 	// Bezier smoothstep
 	SFM_INLINE static float smoothstepf(float t)

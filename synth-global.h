@@ -210,7 +210,7 @@ namespace SFM
 	constexpr float kDefWahHold          =   0.5f; // 500MS
 	constexpr float kMinWahRate          =    0.f; //
 	constexpr float kMaxWahRate          =    4.f; //
-	constexpr float kDefWahRate          =   0.1f; // Hz
+	constexpr float kDefWahRate          =   0.5f; // Hz
 	constexpr float kMaxWahSpeakVowel    =    3.f;
 
 	// Low cut (for post-pass)

@@ -63,6 +63,12 @@ namespace SFM
 		return (cycle < duty) ? 1.f : -1.f;
 	}
 
+	SFM_INLINE static float oscBox(float phase)
+	{
+		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
+		return phase >= 0.25f && phase <= 0.75f ? 1.f : -1.f;
+	}
+
 	/*
 		Band-limited (PolyBLEP) oscillators
 		

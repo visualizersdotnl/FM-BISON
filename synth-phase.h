@@ -46,6 +46,11 @@ namespace SFM
 			SFM_ASSERT(m_phase >= 0.0 && m_phase <= 1.0);
 		}
 
+		SFM_INLINE void Reset()
+		{
+			m_phase = 0.0;
+		}
+
 		SFM_INLINE void PitchBend(float bend)
 		{
 			SFM_ASSERT(0.f != bend);

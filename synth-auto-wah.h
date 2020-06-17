@@ -21,8 +21,6 @@
 namespace SFM
 {
 	// Local constant parameters
-	constexpr float kWahDelay = 0.005f;            // 5MS             
-	constexpr float kWahLookahead = 0.5f;          // 0.5 * 5MS
 	constexpr float kWahRMSWindowSec = 0.002f;     // 2MS
 	constexpr float kWahGhostAttackMS = 10.f;      // 10MS
 	constexpr float kMaxWahGhostReleaseMS = 600.f; // 600MS
@@ -35,8 +33,6 @@ namespace SFM
 	public:
 		AutoWah(unsigned sampleRate, unsigned Nyquist) :
 			m_sampleRate(sampleRate), m_Nyquist(Nyquist)
-,			m_outDelayL(sampleRate, kWahDelay)
-,			m_outDelayR(sampleRate, kWahDelay)
 ,			m_RMS(sampleRate, kWahRMSWindowSec)
 ,			m_sideEnv(sampleRate, kDefWahAttack, kDefWahHold)
 ,			m_voxSandH(sampleRate)
@@ -48,11 +44,8 @@ namespace SFM
 ,			m_curSpeak(0.f, sampleRate, kDefParameterLatency)
 ,			m_curCut(0.f, sampleRate, kDefParameterLatency)
 ,			m_curWet(0.f, sampleRate, kDefParameterLatency)
-,			m_lookahead(kWahLookahead)
 		{
 			m_voxOscPhase.Initialize(kDefWahRate, sampleRate);
-			m_voxSandH.SetSlewRate(kWahVoxSandHSlewRate);
-
 			m_LFO.Initialize(Oscillator::Waveform::kTriangle, kDefWahRate, m_sampleRate, 0.f);
 		}
 
@@ -89,7 +82,6 @@ namespace SFM
 		const unsigned m_sampleRate;
 		const unsigned m_Nyquist;
 
-		DelayLine m_outDelayL, m_outDelayR;
 		RMS m_RMS;
 
 		FollowerEnvelope m_sideEnv;
@@ -116,8 +108,5 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curSpeakGhost;
 		InterpolatedParameter<kLinInterpolate> m_curCut;
 		InterpolatedParameter<kLinInterpolate> m_curWet;
-
-		// Constant parameter(s)
-		const float m_lookahead;
 	};
 }

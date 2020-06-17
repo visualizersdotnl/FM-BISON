@@ -158,7 +158,11 @@ namespace SFM
 			/* S&H */
 
 			case kSampleAndHold:
-				signal = m_sampleAndHold.Sample(modulated, oscWhiteNoise());
+				{
+					const float random = oscWhiteNoise();
+					signal = m_sampleAndHold.Sample(modulated, random);
+				}
+
 				break;
 			
 			// Not implemented
