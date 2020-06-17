@@ -3,8 +3,6 @@
 	FM. BISON hybrid FM synthesis -- "auto-wah" implementation (WIP).
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
-
-	FIXME: replace lackluster "formant filter"
 */
 
 #include "synth-auto-wah.h"
@@ -14,13 +12,15 @@ namespace SFM
 {
 	// Local constant parameters
 	// Each of these could be a parameter but I *chose* these values; we have enough knobs as it is (thanks Stijn ;))
-	constexpr double kPreLowCutQ   =    0.5;
-	constexpr float  kResoMax      =   0.5f;
-	constexpr float  kCutRange     =  0.05f; // Why not a bit more? (FIXME)
-	constexpr float  kVoxRateScale =    2.f;
+	constexpr double kPreLowCutQ    =     2.0; // Q (SVF range)
+	constexpr float  kLPResoMin     =   0.01f; //
+	constexpr float  kLPResoMax     =    0.5f; //
+	constexpr float  kLPCutLFORange =   0.33f; // Normalized Hz
+	constexpr float  kLPCutMax      =    0.9f; //
+	constexpr float  kVoxRateScale  =     2.f;
 
-	constexpr float kVoxGhostNoiseGain = 0.35481338923357547f; // -9dB
-//	constexpr float kVoxGhostNoiseGain = 0.3f;
+	// -9dB
+	constexpr float kVoxGhostNoiseGain = 0.35481338923357547f; 
 
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples)
 	{
@@ -65,8 +65,9 @@ namespace SFM
 			const float lowCut    = m_curCut.Sample()*0.125f; // Nyquist/8 is more than enough!
 			const float wetness   = m_curWet.Sample();
 			
-			m_sideEnv.SetAttack(curAttack *  100.f); // FIXME: why a tenth of?
-			m_sideEnv.SetRelease(curHold  * 1000.f);
+			// Set parameters
+			m_sideEnv.SetAttack(curAttack * 100.f); // FIXME: why are we one decimal point shy?
+			m_sideEnv.SetRelease(curHold  * 100.f); //
 
 			m_LFO.SetFrequency(curRate);
 
@@ -77,15 +78,14 @@ namespace SFM
 			const float sampleL = pLeft[iSample];
 			const float sampleR = pRight[iSample];
 
-
-			// Calc. RMS and feed it to sidechain
+			// Calc. RMS and feed it to sidechain to obtain (enveloped) gain
 			const float signaldB = m_RMS.Run(sampleL, sampleR);
-			const float envdB = (signaldB > kMinVolumedB) ? m_sideEnv.Apply(signaldB) : kMinVolumedB;
-			const float envGain = fast_tanhf(dB2Lin(envdB)); // Soft-clip gain, sounds good
+			const float envdB =  m_sideEnv.Apply(signaldB);
+			const float envGain = std::min<float>(1.f, dB2Lin(envdB));
 
-			if (0.f == envGain)
+			if (envGain < kEpsilon)
 			{
-				// Half-witted attempt to reset the vox. LFO 
+				// Attempt at sync.
 				m_voxOscPhase.Reset();
 				m_voxSandH.Reset();
 			}
@@ -98,45 +98,60 @@ namespace SFM
 			// Store remainder to add back into mix
 			const float remainderL = sampleL-preFilteredL;
 			const float remainderR = sampleR-preFilteredR;
-			
-			// Sample LFO
-			const float LFO = m_LFO.Sample(0.f);
 
-			// Post filter (LP)
+			/*
+				Post filter (LPF)
+			*/
+
 			float filteredL = preFilteredL, filteredR = preFilteredR;
+			
+			// Sample LFO (FIXME: study a few pedals to evaluate the need for this once more)
+			const float LFO = m_LFO.Sample(0.f);
+			
+			// Calc. cutoff
+			const float cutRange    = envGain*kLPCutLFORange;
+			const float normCutoff  = cutRange + (envGain * (1.f - 2.f*cutRange)) + LFO*cutRange;
 
-			const float cutoff = kCutRange + (envGain * (1.f - 2.f*kCutRange)) + LFO*kCutRange; // Modulates the top end only
-			SFM_ASSERT(cutoff >= 0.f && cutoff <= 1.f);
+			SFM_ASSERT(normCutoff >= 0.f && normCutoff <= 1.f);
+			const float cutoffHz = CutoffToHz(normCutoff*kLPCutMax, m_Nyquist);
 
-			const float cutHz    = CutoffToHz(cutoff, m_Nyquist);
-			const float maxNormQ = kResoMax*resonance;            
-			const float normQ    = maxNormQ - maxNormQ*envGain; // More gain means less Q: dull(er) resonance peak
-			const float Q        = ResoToQ(normQ);                
+			// Calc. Q (less signal: lower resonance peak)
+			const float rangeQ = (kLPResoMax-kLPResoMin)*resonance;            
+			const float normQ  = kLPResoMin + rangeQ*(1.f-envGain);
+			const float Q        = ResoToQ(normQ);             
 
-			m_postFilterLP.updateLowpassCoeff(cutHz, Q, m_sampleRate);
+			m_postFilterLP.updateLowpassCoeff(cutoffHz, Q, m_sampleRate);
 			m_postFilterLP.tick(filteredL, filteredR);
 
-			// Add (low) remainder to signal
+			/*
+				Add (low) remainder to signal
+			*/
+
 			filteredL += remainderL;
 			filteredR += remainderR;
+
+			/*
+				Vowelize
+			*/
 			
 			// Calc. vox. LFO A (sample) and B (amplitude)
 			const float voxPhase = m_voxOscPhase.Sample();
 			const float oscInput = mt_randfc();
 			const float voxOsc   = m_voxSandH.Sample(voxPhase, oscInput);
-			const float toLFO    = 1.f-expf(-voxMod*4.f);
+			const float toLFO    = 1.f-expf(-voxMod*4.f); // smoothstepf(voxMod);
 			const float voxLFO_A = lerpf<float>(0.f, voxOsc, toLFO);
 			const float voxLFO_B = lerpf<float>(1.f, fabsf(voxOsc), toLFO);
 			
 			// Calc. vox. "ghost" noise
-			const float ghostRand = mt_randf();
+			const float ghostRand = mt_randfc();
 			const float ghostSig  = ghostRand*kVoxGhostNoiseGain;
 			const float ghostEnv  = m_voxGhostEnv.Apply(envGain * voxLFO_B * voxGhost);
 			const float ghost     = ghostSig*ghostEnv;
 
 			// I dislike frequent fmodf() calls but according to MSVC's profiler we're in the clear
 			// I add a small amount to the maximum since we need to actually reach kMaxWahSpeakVowel
-			const float vowel = fabsf(fmodf(voxVow+(1.5f*voxLFO_A), kMaxWahSpeakVowel + 0.001f));
+			static_assert(unsigned(kMaxWahSpeakVowel) < VowelizerV1::kNumVowels-1);
+			const float vowel = fabsf(fmodf(voxVow+voxLFO_A, kMaxWahSpeakVowel + 0.001f /* Leaks into 'U' vowel, which is quite similar */));
 		
 			// Filter and mix
 			float vowelL = filteredL + ghost, vowelR = filteredR + ghost;
@@ -145,7 +160,10 @@ namespace SFM
 			filteredL = lerpf<float>(filteredL, vowelL, voxWet);
 			filteredR = lerpf<float>(filteredR, vowelR, voxWet);
 
-			// Mix with dry (delayed) signal
+			/*
+				Final mix
+			*/
+
 			pLeft[iSample]  = lerpf<float>(sampleL, filteredL, wetness);
 			pRight[iSample] = lerpf<float>(sampleR, filteredR, wetness);
 		}

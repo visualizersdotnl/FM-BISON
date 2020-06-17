@@ -157,9 +157,10 @@ namespace SFM
 	constexpr float kMaxPhaserRate = 8.f;
 	
 	// Master output volume range & default in dB
-	constexpr int kMinVolumedB = -96;
-	constexpr int kMaxVolumedB =   3;
-	constexpr int kDefVolumedB = -12;
+	constexpr int kInfVolumedB   = -1000; // Arbitrary number
+	constexpr int kMinVolumedB   =   -96;
+	constexpr int kMaxVolumedB   =     3;
+	constexpr int kDefVolumedB   =   -12;
 	constexpr int kVolumeRangedB = kMaxVolumedB-kMinVolumedB;
 
 	// (Monophonic) frequency glide (in seconds)
@@ -184,7 +185,7 @@ namespace SFM
 
 	// Compressor range & defaults
 	constexpr float kMinCompThresholdB  =  -60.f; 
-	constexpr float kMaxCompThresholdB  =    6.f; // A little higher than just 1 dB so we can bypass compression by default
+	constexpr float kMaxCompThresholdB  =    6.f;
 	constexpr float kDefCompThresholddB = kMaxCompThresholdB;
 	constexpr float kMinCompKneedB      =    0.f;
 	constexpr float kMaxCompKneedB      =   12.f;
@@ -207,11 +208,11 @@ namespace SFM
 	constexpr float kMinWahAttack        =  0.05f; // 50MS
 	constexpr float kMaxWahAttack        =    1.f; // 1 sec.
 	constexpr float kDefWahAttack        = 0.125f; // 125MS 
-	constexpr float kMinWahHold          =  0.01f; // 10MS
+	constexpr float kMinWahHold          = 0.001f; // 1MS
 	constexpr float kMaxWahHold          =    1.f; // 1 sec.
-	constexpr float kDefWahHold          =   0.5f; // 500MS
+	constexpr float kDefWahHold          =  0.25f; // 250MS
 	constexpr float kMinWahRate          =    0.f; //
-	constexpr float kMaxWahRate          =    4.f; //
+	constexpr float kMaxWahRate          =    4.f;
 	constexpr float kDefWahRate          =   0.5f; // Hz
 	constexpr float kMaxWahSpeakVowel    =    3.f;
 

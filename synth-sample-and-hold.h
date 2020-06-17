@@ -41,8 +41,8 @@ namespace SFM
 
 			m_prevGate = curGate;
 
-			// Slew towards target signal
-			return m_curSignal.Sample(); 
+			// Slew towards target signal 
+			return Clamp(m_curSignal.Sample()); // Clamp to gaurantee output range
 		}
 
 		void SetSlewRate(float rateInSeconds)

@@ -67,8 +67,7 @@ namespace SFM
 		return 16.f * x * (kPI-x) / (5.f * kPI*kPI - 4.f * x * (kPI-x));
 	}
 
-	// Langrage interpolator; number of values pointed to by pX and pY much match order,
-	// 'xPos' is the X value whose Y we'll interpolate 
+	// Langrange interpolator; array sizes must match order, 'xPos' is the X value whose Y we'll interpolate 
 	SFM_INLINE static float LagrangeInterpolation(float *pX, float *pY, unsigned order, float xPos)
 	{
 		SFM_ASSERT(nullptr != pX && nullptr != pY);

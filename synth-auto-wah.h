@@ -49,7 +49,7 @@ namespace SFM
 			m_voxOscPhase.Initialize(kDefWahRate, sampleRate);
 			m_voxSandH.SetSlewRate(kWahVoxSandHSlewRate);
 			
-			m_LFO.Initialize(Oscillator::Waveform::kTriangle, kDefWahRate, m_sampleRate, 0.f);
+			m_LFO.Initialize(Oscillator::Waveform::kCosine, kDefWahRate, m_sampleRate, 0.f);
 		}
 
 		~AutoWah() {}

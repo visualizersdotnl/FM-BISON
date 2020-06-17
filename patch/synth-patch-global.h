@@ -93,7 +93,7 @@ namespace SFM
 		// S&H
 		float SandHSlewRate;
 
-		// BPM sync. mode (LFO, chorus/phaser, delay, ...)
+		// BPM sync. mode (LFO, Chorus, Phaser, Auto-wah, Delay, ...)
 		bool beatSync;
 		float beatSyncRatio; // See kBeatSyncRatios
 

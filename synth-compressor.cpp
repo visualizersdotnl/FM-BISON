@@ -28,8 +28,9 @@ namespace SFM
 			const float curRelease  = m_curRelease.Sample();
 			const float kneedB      = m_curKneedB.Sample();
 
-			m_gainEnv.SetAttack(curAttack * 1000.f);
-			m_gainEnv.SetRelease(curRelease * 1000.f);
+			// Set parameters (FIXME: why are we one decimal point shy?)
+			m_gainEnv.SetAttack(curAttack   * 100.f);
+			m_gainEnv.SetRelease(curRelease * 100.f);
 
 			// Input
 			const float sampleL = pLeft[iSample];

@@ -48,10 +48,11 @@ const double kVowelCoeffs[SFM::VowelizerV1::kNumVowels][11]=
 
 namespace SFM
 {
-	// FIXME: probably not worth it, smoothstepf() being faster, but David Hoskins is no slouch at picking functions
+	
+	// FIXME: probably not worth it, smoothstepf() being faster, but David Hoskins is no slouch at picking Paul Bourke's functions ;)
 	SFM_INLINE static double CosineInterpolate(double a, double b, double t)
 	{
-		t = (1.0-cos(t*kPI))*0.5f;
+		t = (1.0-cos(t*kPI))*0.5;
 		return a*(1.0-t) + b*t;
 	}
 
@@ -74,8 +75,6 @@ namespace SFM
 		for (unsigned iCoeff = 0; iCoeff < 11; ++iCoeff)
 			m_interpolatedCoeffs[iCoeff] = lerpf<double>(*pA++, *pB++, smoothstepf(delta));
 //			m_interpolatedCoeffs[iCoeff] = CosineInterpolate(*pA++, *pB++, delta);
-
-//		Log("indexA = " + std::to_string(indexA) + " indexB = " + std::to_string(indexB));
 		
 		// Apply & store
 		sampleL = (float) Calculate(sampleL, 0);

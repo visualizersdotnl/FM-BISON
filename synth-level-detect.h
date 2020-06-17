@@ -63,7 +63,7 @@ namespace SFM
 			const float RMS = sqrtf(sum/m_numSamples);
 			FloatAssert(RMS);
 
-			return (0.f != RMS) ? Lin2dB(RMS) : kMinVolumedB;
+			return (0.f != RMS) ? Lin2dB(RMS) : kInfVolumedB;
 		}
 
 		void Reset()
@@ -105,7 +105,7 @@ namespace SFM
 		SFM_INLINE float GetdB() const
 		{
 			const float peakEnv = m_peakEnv.Get();
-			return (0.f != peakEnv) ? Lin2dB(peakEnv) : kMinVolumedB;
+			return (0.f != peakEnv) ? Lin2dB(peakEnv) : kInfVolumedB;
 		}
 
 		SFM_INLINE float GetLin() const
