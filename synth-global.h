@@ -54,9 +54,11 @@ namespace SFM
 		of them and almost none were too specific to certain parts of the code. 
 		
 		This has changed over time but I still, for now, decide to stick with having most of them here instead of spreading them across various files.
-		Very specific constants however should live close to their implementation.
+		The criteria, roughly, should be that they are either used in multiple files and/or exposed to the host software.
+		
+		Very specific constants should live close to their implementation.
 
-		So long as every constant the host needs is defined here we're in the clear.
+		So: so long as every constant the host needs is defined here we're in the clear.
 	*/
 
 	// Max. number of voices to render using the main (single) thread

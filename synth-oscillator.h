@@ -174,7 +174,7 @@ namespace SFM
 		
 		SFM_INLINE float    GetFrequency()   const { return m_phases[0].GetFrequency();  }
 		SFM_INLINE unsigned GetSampleRate()  const { return m_phases[0].GetSampleRate(); }
-		SFM_INLINE float    GetPhase()       const { return m_phases[0].Get();           }
+		SFM_INLINE float    GetPhase()       const { return m_phases[0].Get();           } // Warning: this value *can* be out of bounds! [0..1]
 		SFM_INLINE Waveform GetWaveform()    const { return m_form;                      }
 
 		float Sample(float phaseShift);

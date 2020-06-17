@@ -25,8 +25,7 @@ namespace SFM
 
 		~SampleAndHold() {}
 
-		// Takes in any signal
-		SFM_INLINE float Sample(float phase, float input)
+		SFM_INLINE float Sample(float phase, float input, bool skipTrick = false /* Skip MIDI LUT trick and use unaltered input */)
 		{
 			const float curGate = oscPulse(phase, 0.5f); // oscSquare()
 			
@@ -37,12 +36,15 @@ namespace SFM
 				const float curSignal = m_curSignal.Sample();
 				m_curSignal.SetRate(m_sampleRate, m_slewRate);
 				m_curSignal.Set(curSignal);
-
-				// This was just a dumb test but in fact it's more pleasing to the ear
-				// than just using the (white noise) input signal
-				const unsigned index = unsigned(truncf(fabsf(input*127.f)));
-				const float noteFreq = float(g_MIDIToFreqLUT[index]);
-				input = sinf(noteFreq*k2PI);				
+				
+				if (false == skipTrick)
+				{
+					// This was just a dumb test but in fact it's more pleasing to the ear
+					// than just using the (white noise) input signal
+					const unsigned index = unsigned(truncf(fabsf(input*127.f)));
+					const float noteFreq = float(g_MIDIToFreqLUT[index]);
+					input = sinf(noteFreq*k2PI);				
+				}
 
 				m_curSignal.SetTarget(input);
 			}
@@ -54,10 +56,10 @@ namespace SFM
 			return Clamp(m_curSignal.Sample()); 
 		}
 
-		void SetSlewRate(float rate)
+		void SetSlewRate(float rateInSeconds)
 		{
-			SFM_ASSERT(rate >= kMinSandHSlewRate && rate <= kMaxSandHSlewRate)
-			m_slewRate = rate;
+			SFM_ASSERT(rateInSeconds >= kMinSandHSlewRate && rateInSeconds <= kMaxSandHSlewRate)
+			m_slewRate = rateInSeconds;
 		}
 
 		void Reset()

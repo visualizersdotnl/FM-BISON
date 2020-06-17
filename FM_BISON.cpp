@@ -182,6 +182,8 @@ namespace SFM
 		m_postWetPS             = { sampleRatePS };
 		m_wahRatePS             = { sampleRatePS };
 		m_wahSpeakPS            = { sampleRatePS };
+		m_wahSpeakVowelModPS    = { sampleRatePS };
+		m_wahSpeakGhostPS       = { sampleRatePS };
 		m_wahCutPS              = { sampleRatePS };
 		m_wahWetPS              = { sampleRatePS };
 		m_reverbWetPS           = { sampleRatePS };
@@ -208,6 +210,8 @@ namespace SFM
 		m_tubeDrivePS.Reset(m_patch.tubeDrive);
 		m_wahRatePS.Reset(m_patch.wahRate);
 		m_wahSpeakPS.Reset(m_patch.wahSpeak);
+		m_wahSpeakVowelModPS.Reset(m_patch.wahSpeakVowelMod);
+		m_wahSpeakGhostPS.Reset(m_patch.wahSpeakGhost);
 		m_wahCutPS.Reset(m_patch.wahCut);
 		m_wahWetPS.Reset(m_patch.wahWet);
 		m_reverbWetPS.Reset(m_patch.reverbWet);
@@ -860,7 +864,7 @@ namespace SFM
 				// Start oscillator
 				const float phaseShift = (true == patchOp.keySync)
 					? 0.f // Synchronized
-					: voiceOp.oscillator.GetPhase(); // Running
+					: voiceOp.oscillator.GetPhase(); // Running (it's safe to feed an out of bounds value, see synth-oscillator.h)
 
 				voiceOp.oscillator.Initialize(
 					patchOp.waveform, frequency, m_sampleRate, phaseShift);
@@ -2018,6 +2022,8 @@ namespace SFM
 						  m_wahRatePS.Apply(m_patch.wahRate),
 						  m_wahSpeakPS.Apply(m_patch.wahSpeak),
 						  m_patch.wahSpeakVowel,
+						  m_wahSpeakVowelModPS.Apply(m_patch.wahSpeakVowelMod),
+						  m_wahSpeakGhostPS.Apply(m_patch.wahSpeakGhost),
 						  m_wahCutPS.Apply(m_patch.wahCut),
 						  m_wahWetPS.Apply(m_patch.wahWet),
 		                  /* Chorus/Phaser */

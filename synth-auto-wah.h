@@ -20,10 +20,13 @@
 
 namespace SFM
 {
-	// Constant parameters
-	constexpr float kWahDelay = 0.005f; // 5MS             
-	constexpr float kWahLookahead = 0.3f;
-	constexpr float kWahRMSWindowSec = 0.001f; // 1MS
+	// Local constant parameters
+	constexpr float kWahDelay = 0.005f;            // 5MS             
+	constexpr float kWahLookahead = 0.5f;          // 0.5 * 5MS
+	constexpr float kWahRMSWindowSec = 0.002f;     // 2MS
+	constexpr float kWahGhostAttackMS = 10.f;      // 10MS
+	constexpr float kMaxWahGhostReleaseMS = 600.f; // 600MS
+	constexpr float kWahVoxSandHSlewRate = 0.001f; // 1MS
 
 	class AutoWah
 	{
@@ -36,6 +39,8 @@ namespace SFM
 ,			m_outDelayR(sampleRate, kWahDelay)
 ,			m_RMS(sampleRate, kWahRMSWindowSec)
 ,			m_sideEnv(sampleRate, kDefWahAttack, kDefWahHold)
+,			m_voxSandH(sampleRate)
+,			m_voxGhostEnv(sampleRate, kWahGhostAttackMS, kMaxWahGhostReleaseMS/2.f /* Default */)
 ,			m_curResonance(0.f, sampleRate, kDefParameterLatency)
 ,			m_curAttack(kDefWahAttack, sampleRate, kDefParameterLatency)
 ,			m_curHold(kDefWahHold, sampleRate, kDefParameterLatency)
@@ -45,12 +50,15 @@ namespace SFM
 ,			m_curWet(0.f, sampleRate, kDefParameterLatency)
 ,			m_lookahead(kWahLookahead)
 		{
+			m_voxOscPhase.Initialize(kDefWahRate, sampleRate);
+			m_voxSandH.SetSlewRate(kWahVoxSandHSlewRate);
+
 			m_LFO.Initialize(Oscillator::Waveform::kTriangle, kDefWahRate, m_sampleRate, 0.f);
 		}
 
 		~AutoWah() {}
 
-		SFM_INLINE void SetParameters(float resonance, float attack, float hold, float rate, float speak, float speakVowel, float cut, float wetness)
+		SFM_INLINE void SetParameters(float resonance, float attack, float hold, float rate, float speak, float speakVowel, float speakVowelMod, float speakGhost, float cut, float wetness)
 		{
 			SFM_ASSERT(resonance >= 0.f && resonance <= 1.f);
 			SFM_ASSERT(attack >= kMinWahAttack && attack <= kMaxWahAttack);
@@ -58,6 +66,8 @@ namespace SFM
 			SFM_ASSERT(rate >= kMinWahRate && rate <= kMaxWahRate);
 			SFM_ASSERT(speak >= 0.f && speak <= 1.f);
 			SFM_ASSERT(speakVowel >= 0.f && speakVowel <= kMaxWahSpeakVowel);
+			SFM_ASSERT(speakVowelMod >= 0.f && speakVowelMod <= 1.f);
+			SFM_ASSERT(speakGhost >= 0.f && speakGhost <= 1.f);
 			SFM_ASSERT(cut >= 0.f && cut <= 1.f);
 			SFM_ASSERT(wetness >= 0.f && wetness <= 1.f);
 
@@ -67,6 +77,8 @@ namespace SFM
 			m_curRate.SetTarget(rate);
 			m_curSpeak.SetTarget(speak);
 			m_curSpeakVowel.SetTarget(speakVowel);
+			m_curSpeakVowelMod.SetTarget(speakVowelMod);
+			m_curSpeakGhost.SetTarget(speakGhost);
 			m_curCut.SetTarget(cut);
 			m_curWet.SetTarget(wetness);
 		}
@@ -86,6 +98,9 @@ namespace SFM
 		SvfLinearTrapOptimised2 m_preFilterLP[3];
 		SvfLinearTrapOptimised2 m_postFilterLP;
 		
+		Phase m_voxOscPhase;
+		SampleAndHold m_voxSandH;
+		FollowerEnvelope m_voxGhostEnv;
 		VowelizerV1 m_vowelizerV1;
 
 		Oscillator m_LFO;
@@ -97,6 +112,8 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curRate;
 		InterpolatedParameter<kLinInterpolate> m_curSpeak;
 		InterpolatedParameter<kLinInterpolate> m_curSpeakVowel;
+		InterpolatedParameter<kLinInterpolate> m_curSpeakVowelMod;
+		InterpolatedParameter<kLinInterpolate> m_curSpeakGhost;
 		InterpolatedParameter<kLinInterpolate> m_curCut;
 		InterpolatedParameter<kLinInterpolate> m_curWet;
 

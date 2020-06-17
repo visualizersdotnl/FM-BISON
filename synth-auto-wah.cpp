@@ -12,23 +12,26 @@
 
 namespace SFM
 {
-	// Constant parameter(s)
-	// Each of these could be a parameter but I *chose* these values (thank you, Stijn)
-	constexpr double kPreLowCutQ  =    0.5;
-	constexpr float  kResoMax     =   0.7f;
-	constexpr float  kCutRange    =  0.05f;
+	// Local constant parameters
+	// Each of these could be a parameter but I *chose* these values; we have enough knobs as it is (thanks Stijn ;))
+	constexpr double kPreLowCutQ   =    0.5;
+	constexpr float  kResoMax      =   0.7f;
+	constexpr float  kCutRange     =  0.05f;
+	constexpr float  kVoxRateScale =    2.f;
 
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples)
 	{
-//		constexpr float kGain3dB = 1.41253757f;
-
+		// This effect is big and expensive, we'll skip it if not used
 		if (0.f == m_curWet.Get() && 0.f == m_curWet.GetTarget())
 		{
 			m_curResonance.Skip(numSamples);
 			m_curAttack.Skip(numSamples);
 			m_curHold.Skip(numSamples);
+			m_curRate.Skip(numSamples);
 			m_curSpeak.Skip(numSamples);
 			m_curSpeakVowel.Skip(numSamples);
+			m_curSpeakVowelMod.Skip(numSamples);
+			m_curSpeakGhost.Skip(numSamples);
 			m_curCut.Skip(numSamples);
 			m_curWet.Skip(numSamples);
 
@@ -43,6 +46,8 @@ namespace SFM
 				// Feed delay line
 				m_outDelayL.Write(sampleL);
 				m_outDelayR.Write(sampleR);
+
+				// FIXME: more upkeep?
 			}
 
 			// Done
@@ -55,15 +60,21 @@ namespace SFM
 			const float resonance = m_curResonance.Sample();
 			const float curAttack = m_curAttack.Sample();
 			const float curHold   = m_curHold.Sample();
+			const float curRate   = m_curRate.Sample();
 			const float voxWet    = m_curSpeak.Sample();
 			const float voxVow    = m_curSpeakVowel.Sample();
+			const float voxMod    = m_curSpeakVowelMod.Sample();
+			const float voxGhost  = m_curSpeakGhost.Sample();
 			const float lowCut    = m_curCut.Sample()*0.125f; // Nyquist/8 is more than enough!
 			const float wetness   = m_curWet.Sample();
 			
 			m_sideEnv.SetAttack(curAttack *  100.f); // FIXME: why a tenth of?
 			m_sideEnv.SetRelease(curHold  * 1000.f);
 
-			m_LFO.SetFrequency(m_curRate.Sample());
+			m_LFO.SetFrequency(curRate);
+
+			m_voxOscPhase.SetFrequency(curRate*kVoxRateScale);
+			m_voxGhostEnv.SetRelease(kMaxWahGhostReleaseMS*0.5f + voxGhost*kMaxWahGhostReleaseMS*0.5f);
 
 			// Input
 			const float sampleL = pLeft[iSample];
@@ -75,7 +86,7 @@ namespace SFM
 
 			// Calc. RMS and feed it to sidechain
 			const float signaldB = m_RMS.Run(sampleL, sampleR);
-			const float envdB = m_sideEnv.Apply(signaldB);
+			const float envdB = (signaldB > kMinVolumedB) ? m_sideEnv.Apply(signaldB) : kMinVolumedB;
 			const float envGain = fast_tanhf(dB2Lin(envdB)); // Soft-clip gain, sounds good
 
 			// Grab (delayed) signal
@@ -97,15 +108,6 @@ namespace SFM
 			// Sample LFO
 			const float LFO = m_LFO.Sample(0.f);
 
-#if 0
-			// Vowelize (pre-LP)
-			float vowelL = preFilteredL, vowelR = preFilteredR;
-			m_vowelizerV1.Apply(vowelL, vowelR, voxVow);
-
-			float filteredL = lerpf<float>(preFilteredL, vowelL, voxWet);
-			float filteredR = lerpf<float>(preFilteredR, vowelR, voxWet);
-#endif
-
 			// Post filter (LP)
 			float filteredL = preFilteredL, filteredR = preFilteredR;
 
@@ -124,15 +126,22 @@ namespace SFM
 			// Add (low) remainder to signal
 			filteredL += remainderL;
 			filteredR += remainderR;
-
-#if 1
-			// Vowelize (post-LP)
-			float vowelL = filteredL, vowelR = filteredR;
-			m_vowelizerV1.Apply(vowelL, vowelR, voxVow);
+			
+			// Vowelize
+			const float voxPhase = m_voxOscPhase.Sample();
+			const float oscInput = mt_randf();
+			const float voxLFO = lerpf<float>(1.f, m_voxSandH.Sample(voxPhase, oscInput, true), voxMod);
+			
+			// Calc. "ghost" noise
+			const float ghostSig = mt_randf()*0.3f;
+			const float ghostEnv = m_voxGhostEnv.Apply(envGain*voxLFO*voxGhost);
+			const float ghost = ghostSig*ghostEnv;
+			
+			float vowelL = filteredL+ghost, vowelR = filteredR+ghost;
+			m_vowelizerV1.Apply(vowelL, vowelR, voxVow*voxLFO);
 
 			filteredL = lerpf<float>(filteredL, vowelL, voxWet);
 			filteredR = lerpf<float>(filteredR, vowelR, voxWet);
-#endif
 
 			// Mix with dry (delayed) signal
 			pLeft[iSample]  = lerpf<float>(delayedL, filteredL, wetness);

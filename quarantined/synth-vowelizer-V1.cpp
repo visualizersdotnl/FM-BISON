@@ -48,39 +48,6 @@ const double kVowelCoeffs[SFM::VowelizerV1::kNumVowels][11]=
 
 namespace SFM
 {
-	double VowelizerV1::Calculate(float sample, unsigned iChan)
-	{
-		SFM_ASSERT(iChan < 2);
-
-		double *buffer = m_ring[iChan];
-
-		double result;
-		result  = m_interpolatedCoeffs[0]  * sample;
-		result += m_interpolatedCoeffs[1]  * buffer[0];
-		result += m_interpolatedCoeffs[2]  * buffer[1];
-		result += m_interpolatedCoeffs[3]  * buffer[2];
-		result += m_interpolatedCoeffs[4]  * buffer[3];
-		result += m_interpolatedCoeffs[5]  * buffer[4];
-		result += m_interpolatedCoeffs[6]  * buffer[5];
-		result += m_interpolatedCoeffs[7]  * buffer[6];
-		result += m_interpolatedCoeffs[8]  * buffer[7];
-		result += m_interpolatedCoeffs[9]  * buffer[8];
-		result += m_interpolatedCoeffs[10] * buffer[9];
-
-		buffer[9] = buffer[8];
-		buffer[8] = buffer[7];
-		buffer[7] = buffer[6];
-		buffer[6] = buffer[5];
-		buffer[5] = buffer[4];
-		buffer[4] = buffer[3];
-		buffer[3] = buffer[2];
-		buffer[2] = buffer[1];
-		buffer[1] = buffer[0];
-		buffer[0] = result;
-
-		return result;
-	}
-
 	// FIXME: probably not worth it, smoothstepf() being faster, but David Hoskins is no slouch at picking functions
 	SFM_INLINE static double CosineInterpolate(double a, double b, double t)
 	{

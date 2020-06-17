@@ -15,6 +15,7 @@
 
 namespace SFM
 {
+	// Constant local parameters
 	constexpr float kCompMaxDelay = 0.01f;      // 10MS
 	constexpr float kCompRMSWindowSec = 0.005f; // 5MS
 	constexpr float kCompPeakAttack = 0.001f;   // 1MS
