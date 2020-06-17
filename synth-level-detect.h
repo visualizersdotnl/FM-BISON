@@ -20,25 +20,32 @@ namespace SFM
 	public:
 		RMS(unsigned sampleRate, float lengthInSec /* Window size */) :
 			m_numSamples(unsigned(sampleRate*lengthInSec))
+,			m_buffer(new float[m_numSamples])
 		{
 			SFM_ASSERT(m_numSamples > 0);
+
+			Reset();
 		}
 
-		// Feeds sample and pops tail if necessary
+		~RMS()
+		{
+			delete m_buffer;
+		}
+	
+	private:
+		// Inserts new sample in circular buffer
 		SFM_INLINE void Add(float sampleL, float sampleR)
 		{
 			// Pick rectified max. & raise
 			const float rectMax    = GetRectifiedMaximum(sampleL, sampleR);
 			const float samplePow2 = rectMax*rectMax;
 
-			// Pop tail
-			if (m_buffer.size() == m_numSamples)
-				m_buffer.pop_front();
-			
-			// Add head
-			m_buffer.emplace_back(samplePow2);
+			// Store in (circular) buffer
+			m_buffer[m_writeIdx++] = samplePow2;
+			m_writeIdx %= m_numSamples;
 		}
-
+	
+	public:
 		// Does the above and returns the RMS in dB
 		SFM_INLINE float Run(float sampleL, float sampleR)
 		{
@@ -49,11 +56,10 @@ namespace SFM
 		// Calculate RMS and return dB
 		SFM_INLINE float GetdB() const
 		{
-			// FIXME: this might be too slow for larger windows
 			float sum = 0.f;
-			for (auto value : m_buffer)
-				sum += value;
-			
+			for (unsigned iSample = 0; iSample < m_numSamples; ++iSample)
+				sum += m_buffer[iSample];
+
 			const float RMS = sqrtf(sum/m_numSamples);
 			FloatAssert(RMS);
 
@@ -62,12 +68,15 @@ namespace SFM
 
 		void Reset()
 		{
-			m_buffer.clear();
+			memset(m_buffer, 0, m_numSamples*sizeof(float));
+			m_writeIdx = 0;
 		}
 
 	private:
 		const unsigned m_numSamples;
-		std::deque<float> m_buffer;
+
+		float *m_buffer = nullptr;
+		unsigned m_writeIdx = 0;
 	};
 
 	class Peak

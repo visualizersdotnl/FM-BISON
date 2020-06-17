@@ -27,7 +27,6 @@ namespace SFM
 
 		SFM_INLINE float Sample(float phase, float input)
 		{
-//			const float curGate = oscPulse(phase, 0.5f);
 			const float curGate = oscBox(phase);
 			
 			// Gate?
@@ -43,8 +42,7 @@ namespace SFM
 			m_prevGate = curGate;
 
 			// Slew towards target signal
-			// Clamp to be 100% sure we're within [-1..1]
-			return Clamp(m_curSignal.Sample()); 
+			return m_curSignal.Sample(); 
 		}
 
 		void SetSlewRate(float rateInSeconds)

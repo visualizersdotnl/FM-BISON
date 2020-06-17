@@ -187,17 +187,15 @@ namespace SFM
 				for (unsigned iMod = 0; iMod < 3; ++iMod)
 				{
 					const int iModulator = voiceOp.modulators[iMod];
-					if (-1 != iModulator) // FIXME: I can do without this
-					{
-						// Sanity checks
-						SFM_ASSERT(iModulator < kNumOperators);
-						SFM_ASSERT(iModulator > iOp);
 
-						// Add sample to phase
-						// If modulator or modulator operator is disabled it's zero
-						const float sample = modSamples[iModulator];
-						phaseShift += 1.f+sample;
-					}
+					// Sanity checks
+					SFM_ASSERT(-1 == iModulator || iModulator < kNumOperators);
+					SFM_ASSERT(-1 == iModulator || iModulator > iOp);
+
+					// Add sample to phase
+					// If operator is disable it'll be zero, so effectively one, which leaves the phase unaltered
+					const float sample = modSamples[iModulator];
+					phaseShift += 1.f+sample;
 				}
 
 				const float feedbackAmt = kFeedbackScale*voiceOp.feedbackAmt.Sample();

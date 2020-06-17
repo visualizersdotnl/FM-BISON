@@ -72,8 +72,8 @@ namespace SFM
 		const double *pB = kVowelCoeffs[indexB];
 
 		for (unsigned iCoeff = 0; iCoeff < 11; ++iCoeff)
-//			m_interpolatedCoeffs[iCoeff] = lerpf<double>(*pA++, *pB++, smoothstepf(delta));
-			m_interpolatedCoeffs[iCoeff] = CosineInterpolate(*pA++, *pB++, delta);
+			m_interpolatedCoeffs[iCoeff] = lerpf<double>(*pA++, *pB++, smoothstepf(delta));
+//			m_interpolatedCoeffs[iCoeff] = CosineInterpolate(*pA++, *pB++, delta);
 
 //		Log("indexA = " + std::to_string(indexA) + " indexB = " + std::to_string(indexB));
 		

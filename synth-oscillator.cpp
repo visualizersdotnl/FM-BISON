@@ -27,9 +27,11 @@ namespace SFM
 
 		const float phase = m_phases[0].Sample();
 		const double pitch = m_phases[0].GetPitch(); // For PolyBLEP
-
-		// FIXME: skip fmodf() if 'phaseShift' is zero?
-		const float modulated = fmodf(phase+phaseShift, 1.f);
+		
+		// Calling fmodf() certainly warrants a comparison and branch
+		const float modulated = (0.f == phaseShift)
+			? phase // Gauranteed to be [0..1]
+			: fmodf(phase+phaseShift, 1.f);
 		
 		// This switch statement has never shown up during profiling
 		float signal = 0.f;

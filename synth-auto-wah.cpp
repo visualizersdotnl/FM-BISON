@@ -15,12 +15,12 @@ namespace SFM
 	// Local constant parameters
 	// Each of these could be a parameter but I *chose* these values; we have enough knobs as it is (thanks Stijn ;))
 	constexpr double kPreLowCutQ   =    0.5;
-	constexpr float  kResoMax      =   0.7f;
-	constexpr float  kCutRange     =  0.05f;
+	constexpr float  kResoMax      =   0.5f;
+	constexpr float  kCutRange     =  0.05f; // Why not a bit more? (FIXME)
 	constexpr float  kVoxRateScale =    2.f;
 
-//	constexpr float kVoxGhostNoiseGain = 0.35481338923357547f; // -9dB
-	constexpr float kVoxGhostNoiseGain = 0.3f;
+	constexpr float kVoxGhostNoiseGain = 0.35481338923357547f; // -9dB
+//	constexpr float kVoxGhostNoiseGain = 0.3f;
 
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples)
 	{
@@ -71,7 +71,7 @@ namespace SFM
 			m_LFO.SetFrequency(curRate);
 
 			m_voxOscPhase.SetFrequency(curRate*kVoxRateScale);
-			m_voxGhostEnv.SetRelease(kMaxWahGhostReleaseMS*0.5f + voxGhost*kMaxWahGhostReleaseMS*0.5f);
+			m_voxGhostEnv.SetRelease(kMinWahGhostReleaseMS + voxGhost*(kMaxWahGhostReleaseMS-kMinWahGhostReleaseMS));
 
 			// Input
 			const float sampleL = pLeft[iSample];
@@ -105,14 +105,13 @@ namespace SFM
 			// Post filter (LP)
 			float filteredL = preFilteredL, filteredR = preFilteredR;
 
-			const float cutoff = kCutRange + (envGain * (1.f - 2.f*kCutRange)) + LFO*kCutRange; // FIXME
-
+			const float cutoff = kCutRange + (envGain * (1.f - 2.f*kCutRange)) + LFO*kCutRange; // Modulates the top end only
 			SFM_ASSERT(cutoff >= 0.f && cutoff <= 1.f);
 
 			const float cutHz    = CutoffToHz(cutoff, m_Nyquist);
-			const float maxNormQ = kResoMax*resonance;            //
-			const float normQ    = maxNormQ - maxNormQ*envGain;   //
-			const float Q        = ResoToQ(normQ);                // Less signal, more Q
+			const float maxNormQ = kResoMax*resonance;            
+			const float normQ    = maxNormQ - maxNormQ*envGain; // More gain means less Q: dull(er) resonance peak
+			const float Q        = ResoToQ(normQ);                
 
 			m_postFilterLP.updateLowpassCoeff(cutHz, Q, m_sampleRate);
 			m_postFilterLP.tick(filteredL, filteredR);
@@ -130,18 +129,14 @@ namespace SFM
 			const float voxLFO_B = lerpf<float>(1.f, fabsf(voxOsc), toLFO);
 			
 			// Calc. vox. "ghost" noise
-			const float ghostRand = (rand()%256)/255.f; // Coarse random sounds better than mt_randf()
+			const float ghostRand = mt_randf();
 			const float ghostSig  = ghostRand*kVoxGhostNoiseGain;
 			const float ghostEnv  = m_voxGhostEnv.Apply(envGain * voxLFO_B * voxGhost);
 			const float ghost     = ghostSig*ghostEnv;
-						
-			// Calc. vowel (cheap trick to avoid clamp)
-			float vowel = voxVow+voxLFO_A;
-			if (vowel < 0.f)
-				vowel -= vowel;
-			else if (vowel > kMaxWahSpeakVowel)
-				vowel -= vowel-kMaxWahSpeakVowel;
-			
+
+			// I dislike frequent fmodf() calls but according to MSVC's profiler we're in the clear
+			const float vowel = fabsf(fmodf(voxVow+voxLFO_A, kMaxWahSpeakVowel));
+		
 			// Filter and mix
 			float vowelL = filteredL + ghost, vowelR = filteredR + ghost;
 			m_vowelizerV1.Apply(vowelL, vowelR, vowel);

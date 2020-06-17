@@ -23,7 +23,8 @@ namespace SFM
 	// Local constant parameters
 	constexpr float kWahRMSWindowSec = 0.002f;     // 2MS
 	constexpr float kWahGhostAttackMS = 10.f;      // 10MS
-	constexpr float kMaxWahGhostReleaseMS = 600.f; // 600MS
+	constexpr float kMinWahGhostReleaseMS = 200.f; // 200MS
+	constexpr float kMaxWahGhostReleaseMS = 600.f; // 500MS
 	constexpr float kWahVoxSandHSlewRate = 0.001f; // 1MS
 
 	class AutoWah
@@ -36,7 +37,7 @@ namespace SFM
 ,			m_RMS(sampleRate, kWahRMSWindowSec)
 ,			m_sideEnv(sampleRate, kDefWahAttack, kDefWahHold)
 ,			m_voxSandH(sampleRate)
-,			m_voxGhostEnv(sampleRate, kWahGhostAttackMS, kMaxWahGhostReleaseMS/2.f /* Default */)
+,			m_voxGhostEnv(sampleRate, kWahGhostAttackMS, kMaxWahGhostReleaseMS /* Default */)
 ,			m_curResonance(0.f, sampleRate, kDefParameterLatency)
 ,			m_curAttack(kDefWahAttack, sampleRate, kDefParameterLatency)
 ,			m_curHold(kDefWahHold, sampleRate, kDefParameterLatency)

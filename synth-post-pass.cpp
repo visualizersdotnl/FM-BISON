@@ -456,8 +456,7 @@ namespace SFM
 		// Sweep LFOs
 		const float phase = m_chorusSweep.Sample();
 		
-		// This violates the [0..1] range but fast_sinf() doesn't have any problems with it
-		// so I'll skip expensive fmodf() calls
+		// This violates my [0..1] phase rule but Kusma's function handles it just fine
 		const float sweepL = 0.5f*fast_sinf(phase+sweepMod);
 		const float sweepR = 0.5f*fast_sinf((1.f-phase)+sweepMod);
 		
