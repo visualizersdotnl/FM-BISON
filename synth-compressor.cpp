@@ -28,9 +28,9 @@ namespace SFM
 			const float curRelease  = m_curRelease.Sample();
 			const float kneedB      = m_curKneedB.Sample();
 
-			// Set parameters (FIXME: why are we one decimal point shy?)
-			m_gainEnv.SetAttack(curAttack   * 100.f);
-			m_gainEnv.SetRelease(curRelease * 100.f);
+			// Set parameters
+			m_gainEnv.SetAttack(curAttack   * 1000.f); // FIXME: these values seem to work exactly right, as opposed to what I've observed in AutoWah
+			m_gainEnv.SetRelease(curRelease * 1000.f); //
 
 			// Input
 			const float sampleL = pLeft[iSample];

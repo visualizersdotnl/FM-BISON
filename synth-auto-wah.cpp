@@ -66,7 +66,7 @@ namespace SFM
 			const float wetness   = m_curWet.Sample();
 			
 			// Set parameters
-			m_sideEnv.SetAttack(curAttack * 100.f); // FIXME: why are we one decimal point shy?
+			m_sideEnv.SetAttack(curAttack * 100.f); // FIXME: why does it sound right at a tenth of the time set?
 			m_sideEnv.SetRelease(curHold  * 100.f); //
 
 			m_LFO.SetFrequency(curRate);
