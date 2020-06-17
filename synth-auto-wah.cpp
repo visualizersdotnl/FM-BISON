@@ -19,8 +19,8 @@ namespace SFM
 	constexpr float  kCutRange     =  0.05f;
 	constexpr float  kVoxRateScale =    4.f;
 
-	// -9dB
-	constexpr float kVoxGhostNoiseGain = 0.35481338923357547f; 
+//	constexpr float kVoxGhostNoiseGain = 0.35481338923357547f; // -9dB
+	constexpr float kVoxGhostNoiseGain = 0.3f;
 
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples)
 	{
