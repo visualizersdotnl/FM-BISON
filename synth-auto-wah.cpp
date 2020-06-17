@@ -133,8 +133,8 @@ namespace SFM
 			const float voxLFO = lerpf<float>(1.f, m_voxSandH.Sample(voxPhase, oscInput, true), voxMod);
 			
 			// Calc. "ghost" noise
-			const float ghostSig = mt_randf() * (0.3f + 0.3f*voxGhost); // This is just right for most patches
-			const float ghostEnv = m_voxGhostEnv.Apply(envGain*voxLFO*voxGhost);
+			const float ghostSig = mt_randf()*0.3f; // Amplifying this according to 'voxGhost' makes it sound too dirty
+			const float ghostEnv = m_voxGhostEnv.Apply(envGain*voxLFO*voxGhost); // So we take care of that here!
 			const float ghost = ghostSig*ghostEnv;
 			
 			float vowelL = filteredL+ghost, vowelR = filteredR+ghost;
