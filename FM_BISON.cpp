@@ -157,7 +157,7 @@ namespace SFM
 		m_LFOBlendPS            = { sampleRatePS };
 		m_LFOModDepthPS         = { sampleRatePS };
 		m_SandHSlewRatePS       = { sampleRatePS };
-		m_cutoffPS              = { sampleRatePS };
+		m_cutoffPS              = { sampleRatePS }; // FIXME
 		m_resoPS                = { sampleRatePS };
 
 		m_LFORatePS.Reset(freqLFO);
@@ -182,6 +182,7 @@ namespace SFM
 		m_postWetPS             = { sampleRatePS };
 		m_wahRatePS             = { sampleRatePS };
 		m_wahSpeakPS            = { sampleRatePS };
+		m_wahSpeakVowelPS       = { sampleRatePS, 10.f /* 10MS */ };
 		m_wahSpeakVowelModPS    = { sampleRatePS };
 		m_wahSpeakGhostPS       = { sampleRatePS };
 		m_wahCutPS              = { sampleRatePS };
@@ -210,6 +211,7 @@ namespace SFM
 		m_tubeDrivePS.Reset(m_patch.tubeDrive);
 		m_wahRatePS.Reset(m_patch.wahRate);
 		m_wahSpeakPS.Reset(m_patch.wahSpeak);
+		m_wahSpeakVowelPS.Reset(m_patch.wahSpeakVowel);
 		m_wahSpeakVowelModPS.Reset(m_patch.wahSpeakVowelMod);
 		m_wahSpeakGhostPS.Reset(m_patch.wahSpeakGhost);
 		m_wahCutPS.Reset(m_patch.wahCut);
@@ -2021,7 +2023,7 @@ namespace SFM
 						  m_patch.wahHold,
 						  m_wahRatePS.Apply(m_patch.wahRate),
 						  m_wahSpeakPS.Apply(m_patch.wahSpeak),
-						  m_patch.wahSpeakVowel,
+						  m_wahSpeakVowelPS.Apply(m_patch.wahSpeakVowel),
 						  m_wahSpeakVowelModPS.Apply(m_patch.wahSpeakVowelMod),
 						  m_wahSpeakGhostPS.Apply(m_patch.wahSpeakGhost),
 						  m_wahCutPS.Apply(m_patch.wahCut),
