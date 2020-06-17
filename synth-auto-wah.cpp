@@ -111,7 +111,7 @@ namespace SFM
 			// Post filter (LP)
 			float filteredL = preFilteredL, filteredR = preFilteredR;
 
-			const float cutoff = kCutRange + (envGain * (1.f - 2.f*kCutRange)) + LFO*kCutRange;
+			const float cutoff = kCutRange + (envGain * (1.f - 2.f*kCutRange)) + LFO*kCutRange; // FIXME
 
 			SFM_ASSERT(cutoff >= 0.f && cutoff <= 1.f);
 
@@ -133,7 +133,7 @@ namespace SFM
 			const float voxLFO = lerpf<float>(1.f, m_voxSandH.Sample(voxPhase, oscInput, true), voxMod);
 			
 			// Calc. "ghost" noise
-			const float ghostSig = mt_randf()*0.3f;
+			const float ghostSig = mt_randf() * (0.3f + 0.3f*voxGhost); // This is just right for most patches
 			const float ghostEnv = m_voxGhostEnv.Apply(envGain*voxLFO*voxGhost);
 			const float ghost = ghostSig*ghostEnv;
 			
