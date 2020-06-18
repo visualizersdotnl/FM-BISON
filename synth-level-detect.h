@@ -82,14 +82,13 @@ namespace SFM
 	class Peak
 	{
 	public:
-		Peak(unsigned sampleRate, float attackInSec, float releaseInSec) :
-			m_peakEnv(sampleRate, attackInSec*1000.f, releaseInSec*1000.f) // FollowerEnvelope wants MS!
-		{
-		}
+		Peak(unsigned sampleRate, float attackInSec) :
+			m_peakEnv(sampleRate, attackInSec*1000.f /* MS used as unit in synth-sidechain-envelope.h (see Github issue) */)
+		{}
 
 		SFM_INLINE void Reset()
 		{
-			m_peakEnv.Reset();
+			m_peak = 0.f;
 		}
 
 		SFM_INLINE float Run(float sampleL, float sampleR)
@@ -98,22 +97,24 @@ namespace SFM
 			const float rectMax = GetRectifiedMaximum(sampleL, sampleR);
 			
 			// Apply & return
-			m_peakEnv.Apply(rectMax);
+			m_peakEnv.Apply(rectMax, m_peak);
 			return GetdB();
 		}
 
 		SFM_INLINE float GetdB() const
 		{
-			const float peakEnv = m_peakEnv.Get();
+			const float peakEnv = m_peak;
 			return (0.f != peakEnv) ? Lin2dB(peakEnv) : kInfVolumedB;
 		}
 
-		SFM_INLINE float GetLin() const
+		SFM_INLINE void SetAttack(float attackInSec)
 		{
-			return m_peakEnv.Get();
+			SFM_ASSERT(attackInSec > 0.f);
+			m_peakEnv.SetTimeCoeff(attackInSec*1000.f);
 		}
 
 	private:
-		FollowerEnvelope m_peakEnv;
+		SignalFollower m_peakEnv;
+		float m_peak = 0.f;
 	};
 }

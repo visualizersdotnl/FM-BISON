@@ -128,7 +128,7 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curTubeDist;
 		InterpolatedParameter<kLinInterpolate> m_curTubeDrive;
 		InterpolatedParameter<kLinInterpolate> m_curTubeOffset;
-		DCBlocker m_tubeDCBlocker;	
+		StereoDCBlocker m_tubeDCBlocker;	
 		SvfLinearTrapOptimised2 m_tubeFilterAA;
 		
 		// Low cut filter

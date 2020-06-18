@@ -205,7 +205,7 @@ namespace SFM
 
 	// Auto-wah range & defaults
 	constexpr float kDefWahResonance     =   0.5f; // 50%
-	constexpr float kMinWahAttack        =  0.05f; // 50MS
+	constexpr float kMinWahAttack        = 0.001f; // 1MS
 	constexpr float kMaxWahAttack        =    1.f; // 1 sec.
 	constexpr float kDefWahAttack        = 0.125f; // 125MS 
 	constexpr float kMinWahHold          = 0.001f; // 1MS

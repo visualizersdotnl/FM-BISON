@@ -49,17 +49,17 @@ const double kVowelCoeffs[SFM::VowelizerV1::kNumVowels][11]=
 namespace SFM
 {
 	
-	// FIXME: probably not worth it, smoothstepf() being faster, but David Hoskins is no slouch at picking Paul Bourke's functions ;)
+	// FIXME: probably not worth it, smoothstepf() being faster, but David Hoskins is no slouch when it comes to picking functions
 	SFM_INLINE static double CosineInterpolate(double a, double b, double t)
 	{
 		t = (1.0-cos(t*kPI))*0.5;
 		return a*(1.0-t) + b*t;
 	}
 
-	void VowelizerV1::Apply(float &sampleL, float &sampleR, float vowel)
+	void VowelizerV1::Apply(float &sampleL, float &sampleR, float vowel, float preGain /* = 0.707f, -3dB */)
 	{
-		sampleL *= 0.5f; // -6dB
-		sampleR *= 0.5f; //
+		sampleL *= preGain;
+		sampleR *= preGain;
 
 		// Calculate interpolated coefficients (check http://www.kvraudio.com/forum/viewtopic.php?=f=33&t=492329)
 		SFM_ASSERT(vowel >= 0.f && vowel <= 4.f);

@@ -892,9 +892,9 @@ namespace SFM
 				voiceOp.modulators[2] = patchOp.modulators[2];
 
 				// Feedback
-				voiceOp.iFeedback = patchOp.feedback;
+				voiceOp.iFeedback   = patchOp.feedback;
 				voiceOp.feedbackAmt = { patchOp.feedbackAmt, m_sampleRate, kDefParameterLatency };
-				voiceOp.feedback = 0.f;
+				voiceOp.feedback    = 0.f;
 				
 				// LFO influence
 				voiceOp.ampMod   = patchOp.ampMod;
@@ -1053,8 +1053,9 @@ namespace SFM
 				voiceOp.modulators[2] = patchOp.modulators[2];
 
 				// Feedback
-				voiceOp.iFeedback = patchOp.feedback;
+				voiceOp.iFeedback   = patchOp.feedback;
 				voiceOp.feedbackAmt = { patchOp.feedbackAmt, m_sampleRate, kDefParameterLatency };
+				voiceOp.feedback    = 0.f;
 				
 				// LFO influence
 				voiceOp.ampMod   = patchOp.ampMod;

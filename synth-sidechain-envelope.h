@@ -55,21 +55,22 @@ namespace SFM
 	public:
 		FollowerEnvelope() {}
 
-		FollowerEnvelope(unsigned sampleRate, float attackMS = 10.f, float releaseMS = 100.f) :
+		FollowerEnvelope(unsigned sampleRate, float state, float attackMS = 10.f, float releaseMS = 100.f) :
 			m_attEnv(sampleRate, attackMS)
 ,			m_relEnv(sampleRate, releaseMS)
+,			m_state(state)
 		{
 		}
 
-		SFM_INLINE void Reset()
+		SFM_INLINE void Reset(float value = 0.f)
 		{
-			m_state = 0.f;
+			m_state = value;
 		}
 
 		SFM_INLINE void SetSampleRate(unsigned sampleRate)
 		{
 			SFM_ASSERT(sampleRate > 0);
-			
+
 			m_attEnv.SetSampleRate(sampleRate);
 			m_relEnv.SetSampleRate(sampleRate);
 		}

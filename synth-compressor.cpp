@@ -28,9 +28,9 @@ namespace SFM
 			const float curRelease  = m_curRelease.Sample();
 			const float kneedB      = m_curKneedB.Sample();
 
-			// Set parameters
-			m_gainEnv.SetAttack(curAttack   * 1000.f); // FIXME: these values seem to work exactly right, as opposed to what I've observed in AutoWah
-			m_gainEnv.SetRelease(curRelease * 1000.f); //
+			// Set env. parameters in MS
+			m_gainEnvdB.SetAttack(curAttack*1000.f);
+			m_gainEnvdB.SetRelease(curRelease*1000.f);
 
 			// Input
 			const float sampleL = pLeft[iSample];
@@ -40,8 +40,8 @@ namespace SFM
 			m_outDelayL.Write(sampleL);
 			m_outDelayR.Write(sampleR);
 			
-			// Get RMS in dB
-			// Suggests that RMS isn't the best way: http://c4dm.eecs.qmul.ac.uk/audioengineering/compressors/documents/Reiss-Tutorialondynamicrangecompression.pdf
+			// Get RMS and peak in dB
+			// Ref.: http://c4dm.eecs.qmul.ac.uk/audioengineering/compressors/documents/Reiss-Tutorialondynamicrangecompression.pdf
 			const float RMSdB = m_RMS.Run(sampleL, sampleR);
 			const float peakdB = m_peak.Run(sampleL, sampleR);
 			const float signaldB = lerpf<float>(RMSdB, peakdB, RMSToPeak);
@@ -76,12 +76,11 @@ namespace SFM
 				}
 			}
 
-			// Apply gain envelope
-			float envdB = m_gainEnv.ApplyReverse(gaindB);
+			float envdB = m_gainEnvdB.ApplyReverse(gaindB);
 
 			// Automatic gain (level) adjustment (nicked from: https://github.com/ptrv/auto_compressor/blob/master/Source/PluginProcessor.cpp)
 			const float estimatedB = thresholddB * -slope/2.f;
-			const float autodB = m_autoGainEnv.ApplyReverse(envdB - estimatedB);
+			const float autodB = m_autoGainEnvdB.Apply(envdB - estimatedB, m_autoGaindB);
 
 			if (true == autoGain)
 			{
@@ -94,8 +93,8 @@ namespace SFM
 				envdB += postGaindB;
 			}
 		
-			// Convert to linear gain
-			const float newGain = dB2Lin(envdB);
+			// Convert to final linear gain
+			const float gain = dB2Lin(envdB);
 
 			if (gaindB < 0.f)
 				bite += 1.f; // Register "bite"
@@ -106,14 +105,12 @@ namespace SFM
 			const float delayedL = m_outDelayL.Read(delayL);
 			const float delayedR = m_outDelayR.Read(delayR);
 
-			pLeft[iSample]  = delayedL*newGain;
-			pRight[iSample] = delayedR*newGain;
+			pLeft[iSample]  = delayedL*gain;
+			pRight[iSample] = delayedR*gain;
 		}
 
 		SFM_ASSERT(0 != numSamples);
 		bite = bite/numSamples;
-
-//		Log("Compressor bite: " + std::to_string(bite));
 
 		return bite;
 	}

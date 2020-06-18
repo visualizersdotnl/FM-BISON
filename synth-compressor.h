@@ -16,10 +16,9 @@
 namespace SFM
 {
 	// Constant local parameters
-	constexpr float kCompMaxDelay = 0.01f;      // 10MS
-	constexpr float kCompRMSWindowSec = 0.005f; // 5MS
-	constexpr float kCompPeakAttack = 0.001f;   // 1MS
-	constexpr float kCompPeakRelease = 0.005f;  // 5MS
+	constexpr float kCompMaxDelay     =  0.01f; // 10MS
+	constexpr float kCompRMSWindowSec = 0.005f; //  5MS
+	constexpr float kCompAutoGainMS   =    1.f; //  1MS (SignalFollower)
 
 	class Compressor
 	{
@@ -30,8 +29,9 @@ namespace SFM
 ,			m_outDelayL(sampleRate, kCompMaxDelay)
 ,			m_outDelayR(sampleRate, kCompMaxDelay)
 ,			m_RMS(sampleRate, kCompRMSWindowSec)
-,			m_peak(sampleRate, kCompPeakAttack, kCompPeakRelease)
-,			m_gainEnv(sampleRate), m_autoGainEnv(sampleRate)
+,			m_peak(sampleRate, kMinCompAttack)
+,			m_gainEnvdB(sampleRate, kInfVolumedB)
+,			m_autoGainEnvdB(sampleRate, kCompAutoGainMS)
 ,			m_curThresholddB(kDefCompThresholddB, sampleRate, kDefParameterLatency)
 ,			m_curKneedB(kDefCompKneedB, sampleRate, kDefParameterLatency)
 ,			m_curRatio(kDefCompRatio, sampleRate, kDefParameterLatency)
@@ -73,9 +73,11 @@ namespace SFM
 		
 		RMS m_RMS;
 		Peak m_peak;
-		
-		FollowerEnvelope m_gainEnv;
-		FollowerEnvelope m_autoGainEnv;
+		FollowerEnvelope m_gainEnvdB;
+
+//		FollowerEnvelope m_autoGainEnvdB;
+		SignalFollower m_autoGainEnvdB;
+		float m_autoGaindB = kInfVolumedB;
 
 		// Interpolated parameters
 		InterpolatedParameter<kLinInterpolate> m_curThresholddB;

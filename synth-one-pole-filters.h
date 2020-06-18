@@ -198,7 +198,7 @@ namespace SFM
 		float m_feedbackR;
 	};
 
-	/* DC blocker (stereo) */
+	/* DC blocker (incl. stereo) */
 
 	class DCBlocker
 	{
@@ -206,8 +206,42 @@ namespace SFM
 		DCBlocker() {}
 		~DCBlocker() {}
 
+		SFM_INLINE void Reset()
+		{
+			m_prevSample = 0.f;
+			m_feedback = 0.f;
+		}
+
+		SFM_INLINE float Apply(float sample)
+		{
+			constexpr float R = 0.995f;
+			const float result = sample - m_prevSample + R*m_feedback;
+			
+			m_prevSample = sample;
+			m_feedback = result;
+
+			return result;
+		}
+
+		SFM_INLINE float Get() const 
+		{
+			return m_feedback;
+		}
+
+	private:
+		float m_prevSample = 0.f;
+		float m_feedback   = 0.f;
+	};
+
+	class StereoDCBlocker
+	{
+	public:
+		StereoDCBlocker() {}
+		~StereoDCBlocker() {}
+
 		SFM_INLINE void Apply(float &sampleL, float &sampleR)
 		{
+			constexpr float R = 0.995f;
 			const float outL = sampleL - m_prevSample[0] + R*m_feedback[0];
 			const float outR = sampleR - m_prevSample[1] + R*m_feedback[1];
 
@@ -222,8 +256,6 @@ namespace SFM
 		}
 
 	private:
-		const float R = 0.995f;
-		
 		float m_prevSample[2] = { 0.f };
 		float m_feedback[2]   = { 0.f };
 	};

@@ -86,6 +86,6 @@ namespace SFM
 		}
 		
 		// Interpolates between vowels ('vowel' range is [0..kNumVowels-1])
-		void Apply(float &sampleL, float &sampleR, float vowel);
+		void Apply(float &sampleL, float &sampleR, float vowel, float preGain = 0.707f /* -3dB */);
 	};
 }

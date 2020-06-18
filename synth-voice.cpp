@@ -192,14 +192,13 @@ namespace SFM
 					SFM_ASSERT(-1 == iModulator || iModulator < kNumOperators);
 					SFM_ASSERT(-1 == iModulator || iModulator > iOp);
 
-					// Add sample to phase
-					// If operator is disable it'll be zero, so effectively one, which leaves the phase unaltered
-					const float sample = modSamples[iModulator];
-					phaseShift += 1.f+sample;
+					if (-1 != iModulator) // By branching here I'm potentially sparing an fmodf() in Oscillator::Sample()
+					{
+						// Add sample to phase
+						const float sample = modSamples[iModulator];
+						phaseShift += 1.f+sample;
+					}
 				}
-
-				const float feedbackAmt = kFeedbackScale*voiceOp.feedbackAmt.Sample();
-
 				// Get feedback
 				float feedback = 0.f;
 				if (-1 != voiceOp.iFeedback)
@@ -209,8 +208,9 @@ namespace SFM
 					// Sanity check
 					SFM_ASSERT(iFeedback < kNumOperators);
 					
-					// Grab operator's current feedback
+					// Grab operator's current feedback (and make sure it's either zero or positive)
 					feedback = m_operators[iFeedback].feedback;
+					SFM_ASSERT(feedback >= 0.f);
 				}
 
 				// Vibrato: pitch bend, pitch envelope & pitch LFO
@@ -231,9 +231,6 @@ namespace SFM
 				// Apply envelope
 				const float envelope = voiceOp.envelope.Sample();
 				sample *= envelope;
-
-				// Update operator's feedback
-				voiceOp.feedback = 0.25f*(voiceOp.feedback*0.995f + sample*feedbackAmt);
 
 				// Apply distortion 
 				const float driveAmt = voiceOp.drive.Sample();
@@ -274,10 +271,15 @@ namespace SFM
 				modSamples[iOp] = modSample;
 
 				// Add sample to gain envelope (for VU meter)
+				const float absModSample = fabsf(modSample);
 				const float gainSample = (voiceOp.isCarrier)
-					? fabsf(modSample)
-					: fabsf(modSample)/amplitude;
+					? absModSample
+					: absModSample/amplitude;
 				voiceOp.envGain.Apply(gainSample);
+
+				// Update feedback
+				const float feedbackAmt = kFeedbackScale*voiceOp.feedbackAmt.Sample();
+				voiceOp.feedback = 0.25f*(voiceOp.feedback*0.995f + absModSample*feedbackAmt);
 				
 				// Calculate panning
 				float panning = voiceOp.panning.Sample();

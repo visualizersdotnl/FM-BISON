@@ -290,7 +290,7 @@ namespace SFM
 			compAttack = kDefCompAttack;
 			compRelease = kDefCompRelease;
 			compLookahead = 0.f; // No lookahead
-			compAutoGain = false;
+			compAutoGain = true;
 			compRMSToPeak = 0.f; // 100% RMS
 			
 			// Little to no filtering

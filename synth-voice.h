@@ -77,7 +77,7 @@ namespace SFM
 			// Feedback (R)
 			// See: https://www.reddit.com/r/FMsynthesis/comments/85jfrb/dx7_feedback_implementation/
 			InterpolatedParameter<kLinInterpolate> feedbackAmt;
-			float feedback; // Signal feedback
+			float feedback; // Operator feedback
 
 			// LFO influence
 			float ampMod;

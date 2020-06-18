@@ -10,17 +10,18 @@
 
 namespace SFM
 {
-	// Local constant parameters
-	// Each of these could be a parameter but I *chose* these values; we have enough knobs as it is (thanks Stijn ;))
-	constexpr double kPreLowCutQ    =     2.0; // Q (SVF range)
-	constexpr float  kLPResoMin     =   0.01f; //
-	constexpr float  kLPResoMax     =    0.5f; //
-	constexpr float  kLPCutLFORange =   0.33f; // Normalized Hz
-	constexpr float  kLPCutMax      =    0.9f; //
-	constexpr float  kVoxRateScale  =     2.f;
-
-	// -9dB
-	constexpr float kVoxGhostNoiseGain = 0.35481338923357547f; 
+	// Local constant parameters (I've got enough paramaters as it is!)
+	constexpr double kPreLowCutQ    =   2.0; // Q (SVF range)
+	constexpr float  kLPResoMin     = 0.01f; // Q (normalized)
+	constexpr float  kLPResoMax     =  0.5f; //
+	constexpr float  kLPCutLFORange = 0.10f; // Cutoff (normalized)
+	constexpr float  kLPCutMax      =   1.f; //
+	constexpr float  kVoxRateScale  =   2.f; // Vox. S&H speed ratio
+	constexpr float  kCutRateScale  =  0.5f; // Cutoff modulation speed ratio
+	
+	// dBs
+	constexpr float kVoxGhostNoiseGain = 0.35481338923357547f;  // -9dB
+//	constexpr float kGain3dB = 1.41253757f;
 
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples)
 	{
@@ -43,8 +44,8 @@ namespace SFM
 				const float sampleL = pLeft[iSample];
 				const float sampleR = pRight[iSample];
 
-				// Keep running RMS calc.
-				m_RMS.Run(sampleL, sampleR);
+				// Keep running peak calc.
+				m_peak.Run(sampleL, sampleR);
 			}
 
 			// Done
@@ -66,10 +67,10 @@ namespace SFM
 			const float wetness   = m_curWet.Sample();
 			
 			// Set parameters
-			m_sideEnv.SetAttack(curAttack * 100.f); // FIXME: why does it sound right at a tenth of the time set?
-			m_sideEnv.SetRelease(curHold  * 100.f); //
+			m_gainEnvdB.SetAttack(curAttack*100.f);
+			m_gainEnvdB.SetRelease(curHold*100.f);
 
-			m_LFO.SetFrequency(curRate);
+			m_LFO.SetFrequency(curRate*kCutRateScale);
 
 			m_voxOscPhase.SetFrequency(curRate*kVoxRateScale);
 			m_voxGhostEnv.SetRelease(kMinWahGhostReleaseMS + voxGhost*(kMaxWahGhostReleaseMS-kMinWahGhostReleaseMS));
@@ -78,12 +79,13 @@ namespace SFM
 			const float sampleL = pLeft[iSample];
 			const float sampleR = pRight[iSample];
 
-			// Calc. RMS and feed it to sidechain to obtain (enveloped) gain
-			const float signaldB = m_RMS.Run(sampleL, sampleR);
-			const float envdB =  m_sideEnv.Apply(signaldB);
-			const float envGain = std::min<float>(1.f, dB2Lin(envdB));
+			// Calc. env. gain
+//			const float signaldB  = m_RMS.Run(sampleL, sampleR);
+			const float signaldB  = m_peak.Run(sampleL, sampleR);
+			const float envGaindB = m_gainEnvdB.Apply(signaldB);
+			const float envGain   = dB2Lin(envGaindB);
 
-			if (envGain < kEpsilon)
+			if (envGain <= kEpsilon)
 			{
 				// Attempt at sync.
 				m_voxOscPhase.Reset();
@@ -105,20 +107,18 @@ namespace SFM
 
 			float filteredL = preFilteredL, filteredR = preFilteredR;
 			
-			// Sample LFO (FIXME: study a few pedals to evaluate the need for this once more)
 			const float LFO = m_LFO.Sample(0.f);
 			
 			// Calc. cutoff
-			const float cutRange    = envGain*kLPCutLFORange;
-			const float normCutoff  = cutRange + (envGain * (1.f - 2.f*cutRange)) + LFO*cutRange;
+			const float normCutoff = kLPCutLFORange + (envGain * (1.f - 2.f*kLPCutLFORange)) + LFO*kLPCutLFORange;
 
 			SFM_ASSERT(normCutoff >= 0.f && normCutoff <= 1.f);
-			const float cutoffHz = CutoffToHz(normCutoff*kLPCutMax, m_Nyquist);
+			const float cutoffHz = CutoffToHz(normCutoff, m_Nyquist);
 
-			// Calc. Q (less signal: lower resonance peak)
-			const float rangeQ = (kLPResoMax-kLPResoMin)*resonance;            
+			// Calc. Q (less signal more resonance, gives the sweep a nice bite)
+			const float rangeQ = resonance*(kLPResoMax-kLPResoMin);            
 			const float normQ  = kLPResoMin + rangeQ*(1.f-envGain);
-			const float Q        = ResoToQ(normQ);             
+			const float Q      = ResoToQ(normQ);             
 
 			m_postFilterLP.updateLowpassCoeff(cutoffHz, Q, m_sampleRate);
 			m_postFilterLP.tick(filteredL, filteredR);

@@ -21,11 +21,10 @@
 namespace SFM
 {
 	// Local constant parameters
-	constexpr float kWahRMSWindowSec = 0.002f;     // 2MS
-	constexpr float kWahGhostAttackMS = 10.f;      // 10MS
-	constexpr float kMinWahGhostReleaseMS = 200.f; // 200MS
-	constexpr float kMaxWahGhostReleaseMS = 600.f; // 500MS
-	constexpr float kWahVoxSandHSlewRate = 0.001f; // 1MS
+	constexpr float kWahGhostAttackMS     =   10.f; //  10MS
+	constexpr float kMinWahGhostReleaseMS =  200.f; // 200MS
+	constexpr float kMaxWahGhostReleaseMS =  600.f; // 600MS
+	constexpr float kWahVoxSandHSlewRate  = 0.001f; //   1MS
 
 	class AutoWah
 	{
@@ -34,10 +33,11 @@ namespace SFM
 	public:
 		AutoWah(unsigned sampleRate, unsigned Nyquist) :
 			m_sampleRate(sampleRate), m_Nyquist(Nyquist)
-,			m_RMS(sampleRate, kWahRMSWindowSec)
-,			m_sideEnv(sampleRate, kDefWahAttack, kDefWahHold)
+//,			m_RMS(sampleRate, 0.005f)
+,			m_peak(sampleRate, kMinWahAttack)
+,			m_gainEnvdB(sampleRate, kInfVolumedB)
 ,			m_voxSandH(sampleRate)
-,			m_voxGhostEnv(sampleRate, kWahGhostAttackMS, kMaxWahGhostReleaseMS /* Default */)
+,			m_voxGhostEnv(sampleRate, 0.f)
 ,			m_curResonance(0.f, sampleRate, kDefParameterLatency)
 ,			m_curAttack(kDefWahAttack, sampleRate, kDefParameterLatency)
 ,			m_curHold(kDefWahHold, sampleRate, kDefParameterLatency)
@@ -85,9 +85,9 @@ namespace SFM
 		const unsigned m_sampleRate;
 		const unsigned m_Nyquist;
 
-		RMS m_RMS;
-
-		FollowerEnvelope m_sideEnv;
+//		RMS m_RMS;
+		Peak m_peak;
+		FollowerEnvelope m_gainEnvdB;
 
 		SvfLinearTrapOptimised2 m_preFilterHP;
 		SvfLinearTrapOptimised2 m_preFilterLP[3];
