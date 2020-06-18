@@ -32,6 +32,7 @@ namespace SFM
 ,			m_peak(sampleRate, kMinCompAttack)
 ,			m_gainEnvdB(sampleRate, kInfVolumedB)
 ,			m_autoGainEnvdB(sampleRate, kCompAutoGainMS)
+//,			m_autoGainEnvdB(sampleRate, kInfVolumedB)
 ,			m_curThresholddB(kDefCompThresholddB, sampleRate, kDefParameterLatency)
 ,			m_curKneedB(kDefCompKneedB, sampleRate, kDefParameterLatency)
 ,			m_curRatio(kDefCompRatio, sampleRate, kDefParameterLatency)
