@@ -16,8 +16,8 @@ namespace SFM
 	constexpr float  kLPResoMax     =  0.5f; //
 	constexpr float  kLPCutLFORange = 0.10f; // Cutoff (normalized)
 	constexpr float  kLPCutMax      =   1.f; //
-	constexpr float  kVoxRateScale  =   2.f; // Vox. S&H speed ratio
-	constexpr float  kCutRateScale  =  0.5f; // Cutoff modulation speed ratio
+	constexpr float  kVoxRateScale  =   2.f; // Rate ratio: vox. S&H
+	constexpr float  kCutRateScale  = 0.25f; // Rate ratio: cutoff modulation
 	
 	// dBs
 	constexpr float kVoxGhostNoiseGain = 0.35481338923357547f;  // -9dB
