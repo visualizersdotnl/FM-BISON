@@ -14,14 +14,16 @@ namespace SFM
 	// Local constant parameters (I've got enough paramaters as it is!)
 	constexpr double kPreLowCutQ    =   2.0; // Q (SVF range)
 	constexpr float  kLPResoMin     = 0.01f; // Q (normalized)
-	constexpr float  kLPResoMax     =  0.5f; //
+	constexpr float  kLPResoMax     =  0.6f; //
 	constexpr float  kLPCutLFORange =  0.9f; // LFO cutoff range (normalized)
 
 	constexpr float  kVoxRateScale  =   2.f; // Rate ratio: vox. S&H
 	constexpr float  kCutRateScale  = 0.25f; // Rate ratio: cutoff modulation
 	
 	// dBs
-	constexpr float kVoxGhostNoiseGain = 0.35481338923357547f;  // -9dB
+//	constexpr float kVoxGhostNoiseGain = 0.35481338923357547f; // -9dB
+//	constexpr float kVoxGhostNoiseGain = 0.5f;   // -6dB
+	constexpr float kVoxGhostNoiseGain = 1.f;    // -0dB
 	constexpr float kGain3dB = 1.41253757f;
 
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples, bool manualRate)
@@ -33,6 +35,8 @@ namespace SFM
 			m_curAttack.Skip(numSamples);
 			m_curHold.Skip(numSamples);
 			m_curRate.Skip(numSamples);
+			m_curDrivedB.Skip(numSamples);
+			m_curResonance.Skip(numSamples);
 			m_curSpeak.Skip(numSamples);
 			m_curSpeakVowel.Skip(numSamples);
 			m_curSpeakVowelMod.Skip(numSamples);
@@ -56,16 +60,17 @@ namespace SFM
 		for (unsigned iSample = 0; iSample  < numSamples; ++iSample)
 		{
 			// Get parameters
-			const float resonance = m_curResonance.Sample();
-			const float curAttack = m_curAttack.Sample();
-			const float curHold   = m_curHold.Sample();
-			const float curRate   = m_curRate.Sample();
-			const float voxWet    = m_curSpeak.Sample();
-			const float voxVow    = m_curSpeakVowel.Sample();
-			const float voxMod    = m_curSpeakVowelMod.Sample();
-			const float voxGhost  = m_curSpeakGhost.Sample();
-			const float lowCut    = m_curCut.Sample()*0.125f; // Nyquist/8 is more than enough!
-			const float wetness   = m_curWet.Sample();
+			const float resonance  = m_curResonance.Sample();
+			const float curAttack  = m_curAttack.Sample();
+			const float curHold    = m_curHold.Sample();
+			const float curRate    = m_curRate.Sample();
+			const float curSensLin = dB2Lin(m_curDrivedB.Sample());
+			const float voxWet     = m_curSpeak.Sample();
+			const float voxVow     = m_curSpeakVowel.Sample();
+			const float voxMod     = m_curSpeakVowelMod.Sample();
+			const float voxGhost   = m_curSpeakGhost.Sample();
+			const float lowCut     = m_curCut.Sample()*0.125f; // Nyquist/8 is more than enough!
+			const float wetness    = m_curWet.Sample();
 			
 			// Set parameters
 			m_gainEnvdB.SetAttack(curAttack*100.f); // FIXME: why does this *sound* right at one tenth of what it should be?
@@ -90,9 +95,8 @@ namespace SFM
 
 			if (envGain <= kEpsilon)
 			{
-				// Attempt at sync.
+				// Feeble attempt at sync.
 				m_LFO.Reset();
-
 				m_voxOscPhase.Reset();
 				m_voxSandH.Reset();
 			}
@@ -106,8 +110,7 @@ namespace SFM
 			const float remainderL = sampleL-preFilteredL;
 			const float remainderR = sampleR-preFilteredR;
 			
-			// FIXME: parametrize as 'Sensitivity'
-			const float sensEnvGain = std::fminf(1.f, envGain*kGain3dB);
+			const float sensEnvGain = std::fminf(1.f, envGain*curSensLin);
 
 			/*
 				Post filter (LPF)
@@ -152,9 +155,9 @@ namespace SFM
 			const float voxLFO_B = lerpf<float>(1.f, fabsf(voxOsc), toLFO);
 			
 			// Calc. vox. "ghost" noise
-			const float ghostRand = mt_randf();
+			const float ghostRand = mt_randf(); // (rand()%256)/255.f;
 			const float ghostSig  = ghostRand*kVoxGhostNoiseGain;
-			const float ghostEnv  = m_voxGhostEnv.Apply(envGain * voxLFO_B * voxGhost);
+			const float ghostEnv  = m_voxGhostEnv.Apply(sensEnvGain * voxLFO_B * voxGhost);
 			const float ghost     = ghostSig*ghostEnv;
 
 			// I dislike frequent fmodf() calls but according to MSVC's profiler we're in the clear

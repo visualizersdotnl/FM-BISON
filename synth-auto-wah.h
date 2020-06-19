@@ -54,12 +54,13 @@ namespace SFM
 
 		~AutoWah() {}
 
-		SFM_INLINE void SetParameters(float resonance, float attack, float hold, float rate, float speak, float speakVowel, float speakVowelMod, float speakGhost, float cut, float wetness)
+		SFM_INLINE void SetParameters(float resonance, float attack, float hold, float rate, float drivedB, float speak, float speakVowel, float speakVowelMod, float speakGhost, float cut, float wetness)
 		{
 			SFM_ASSERT(resonance >= 0.f && resonance <= 1.f);
 			SFM_ASSERT(attack >= kMinWahAttack && attack <= kMaxWahAttack);
 			SFM_ASSERT(hold >= kMinWahHold && hold <= kMaxWahHold);
 			SFM_ASSERT(rate >= kMinWahRate && rate <= kMaxWahRate);
+			SFM_ASSERT(drivedB >= kMinWahDrivedB && drivedB <= kMaxWahDrivedB);
 			SFM_ASSERT(speak >= 0.f && speak <= 1.f);
 			SFM_ASSERT(speakVowel >= 0.f && speakVowel <= kMaxWahSpeakVowel);
 			SFM_ASSERT(speakVowelMod >= 0.f && speakVowelMod <= 1.f);
@@ -71,6 +72,7 @@ namespace SFM
 			m_curAttack.SetTarget(attack);
 			m_curHold.SetTarget(hold);
 			m_curRate.SetTarget(rate);
+			m_curDrivedB.SetTarget(drivedB);
 			m_curSpeak.SetTarget(speak);
 			m_curSpeakVowel.SetTarget(speakVowel);
 			m_curSpeakVowelMod.SetTarget(speakVowelMod);
@@ -105,6 +107,7 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curAttack;
 		InterpolatedParameter<kLinInterpolate> m_curHold;
 		InterpolatedParameter<kLinInterpolate> m_curRate;
+		InterpolatedParameter<kLinInterpolate> m_curDrivedB;
 		InterpolatedParameter<kLinInterpolate> m_curSpeak;
 		InterpolatedParameter<kLinInterpolate> m_curSpeakVowel;
 		InterpolatedParameter<kLinInterpolate> m_curSpeakVowelMod;

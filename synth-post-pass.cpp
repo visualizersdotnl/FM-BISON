@@ -108,7 +108,7 @@ namespace SFM
 
 	void PostPass::Apply(unsigned numSamples,
 	                     float rateBPM,
-	                     float wahResonance, float wahAttack, float wahHold, float wahRate, float wahSpeak, float wahSpeakVowel, float wahSpeakVowelMod, float wahSpeakGhost, float wahCut, float wahWet,
+	                     float wahResonance, float wahAttack, float wahHold, float wahRate, float wahDrivedB, float wahSpeak, float wahSpeakVowel, float wahSpeakVowelMod, float wahSpeakGhost, float wahCut, float wahWet,
 	                     float cpRate, float cpWet, bool isChorus,
 	                     float delayInSec, float delayWet, float delayFeedback, float delayFeedbackCutoff,
 	                     float postCutoff, float postQ, float postDrivedB, float postWet,
@@ -155,7 +155,7 @@ namespace SFM
 		if (true == useBPM)
 			wahRate = rateBPM; // FIXME: test this!
 
-		m_wah.SetParameters(wahResonance, wahAttack, wahHold, wahRate, wahSpeak, wahSpeakVowel, wahSpeakVowelMod, wahSpeakGhost, wahCut, wahWet);
+		m_wah.SetParameters(wahResonance, wahAttack, wahHold, wahRate, wahDrivedB, wahSpeak, wahSpeakVowel, wahSpeakVowelMod, wahSpeakGhost, wahCut, wahWet);
 		m_wah.Apply(m_pBufL, m_pBufR, numSamples, false == useBPM);
 
 		/* ----------------------------------------------------------------------------------------------------

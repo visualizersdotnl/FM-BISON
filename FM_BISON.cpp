@@ -181,6 +181,7 @@ namespace SFM
 		m_postDrivePS           = { sampleRatePS };
 		m_postWetPS             = { sampleRatePS };
 		m_wahRatePS             = { sampleRatePS };
+		m_wahDrivePS            = { sampleRatePS };
 		m_wahSpeakPS            = { sampleRatePS };
 		m_wahSpeakVowelPS       = { sampleRatePS, 10.f /* 10MS */ };
 		m_wahSpeakVowelModPS    = { sampleRatePS };
@@ -210,6 +211,7 @@ namespace SFM
 		m_tubeDistPS.Reset(m_patch.tubeDistort);
 		m_tubeDrivePS.Reset(m_patch.tubeDrive);
 		m_wahRatePS.Reset(m_patch.wahRate);
+		m_wahDrivePS.Reset(m_patch.wahDrivedB);
 		m_wahSpeakPS.Reset(m_patch.wahSpeak);
 		m_wahSpeakVowelPS.Reset(m_patch.wahSpeakVowel);
 		m_wahSpeakVowelModPS.Reset(m_patch.wahSpeakVowelMod);
@@ -2023,6 +2025,7 @@ namespace SFM
 						  m_patch.wahAttack,
 						  m_patch.wahHold,
 						  m_wahRatePS.Apply(m_patch.wahRate),
+						  m_wahDrivePS.Apply(m_patch.wahDrivedB),
 						  m_wahSpeakPS.Apply(m_patch.wahSpeak),
 						  m_wahSpeakVowelPS.Apply(m_patch.wahSpeakVowel),
 						  m_wahSpeakVowelModPS.Apply(m_patch.wahSpeakVowelMod),

@@ -122,6 +122,7 @@ namespace SFM
 		float wahAttack;
 		float wahHold;
 		float wahRate;
+		float wahDrivedB; // [kMinWahDrivedB..kMaxWahDrivedB]
 		float wahSpeak;
 		float wahSpeakVowel; // [0..kMaxWahSpeakVowel]
 		float wahSpeakVowelMod;
@@ -266,6 +267,7 @@ namespace SFM
 			wahAttack = kDefWahAttack;
 			wahHold = kDefWahHold;
 			wahRate = kDefWahRate;
+			wahDrivedB = kDefWahDrivedB;
 			wahSpeak = 0.f;
 			wahSpeakVowel = 0.f; // [0..kMaxWahSpeakVowel]
 			wahSpeakVowelMod = 0.f;
