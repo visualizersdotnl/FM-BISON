@@ -107,7 +107,7 @@ namespace SFM
 
 			float filteredL = preFilteredL, filteredR = preFilteredR;
 			
-			const float LFO = m_LFO.Sample(0.f);
+			const float LFO = envGain*m_LFO.Sample(0.f);
 			
 			// Calc. cutoff
 			const float normCutoff = kLPCutLFORange + (envGain * (1.f - 2.f*kLPCutLFORange)) + LFO*kLPCutLFORange;
