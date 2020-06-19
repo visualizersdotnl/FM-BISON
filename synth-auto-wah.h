@@ -79,7 +79,7 @@ namespace SFM
 			m_curWet.SetTarget(wetness);
 		}
 
-		void Apply(float *pLeft, float *pRight, unsigned numSamples);
+		void Apply(float *pLeft, float *pRight, unsigned numSamples, bool manualRate);
 
 	private:
 		const unsigned m_sampleRate;

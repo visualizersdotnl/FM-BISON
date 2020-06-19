@@ -24,7 +24,7 @@ namespace SFM
 	constexpr float kVoxGhostNoiseGain = 0.35481338923357547f;  // -9dB
 	constexpr float kGain3dB = 1.41253757f;
 
-	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples)
+	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples, bool manualRate)
 	{
 		// This effect is big and expensive, we'll skip it if not used
 		if (0.f == m_curWet.Get() && 0.f == m_curWet.GetTarget())
@@ -71,7 +71,7 @@ namespace SFM
 			m_gainEnvdB.SetAttack(curAttack*100.f); // FIXME: why does this *sound* right at one tenth of what it should be?
 			m_gainEnvdB.SetRelease(curHold*100.f);  // 
 
-			const float adjRate = MIDI_To_DX7_LFO_Hz(curRate);
+			const float adjRate = (manualRate) ? MIDI_To_DX7_LFO_Hz(curRate) : curRate;
 
 			m_LFO.SetFrequency(adjRate*kCutRateScale);
 

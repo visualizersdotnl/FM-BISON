@@ -156,7 +156,7 @@ namespace SFM
 			wahRate = rateBPM; // FIXME: test this!
 
 		m_wah.SetParameters(wahResonance, wahAttack, wahHold, wahRate, wahSpeak, wahSpeakVowel, wahSpeakVowelMod, wahSpeakGhost, wahCut, wahWet);
-		m_wah.Apply(m_pBufL, m_pBufR, numSamples);
+		m_wah.Apply(m_pBufL, m_pBufR, numSamples, false == useBPM);
 
 		/* ----------------------------------------------------------------------------------------------------
 
