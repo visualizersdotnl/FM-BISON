@@ -128,7 +128,7 @@ namespace SFM
 
 			// Calc. Q (less signal more resonance, gives the sweep a nice bite)
 			const float rangeQ = resonance*(kLPResoMax-kLPResoMin);            
-			const float normQ  = kLPResoMin + rangeQ*(1.f-envGain);
+			const float normQ  = kLPResoMin + rangeQ*(1.f-sensEnvGain);
 			const float Q      = ResoToQ(normQ);             
 
 			m_postFilterLP.updateLowpassCoeff(cutoffHz, Q, m_sampleRate);
@@ -157,7 +157,7 @@ namespace SFM
 			// Calc. vox. "ghost" noise
 			const float ghostRand = mt_randf(); // (rand()%256)/255.f;
 			const float ghostSig  = ghostRand*kVoxGhostNoiseGain;
-			const float ghostEnv  = m_voxGhostEnv.Apply(sensEnvGain * voxLFO_B * voxGhost);
+			const float ghostEnv  = m_voxGhostEnv.Apply(envGain * voxLFO_B * voxGhost);
 			const float ghost     = ghostSig*ghostEnv;
 
 			// I dislike frequent fmodf() calls but according to MSVC's profiler we're in the clear
