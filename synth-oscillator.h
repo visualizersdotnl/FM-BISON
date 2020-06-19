@@ -171,6 +171,12 @@ namespace SFM
 		{
 			m_sampleAndHold.SetSlewRate(rate);
 		}
+
+		SFM_INLINE void Reset()
+		{
+			for (auto &phase : m_phases)
+				phase.Reset();
+		}
 		
 		SFM_INLINE float    GetFrequency()   const { return m_phases[0].GetFrequency();  }
 		SFM_INLINE unsigned GetSampleRate()  const { return m_phases[0].GetSampleRate(); }

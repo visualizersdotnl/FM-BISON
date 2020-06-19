@@ -211,9 +211,11 @@ namespace SFM
 	constexpr float kMinWahHold          = 0.001f; // 1MS
 	constexpr float kMaxWahHold          =    1.f; // 1 sec.
 	constexpr float kDefWahHold          =  0.25f; // 250MS
-	constexpr float kMinWahRate          =    0.f; //
-	constexpr float kMaxWahRate          =    4.f;
-	constexpr float kDefWahRate          =   0.5f; // Hz
+
+	constexpr float kMinWahRate          =    0.f; // DX7 rate (synth-DX7-LFO-table.h)
+	constexpr float kMaxWahRate          =   25.f; //
+	constexpr float kDefWahRate          =  12.5f; //
+
 	constexpr float kMaxWahSpeakVowel    =    3.f;
 
 	// Low cut (for post-pass)

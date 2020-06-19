@@ -46,7 +46,7 @@ namespace SFM
 	};
 
 	// Get a nicely interpolated value for more precise adjustment
-	static SFM_INLINE float MIDI_To_LFO_Hz(float valMIDI)
+	static SFM_INLINE float MIDI_To_DX7_LFO_Hz(float valMIDI)
 	{
 		SFM_ASSERT(valMIDI >= 0.f && valMIDI <= 127.f);
 		const unsigned indexA = unsigned(floorf(valMIDI));

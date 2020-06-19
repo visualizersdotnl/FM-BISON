@@ -127,7 +127,7 @@ namespace SFM
 
 		// Start global LFO phase
 		m_globalLFO = new Phase(m_sampleRate);
-		const float freqLFO = MIDI_To_LFO_Hz(m_patch.LFORate);
+		const float freqLFO = MIDI_To_DX7_LFO_Hz(m_patch.LFORate);
 		m_globalLFO->Initialize(freqLFO, m_sampleRate);
 
 		// Reset global interpolated parameters
@@ -1766,7 +1766,7 @@ namespace SFM
 		if (false == m_patch.beatSync || m_freqBPM == 0.f)
 		{
 			// Set LFO speed in (DX7) range
-			freqLFO = MIDI_To_LFO_Hz(m_patch.LFORate);
+			freqLFO = MIDI_To_DX7_LFO_Hz(m_patch.LFORate);
 			m_globalLFO->SetFrequency(m_LFORatePS.Apply(freqLFO));
 		}
 		else

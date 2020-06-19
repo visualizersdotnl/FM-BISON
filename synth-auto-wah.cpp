@@ -6,7 +6,8 @@
 */
 
 #include "synth-auto-wah.h"
-#include "synth-distort.h"
+// #include "synth-distort.h"
+#include "synth-DX7-LFO-table.h"
 
 namespace SFM
 {
@@ -14,14 +15,14 @@ namespace SFM
 	constexpr double kPreLowCutQ    =   2.0; // Q (SVF range)
 	constexpr float  kLPResoMin     = 0.01f; // Q (normalized)
 	constexpr float  kLPResoMax     =  0.5f; //
-	constexpr float  kLPCutLFORange = 0.10f; // Cutoff (normalized)
-	constexpr float  kLPCutMax      =   1.f; //
+	constexpr float  kLPCutLFORange =  0.9f; // LFO cutoff range (normalized)
+
 	constexpr float  kVoxRateScale  =   2.f; // Rate ratio: vox. S&H
 	constexpr float  kCutRateScale  = 0.25f; // Rate ratio: cutoff modulation
 	
 	// dBs
 	constexpr float kVoxGhostNoiseGain = 0.35481338923357547f;  // -9dB
-//	constexpr float kGain3dB = 1.41253757f;
+	constexpr float kGain3dB = 1.41253757f;
 
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples)
 	{
@@ -67,12 +68,14 @@ namespace SFM
 			const float wetness   = m_curWet.Sample();
 			
 			// Set parameters
-			m_gainEnvdB.SetAttack(curAttack*100.f);
-			m_gainEnvdB.SetRelease(curHold*100.f);
+			m_gainEnvdB.SetAttack(curAttack*100.f); // FIXME: why does this *sound* right at one tenth of what it should be?
+			m_gainEnvdB.SetRelease(curHold*100.f);  // 
 
-			m_LFO.SetFrequency(curRate*kCutRateScale);
+			const float adjRate = MIDI_To_DX7_LFO_Hz(curRate);
 
-			m_voxOscPhase.SetFrequency(curRate*kVoxRateScale);
+			m_LFO.SetFrequency(adjRate*kCutRateScale);
+
+			m_voxOscPhase.SetFrequency(adjRate*kVoxRateScale);
 			m_voxGhostEnv.SetRelease(kMinWahGhostReleaseMS + voxGhost*(kMaxWahGhostReleaseMS-kMinWahGhostReleaseMS));
 
 			// Input
@@ -88,6 +91,8 @@ namespace SFM
 			if (envGain <= kEpsilon)
 			{
 				// Attempt at sync.
+				m_LFO.Reset();
+
 				m_voxOscPhase.Reset();
 				m_voxSandH.Reset();
 			}
@@ -100,6 +105,9 @@ namespace SFM
 			// Store remainder to add back into mix
 			const float remainderL = sampleL-preFilteredL;
 			const float remainderR = sampleR-preFilteredR;
+			
+			// FIXME: parametrize as 'Sensitivity'
+			const float sensEnvGain = std::fminf(1.f, envGain*kGain3dB);
 
 			/*
 				Post filter (LPF)
@@ -107,10 +115,10 @@ namespace SFM
 
 			float filteredL = preFilteredL, filteredR = preFilteredR;
 			
-			const float LFO = envGain*m_LFO.Sample(0.f);
-			
 			// Calc. cutoff
-			const float normCutoff = kLPCutLFORange + (envGain * (1.f - 2.f*kLPCutLFORange)) + LFO*kLPCutLFORange;
+			const float LFO = m_LFO.Sample(0.f);
+			const float modLFO = fabsf(LFO)*sensEnvGain;
+			const float normCutoff = (1.f-kLPCutLFORange) + modLFO*kLPCutLFORange;
 
 			SFM_ASSERT(normCutoff >= 0.f && normCutoff <= 1.f);
 			const float cutoffHz = CutoffToHz(normCutoff, m_Nyquist);
@@ -130,20 +138,21 @@ namespace SFM
 			filteredL += remainderL;
 			filteredR += remainderR;
 
+#if 1
 			/*
 				Vowelize
 			*/
 			
 			// Calc. vox. LFO A (sample) and B (amplitude)
 			const float voxPhase = m_voxOscPhase.Sample();
-			const float oscInput = mt_randfc();
+			const float oscInput = mt_randf();
 			const float voxOsc   = m_voxSandH.Sample(voxPhase, oscInput);
 			const float toLFO    = 1.f-expf(-voxMod*4.f); // smoothstepf(voxMod);
 			const float voxLFO_A = lerpf<float>(0.f, voxOsc, toLFO);
 			const float voxLFO_B = lerpf<float>(1.f, fabsf(voxOsc), toLFO);
 			
 			// Calc. vox. "ghost" noise
-			const float ghostRand = mt_randfc();
+			const float ghostRand = mt_randf();
 			const float ghostSig  = ghostRand*kVoxGhostNoiseGain;
 			const float ghostEnv  = m_voxGhostEnv.Apply(envGain * voxLFO_B * voxGhost);
 			const float ghost     = ghostSig*ghostEnv;
@@ -159,6 +168,7 @@ namespace SFM
 
 			filteredL = lerpf<float>(filteredL, vowelL, voxWet);
 			filteredR = lerpf<float>(filteredR, vowelR, voxWet);
+#endif
 
 			/*
 				Final mix
