@@ -47,6 +47,9 @@
 // Define to disable all FX (including per-voice filter)
 // #define SFM_DISABLE_FX
 
+// Define to disable extra voice rendering thread
+// #define SFM_DISABLE_VOICE_THREAD
+
 namespace SFM
 {
 	/*

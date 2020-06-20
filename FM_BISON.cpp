@@ -1910,7 +1910,11 @@ namespace SFM
 					voiceIndices.push_back(iVoice);
 			}
 
+#if defined(DISABLE_VOICE_THREAD)
+			if (true)
+#else
 			if (voiceIndices.size() <= kSingleThreadMaxVoices)
+#endif
 			{
 				// Render all voices on current thread
 				VoiceThreadContext context(parameters);
@@ -1966,8 +1970,6 @@ namespace SFM
 		*/
 
 		// Find peaks
-		float peaks[kNumOperators] = { 0.f };
-
 		if (0 == m_voiceCount)
 		{
 			for (auto &opPeak : m_opPeaks)
