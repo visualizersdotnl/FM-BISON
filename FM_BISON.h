@@ -341,7 +341,7 @@ namespace SFM
 				m_state = value;
 			}
 
-			float Apply(float sample)
+			SFM_INLINE float Apply(float sample)
 			{
 				return m_sigEnv.Apply(sample, m_state);
 			}

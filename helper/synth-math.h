@@ -27,6 +27,12 @@ namespace SFM
 		return t*t * (3.f - 2.f*t);
 	}
 
+	// If case you wonder: plot it in Desmos' grapher
+	SFM_INLINE static float steepstepf(float t)
+	{
+		return 1.f-expf(-t*4.f);
+	}
+
 	// Inverse square
 	SFM_INLINE static float invsqrf(float x)
 	{
@@ -41,6 +47,19 @@ namespace SFM
 		// Discussion: https://stackoverflow.com/questions/4353525/floating-point-linear-interpolation
 		return a*(1.f-t) + b*t;
 //		return a + (b-a)*t;
+	}
+	
+	// Cosine interpolation (single & double prec.)
+	SFM_INLINE static float cosinterpf(float a, float b, float t)
+	{
+		t = (1.f - cosf(t*kPI)) * 0.5f;
+		return a*(1.f-t) + b*t;
+	}
+
+	SFM_INLINE static float cosinterp(double a, double b, double t)
+	{
+		t = (1.0 - cos(t*kPI)) * 0.5;
+		return a*(1.0-t) + b*t;
 	}
 
 	// (GLSL) frac()
@@ -60,14 +79,14 @@ namespace SFM
 
 		return value;
 	}
-	
+
 	// Approx. sinf() derived from mr. Bhaskara's theorem
 	SFM_INLINE static float BhaskaraSinf(float x)
 	{
 		return 16.f * x * (kPI-x) / (5.f * kPI*kPI - 4.f * x * (kPI-x));
 	}
 
-	// Langrange interpolator; array sizes must match order, 'xPos' is the X value whose Y we'll interpolate 
+	// Langrange interpolator; array sizes must match order; 'xPos' is the X value whose Y is calculated
 	SFM_INLINE static float LagrangeInterpolation(float *pX, float *pY, unsigned order, float xPos)
 	{
 		SFM_ASSERT(nullptr != pX && nullptr != pY);

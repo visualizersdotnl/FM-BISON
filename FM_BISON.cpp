@@ -550,22 +550,18 @@ namespace SFM
 	{
 		SFM_ASSERT(key >= 0 && key <= 127);
 		const float normalizedKey = key/127.f;
-
-		return PaulCurve(normalizedKey, patchOp.envKeyTrack);
-
-		// Linear version
-//		return patchOp.envKeyTrack*normalizedKey;
+		
+		// FIXME: offer linear tracking
+		return AcousticTrackingCurve(normalizedKey, patchOp.envKeyTrack);
 	}
 
 	SFM_INLINE static float CalcCutoffTracking(unsigned key, const PatchOperators::Operator &patchOp)
 	{
 		SFM_ASSERT(key >= 0 && key <= 127);
 		const float normalizedKey = key/127.f;
-
-		return PaulCurve(normalizedKey, patchOp.cutoffKeyTrack);
-
-		// Linear version
-//		return patchOp.cutoffKeyTrack*normalizedKey;
+		
+		// Linear seems te most logical choice here
+		return patchOp.cutoffKeyTrack*normalizedKey;
 	}
 
 	SFM_INLINE static float CalcPanning(const PatchOperators::Operator &patchOp)
@@ -579,12 +575,11 @@ namespace SFM
 	{
 		SFM_ASSERT(nullptr != pFilters);
 
-		// Calculate (scaled) cutoff freq. & Q
-		const float cutoffNorm = lerpf<float>(patchOp.cutoff, 1.f, CalcCutoffTracking(key, patchOp));
-		const float cutoffHz   = CutoffToHz(cutoffNorm, m_Nyquist);
-		const float normQ      = patchOp.resonance;
-		const float Q          = ResoToQ(normQ);
-				
+		// Calculate Q.
+		const float normQ = patchOp.resonance;
+		const float Q = ResoToQ(normQ);
+		
+		float cutoffNorm = -1.f;
 		switch (patchOp.filterType)
 		{
 		default:
@@ -596,25 +591,31 @@ namespace SFM
 
 		case PatchOperators::Operator::kLowpassFilter:
 			pFilters[0].resetState();
-			pFilters[0].updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
+			cutoffNorm = lerpf<float>(patchOp.cutoff, 1.f, CalcCutoffTracking(key, patchOp)); // Track towards pass-through
+			pFilters[0].updateCoefficients(CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
 			break;
 
 		case PatchOperators::Operator::kHighpassFilter:
 			pFilters[0].resetState();
-			pFilters[0].updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
+			cutoffNorm = lerpf<float>(patchOp.cutoff, 0.f, CalcCutoffTracking(key, patchOp)); // Track towards pass-through
+			pFilters[0].updateCoefficients(CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
 			break;
 
 		case PatchOperators::Operator::kBandpassFilter:
 			pFilters[0].resetState();
-			pFilters[0].updateCoefficients(cutoffHz, Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
+			cutoffNorm = lerpf<float>(patchOp.cutoff, 0.5f, CalcCutoffTracking(key, patchOp)); // Track towards middle freq.
+			pFilters[0].updateCoefficients(CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
 			break;
 
 		case PatchOperators::Operator::kAllPassFilter:
 			{
+				// Track towards middle
+				cutoffNorm = lerpf<float>(patchOp.cutoff, 0.5f, CalcCutoffTracking(key, patchOp));
+
 				for (unsigned iAllpass = 0; iAllpass < kNumVoiceAllpasses; ++iAllpass)
 				{
 					pFilters[iAllpass].resetState();
-					pFilters[iAllpass].updateCoefficients(cutoffNorm, Q, SvfLinearTrapOptimised2::ALL_PASS_FILTER, m_sampleRate);
+					pFilters[iAllpass].updateCoefficients(CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::ALL_PASS_FILTER, m_sampleRate);
 				}
 			}
 			
@@ -837,7 +838,8 @@ namespace SFM
 		voice.m_freqGlide = kDefPolyFreqGlide;
 
 		// Acoustic scaling: more velocity can mean longer envelope decay phase
-		// This is specifically designed for piano, guitar et cetera
+		// This is specifically designed for piano, guitar et cetera: strum or strike
+		// harder and the decay phase will be longer
 		const float envAcousticScaling = 1.f + (velocity*velocity)*m_patch.acousticScaling;
 
 		// Set up voice operators
@@ -883,7 +885,7 @@ namespace SFM
 				voiceOp.setFrequency = frequency;
 
 				// Envelope key tracking
-				const float envKeyTracking = 1.f - 0.9f*CalcKeyTracking(key, patchOp);
+				const float envKeyTracking = CalcKeyTracking(key, patchOp);
 				
 				// Start envelope
 				voiceOp.envelope.Start(patchOp.envParams, m_sampleRate, patchOp.isCarrier, envKeyTracking, envAcousticScaling); 
@@ -981,8 +983,7 @@ namespace SFM
 			InitializeLFO(voice, jitter);
 		}
 
-		// Acoustic scaling: more velocity can mean longer envelope decay phase
-		// This is specifically designed for piano, guitar et cetera
+		// See InitializeVoice()
 		const float envAcousticScaling = 1.f + (velocity*velocity)*m_patch.acousticScaling;
 
 		// Get patch operators		
@@ -1033,7 +1034,7 @@ namespace SFM
 					voiceOp.curFreq.SetRate(m_sampleRate, voice.m_freqGlide);
 					voiceOp.curFreq.Set(frequency);
 
-					const float envKeyTracking = 1.f - 0.9f*CalcKeyTracking(key, patchOp);
+					const float envKeyTracking = CalcKeyTracking(key, patchOp);
 					voiceOp.envelope.Start(patchOp.envParams, m_sampleRate, patchOp.isCarrier, envKeyTracking, envAcousticScaling); 
 				}
 				else
@@ -2059,7 +2060,7 @@ namespace SFM
 						  m_reverbLP_PS.Apply(m_patch.reverbLP),
 						  m_reverbHP_PS.Apply(m_patch.reverbHP),
 						  m_reverbPreDelayPS.Apply(m_patch.reverbPreDelay),
-						  /* Compressor (FIXME: apply more ParameterFilter if necessary) */
+						  /* Compressor (FIXME: apply more ParameterSlew if necessary) */
 						  m_patch.compThresholddB,
 						  m_patch.compKneedB,
 						  m_patch.compRatio,

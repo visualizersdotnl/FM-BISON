@@ -191,28 +191,33 @@ namespace SFM
 	}
 
 	// Snap floating point value to zero (nicked from JUCE)
-	SFM_INLINE float SnapToZero(float value)
+	SFM_INLINE static float SnapToZero(float value)
 	{
 		return (false == (value < -1.0e-8f || value > 1.0e-8f)) ? 0.f : value;
 	}
 
 	/* ----------------------------------------------------------------------------------------------------
 
-		Curve(s)
+		Specific curve(s)
 
 	 ------------------------------------------------------------------------------------------------------ */
 	
-	// A curve we use for acoustic instrument behaviour
-	// Figured out by Paul Coops, constrained by Niels de Wit
-	SFM_INLINE float PaulCurve(float value, float scale)
+	// A curve Paul Coops came up with (sampled an acoustic piano if I'm not mistaken)
+	// that sounds more realistic than linear key tracking for, well, I suppose, most
+	// string instruments
+	SFM_INLINE static float AcousticTrackingCurve(float value, float scale)
 	{
 		SFM_ASSERT(value >= 0.f && value <= 1.f);
 
 //		const float scale = 1.448f;
 //		const float offset = -1.23f;
+//		const float postScale = 0.9f;
+		
 		const float linear = (value*1.448f + -1.23f);
-		const float squared = fast_tanhf(linear*linear);
-
-		return scale * (1.f-smoothstepf(squared));
+		const float squaredClipped = fast_tanhf(linear*linear);
+		
+		// This value is used as a multiplier, so we want the inverse (this curve
+		// only makes the envelope shorter)
+		return 1.f - 0.9f*(scale * (1.f-squaredClipped));
 	}
 }
