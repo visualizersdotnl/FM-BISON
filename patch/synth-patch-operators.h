@@ -90,7 +90,8 @@ namespace SFM
 
 			// Envelopes
 			Envelope::Parameters envParams;
-			float envKeyTrack; // Shortens the envelope along the keys (higher means shorter)
+			float envKeyTrack;        // Tracks the envelope along the keys (higher keys shorter)
+			bool acousticEnvKeyTrack; // An acoustic piano type curve is optional
 
 			// Velocity invert (play "louder" for less amplitude/index)
 			bool velocityInvert;
@@ -172,6 +173,7 @@ namespace SFM
 				
 				// No key tracking
 				patchOp.envKeyTrack = 0.f;
+				patchOp.acousticEnvKeyTrack = false;
 
 				// No velocity invert
 				patchOp.velocityInvert = false;

@@ -551,8 +551,9 @@ namespace SFM
 		SFM_ASSERT(key >= 0 && key <= 127);
 		const float normalizedKey = key/127.f;
 		
-		// FIXME: offer linear tracking
-		return AcousticTrackingCurve(normalizedKey, patchOp.envKeyTrack);
+		return (false == patchOp.acousticEnvKeyTrack)
+			? 1.f - 0.9f*patchOp.envKeyTrack*normalizedKey
+			: AcousticTrackingCurve(normalizedKey, patchOp.envKeyTrack);
 	}
 
 	SFM_INLINE static float CalcCutoffTracking(unsigned key, const PatchOperators::Operator &patchOp)
