@@ -43,6 +43,7 @@
 	- Fast cosine approximation supplied by Erik 'Kusma' Faye-Lund
 	- There are 2 depndencies on JUCE (currently these have little priority as we use JUCE for our product line)
 	- 'PolyBLEP'-based oscillators were lifted from https://github.com/martinfinke/PolyBLEP; by various authors (I keep a copy in /3rdparty as ref.)
+	- I've ported a lot of interpolation functions from http://easings.net to single prec.
 	- And a few bits and bytes left and right; these are often credited in or close to the implementation
 
 	** Depends on JUCE 5.4.7 or compatible! **

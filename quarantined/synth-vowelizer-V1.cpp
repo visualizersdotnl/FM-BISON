@@ -64,10 +64,11 @@ namespace SFM
 		const double *pA = kVowelCoeffs[indexA];
 		const double *pB = kVowelCoeffs[indexB];
 
+		const float curvedDelta = cosinterp(0.0, 1.0, delta); // easeInOutQuintf(delta);
+		SFM_ASSERT(curvedDelta >= 0.f && curvedDelta <= 1.f);
+
 		for (unsigned iCoeff = 0; iCoeff < 11; ++iCoeff)
-//			m_interpolatedCoeffs[iCoeff] = lerpf<double>(*pA++, *pB++, steepstepf(delta));
-//			m_interpolatedCoeffs[iCoeff] = lerpf<double>(*pA++, *pB++, smoothstepf(delta));
-			m_interpolatedCoeffs[iCoeff] = cosinterp(*pA++, *pB++, delta);
+			m_interpolatedCoeffs[iCoeff] = lerpf<double>(*pA++, *pB++, curvedDelta);
 		
 		// Apply & store
 		sampleL = (float) Calculate(sampleL, 0);

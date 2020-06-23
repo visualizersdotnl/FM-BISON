@@ -40,6 +40,8 @@ namespace SFM
 			const float rectMax    = GetRectifiedMaximum(sampleL, sampleR);
 			const float samplePow2 = rectMax*rectMax;
 
+			FloatAssert(samplePow2);
+
 			// Store in (circular) buffer
 			m_buffer[m_writeIdx++] = samplePow2;
 			m_writeIdx %= m_numSamples;

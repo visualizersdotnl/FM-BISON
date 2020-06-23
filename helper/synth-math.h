@@ -113,3 +113,4 @@ namespace SFM
 
 #include "synth-fast-cosine.h"
 #include "synth-fast-tan.h"
+#include "synth-math-easings.h"
