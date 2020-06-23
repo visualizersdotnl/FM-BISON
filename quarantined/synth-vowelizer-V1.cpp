@@ -66,8 +66,8 @@ namespace SFM
 
 		for (unsigned iCoeff = 0; iCoeff < 11; ++iCoeff)
 //			m_interpolatedCoeffs[iCoeff] = lerpf<double>(*pA++, *pB++, steepstepf(delta));
-			m_interpolatedCoeffs[iCoeff] = lerpf<double>(*pA++, *pB++, smoothstepf(delta));
-//			m_interpolatedCoeffs[iCoeff] = CosineInterpolate(*pA++, *pB++, delta);
+//			m_interpolatedCoeffs[iCoeff] = lerpf<double>(*pA++, *pB++, smoothstepf(delta));
+			m_interpolatedCoeffs[iCoeff] = cosinterp(*pA++, *pB++, delta);
 		
 		// Apply & store
 		sampleL = (float) Calculate(sampleL, 0);
