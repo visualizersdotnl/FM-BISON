@@ -76,6 +76,7 @@ namespace SFM
 			m_gainEnvdB.SetAttack(curAttack*100.f); // FIXME: why does this *sound* right at one tenth of what it should be?
 			m_gainEnvdB.SetRelease(curHold*100.f);  // 
 
+			// Pick rate from DX7 table if not in BPM sync. mode
 			const float adjRate = (manualRate) ? MIDI_To_DX7_LFO_Hz(curRate) : curRate;
 
 			m_LFO.SetFrequency(adjRate*kCutRateScale);
@@ -142,7 +143,6 @@ namespace SFM
 			filteredL += remainderL;
 			filteredR += remainderR;
 
-#if 1
 			/*
 				Vowelize
 			*/
@@ -151,7 +151,7 @@ namespace SFM
 			const float voxPhase = m_voxOscPhase.Sample();
 			const float oscInput = mt_randfc();
 			const float voxOsc   = m_voxSandH.Sample(voxPhase, oscInput);
-			const float toLFO    = 1.f-expf(-voxMod*4.f); // smoothstepf(voxMod);
+			const float toLFO    = steepstepf(voxMod);
 			const float voxLFO_A = lerpf<float>(0.f, voxOsc, toLFO);
 			const float voxLFO_B = lerpf<float>(1.f, fabsf(voxOsc), toLFO);
 			

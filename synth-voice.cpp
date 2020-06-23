@@ -177,6 +177,14 @@ namespace SFM
 
 			if (true == voiceOp.enabled)
 			{
+				// First step towards autonomous operator calc.:
+//				const float curFreq = voiceOp.curFreq.Sample();
+//				const float curAmplitude = voiceOp.amplitude.Sample();
+//				const float curEG = voiceOp.envelope.Sample();
+//				const float curSquarepusher = voiceOp.drive.Sample();
+//				const float feedbackAmt = voiceOp.feedbackAmt.Sample();
+//				const float curPanning = voiceOp.panning.Sample();
+				
 				// Set base freq.
 				auto &oscillator = voiceOp.oscillator;
 				const float curFreq = voiceOp.curFreq.Sample();
@@ -232,7 +240,7 @@ namespace SFM
 				const float envelope = voiceOp.envelope.Sample();
 				sample *= envelope;
 
-				// Apply distortion 
+				// Apply "Squarepusher" distortion
 				const float driveAmt = voiceOp.drive.Sample();
 				if (0.f != driveAmt)
 				{

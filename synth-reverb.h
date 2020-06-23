@@ -20,7 +20,7 @@
 
 namespace SFM
 {
-	// A specific version of a delay line; it does not own it's buffer!
+	// Specific delay line essentially; this one does not own it's buffer!
 	class ReverbComb
 	{
 	public:
