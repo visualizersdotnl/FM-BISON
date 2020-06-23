@@ -15,7 +15,7 @@ namespace SFM
 	constexpr double kPreLowCutQ    =   2.0; // Q (SVF range)
 	constexpr float  kLPResoMin     = 0.01f; // Q (normalized)
 	constexpr float  kLPResoMax     =  0.6f; //
-	constexpr float  kLPCutLFORange =  0.9f; // LFO cutoff range (normalized)
+	constexpr float  kLPCutLFORange = 0.95f; // LFO cutoff range (normalized)
 
 	constexpr float  kVoxRateScale  =   2.f; // Rate ratio: vox. S&H
 	constexpr float  kCutRateScale  = 0.25f; // Rate ratio: cutoff modulation
