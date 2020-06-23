@@ -217,7 +217,7 @@ namespace SFM
 	constexpr float kDefWahRate          =  12.5f; //
 
 	constexpr float kMinWahDrivedB       =  -24.f;
-	constexpr float kMaxWahDrivedB       =   12.f;
+	constexpr float kMaxWahDrivedB       =   24.f;
 	constexpr float kDefWahDrivedB       =    3.f;
 
 	constexpr float kMaxWahSpeakVowel    =    3.f;

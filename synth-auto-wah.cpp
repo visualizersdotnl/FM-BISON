@@ -110,6 +110,7 @@ namespace SFM
 			const float remainderL = sampleL-preFilteredL;
 			const float remainderR = sampleR-preFilteredR;
 			
+			// ...
 			const float sensEnvGain = std::fminf(1.f, envGain*curSensLin);
 
 			/*
@@ -148,7 +149,7 @@ namespace SFM
 			
 			// Calc. vox. LFO A (sample) and B (amplitude)
 			const float voxPhase = m_voxOscPhase.Sample();
-			const float oscInput = mt_randf();
+			const float oscInput = mt_randfc();
 			const float voxOsc   = m_voxSandH.Sample(voxPhase, oscInput);
 			const float toLFO    = 1.f-expf(-voxMod*4.f); // smoothstepf(voxMod);
 			const float voxLFO_A = lerpf<float>(0.f, voxOsc, toLFO);
@@ -157,7 +158,7 @@ namespace SFM
 			// Calc. vox. "ghost" noise
 			const float ghostRand = mt_randf(); // (rand()%256)/255.f;
 			const float ghostSig  = ghostRand*kVoxGhostNoiseGain;
-			const float ghostEnv  = m_voxGhostEnv.Apply(envGain * voxLFO_B * voxGhost);
+			const float ghostEnv  = m_voxGhostEnv.Apply(sensEnvGain * voxLFO_B * voxGhost);
 			const float ghost     = ghostSig*ghostEnv;
 
 			// I dislike frequent fmodf() calls but according to MSVC's profiler we're in the clear
