@@ -56,7 +56,7 @@ namespace SFM
 		return a*(1.f-t) + b*t;
 	}
 
-	SFM_INLINE static float cosinterp(double a, double b, double t)
+	SFM_INLINE static double cosinterp(double a, double b, double t)
 	{
 		t = (1.0 - cos(t*kPI)) * 0.5;
 		return a*(1.0-t) + b*t;

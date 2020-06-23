@@ -172,7 +172,6 @@ namespace SFM
 
 			filteredL = lerpf<float>(filteredL, vowelL, voxWet);
 			filteredR = lerpf<float>(filteredR, vowelR, voxWet);
-#endif
 
 			/*
 				Final mix
