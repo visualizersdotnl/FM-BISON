@@ -142,7 +142,6 @@ namespace SFM
 			filteredL += remainderL;
 			filteredR += remainderR;
 
-#if 1
 			/*
 				Vowelize
 			*/
