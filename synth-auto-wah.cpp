@@ -77,7 +77,7 @@ namespace SFM
 			m_gainEnvdB.SetRelease(curHold*100.f);  // 
 
 			// Pick rate from DX7 table if not in BPM sync. mode
-			const float adjRate = (manualRate) ? MIDI_To_DX7_LFO_Hz(curRate) : curRate;
+			const float adjRate = (true == manualRate) ? MIDI_To_DX7_LFO_Hz(curRate) : curRate;
 
 			m_LFO.SetFrequency(adjRate*kCutRateScale);
 

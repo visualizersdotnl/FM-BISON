@@ -8,7 +8,7 @@
 
 	- LP, HP 
 	- Low cut (stereo)
-	- DC blocker (stereo)
+	- DC blocker (incl. stereo)
 
 	There are more single pole filters in this codebase but they usually have a special purpose which
 	makes their implementation a tad different (for example see synth-reverb.h), so I chose not to
@@ -114,7 +114,7 @@ namespace SFM
 		float m_feedback;
 	};
 
-	/* Cascaded lowpass (12dB) */
+	/* Cascaded non-resonant lowpass (12dB) */
 
 	class LowpassFilter12dB
 	{

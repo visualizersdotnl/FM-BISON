@@ -64,7 +64,7 @@ namespace SFM
 		const double *pA = kVowelCoeffs[indexA];
 		const double *pB = kVowelCoeffs[indexB];
 
-		const float curvedDelta = cosinterp(0.0, 1.0, delta); // easeInOutQuintf(delta);
+		const float curvedDelta = cosinterpf(0.0, 1.0, delta); // easeInOutQuintf(delta);
 		SFM_ASSERT(curvedDelta >= 0.f && curvedDelta <= 1.f);
 
 		for (unsigned iCoeff = 0; iCoeff < 11; ++iCoeff)
