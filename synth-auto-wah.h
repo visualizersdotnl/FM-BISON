@@ -54,7 +54,7 @@ namespace SFM
 
 		~AutoWah() {}
 
-		SFM_INLINE void SetParameters(float resonance, float attack, float hold, float rate, float drivedB, float speak, float speakVowel, float speakVowelMod, float speakGhost, float cut, float wetness)
+		SFM_INLINE void SetParameters(float resonance, float attack, float hold, float rate, float drivedB, float speak, float speakVowel, float speakVowelMod, float speakGhost, float speakCut, float speakReso, float cut, float wetness)
 		{
 			SFM_ASSERT(resonance >= 0.f && resonance <= 1.f);
 			SFM_ASSERT(attack >= kMinWahAttack && attack <= kMaxWahAttack);
@@ -65,6 +65,8 @@ namespace SFM
 			SFM_ASSERT(speakVowel >= 0.f && speakVowel <= kMaxWahSpeakVowel);
 			SFM_ASSERT(speakVowelMod >= 0.f && speakVowelMod <= 1.f);
 			SFM_ASSERT(speakGhost >= 0.f && speakGhost <= 1.f);
+			SFM_ASSERT(speakCut >= 0.f && speakCut <= 1.f);
+			SFM_ASSERT(speakReso >= 0.f && speakReso <= 1.f);
 			SFM_ASSERT(cut >= 0.f && cut <= 1.f);
 			SFM_ASSERT(wetness >= 0.f && wetness <= 1.f);
 
@@ -77,6 +79,8 @@ namespace SFM
 			m_curSpeakVowel.SetTarget(speakVowel);
 			m_curSpeakVowelMod.SetTarget(speakVowelMod);
 			m_curSpeakGhost.SetTarget(speakGhost);
+			m_curSpeakCut.SetTarget(speakCut);
+			m_curSpeakReso.SetTarget(speakReso);
 			m_curCut.SetTarget(cut);
 			m_curWet.SetTarget(wetness);
 		}
@@ -99,6 +103,7 @@ namespace SFM
 		SampleAndHold m_voxSandH;
 		FollowerEnvelope m_voxGhostEnv;
 		VowelizerV1 m_vowelizerV1;
+		SvfLinearTrapOptimised2 m_vowLPF;
 
 		Oscillator m_LFO;
 
@@ -112,6 +117,8 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curSpeakVowel;
 		InterpolatedParameter<kLinInterpolate> m_curSpeakVowelMod;
 		InterpolatedParameter<kLinInterpolate> m_curSpeakGhost;
+		InterpolatedParameter<kLinInterpolate> m_curSpeakCut;
+		InterpolatedParameter<kLinInterpolate> m_curSpeakReso;
 		InterpolatedParameter<kLinInterpolate> m_curCut;
 		InterpolatedParameter<kLinInterpolate> m_curWet;
 	};

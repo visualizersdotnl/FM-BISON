@@ -41,6 +41,8 @@ namespace SFM
 			m_curSpeakVowel.Skip(numSamples);
 			m_curSpeakVowelMod.Skip(numSamples);
 			m_curSpeakGhost.Skip(numSamples);
+			m_curSpeakCut.Skip(numSamples);
+			m_curSpeakReso.Skip(numSamples);
 			m_curCut.Skip(numSamples);
 			m_curWet.Skip(numSamples);
 
@@ -69,6 +71,8 @@ namespace SFM
 			const float voxVow     = m_curSpeakVowel.Sample();
 			const float voxMod     = m_curSpeakVowelMod.Sample();
 			const float voxGhost   = m_curSpeakGhost.Sample();
+			const float voxCut     = m_curSpeakCut.Sample();
+			const float voxReso    = m_curSpeakReso.Sample();
 			const float lowCut     = m_curCut.Sample()*0.125f; // Nyquist/8 is more than enough!
 			const float wetness    = m_curWet.Sample();
 			
@@ -165,6 +169,10 @@ namespace SFM
 			// I add a small amount to the maximum since we need to actually reach kMaxWahSpeakVowel
 			static_assert(unsigned(kMaxWahSpeakVowel) < VowelizerV1::kNumVowels-1);
 			const float vowel = fabsf(fmodf(voxVow+voxLFO_A, kMaxWahSpeakVowel + 0.001f /* Leaks into 'U' vowel, which is quite similar */));
+
+			// Filter input signal
+			m_vowLPF.updateLowpassCoeff(CutoffToHz(voxCut, m_Nyquist), ResoToQ(voxReso), m_sampleRate);
+			m_vowLPF.tick(filteredL, filteredR);
 		
 			// Filter and mix
 			float vowelL = filteredL + ghost, vowelR = filteredR + ghost;

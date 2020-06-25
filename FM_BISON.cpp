@@ -186,6 +186,8 @@ namespace SFM
 		m_wahSpeakVowelPS       = { sampleRatePS, 10.f /* 10MS */ };
 		m_wahSpeakVowelModPS    = { sampleRatePS };
 		m_wahSpeakGhostPS       = { sampleRatePS };
+		m_wahSpeakCutPS         = { sampleRatePS, 100.f /* 100MS */ };
+		m_wahSpeakResoPS        = { sampleRatePS, 10.f /*   10MS */ };
 		m_wahCutPS              = { sampleRatePS };
 		m_wahWetPS              = { sampleRatePS };
 		m_reverbWetPS           = { sampleRatePS };
@@ -216,6 +218,8 @@ namespace SFM
 		m_wahSpeakVowelPS.Reset(m_patch.wahSpeakVowel);
 		m_wahSpeakVowelModPS.Reset(m_patch.wahSpeakVowelMod);
 		m_wahSpeakGhostPS.Reset(m_patch.wahSpeakGhost);
+		m_wahSpeakCutPS.Reset(m_patch.wahSpeakCut);
+		m_wahSpeakResoPS.Reset(m_patch.wahSpeakResonance);
 		m_wahCutPS.Reset(m_patch.wahCut);
 		m_wahWetPS.Reset(m_patch.wahWet);
 		m_reverbWetPS.Reset(m_patch.reverbWet);
@@ -2034,6 +2038,8 @@ namespace SFM
 						  m_wahSpeakVowelPS.Apply(m_patch.wahSpeakVowel),
 						  m_wahSpeakVowelModPS.Apply(m_patch.wahSpeakVowelMod),
 						  m_wahSpeakGhostPS.Apply(m_patch.wahSpeakGhost),
+						  m_wahSpeakCutPS.Apply(m_patch.wahSpeakCut),
+						  m_wahSpeakResoPS.Apply(m_patch.wahSpeakResonance),
 						  m_wahCutPS.Apply(m_patch.wahCut),
 						  m_wahWetPS.Apply(m_patch.wahWet),
 		                  /* Chorus/Phaser */

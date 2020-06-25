@@ -369,7 +369,7 @@ namespace SFM
 		ParameterSlew m_postDrivePS;
 		ParameterSlew m_postWetPS;
 		ParameterSlew m_tubeDistPS, m_tubeDrivePS;
-		ParameterSlew m_wahRatePS, m_wahDrivePS, m_wahSpeakPS, m_wahSpeakVowelPS, m_wahSpeakVowelModPS, m_wahSpeakGhostPS, m_wahCutPS, m_wahWetPS;
+		ParameterSlew m_wahRatePS, m_wahDrivePS, m_wahSpeakPS, m_wahSpeakVowelPS, m_wahSpeakVowelModPS, m_wahSpeakGhostPS, m_wahSpeakCutPS, m_wahSpeakResoPS, m_wahCutPS, m_wahWetPS;
 		ParameterSlew m_reverbWetPS;
 		ParameterSlew m_reverbRoomSizePS;
 		ParameterSlew m_reverbDampeningPS;
