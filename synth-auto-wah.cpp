@@ -174,9 +174,15 @@ namespace SFM
 			// Filter and mix
 			float vowelL = filteredL + ghost, vowelR = filteredR + ghost;
 
-			// Filter input signal
-			m_vowLPF.updateLowpassCoeff(CutoffToHz(voxCut, m_Nyquist), ResoToQ(voxReso), m_sampleRate);
-			m_vowLPF.tick(vowelL, vowelR);
+			// FIXME: our SVF leaks or at least never snaps (close enough to) zero, which has given us problems left and right over time, and now again;
+			//        I've chosen to just check if something's happening by comparing the driven sidechain signal to an epsilon and only filter if it's above,
+			//        this solves the "noise buildup" bug, but once more indicates we should either fix or replace the SVF filter implementation
+			if (sensEnvGain > kGainInf)
+			{
+				// Filter input signal
+				m_vowLPF.updateLowpassCoeff(CutoffToHz(voxCut, m_Nyquist), ResoToQ(voxReso), m_sampleRate);
+				m_vowLPF.tick(vowelL, vowelR);
+			}
 
 			m_vowelizerV1.Apply(vowelL, vowelR, vowel);
 
