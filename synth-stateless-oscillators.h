@@ -223,7 +223,7 @@ namespace SFM
 		float rectified = 2.f * oscSine(0.5f * P1) - 4.f*0.5f;
 		rectified += 2.f * float(pitch) * Poly::BLAMP(P1, pitch);
 
-		return rectified;
+		return rectified * 0.707f; // Curtail a bit (-3dB), otherwise it's just too loud
 	}
 
 	SFM_INLINE static float oscPolyTrapezoid(float phase, double pitch)
