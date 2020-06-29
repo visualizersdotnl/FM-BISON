@@ -151,43 +151,40 @@ namespace SFM
 			/*
 				Vowelize
 			*/
-			
-			// Calc. vox. LFO A (sample) and B (amplitude)
-			const float voxPhase = m_voxOscPhase.Sample();
-			const float oscInput = mt_randfc();
-			const float voxOsc   = m_voxSandH.Sample(voxPhase, oscInput);
-			const float toLFO    = steepstepf(voxMod);
-			const float voxLFO_A = lerpf<float>(0.f, voxOsc, toLFO);
-			const float voxLFO_B = lerpf<float>(1.f, fabsf(voxOsc), toLFO);
-			
-			// Calc. vox. "ghost" noise
-			const float ghostRand = mt_randf(); // (rand()%256)/255.f;
-			const float ghostSig  = ghostRand*kVoxGhostNoiseGain;
-			const float ghostEnv  = m_voxGhostEnv.Apply(sensEnvGain * voxLFO_B * voxGhost);
-			const float ghost     = ghostSig*ghostEnv;
 
-			// I dislike frequent fmodf() calls but according to MSVC's profiler we're in the clear
-			// I add a small amount to the maximum since we need to actually reach kMaxWahSpeakVowel
-			static_assert(unsigned(kMaxWahSpeakVowel) < VowelizerV1::kNumVowels-1);
-			const float vowel = fabsf(fmodf(voxVow+voxLFO_A, kMaxWahSpeakVowel + 0.001f /* Leaks into 'U' vowel, which is quite similar */));
-		
-			// Filter and mix
-			float vowelL = filteredL + ghost, vowelR = filteredR + ghost;
-
-			// FIXME: our SVF leaks or at least never snaps (close enough to) zero, which has given us problems left and right over time, and now again;
-			//        I've chosen to just check if something's happening by comparing the driven sidechain signal to an epsilon and only filter if it's above,
-			//        this solves the "noise buildup" bug, but once more indicates we should either fix or replace the SVF filter implementation
 			if (sensEnvGain > kGainInf)
 			{
+				// Calc. vox. LFO A (sample) and B (amplitude)
+				const float voxPhase = m_voxOscPhase.Sample();
+				const float oscInput = mt_randfc();
+				const float voxOsc   = m_voxSandH.Sample(voxPhase, oscInput);
+				const float toLFO    = steepstepf(voxMod);
+				const float voxLFO_A = lerpf<float>(0.f, voxOsc, toLFO);
+				const float voxLFO_B = lerpf<float>(1.f, fabsf(voxOsc), toLFO);
+			
+				// Calc. vox. "ghost" noise
+				const float ghostRand = mt_randf(); // (rand()%256)/255.f;
+				const float ghostSig  = ghostRand*kVoxGhostNoiseGain;
+				const float ghostEnv  = m_voxGhostEnv.Apply(sensEnvGain * voxLFO_B * voxGhost);
+				const float ghost     = ghostSig*ghostEnv;
+
+				// I dislike frequent fmodf() calls but according to MSVC's profiler we're in the clear
+				// I add a small amount to the maximum since we need to actually reach kMaxWahSpeakVowel
+				static_assert(unsigned(kMaxWahSpeakVowel) < VowelizerV1::kNumVowels-1);
+				const float vowel = fabsf(fmodf(voxVow+voxLFO_A, kMaxWahSpeakVowel + 0.001f /* Leaks into 'U' vowel, which is quite similar */));
+		
+				// Filter and mix
+				float vowelL = filteredL + ghost, vowelR = filteredR + ghost;
+
 				// Filter input signal
 				m_vowLPF.updateLowpassCoeff(CutoffToHz(voxCut, m_Nyquist), ResoToQ(voxReso), m_sampleRate);
 				m_vowLPF.tick(vowelL, vowelR);
+
+				m_vowelizerV1.Apply(vowelL, vowelR, vowel);
+
+				filteredL = lerpf<float>(filteredL, vowelL, voxWet);
+				filteredR = lerpf<float>(filteredR, vowelR, voxWet);
 			}
-
-			m_vowelizerV1.Apply(vowelL, vowelR, vowel);
-
-			filteredL = lerpf<float>(filteredL, vowelL, voxWet);
-			filteredR = lerpf<float>(filteredR, vowelR, voxWet);
 
 			/*
 				Final mix
