@@ -99,20 +99,21 @@ namespace SFM
 			const float envGaindB = m_gainEnvdB.Apply(signaldB);
 			const float envGain   = dB2Lin(envGaindB);
 
-			if (envGain <= kGainInf)
+			if (envGain <= kGainInf) // Sidechain dB below or equal to defined epsilon?
 			{
-				// Feeble attempt at sync.
+				// Reset LFO
 				m_LFO.Reset();
 
-				m_voxOscPhase.Reset();
-				m_voxSandH.Reset();
-				m_voxGhostEnv.Reset();
-				m_voxLPF.resetState();
+				// Reset 'Vox' objects
+				m_voxOscPhase.Reset(); // S&H phase
+				m_voxSandH.Reset();    // S&H state
+				m_voxGhostEnv.Reset(); // Ghost follower
+				m_voxLPF.resetState(); // Reset SVF
 			}
 
 			// Cut off high end: that's what we'll work with
 			float preFilteredL = sampleL, preFilteredR = sampleR;
-			m_preFilterHP.updateCoefficients(CutoffToHz(lowCut, m_Nyquist, 0.f), kPreLowCutQ, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
+			m_preFilterHP.updateCoefficients(CutoffToHz(lowCut, m_Nyquist, 0.f /* FIXME: Hmm..? */), kPreLowCutQ, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
 			m_preFilterHP.tick(preFilteredL, preFilteredR);
 
 			// Store remainder to add back into mix
