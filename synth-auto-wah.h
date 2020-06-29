@@ -48,6 +48,7 @@ namespace SFM
 		{
 			m_voxOscPhase.Initialize(kDefWahRate, sampleRate);
 			m_voxSandH.SetSlewRate(kWahVoxSandHSlewRate);
+			m_voxLPF.resetState();
 			
 			m_LFO.Initialize(Oscillator::Waveform::kPolySaw, kDefWahRate, m_sampleRate, 0.f);
 		}
@@ -103,7 +104,7 @@ namespace SFM
 		SampleAndHold m_voxSandH;
 		FollowerEnvelope m_voxGhostEnv;
 		VowelizerV1 m_vowelizerV1;
-		SvfLinearTrapOptimised2 m_vowLPF;
+		SvfLinearTrapOptimised2 m_voxLPF;
 
 		Oscillator m_LFO;
 
