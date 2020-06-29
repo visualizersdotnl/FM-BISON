@@ -229,12 +229,13 @@ namespace SFM
 				// Calculate sample
 				float sample = oscillator.Sample(phaseShift+feedback);
 
-				// LFO tremolo
-				const float tremolo = fabsf(LFO*modulation);
-
 				// Apply amplitude (or 'index')
 				const float amplitude = voiceOp.amplitude.Sample();
-				sample = lerpf<float>(sample*amplitude, sample*amplitude*tremolo, voiceOp.ampMod);
+				sample *= amplitude;
+
+				// LFO tremolo
+				const float tremolo = 1.f - fabsf(LFO*voiceOp.ampMod);
+				sample = lerpf<float>(sample, sample*tremolo, modulation);
 
 				// Apply envelope
 				const float envelope = voiceOp.envelope.Sample();
