@@ -25,6 +25,7 @@ namespace SFM
 //	constexpr float kVoxGhostNoiseGain = 0.5f;   // -6dB
 	constexpr float kVoxGhostNoiseGain = 1.f;    // -0dB
 	constexpr float kGain3dB = 1.41253757f;
+	constexpr float kGainInf = kEpsilon;
 
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples, bool manualRate)
 	{
@@ -98,7 +99,7 @@ namespace SFM
 			const float envGaindB = m_gainEnvdB.Apply(signaldB);
 			const float envGain   = dB2Lin(envGaindB);
 
-			if (envGain <= kEpsilon)
+			if (envGain <= kGainInf)
 			{
 				// Feeble attempt at sync.
 				m_LFO.Reset();
@@ -169,13 +170,14 @@ namespace SFM
 			// I add a small amount to the maximum since we need to actually reach kMaxWahSpeakVowel
 			static_assert(unsigned(kMaxWahSpeakVowel) < VowelizerV1::kNumVowels-1);
 			const float vowel = fabsf(fmodf(voxVow+voxLFO_A, kMaxWahSpeakVowel + 0.001f /* Leaks into 'U' vowel, which is quite similar */));
-
-			// Filter input signal
-			m_vowLPF.updateLowpassCoeff(CutoffToHz(voxCut, m_Nyquist), ResoToQ(voxReso), m_sampleRate);
-			m_vowLPF.tick(filteredL, filteredR);
 		
 			// Filter and mix
 			float vowelL = filteredL + ghost, vowelR = filteredR + ghost;
+
+			// Filter input signal
+			m_vowLPF.updateLowpassCoeff(CutoffToHz(voxCut, m_Nyquist), ResoToQ(voxReso), m_sampleRate);
+			m_vowLPF.tick(vowelL, vowelR);
+
 			m_vowelizerV1.Apply(vowelL, vowelR, vowel);
 
 			filteredL = lerpf<float>(filteredL, vowelL, voxWet);
