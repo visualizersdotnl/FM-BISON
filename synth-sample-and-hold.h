@@ -25,7 +25,7 @@ namespace SFM
 
 		~SampleAndHold() {}
 
-		SFM_INLINE float Sample(float phase, float input)
+		SFM_INLINE float Sample(double phase, float input)
 		{
 			const float curGate = oscBox(phase);
 			

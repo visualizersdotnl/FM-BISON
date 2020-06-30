@@ -78,7 +78,7 @@ namespace SFM
 
 		// Supersaw utility class & filter
 		Supersaw m_supersaw;
-		SvfLinearTrapOptimised2 m_HPF;
+		SvfLinearTrapOptimised2 m_HPF[kNumSupersawOscillators];
 
 		// Signal
 		float m_signal = 0.f;
@@ -87,10 +87,10 @@ namespace SFM
 		Oscillator(unsigned sampleRate = 1) :
 			m_sampleAndHold(sampleRate)
 		{
-			Initialize(kNone, 0.f, sampleRate, 0.f);
+			Initialize(kNone, 0.f, sampleRate, 0.0);
 		}
 
-		void Initialize(Waveform form, float frequency, unsigned sampleRate, float phaseShift)
+		void Initialize(Waveform form, float frequency, unsigned sampleRate, double phaseShift, float supersawDetune = 0.f, float supersawMix = 0.f)
 		{
 			m_form = form;
 			
@@ -103,14 +103,14 @@ namespace SFM
 			}
 			else
 			{
-				// FIXME: parametrize, somehow
-				m_supersaw.SetDetune(0.46f);
-				m_supersaw.SetMix(0.4f);
+				for (auto &HPF : m_HPF)
+					HPF.resetState();
 
-				m_HPF.updateHighpassCoeff(frequency, 0.3, sampleRate);
+				m_supersaw.SetDetune(supersawDetune);
+				m_supersaw.SetMix(supersawMix);
 
 				for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
-					m_phases[iOsc].Initialize(m_supersaw.CalculateDetunedFreq(iOsc, frequency), sampleRate, mt_randf() /* Important: randomized phases, prevents 'whizzing' */);
+					m_phases[iOsc].Initialize(m_supersaw.CalculateDetunedFreq(iOsc, frequency), sampleRate, mt_randf() /* Important: randomized phases, prevents flanging */);
 			}
 		}
 
@@ -135,8 +135,6 @@ namespace SFM
 			}
 			else
 			{
-				m_HPF.updateHighpassCoeff(frequency, 0.3, GetSampleRate());
-
 				for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
 					m_phases[iOsc].SetFrequency(m_supersaw.CalculateDetunedFreq(iOsc, frequency));
 			}
@@ -155,7 +153,7 @@ namespace SFM
 		
 		SFM_INLINE float    GetFrequency()   const { return m_phases[0].GetFrequency();  }
 		SFM_INLINE unsigned GetSampleRate()  const { return m_phases[0].GetSampleRate(); }
-		SFM_INLINE float    GetPhase()       const { return m_phases[0].Get();           } // Warning: this value *can* be out of bounds! [0..1]
+		SFM_INLINE double   GetPhase()       const { return m_phases[0].Get();           } // Warning: this value *can* be out of bounds! [0..1]
 		SFM_INLINE Waveform GetWaveform()    const { return m_form;                      }
 
 		float Sample(float phaseShift);

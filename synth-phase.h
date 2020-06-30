@@ -35,7 +35,7 @@ namespace SFM
 			Initialize(1.f, sampleRate); 
 		}
 
-		SFM_INLINE void Initialize(double frequency, unsigned sampleRate, float phaseShift = 0.f)
+		SFM_INLINE void Initialize(double frequency, unsigned sampleRate, double phaseShift = 0.f)
 		{
 			m_frequency = frequency;
 			m_sampleRate = sampleRate;
@@ -78,19 +78,20 @@ namespace SFM
 		SFM_INLINE float    GetFrequency()    const { return float(m_frequency);  }
 		SFM_INLINE unsigned GetSampleRate()   const { return m_sampleRate;        }
 		SFM_INLINE double   GetPitch()        const { return m_pitch;             }
-		SFM_INLINE float    Get()             const { return float(m_phase);      }
+		SFM_INLINE double   Get()             const { return m_phase;             }
 
-		SFM_INLINE float Sample()
+		SFM_INLINE double Sample()
 		{
 			if (m_phase >= 1.0)
 			{
 				m_phase -= 1.0;
 			}
 			
-			/* const */ float curPhase = float(m_phase);
-			SFM_ASSERT(curPhase >= 0.f && curPhase <= 1.f);
+			/* const */ double curPhase = m_phase;
+			SFM_ASSERT(curPhase >= 0.0 && curPhase <= 1.0);
 
 			m_phase += m_pitch*m_pitchScale;
+			m_phase -= Poly::bitwiseOrZero(m_phase);
 			
 			return curPhase;
 		}

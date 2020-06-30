@@ -14,13 +14,13 @@ namespace SFM
 	{
 		constexpr float defaultDuty = 0.25f;
 
-		const float phase = m_phases[0].Sample();
+		const double phase = m_phases[0].Sample();
 		const double pitch = m_phases[0].GetPitch(); // For PolyBLEP
 		
 		// Calling fmodf() certainly warrants a comparison and branch
-		const float modulated = (0.f == phaseShift)
+		const double modulated = (0.f == phaseShift)
 			? phase // Gauranteed to be [0..1]
-			: fmodf(phase+phaseShift, 1.f);
+			: fmod(phase+phaseShift, 1.0);
 		
 		// This switch statement has never shown up during profiling
 		float signal = 0.f;
@@ -34,17 +34,25 @@ namespace SFM
 
 			case kSupersaw:
 				{
+					constexpr double pitchScale = 1.0;
+
 					// First phase & pitch already available
-					signal = oscPolySaw(phase, pitch) * m_supersaw.GetAmplitude(0);
+					signal = oscPolySaw(phase, pitchScale*pitch) * m_supersaw.GetAmplitude(0);
+
+					m_HPF[0].updateHighpassCoeff(m_phases[0].GetFrequency(), 0.3 /* FIXME? */, GetSampleRate());
+					m_HPF[0].tickMono(signal);
 
 					for (unsigned iOsc = 1; iOsc < kNumSupersawOscillators; ++iOsc)
 					{
 						Phase &phaseObj = m_phases[iOsc];
-						signal += oscPolySaw(phaseObj.Sample(), phaseObj.GetPitch()) * m_supersaw.GetAmplitude(iOsc);
+						float saw = oscPolySaw(phaseObj.Sample(), pitchScale*phaseObj.GetPitch()) * m_supersaw.GetAmplitude(iOsc);
+
+						// Apply HPF to cut noise below the fundamental harmonic
+						m_HPF[iOsc].updateHighpassCoeff(phaseObj.GetFrequency(), 0.3, GetSampleRate());
+						m_HPF[iOsc].tickMono(saw);
+
+						signal += saw;
 					}
-					
-					// FIXME
-//					m_HPF.tickMono(signal);
 				}
 
 				break;

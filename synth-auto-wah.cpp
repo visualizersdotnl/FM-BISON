@@ -158,12 +158,12 @@ namespace SFM
 			*/
 
 			// Calc. vox. LFO A (sample) and B (amplitude)
-			const float voxPhase = m_voxOscPhase.Sample();
-			const float oscInput = mt_randfc();
-			const float voxOsc   = m_voxSandH.Sample(voxPhase, oscInput);
-			const float toLFO    = steepstepf(voxMod);
-			const float voxLFO_A = lerpf<float>(0.f, voxOsc, toLFO);
-			const float voxLFO_B = lerpf<float>(1.f, fabsf(voxOsc), toLFO);
+			const double voxPhase = m_voxOscPhase.Sample();
+			const float oscInput  = mt_randfc();
+			const float voxOsc    = m_voxSandH.Sample(voxPhase, oscInput);
+			const float toLFO     = steepstepf(voxMod);
+			const float voxLFO_A  = lerpf<float>(0.f, voxOsc, toLFO);
+			const float voxLFO_B  = lerpf<float>(1.f, fabsf(voxOsc), toLFO);
 			
 			// Calc. vox. "ghost" noise
 			const float ghostRand = mt_randf(); // (rand()%256)/255.f;

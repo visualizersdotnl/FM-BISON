@@ -788,7 +788,7 @@ namespace SFM
 	void Bison::InitializeLFO(Voice &voice, float jitter)
 	{
 		// Initialize LFOs
-		float phaseAdj = (true == m_patch.LFOKeySync)
+		double phaseAdj = (true == m_patch.LFOKeySync)
 			? 0.f // Synchronized 
 			: m_globalLFO->Get(); // Adopt running phase
 
@@ -872,12 +872,12 @@ namespace SFM
 				const float amplitude = CalcOpIndex(key, opVelocity, patchOp);
 
 				// Start oscillator
-				const float phaseShift = (true == patchOp.keySync)
+				const double phaseShift = (true == patchOp.keySync)
 					? 0.f // Synchronized
 					: voiceOp.oscillator.GetPhase(); // Running (it's safe to feed an out of bounds value, see synth-oscillator.h)
 
 				voiceOp.oscillator.Initialize(
-					patchOp.waveform, frequency, m_sampleRate, phaseShift);
+					patchOp.waveform, frequency, m_sampleRate, phaseShift, patchOp.supersawDetune, patchOp.supersawMix);
 
 				// Set static amplitude
 				voiceOp.amplitude.SetRate(m_sampleRate, kDefParameterLatency);
@@ -1030,7 +1030,7 @@ namespace SFM
 				{
 					// Reset
 					voiceOp.oscillator.Initialize(
-						patchOp.waveform, frequency, m_sampleRate, 0.f);
+						patchOp.waveform, frequency, m_sampleRate, 0.f, patchOp.supersawDetune, patchOp.supersawMix);
 	
 					voiceOp.amplitude.SetRate(m_sampleRate, voice.m_freqGlide);
 					voiceOp.amplitude.Set(amplitude);

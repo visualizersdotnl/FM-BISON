@@ -123,6 +123,10 @@ namespace SFM
 			// If both are set 'levelScaleBP' means a range of notes starting at the highest C relative to it
 			bool cutLeftOfLSBP;
 			bool cutRightOfLSBP;
+
+			// Parameters for this operator's supersaw oscillator (just to be sure: both are [0..1])
+			float supersawDetune;
+			float supersawMix;
 		};
 	
 		Operator operators[kNumOperators];
@@ -207,6 +211,10 @@ namespace SFM
 				// No cuts
 				patchOp.cutLeftOfLSBP  = false;
 				patchOp.cutRightOfLSBP = false;
+
+				// Default supersaw
+				patchOp.supersawDetune = 0.f;
+				patchOp.supersawMix = 0.f;
 			}
 		}
 	};

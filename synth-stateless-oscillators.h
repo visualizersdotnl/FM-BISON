@@ -18,55 +18,55 @@ namespace SFM
 		Sin/Cos
 	*/
 
-	SFM_INLINE static float oscSine(float phase) 
+	SFM_INLINE static float oscSine(double phase) 
 	{
-		return fast_sinf(phase); 
+		return fast_sinf(float(phase)); 
 	}
 	
-	SFM_INLINE static float oscCos(float phase) 
+	SFM_INLINE static float oscCos(double phase) 
 	{ 
-		return fast_cosf(phase); 
+		return fast_cosf(float(phase)); 
 	}
 
 	/*	Naive implementations (not band-limited) */
 
-	SFM_INLINE static float oscSaw(float phase)
+	SFM_INLINE static float oscSaw(double phase)
 	{
-		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
+		SFM_ASSERT(phase >= 0.0 && phase <= 1.0);
 		phase += 0.5f;
-		return 2.f*phase - 1.f;
+		return float(2.f*phase - 1.f);
 	}
 
-	SFM_INLINE static float oscRamp(float phase)
+	SFM_INLINE static float oscRamp(double phase)
 	{
 		return -1.f*oscSaw(phase);
 	}
 
-	SFM_INLINE static float oscSquare(float phase)
+	SFM_INLINE static float oscSquare(double phase)
 	{
-		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
-		return phase >= 0.5f ? 1.f : -1.f;
+		SFM_ASSERT(phase >= 0.0 && phase <= 1.0);
+		return phase >= 0.5 ? 1.f : -1.f;
 	}
 
-	SFM_INLINE static float oscTriangle(float phase)
+	SFM_INLINE static float oscTriangle(double phase)
 	{
-		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
-		return -2.f * (fabsf(-1.f + (2.f*phase))-0.5f);
+		SFM_ASSERT(phase >= 0.0 && phase <= 1.0);
+		return float(-2.0 * (fabs(-1.0 + (2.0*phase))-0.5));
 	}
 
-	SFM_INLINE static float oscPulse(float phase, float duty)
+	SFM_INLINE static float oscPulse(double phase, float duty)
 	{
-		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
+		SFM_ASSERT(phase >= 0.0 && phase <= 1.0);
 		SFM_ASSERT(duty >= 0.f && duty <= 1.f);
 
-		const float cycle = phase;
-		return (cycle < duty) ? 1.f : -1.f;
+		const double cycle = phase;
+		return (float(cycle) < duty) ? 1.f : -1.f;
 	}
 
-	SFM_INLINE static float oscBox(float phase)
+	SFM_INLINE static float oscBox(double phase)
 	{
-		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
-		return phase >= 0.25f && phase <= 0.75f ? 1.f : -1.f;
+		SFM_ASSERT(phase >= 0.0 && phase <= 1.0);
+		return phase >= 0.25 && phase <= 0.75 ? 1.f : -1.f;
 	}
 
 	/*
@@ -78,6 +78,9 @@ namespace SFM
 		
 		I've kept this implementation and it's helper functions all in one spot, though I did
 		rename a few things to keep it consistent with my style.
+
+		Keep in mind that PolyBLEP is *not* the best solution for band-limited oscillators, but it does a relatively good job for
+		it's CPU footprint; it gets better the higher the sample rate is.
 	*/
 
 	namespace Poly
@@ -94,7 +97,7 @@ namespace SFM
 
 		// Adapted from "Phaseshaping Oscillator Algorithms for Musical Sound Synthesis" by Jari Kleimola, Victor Lazzarini, Joseph Timoney, and Vesa Valimaki.
 		// http://www.acoustics.hut.fi/publications/papers/smc2010-phaseshaping/
-		SFM_INLINE static float BLEP_Original(double point, double dT /* This is, usually, just the pitch of the oscillator */) 
+		SFM_INLINE static float BLEP(double point, double dT /* This is, usually, just the pitch of the oscillator */) 
 		{
 			if (point < dT)
 				// Discontinuities between 0 & 1
@@ -107,7 +110,7 @@ namespace SFM
 		}
 	
 		// Source: http://metafunction.co.uk/all-about-digital-oscillators-part-2-blits-bleps/
-		SFM_INLINE static float BLEP(double point, double dT /* This is, usually, just the pitch of the oscillator */) 
+		SFM_INLINE static float BLEP_Unused(double point, double dT /* This is, usually, just the pitch of the oscillator */) 
 		{
 			if (point < dT)
 			{
@@ -142,144 +145,141 @@ namespace SFM
 		}
 	}
 
-	SFM_INLINE static float oscPolySquare(float phase, double pitch)
+	SFM_INLINE static float oscPolySquare(double phase, double pitch)
 	{
-		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
+		SFM_ASSERT(phase >= 0.0 && phase <= 1.0);
 		SFM_ASSERT(pitch > 0.0);
 
-		float P1 = phase + 0.5f;
+		double P1 = phase + 0.5;
 		P1 -= Poly::bitwiseOrZero(P1);
 
-		float square = phase < 0.5f ? 1.f : -1.f;
+		double square = phase < 0.5 ? 1.0 : -1.0;
 		square += Poly::BLEP(phase, pitch) - Poly::BLEP(P1, pitch);
 
-		return square;
+		return float(square);
 	}
 
-	SFM_INLINE static float oscPolySaw(float phase, double pitch)
+	SFM_INLINE static float oscPolySaw(double phase, double pitch)
 	{
-		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
+		SFM_ASSERT(phase >= 0.0 && phase <= 1.0);
 		SFM_ASSERT(pitch > 0.0);
 
-		float P1 = phase + 0.5f;
+		double P1 = phase + 0.5;
 		P1 -= Poly::bitwiseOrZero(P1);
 
-		float saw = 2.f*P1 - 1.f;
+		double saw = 2.0*P1 - 1.0;
 		saw -= Poly::BLEP(P1, pitch);
 
-		return saw;
+		return float(saw);
 	}
 
-	SFM_INLINE static float oscPolyRamp(float phase, double pitch)
+	SFM_INLINE static float oscPolyRamp(double phase, double pitch)
 	{
-		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
+		SFM_ASSERT(phase >= 0.0 && phase <= 1.0);
 		SFM_ASSERT(pitch > 0.0);
 
-		float P1 = phase;
+		double P1 = phase;
 		P1 -= Poly::bitwiseOrZero(P1);
 
-		float ramp = 1.f - 2.f*P1;
+		double ramp = 1.0 - 2.0*P1;
 		ramp += Poly::BLEP(P1, pitch);
 
-		return ramp;
+		return float(ramp);
 	}
 
-	SFM_INLINE static float oscPolyTriangle(float phase, double pitch)
+	SFM_INLINE static float oscPolyTriangle(double phase, double pitch)
 	{
-		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
+		SFM_ASSERT(phase >= 0.0 && phase <= 1.0);
 		SFM_ASSERT(pitch > 0.0);
 
-		float P1 = phase + 0.25f;
-		float P2 = phase + 0.75f;
+		double P1 = phase + 0.25;
+		double P2 = phase + 0.75;
 		P1 -= Poly::bitwiseOrZero(P1);
 		P2 -= Poly::bitwiseOrZero(P2);
 
-		float triangle = phase*4.f;
-		if (triangle >= 3.f)
+		double triangle = phase*4.0;
+		if (triangle >= 3.0)
 		{
-			triangle -= 4.f;
+			triangle -= 4.0;
 		}
-		else if (triangle > 1.f)
+		else if (triangle > 1.0)
 		{
-			triangle = 2.f - triangle;
+			triangle = 2.0 - triangle;
 		}
 
-		triangle += 4.f * float(pitch) * (Poly::BLAMP(P1, pitch) - Poly::BLAMP(P2, pitch));
+		triangle += 4.0 * pitch * (Poly::BLAMP(P1, pitch) - Poly::BLAMP(P2, pitch));
 
-		return triangle;
+		return float(triangle);
 	}
 
-	SFM_INLINE static float oscPolyRectifiedSine(float phase, double pitch)
+	SFM_INLINE static float oscPolyRectifiedSine(double phase, double pitch)
 	{
-		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
+		SFM_ASSERT(phase >= 0.0 && phase <= 1.0);
 		SFM_ASSERT(pitch > 0.0);
 
-		float P1 = phase + 0.25f;
+		double P1 = phase + 0.25;
 		P1 -= Poly::bitwiseOrZero(P1);
 
-//		float rectified = 2.f * sinf(kPI * P1) - 4.f/kPI;
-//		rectified += k2PI * pitch * Poly::BLAMP(P1, pitch);
+		double rectified = 2.0 * oscSine(0.5 * P1) - 4.0*0.5f;
+		rectified += 2.0 * pitch * Poly::BLAMP(P1, pitch);
 
-		float rectified = 2.f * oscSine(0.5f * P1) - 4.f*0.5f;
-		rectified += 2.f * float(pitch) * Poly::BLAMP(P1, pitch);
-
-		return rectified * 0.707f; // Curtail a bit (-3dB), otherwise it's just too loud
+		return float(rectified) * 0.707f; // Curtail a bit (-3dB), otherwise it's just too loud
 	}
 
-	SFM_INLINE static float oscPolyTrapezoid(float phase, double pitch)
+	SFM_INLINE static float oscPolyTrapezoid(double phase, double pitch)
 	{
-		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
+		SFM_ASSERT(phase >= 0.0 && phase <= 1.0);
 		SFM_ASSERT(pitch > 0.0);
 
-		float triangle = phase*4.f;
-		if (triangle >= 3.f)
+		double triangle = phase*4.0;
+		if (triangle >= 3.0)
 		{
-			triangle -= 4.f;
+			triangle -= 4.0;
 		}
-		else if (triangle > 1.f)
+		else if (triangle > 1.0)
 		{
-			triangle = 2.f - triangle;
+			triangle = 2.0 - triangle;
 		}
 
-		triangle = std::fmaxf(-1.f, std::fminf(1.f, 2.f*triangle));
+		triangle = std::max<double>(-1.0, std::min<double>(1.0, 2.0*triangle));
 		
-		float P1 = phase + 0.125f;
+		double P1 = phase + 0.125;
 		P1 -= Poly::bitwiseOrZero(P1);
 
-		float P2 = P1 + 0.5f;
+		double P2 = P1 + 0.5;
 		P2 -= Poly::bitwiseOrZero(P2);
 
 		// Triangle #1
-		triangle += 4.f * float(pitch) * (Poly::BLAMP(P1, pitch) - Poly::BLAMP(P2, pitch));
+		triangle += 4.0 * pitch * (Poly::BLAMP(P1, pitch) - Poly::BLAMP(P2, pitch));
 
-		P1 = phase + 0.375f;
+		P1 = phase + 0.375;
 		P1 -= Poly::bitwiseOrZero(P1);
 
-		P2 = P1 + 0.5f;
+		P2 = P1 + 0.5;
 		P2 -= Poly::bitwiseOrZero(P2);
 
 		// Triangle #2
-		const float trapezoid = triangle += 4.f * float(pitch) * (Poly::BLAMP(P1, pitch) - Poly::BLAMP(P2, pitch));
+		double trapezoid = triangle += 4.0 * pitch * (Poly::BLAMP(P1, pitch) - Poly::BLAMP(P2, pitch));
 
-		return trapezoid;
+		return float(trapezoid);
 	}
 
-	SFM_INLINE static float oscPolyRectangle(float phase, double pitch, float width)
+	SFM_INLINE static float oscPolyRectangle(double phase, double pitch, float width)
 	{
-		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
+		SFM_ASSERT(phase >= 0.0 && phase <= 1.0);
 		SFM_ASSERT(pitch > 0.0);
 		SFM_ASSERT(width > 0.f && width <= 1.f);
 
-		float P1 = phase + 1.f-width;
+		double P1 = phase + 1.0-width;
 		P1 -= Poly::bitwiseOrZero(P1);
 
-		float rectangle = -2.f*width;
+		double rectangle = -2.0*width;
 		if (phase < width)
-			rectangle += 2.f;
+			rectangle += 2.0;
 
 		rectangle += Poly::BLEP(phase, pitch) - Poly::BLEP(P1, pitch);
 
-		return rectangle;
+		return float(rectangle);
 	}
 
 	/*
