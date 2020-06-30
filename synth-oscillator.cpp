@@ -44,7 +44,6 @@ namespace SFM
 					}
 					
 					// FIXME
-					signal *= 0.707f; // -3dB
 //					m_HPF.tickMono(signal);
 				}
 
