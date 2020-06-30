@@ -231,7 +231,7 @@ namespace SFM
 		}
 
 		// Samples are read & written sequentially so one buffer per channel suffices
-		void Apply(float *pLeft, float *pRight, unsigned numSamples, float wet, float lowpass, float highpass);
+		void Apply(float *pLeft, float *pRight, unsigned numSamples, float wet, float lowpass, float highpass /* for LPF & HPF paramaters, 1.f means pass all freq. */);
 
 	private:
 		const unsigned m_sampleRate;
