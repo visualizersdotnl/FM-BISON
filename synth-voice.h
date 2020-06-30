@@ -136,12 +136,12 @@ namespace SFM
 				// Reset operator filter(s)
 				for (auto &filter : filters)
 				{
-					filter.updateCoefficients(16.0, 0.025, SvfLinearTrapOptimised2::NO_FLT_TYPE, sampleRate);
+					filter.updateNone();
 					filter.resetState();
 				}
 
 				// Reset modulator filter
-				modFilter.updateCoefficients(16.0, 0.025, SvfLinearTrapOptimised2::NO_FLT_TYPE, sampleRate);
+				modFilter.updateNone();
 				modFilter.resetState();
 
 				// Reset gain envelope (fast (1MS) attack, slower 10MS release)

@@ -57,7 +57,7 @@ namespace SFM
 		SFM_ASSERT(vowel >= 0.f && vowel <= 4.f);
 
 		const unsigned indexA = unsigned(vowel) % kNumVowels;
-		const unsigned indexB = indexA+1;
+		const unsigned indexB = (indexA+1) % kNumVowels;
 
 		const float delta = fracf(vowel);
 

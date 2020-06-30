@@ -167,7 +167,7 @@ namespace SFM
 		float resonanceLimit;
 		
 		// Post-pass 24dB MOOG-style ladder filter
-		float postCutoff; // Up to 1/4th of Nyquist for now!
+		float postCutoff; // Up to 1/4th of Nyquist for now (see Render())
 		float postResonance;
 		float postDrivedB;
 		float postWet;
@@ -301,9 +301,9 @@ namespace SFM
 			
 			// Little to no filtering
 			filterType = kLowpassFilter;
-			cutoff = kDefFilterCutoff;
-			resonance = kDefFilterResonance;
-			resonanceLimit = kDefFilterResonanceLimit;
+			cutoff = kDefMainFilterCutoff;
+			resonance = kDefMainFilterResonance;
+			resonanceLimit = kDefMainFilterResonanceLimit;
 
 			// Post-pass filter (disabled)
 			postCutoff = 0.f;

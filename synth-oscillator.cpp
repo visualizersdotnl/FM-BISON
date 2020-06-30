@@ -114,6 +114,7 @@ namespace SFM
 					constexpr float subGain = 0.354813397f; // -9dB
 					constexpr double pitchScale = 0.33;
 
+					// Handle separately since the phase objected was already sampled
 					signal = oscPolySaw(phase, pitchScale*pitch)*subGain;
 	
 					for (unsigned iSaw = 1; iSaw < kNumPolySupersaws; ++iSaw)
@@ -121,6 +122,8 @@ namespace SFM
 						auto &phaseObj = m_phases[iSaw];
 						signal += oscPolySaw(phaseObj.Sample(), pitchScale*phaseObj.GetPitch())*subGain;
 					}
+
+//					signal *= 0.707f; // -3dB
 				}
 
 				break;

@@ -591,7 +591,7 @@ namespace SFM
 			SFM_ASSERT(false);
 
 		case PatchOperators::Operator::kNoFilter:
-			pFilters[0].updateCoefficients(0.0, 0.0, SvfLinearTrapOptimised2::NO_FLT_TYPE);
+			pFilters[0].updateNone();
 			break;
 
 		case PatchOperators::Operator::kLowpassFilter:
@@ -633,12 +633,12 @@ namespace SFM
 			case Oscillator::kSine:
 			case Oscillator::kCosine:
 			case Oscillator::kPolyTriangle:
-				modFilter.updateCoefficients(16.0, 0.025, SvfLinearTrapOptimised2::NO_FLT_TYPE, m_sampleRate);
+				modFilter.updateNone();
 				break;
 			
 			// Filter the remaining waveforms a little to "take the top off"
 			default:
-				modFilter.updateLowpassCoeff(CutoffToHz(kModulatorLP, m_Nyquist), 0.025, m_sampleRate);
+				modFilter.updateLowpassCoeff(CutoffToHz(kModulatorLP, m_Nyquist), kSVFLowestFilterQ, m_sampleRate);
 				break;
 		}
 		
@@ -1310,6 +1310,7 @@ namespace SFM
 					const bool isReleasing = voice.IsReleasing();
 					const bool isStolen    = voice.IsStolen();
 
+					// FIXME: consider sustain!
 					if (true == isReleasing && false == isStolen)
 					{
 						VoiceRef voiceRef;
@@ -1682,7 +1683,7 @@ namespace SFM
 						SFM_ASSERT(SvfLinearTrapOptimised2::NO_FLT_TYPE != context.filterType2);
 
 						const float secondCutoff = lerpf<float>(context.fullCutoff, secondCutoffLPS.Apply(sampCutoff), filterEnv); 
-						const float secondQ      = std::min<float>(kMaxFilterResonance, sampQ+context.secondQOffs);
+						const float secondQ      = std::min<float>(kSVFMaxFilterQ, sampQ+context.secondQOffs);
 						voice.m_filterSVF2.updateCoefficients(secondCutoff, secondQ, context.filterType2, m_sampleRate);
 						voice.m_filterSVF2.tick(filteredL, filteredR);
 					}
@@ -1809,7 +1810,7 @@ namespace SFM
 		SvfLinearTrapOptimised2::FLT_TYPE filterType1; // Actually the *second* step if 'secondFilterpass' is true, and the only if it's false
 		SvfLinearTrapOptimised2::FLT_TYPE filterType2 = SvfLinearTrapOptimised2::NO_FLT_TYPE;
 		
-		static_assert(16.f >= kMaxFilterResonance);
+		static_assert(16.f >= kSVFMinFilterCutoffHz);
 		
 		// Set target cutoff (Hz) & Q
 		const float normCutoff = m_cutoffPS.Apply(m_patch.cutoff);

@@ -138,15 +138,21 @@ namespace SFM
 
 		SFM_INLINE void PitchBend(float bend)
 		{
-			m_phases[0].PitchBend(bend);		
+			m_phases[0].PitchBend(bend);
 	
 			if (kSupersaw == m_form)
 			{
+				// Grab bent primary freq.
+				const float frequency = m_phases[0].GetFrequency();
+
 				// Set relative to detune (asserted in Initialize())
 				for (unsigned iSaw = 1; iSaw < kNumPolySupersaws; ++iSaw)
 				{
 					auto &phase = m_phases[iSaw];
 					phase.PitchBend(bend*s_supersawDetune[iSaw]);
+
+					// Should do this, but it sounded like it did *without*
+//					phase.SetPitchScale(frequency);
 				}
 			}
 		}

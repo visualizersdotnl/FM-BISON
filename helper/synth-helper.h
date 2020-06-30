@@ -166,12 +166,12 @@ namespace SFM
 
 	/* ----------------------------------------------------------------------------------------------------
 
-		Helper functions for filters.
+		Helper functions for SVF filter.
 
 	 ------------------------------------------------------------------------------------------------------ */
 
 	// Normalized cutoff [0..1] to Hz
-	SFM_INLINE static float CutoffToHz(float cutoff, unsigned Nyquist, float minCutoff = 16.f /* For SVF */)
+	SFM_INLINE static float CutoffToHz(float cutoff, unsigned Nyquist, float minCutoff = kSVFMinFilterCutoffHz)
 	{
 		// Allowed according to SVF header: [16.0..Nyquist]
 		const unsigned maxCutoff = Nyquist;
@@ -179,13 +179,14 @@ namespace SFM
 		return minCutoff + cutoff*(maxCutoff-minCutoff);
 	}
 
-	// Normalized resonance [0..1] to Q (for SVF filter)
+	// Normalized resonance [0..1] to Q
 	SFM_INLINE static float ResoToQ(float resonance)
 	{
 		// Allowed: [0.025..40.0]
+		// Default: 0.5
 		SFM_ASSERT(resonance >= 0.f && resonance <= 1.f);
 
-		const float Q = kMinFilterResonance + resonance*(kMaxFilterResonance-kMinFilterResonance);
+		const float Q = kSVFMinFilterQ + resonance*kSVFFilterQRange;
 		SFM_ASSERT(Q <= 40.f);
 		return Q;
 	}

@@ -7,9 +7,12 @@
 // - Stability assertions
 // - Added a few smaller update functions for specific filter types
 // - Added getFilterType()
+// - A stable Q range of [0.025..40] is gauranteed (according to original author), but a default and minimum of 0.5 enhances stability without oversampling (for now)
 //
 // FIXME:
-// - Try using the fast(er) trig. functions (stress test filter stability before using permanently)
+// - Adapt another SVF implementation and do some more homework, this one has proven not to be very stable in practice
+// - Ref. https://www.earlevel.com/main/2003/03/02/the-digital-state-variable-filter/
+// - Forget about using the fast trig. functions, we're on thin ice as it is
 //
 
 //  SvfLinearTrapOptimised2.hpp
@@ -93,6 +96,10 @@ public:
 	SFM_INLINE void updateHighpassCoeff(double cutoff, double q, double sampleRate) {
 		_coef.updateHighpass(cutoff, q, sampleRate);
 	}
+
+	SFM_INLINE void updateNone() {
+		_coef.updateNone();
+	}
 	
 	/*!
 	 @class FacAbstractFilter
@@ -108,14 +115,14 @@ private:
 	 @class FacAbstractFilter
 	 @brief Tick method (apply the filter on the provided sample & state (return single prec. floating point))
 	 */
-	SFM_INLINE float tickImpl(float v0, double &_v1, double &_v2, double &_v3, double &_ic1eq, double &_ic2eq) {
+	SFM_INLINE double tickImpl(float v0, double &_v1, double &_v2, double &_v3, double &_ic1eq, double &_ic2eq) {
 		_v3 = v0 - _ic2eq;
 		_v1 = _coef._a1*_ic1eq + _coef._a2*_v3;
 		_v2 = _ic2eq + _coef._a2*_ic1eq + _coef._a3*_v3;
 		_ic1eq = 2.*_v1 - _ic1eq;
 		_ic2eq = 2.*_v2 - _ic2eq;
 		
-		return float(_coef._m0*v0 + _coef._m1*_v1 + _coef._m2*_v2);
+		return _coef._m0*v0 + _coef._m1*_v1 + _coef._m2*_v2;
 	}
 
 public:    
@@ -124,10 +131,10 @@ public:
 	 @brief Tick method (apply the filter on the provided stereo material (single prec. floating point))
 	 */
 	SFM_INLINE void tick(float &left, float &right) {
-		const float v0_left  = tickImpl(left,  _v1_left,  _v2_left,  _v3_left,  _ic1eq_left,  _ic2eq_left);
-		const float v0_right = tickImpl(right, _v1_right, _v2_right, _v3_right, _ic1eq_right, _ic2eq_right);
-		left  = v0_left;
-		right = v0_right;
+		const double v0_left  = tickImpl(left,  _v1_left,  _v2_left,  _v3_left,  _ic1eq_left,  _ic2eq_left);
+		const double v0_right = tickImpl(right, _v1_right, _v2_right, _v3_right, _ic1eq_right, _ic2eq_right);
+		left  = float(v0_left);
+		right = float(v0_right);
 
 		// Check if filter hasn't blown up (using SampleAssert() feels too strict)
 		SFM::FloatAssert(left);
@@ -136,7 +143,8 @@ public:
 	
 	// Do *not* mix with stereo tick() call without first calling resetState()
 	SFM_INLINE void tickMono(float &sample) {
-		sample = tickImpl(sample,  _v1_left,  _v2_left,  _v3_left,  _ic1eq_left,  _ic2eq_left);
+		const double filtered = tickImpl(sample, _v1_left,  _v2_left,  _v3_left,  _ic1eq_left,  _ic2eq_left);
+		sample = float(filtered);
 
 		// Same as in tick()
 		SFM::FloatAssert(sample);
@@ -198,6 +206,11 @@ private:
 			_m2 = -1;
 
 			_type = SvfLinearTrapOptimised2::HIGH_PASS_FILTER;
+		}
+
+		SFM_INLINE void updateNone()
+		{
+			_type = SvfLinearTrapOptimised2::NO_FLT_TYPE;
 		}
 		
 		SFM_INLINE void update(double cutoff, double q = 0.5, SvfLinearTrapOptimised2::FLT_TYPE type = LOW_PASS_FILTER, double sampleRate = 44100) {

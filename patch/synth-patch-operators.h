@@ -139,8 +139,8 @@ namespace SFM
 				
 				// No filter
 				patchOp.filterType = Operator::kNoFilter;
-				patchOp.cutoff = kDefFilterCutoff;
-				patchOp.resonance = kDefFilterResonance;
+				patchOp.cutoff = kDefMainFilterCutoff;
+				patchOp.resonance = kDefMainFilterResonance;
 				patchOp.cutoffKeyTrack = 0.f; // No filter key tracking (or 'TRACK', if you will)
 
 				// Sync. oscillator by default

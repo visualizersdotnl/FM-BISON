@@ -319,7 +319,10 @@ namespace SFM
 		float *pOverR = outBlockR.getChannelPointer(0);
 
 		// Apply post filter & tube distortion
-		m_tubeFilterAA.updateLowpassCoeff(m_oversamplingRate/4, 0.025, m_oversamplingRate); // Anti-aliasing filter
+
+		// Anti-aliasing filter (according to Redmon this cutoff is near ideal in terms of stability)
+		// It has also proven to eliminate some unwanted harmonics in the higher end of the spectrum as a bonus
+		m_tubeFilterAA.updateLowpassCoeff(m_oversamplingRate/4, kSVFLowestFilterQ, m_oversamplingRate); 
 
 		for (unsigned iSample = 0; iSample < numOversamples; ++iSample)
 		{
@@ -493,7 +496,7 @@ namespace SFM
 
 		// Cutoff & Q
 		const float cutoffHz = CutoffToHz(normCutoff, m_Nyquist);
-		float Q = 0.025f;
+		float Q = kSVFLowestFilterQ;
 		
 		// Apply cascading filters
 		for (auto &filter : m_allpassFilters)
@@ -502,7 +505,7 @@ namespace SFM
 			filter.tick(filteredL, filteredR);
 
 			// Adds a little "space"
-			Q += Q;
+			Q += Q*0.1f;
 		}
 		
 		// Mix result with dry signal

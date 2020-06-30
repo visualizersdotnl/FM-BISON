@@ -62,6 +62,8 @@ namespace SFM
 		Very specific constants should live close to their implementation.
 
 		So: so long as every constant the host needs is defined here we're in the clear.
+
+		IMPORTANT: the 'main' filter means the 12dB SVF filter (implemented in /3rdparty/SvfLinearTrapOptimised2.hpp)
 	*/
 
 	// Max. number of voices to render using the main (single) thread
@@ -83,7 +85,7 @@ namespace SFM
 	constexpr unsigned kMaxVoices = 128;
 
 	// Default number of vioces
-	constexpr unsigned kDefMaxVoices = 32; // Very safe and fast
+	constexpr unsigned kDefMaxVoices = 32; // Safe and fast
 	
 	// Number of FM synthesis operators (changing this value requires a thorough check)
 	constexpr unsigned kNumOperators = 6;
@@ -102,23 +104,23 @@ namespace SFM
 	// Jitter: max. detune (in cents, -/+)
 	constexpr float kMaxDetuneJitter = 1.f; // 100th of a note
 
-	// Main filter resonance range (max. must be < 40.f, or so the manual says)
-	// Engine adds kMinFilterResonance automatically!
-	constexpr float kMinFilterResonance = 0.025f;
-	constexpr float kMaxFilterResonance = 14.f;
-	constexpr float kFilterResonanceRange = kMaxFilterResonance-kMinFilterResonance;
-	
-	// Min. filter cutoff; range is simply [0..1]
-	constexpr float kMinFilterCutoff = 0.f;
+	// Main (SVF) filter Q range (max. must be < 40.f, or so the impl. says)
+	// Helper function ResoToQ() scales to range automatically
+	constexpr float kSVFLowestFilterQ = 0.025f; // Use carefully, can cause instability after a while
+	constexpr float kSVFMinFilterQ    = 0.5f;   // See https://www.earlevel.com/main/2003/03/02/the-digital-state-variable-filter/
+	constexpr float kSVFMaxFilterQ    = 14.f;
+	constexpr float kSVFFilterQRange  = kSVFMaxFilterQ-kSVFMinFilterQ;
 
-	// Default main filter settings
-	constexpr float kDefFilterCutoff    = 1.f;          // No (or minimal) filtering (when in lowpass mode, at least)
-	constexpr float kDefFilterResonance = 0.f;          // Filter's default Q
-	constexpr float kMinFilterCutoffHz  = 16.f;         // See impl.
-	constexpr float kMainCutoffAftertouchRange = 0.66f; // Limits aftertouch cutoff to avoid that low range of the cutoff that's not allowed (SVF, < 16.0), which causes filter instability
+	constexpr float kMinFilterCutoff      =  0.f; // Normalized min. filter cutoff; range is simply [0..1] (use CutoffToHz())
+	constexpr float kSVFMinFilterCutoffHz = 16.f; // See impl.
+
+	// Default main (SVF) filter settings
+	constexpr float kDefMainFilterCutoff       =   1.f; // Normalized; no (or minimal) filtering (when acting as LPF at least)
+	constexpr float kMainCutoffAftertouchRange = 0.66f; // Limits aftertouch cutoff to avoid that low range of the cutoff that's not allowed (SVF, < 16.0), which may cause filter instability
+	constexpr float kDefMainFilterResonance    =   0.f; // Filter's default normalized resonance
 	
-	// Resonance range is limited for a smoother "knob feel" for both the main (voice) filter & the per operator filters (which will remain at this value)
-	constexpr float kDefFilterResonanceLimit = 0.6f;
+	// Normalized resonance range is limited for a smoother "knob feel" for the main voice filter
+	constexpr float kDefMainFilterResonanceLimit = 0.6f;
 
 	// Reverb default lowpass & highpass (normalized)
 	constexpr float kDefReverbFilter = 1.f;
