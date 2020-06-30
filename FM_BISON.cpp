@@ -55,8 +55,8 @@ namespace SFM
 		Log("Suzie, call Dr. Bison, tell him it's for me...");
 
 		/*
-			IMPORTANT: at this point it is still necessary to call SetSamplingProperties(), which the VST plug-in will take
-			           care of for now.
+			IMPORTANT: at this point it is necessary to call SetSamplingProperties() before you can 
+			           start calling Render()
 		*/	
 	}
 
@@ -144,10 +144,10 @@ namespace SFM
 			Reset parameter filters; they reduce automation/MIDI noise (by a default cut Hz, mostly)
 
 			They are kept *only* in this class since they're not a pretty sight and may need to be
-			removed or overhauled for other (non) VST projects.
+			removed or overhauled for other (non) VST projects
 
 			Their sample rate is the amount of calls it takes, approximately, to render a second
-			of audio: sample rate divided by (max.) block size.
+			of audio: sample rate divided by (max.) block size
 		*/
 
 		const unsigned sampleRatePS = m_sampleRate/m_samplesPerBlock;
@@ -271,9 +271,9 @@ namespace SFM
 
 	/* ----------------------------------------------------------------------------------------------------
 
-		Voice management.
+		Voice management
 
-		Polyphonic mode works as you'd expect.
+		Polyphonic mode works as you'd expect
 
 		Monophonic mode:
 		- Each note uses it's own velocity for all calculations, instead of carrying over the
@@ -1306,18 +1306,21 @@ namespace SFM
 				for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
 				{
 					Voice &voice = m_voices[iVoice];
-					
-					const bool isReleasing = voice.IsReleasing();
-					const bool isStolen    = voice.IsStolen();
 
-					// FIXME: consider sustain!
-					if (true == isReleasing && false == isStolen)
+					if (false == voice.IsStolen())
 					{
-						VoiceRef voiceRef;
-						voiceRef.iVoice = iVoice;
-						voiceRef.summedOutput = voice.GetSummedOutput();
+						const bool isReleasing = voice.IsReleasing();
+						const bool isSustained = voice.IsSustained();
+						
+						// Only consider releasing or sustained voices
+						if (true == isReleasing || true == isSustained)
+						{
+							VoiceRef voiceRef;
+							voiceRef.iVoice = iVoice;
+							voiceRef.summedOutput = voice.GetSummedOutput();
 
-						voiceRefs.emplace_back(voiceRef);
+							voiceRefs.emplace_back(voiceRef);
+						}
 					}
 				}
 
@@ -1792,7 +1795,9 @@ namespace SFM
 				// Full reset; likely to be used when (re)starting a track
 				// This *must* be done prior to UpdateVoicesPreRender()
 				m_globalLFO->Initialize(freqLFO, m_sampleRate);
-				m_LFORatePS.Reset(freqLFO); // Reset ParameterFilter
+
+				// (Re)set ParameterSlew
+				m_LFORatePS.Reset(freqLFO); 
 			}
 		}
 		
