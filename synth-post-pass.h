@@ -144,6 +144,6 @@ namespace SFM
 
 		// Misc.
 		InterpolatedParameter<kLinInterpolate> m_curEffectWet;
-		InterpolatedParameter<kLinInterpolate> m_curMasterVol;
+		InterpolatedParameter<kMulInterpolate> m_curMasterVoldB;
 	};
 }

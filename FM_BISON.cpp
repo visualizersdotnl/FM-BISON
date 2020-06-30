@@ -198,7 +198,7 @@ namespace SFM
 		m_reverbLP_PS           = { sampleRatePS };
 		m_reverbPreDelayPS      = { sampleRatePS, 100.f /* 100MS */ };
 		m_compLookaheadPS       = { sampleRatePS, 100.f /* 100MS */ };
-		m_masterVolPS           = { sampleRatePS };
+		m_masterVoldBPS         = { sampleRatePS };
 
 		m_effectWetPS.Reset(m_patch.cpWet);
 		m_effectRatePS.Reset(m_patch.cpRate);
@@ -230,7 +230,7 @@ namespace SFM
 		m_reverbLP_PS.Reset(m_patch.reverbLP);
 		m_reverbPreDelayPS.Reset(m_patch.reverbPreDelay);
 		m_compLookaheadPS.Reset(0.f);
-		m_masterVolPS.Reset(m_patch.masterVol);
+		m_masterVoldBPS.Reset(m_patch.masterVoldB);
 
 		// Local
 		m_bendWheelPS  = { sampleRatePS };
@@ -2084,7 +2084,7 @@ namespace SFM
 						  m_patch.compAutoGain,
 						  m_patch.compRMSToPeak,
 						  /* Master volume */
-						  m_masterVolPS.Apply(m_patch.masterVol),
+						  m_masterVoldBPS.Apply(m_patch.masterVoldB),
 						  /* Buffers */
 						  m_pBufL[0], m_pBufR[0], pLeft, pRight);
 

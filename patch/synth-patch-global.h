@@ -73,8 +73,8 @@ namespace SFM
 		float monoGlide; // Glide in sec.
 		float monoAtt;   // Velocity attenuation amount
 
-		// Master volume (in dB)
-		float masterVol;
+		// Master volume
+		float masterVoldB;
 
 		// Pitch bend range
 		int pitchBendRange; // [0..kMaxPitchBendRange]
@@ -221,7 +221,7 @@ namespace SFM
 			monoAtt   = kDefMonoGlideAtt;
 
 			// Def. master vol.
-			masterVol = kDefVolumedB;
+			masterVoldB = kDefVolumedB;
 
 			// Def. bend range
 			pitchBendRange = kDefPitchBendRange;

@@ -82,7 +82,7 @@ namespace SFM
 		
 		// CP wetness & master volume
 ,		m_curEffectWet(0.f, sampleRate, kDefParameterLatency)
-,		m_curMasterVol(kDefVolumedB, sampleRate, kDefParameterLatency)
+,		m_curMasterVoldB(kDefVolumedB, sampleRate, kDefParameterLatency)
 	{
 		// Allocate intermediate buffers
 		m_pBufL  = reinterpret_cast<float *>(mallocAligned(maxSamplesPerBlock*sizeof(float), 16));
@@ -114,7 +114,7 @@ namespace SFM
 						 float tubeDistort, float tubeDrive, float tubeOffset,
 	                     float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
 	                     float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead, bool compAutoGain, float compRMSToPeak,
-	                     float masterVol,
+	                     float masterVoldB,
 	                     const float *pLeftIn, const float *pRightIn, float *pLeftOut, float *pRightOut)
 	{
 		// Other parameters should be checked in functions they're passed to; however, this list can be incomplete; when
@@ -128,7 +128,7 @@ namespace SFM
 		SFM_ASSERT(delayInSec >= 0.f);
 		SFM_ASSERT(delayWet >= 0.f && delayWet <= 1.f);
 		SFM_ASSERT(delayFeedback >= 0.f && delayFeedback <= 1.f);
-		SFM_ASSERT(masterVol >= kMinVolumedB && masterVol <= kMaxVolumedB);
+		SFM_ASSERT(masterVoldB >= kMinVolumedB && masterVoldB <= kMaxVolumedB);
 		SFM_ASSERT(tubeDistort >= 0.f && tubeDistort <= 1.f);
 		SFM_ASSERT(tubeDrive >= kMinTubeDrive && tubeDrive <= kMaxTubeDrive);
 		SFM_ASSERT(tubeOffset >= kMinTubeOffset && tubeOffset <= kMaxTubeOffset);
@@ -405,7 +405,7 @@ namespace SFM
 		 ------------------------------------------------------------------------------------------------------ */
 
 		// Set master volume target
-		m_curMasterVol.SetTarget(masterVol);
+		m_curMasterVoldB.SetTarget(masterVoldB);
 
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
@@ -414,7 +414,7 @@ namespace SFM
 
 			m_lowCutFilter.Apply(sampleL, sampleR);
 
-			const float gain = dBToGain(m_curMasterVol.Sample()); // FIXME: remove dBToGain()
+			const float gain = dB2Lin(m_curMasterVoldB.Sample());
 			sampleL *= gain;
 			sampleR *= gain;
 
