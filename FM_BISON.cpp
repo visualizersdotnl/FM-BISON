@@ -40,7 +40,6 @@ namespace SFM
 			InitializeRandomGenerator();
 			CalculateMIDIToFrequencyLUT();
 			InitializeFastCosine();
-			Oscillator::CalculateSupersawDetuneTable();
 
 			s_performStaticInit = false;
 		}

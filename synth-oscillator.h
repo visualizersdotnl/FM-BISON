@@ -15,36 +15,17 @@
 #pragma warning(push)
 #pragma warning(disable: 4324) // Tell MSVC to shut it about padding I'm aware of
 
+#include "3rdparty/SvfLinearTrapOptimised2.hpp"
+
 #include "synth-global.h"
 #include "synth-phase.h"
 #include "synth-stateless-oscillators.h"
 #include "synth-pink-noise.h"
 #include "synth-sample-and-hold.h"
+#include "synth-supersaw.h"
 
 namespace SFM
 {
-	// Number or oscillators in unison
-	// - "According to Duda, '7' Unison is the sweet spot for stacks/chords." (Serum developer)
-	const unsigned kNumPolySupersaws = 7;
-
-	// Prime number detune values for supersaw (in cents, almost symmetrical)
-	const float kPolySupersawDetune[kNumPolySupersaws] = 
-	{
-		// Base freq.
-		  0.f,
-		// Right side
-		  5.f,
-		 11.f,
-		 23.f,
-		// Left side
-		 -5.f,
-		-11.f,
-		-23.f
-
-		// A few prime numbers: 2, 3, 5, 7, 11, 17, 23, 31, 41, 59, 73
-		// It would be kind of cool to support a (global) scale to tweak the supersaw width(s) (FIXME)
-	};
-
 	class Oscillator
 	{
 	public:
@@ -87,21 +68,20 @@ namespace SFM
 			kSampleAndHold
 		};
 
-		// Called once by Bison::Bison()
-		static void CalculateSupersawDetuneTable();
-
 	private:
 		/* const */ Waveform m_form;
-		alignas(16) Phase m_phases[kNumPolySupersaws];
+		Phase m_phases[kNumSupersawOscillators]; // FIXME: reduce footprint by allocating all but one separately?
 
 		// Oscillators with state
 		PinkNoise     m_pinkNoise;
 		SampleAndHold m_sampleAndHold;
 
+		// Supersaw utility class & filter
+		Supersaw m_supersaw;
+		SvfLinearTrapOptimised2 m_HPF;
+
 		// Signal
 		float m_signal = 0.f;
-		
-		alignas(16) static float s_supersawDetune[kNumPolySupersaws];
 		
 	public:
 		Oscillator(unsigned sampleRate = 1) :
@@ -113,63 +93,52 @@ namespace SFM
 		void Initialize(Waveform form, float frequency, unsigned sampleRate, float phaseShift)
 		{
 			m_form = form;
-			m_phases[0].Initialize(frequency, sampleRate, phaseShift);
 			
 			m_pinkNoise     = PinkNoise();
 			m_sampleAndHold = SampleAndHold(sampleRate);
-			
-			if (kSupersaw == m_form)
+
+			if (kSupersaw != m_form)
 			{
-				// Instead of spawning multiple (detuned) voices I opted for multiple phase objects
-				// which is about as good as it gets performance wise
+				m_phases[0].Initialize(frequency, sampleRate, phaseShift);
+			}
+			else
+			{
+				// FIXME: parametrize, somehow
+				m_supersaw.SetDetune(0.46f);
+				m_supersaw.SetMix(0.4f);
 
-				// First saw must be at base freq.
-				SFM_ASSERT(1.f == s_supersawDetune[0]);
+				m_HPF.updateHighpassCoeff(frequency, 0.3, sampleRate);
 
-				for (unsigned iSaw = 1; iSaw < kNumPolySupersaws; ++iSaw)
-				{
-					auto &phase = m_phases[iSaw];
-					const float detune = s_supersawDetune[iSaw];
-					phase.Initialize(frequency*detune, sampleRate, phaseShift);
-					phase.SetPitchScale(frequency);
-				}
+				for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
+					m_phases[iOsc].Initialize(m_supersaw.CalculateDetunedFreq(iOsc, frequency), sampleRate, mt_randf() /* Important: randomized phases, prevents 'whizzing' */);
 			}
 		}
 
 		SFM_INLINE void PitchBend(float bend)
 		{
-			m_phases[0].PitchBend(bend);
-	
-			if (kSupersaw == m_form)
+			if (kSupersaw != m_form)
 			{
-				// Grab bent primary freq.
-				const float frequency = m_phases[0].GetFrequency();
-
-				// Set relative to detune (asserted in Initialize())
-				for (unsigned iSaw = 1; iSaw < kNumPolySupersaws; ++iSaw)
-				{
-					auto &phase = m_phases[iSaw];
-					phase.PitchBend(bend*s_supersawDetune[iSaw]);
-
-					// Should do this, but it sounded like it did *without*
-//					phase.SetPitchScale(frequency);
-				}
+				m_phases[0].PitchBend(bend);
+			}
+			else
+			{
+				for (auto &phase : m_phases)
+					phase.PitchBend(bend);
 			}
 		}
 
 		SFM_INLINE void SetFrequency(float frequency)
 		{
-			m_phases[0].SetFrequency(frequency);
-
-			if (kSupersaw == m_form)
+			if (kSupersaw != m_form)
 			{
-				// Set relative to detune (asserted in Initialize())
-				for (unsigned iSaw = 1; iSaw < kNumPolySupersaws; ++iSaw)
-				{
-					auto &phase = m_phases[iSaw];
-					phase.SetFrequency(frequency*s_supersawDetune[iSaw]);
-					phase.SetPitchScale(frequency);
-				}
+				m_phases[0].SetFrequency(frequency);
+			}
+			else
+			{
+				m_HPF.updateHighpassCoeff(frequency, 0.3, GetSampleRate());
+
+				for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
+					m_phases[iOsc].SetFrequency(m_supersaw.CalculateDetunedFreq(iOsc, frequency));
 			}
 		}
 

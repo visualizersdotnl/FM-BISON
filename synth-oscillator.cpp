@@ -10,17 +10,6 @@
 
 namespace SFM
 {
-	// Called *once* by Bison::Bison()
-	/* static */ void Oscillator::CalculateSupersawDetuneTable()
-	{	
-		for (unsigned iSaw = 0; iSaw < kNumPolySupersaws; ++iSaw)
-		{
-			s_supersawDetune[iSaw] = powf(2.f, (kPolySupersawDetune[iSaw]*0.01f)/12.f);
-		}
-	}
-
-	/* static */ alignas(16) float Oscillator::s_supersawDetune[kNumPolySupersaws] = { 0.f };
-
 	float Oscillator::Sample(float phaseShift)
 	{
 		constexpr float defaultDuty = 0.25f;
@@ -39,6 +28,26 @@ namespace SFM
 		{
 			case kNone:
 				signal = 0.f;
+				break;
+
+			/* Supersaw */
+
+			case kSupersaw:
+				{
+					// First phase & pitch already available
+					signal = oscPolySaw(phase, pitch) * m_supersaw.GetAmplitude(0);
+
+					for (unsigned iOsc = 1; iOsc < kNumSupersawOscillators; ++iOsc)
+					{
+						Phase &phaseObj = m_phases[iOsc];
+						signal += oscPolySaw(phaseObj.Sample(), phaseObj.GetPitch()) * m_supersaw.GetAmplitude(iOsc);
+					}
+					
+					// FIXME
+					signal *= 0.707f; // -3dB
+//					m_HPF.tickMono(signal);
+				}
+
 				break;
 
 			/* Bandlimited (DCO/LFO) */
@@ -103,29 +112,6 @@ namespace SFM
 					signal = lerpf<float>(saw, squared, 0.4f);
 				}
 				
-				break;
-
-
-			/* Supersaw */
-
-			case kSupersaw:
-				{
-					// Modulation & (incoming) feedback ignored; they would only result in noise for this oscillator
-					constexpr float subGain = 0.354813397f; // -9dB
-					constexpr double pitchScale = 0.33;
-
-					// Handle separately since the phase objected was already sampled
-					signal = oscPolySaw(phase, pitchScale*pitch)*subGain;
-	
-					for (unsigned iSaw = 1; iSaw < kNumPolySupersaws; ++iSaw)
-					{
-						auto &phaseObj = m_phases[iSaw];
-						signal += oscPolySaw(phaseObj.Sample(), pitchScale*phaseObj.GetPitch())*subGain;
-					}
-
-//					signal *= 0.707f; // -3dB
-				}
-
 				break;
 
 			/* Noise */
