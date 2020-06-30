@@ -53,18 +53,18 @@
 namespace SFM
 {
 	/*
-		Almost all constants used across FM. BISON are defined here; I initially chose this approach because there weren't so many
-		of them and almost none were too specific to certain parts of the code. 
-		
-		This has changed over time but I still, for now, decide to stick with having most of them here instead of spreading them across various files.
-		The criteria, roughly, should be that they are either used in multiple files and/or exposed to the host software.
-		
-		Very specific constants should live close to their implementation.
+		Almost all contants used by FM. BISON and it's host are defined here; I initially chose to stick them in one place because 
+		this was a much  smaller project and there simply weren't too many them
 
-		So: so long as every constant the host needs is defined here we're in the clear.
+		This changed over time and now more and more of them are defined close to or in the implementation they're relevant instead; 
+		new ones that go here should be either used in different places or, important: be of use by the host software
 
-		IMPORTANT: the 'main' filter means the 12dB SVF filter (implemented in /3rdparty/SvfLinearTrapOptimised2.hpp)
+		I added some comment blocks to make this easier to navigate
 	*/
+
+	// ----------------------------------------------------------------------------------------------
+	// Voices
+	// ----------------------------------------------------------------------------------------------
 
 	// Max. number of voices to render using the main (single) thread
 	// 32 is based on 64 being a reasonable total
@@ -74,29 +74,49 @@ namespace SFM
 	// Max. fixed frequency (have fun with it!)
 	constexpr float kMaxFixedHz = 96000.f;
 
-	// Default parameter latency (used for per-sample interpolation of parameters and controls)
-	constexpr float kDefParameterLatency = 0.01f; // 10MS
-
-	// Default ParameterSlew MS (sampled per frame (Render() call))
-	constexpr float kDefParameterSlewMS = 3.f;
-
 	// Polyphony constraints
 	constexpr unsigned kMinVoices = 1;
 	constexpr unsigned kMaxVoices = 128;
 
 	// Default number of vioces
 	constexpr unsigned kDefMaxVoices = 32; // Safe and fast
+
+	// ----------------------------------------------------------------------------------------------
+	// Parameter latency & slew
+	// ----------------------------------------------------------------------------------------------
+
+	// Default parameter latency (used for per-sample interpolation of parameters and controls)
+	constexpr float kDefParameterLatency = 0.01f; // 10MS
+
+	// Default ParameterSlew MS (sampled per frame (Render() call))
+	constexpr float kDefParameterSlewMS = 3.f;
 	
+	// ----------------------------------------------------------------------------------------------
 	// Number of FM synthesis operators (changing this value requires a thorough check)
+	// ----------------------------------------------------------------------------------------------
+
 	constexpr unsigned kNumOperators = 6;
-	
+
+	// ----------------------------------------------------------------------------------------------
 	// Base note Hz (A4)
-	// "Nearly all modern symphony orchestras in Germany and Austria and many in other countries in continental Europe (such as Russia, Sweden and Spain) tune to A = 443 Hz." (Wikipedia)
-	constexpr double kBaseHz = 444.0; // But I don't :-)
+	//
+	// "Nearly all modern symphony orchestras in Germany and Austria and many in other countries in 
+	//  continental Europe (such as Russia, Sweden and Spain) tune to A = 443 Hz." (Wikipedia)
+	// ----------------------------------------------------------------------------------------------
+
+	constexpr double kBaseHz = 444.0;
+
+	// ----------------------------------------------------------------------------------------------
+	// Pitch bend range
+	// ----------------------------------------------------------------------------------------------
 
 	// Max. pitch bend range (in semitones)
 	constexpr unsigned kMaxPitchBendRange = 48; // +/- 4 octaves
 	constexpr unsigned kDefPitchBendRange = 12; // +/- 1 octave
+
+	// ----------------------------------------------------------------------------------------------
+	// Jitter
+	// ----------------------------------------------------------------------------------------------
 
 	// Jitter: max. note drift (in cents, -/+)
 	constexpr unsigned kMaxNoteJitter = 50; // Half a note
@@ -104,9 +124,13 @@ namespace SFM
 	// Jitter: max. detune (in cents, -/+)
 	constexpr float kMaxDetuneJitter = 1.f; // 100th of a note
 
-	// Main (SVF) filter Q range (max. must be < 40.f, or so the impl. says)
+	// ----------------------------------------------------------------------------------------------
+	// Filter
+	// ----------------------------------------------------------------------------------------------
+
+	// Main (SVF) filter Q range (not to be confused with normalized resonance, max. must be <= 40.f, the impl. says)
 	// Helper function ResoToQ() scales to range automatically
-	constexpr float kSVFLowestFilterQ = 0.025f; // Use carefully, can cause instability after a while
+	constexpr float kSVFLowestFilterQ = 0.025f; // Use carefully, a Q this low can cause instability after a while
 	constexpr float kSVFMinFilterQ    = 0.5f;   // See https://www.earlevel.com/main/2003/03/02/the-digital-state-variable-filter/
 	constexpr float kSVFMaxFilterQ    = 14.f;
 	constexpr float kSVFFilterQRange  = kSVFMaxFilterQ-kSVFMinFilterQ;
@@ -130,12 +154,20 @@ namespace SFM
 	constexpr float kMaxPostFilterDrivedB =  6.f;
 	constexpr float kDefPostFilterDrivedB =  0.f;
 
+	// ----------------------------------------------------------------------------------------------
+	// Tube distortion
+	// ----------------------------------------------------------------------------------------------
+
 	// Tube distortion drive & offset
 	constexpr float kMinTubeDrive  =   0.f;
 	constexpr float kMaxTubeDrive  = 100.f;
 	constexpr float kDefTubeDrive  =  10.f;
 	constexpr float kMinTubeOffset = -0.1f;
 	constexpr float kMaxTubeOffset =  0.1f;
+
+	// ----------------------------------------------------------------------------------------------
+	// Envelope
+	// ----------------------------------------------------------------------------------------------
 
 	// Envelope rate multiplier range (or 'global')
 	// Range (as in seconds) taken from Arturia DX7-V (http://downloads.arturia.com/products/dx7-v/manual/dx7-v_Manual_1_0_EN.pdf)
@@ -147,37 +179,60 @@ namespace SFM
 	// The higher the value, the more linear (and thus longer) the release phase will be
 	constexpr float	kEnvPianoSustainRatioMul = 1000.f;
 
+	// ----------------------------------------------------------------------------------------------
 	// Gain per voice (in dB)
 	// This keeps the voice mix nicely within acceptable range (approx. 8 voices, see https://www.kvraudio.com/forum/viewtopic.php?t=275702)
+	// ----------------------------------------------------------------------------------------------
+
 	constexpr float kVoiceGaindB = -9.f;
+
+	// ----------------------------------------------------------------------------------------------
+	// Chorus/Phaser
+	// ----------------------------------------------------------------------------------------------
 	
 	// Chorus/Phaser effect (synth-post-pass.cpp) max. wetness
 	constexpr float kMaxChorusPhaserWet = 0.707f; // -3dB
 
-	// Reverb effect sounds best until mixed to around 50-60 percent as well (wetness)
-	constexpr float kMaxReverbWet = 0.55f;
-
 	// Chorus/Phaser rate multipliers (Hz)
 	constexpr float kMaxChorusRate = 12.f;
 	constexpr float kMaxPhaserRate = 8.f;
-	
+
+	// ----------------------------------------------------------------------------------------------
+	// Reverb effect sounds best until mixed to max. 50-60 percent (wetness)
+	// ----------------------------------------------------------------------------------------------
+
+	constexpr float kMaxReverbWet = 0.55f;
+
+	// ----------------------------------------------------------------------------------------------
 	// Master output volume range & default in dB
+	// ----------------------------------------------------------------------------------------------
+
 	constexpr int kInfVolumedB   = -1000; // Arbitrary number
 	constexpr int kMinVolumedB   =   -96;
 	constexpr int kMaxVolumedB   =     3;
 	constexpr int kDefVolumedB   =   -12;
 	constexpr int kVolumeRangedB = kMaxVolumedB-kMinVolumedB;
 
+	// ----------------------------------------------------------------------------------------------
 	// (Monophonic) frequency glide (in seconds)
+	// ----------------------------------------------------------------------------------------------
+
 	constexpr float kMaxFreqGlide = 1.f;        // 1000MS
 	constexpr float kDefMonoFreqGlide = 0.066f; //   66MS
 	constexpr float kDefPolyFreqGlide = 0.1f;   //  100MS
 	constexpr float kDefMonoGlideAtt = 0.33f;   // [0..1], the larger the punchier
-	
+
+	// ----------------------------------------------------------------------------------------------
 	// Slew parameters for S&H
+	// ----------------------------------------------------------------------------------------------
+
 	constexpr float kMinSandHSlewRate = 0.001f;  //  1MS
 	constexpr float kMaxSandHSlewRate =  0.05f;  // 50MS
 	constexpr float kDefSandHSlewRate = 0.005f;  //  5MS
+
+	// ----------------------------------------------------------------------------------------------
+	// Reverb
+	// ----------------------------------------------------------------------------------------------
 
 	// Reverb width range & default
 	constexpr float kMinReverbWidth = 0.f;
@@ -188,7 +243,10 @@ namespace SFM
 	constexpr float kReverbPreDelayMax = 0.5f;   // 500MS
 	constexpr float kDefReverbPreDelay = 0.001f; //  10MS
 
+	// ----------------------------------------------------------------------------------------------
 	// Compressor range & defaults
+	// ----------------------------------------------------------------------------------------------
+
 	constexpr float kMinCompThresholdB  =  -60.f; 
 	constexpr float kMaxCompThresholdB  =    6.f;
 	constexpr float kDefCompThresholddB = kMaxCompThresholdB;
@@ -208,7 +266,10 @@ namespace SFM
 	constexpr float kMaxCompRelease     =    1.f; // 1 sec.
 	constexpr float kDefCompRelease     = 0.100f; // 100MS
 
+	// ----------------------------------------------------------------------------------------------
 	// Auto-wah range & defaults
+	// ----------------------------------------------------------------------------------------------
+
 	constexpr float kDefWahResonance     =   0.5f; // 50%
 	constexpr float kMinWahAttack        = 0.001f; // 1MS
 	constexpr float kMaxWahAttack        =    1.f; // 1 sec.
@@ -227,22 +288,38 @@ namespace SFM
 
 	constexpr float kMaxWahSpeakVowel    =    3.f;
 
+	// ----------------------------------------------------------------------------------------------
 	// Low cut (for post-pass)
+	// ----------------------------------------------------------------------------------------------
+
 	constexpr float kLowCutHz = 16.f;
 
+	// ----------------------------------------------------------------------------------------------
 	// Size of main delay effect's line in seconds
+	// ----------------------------------------------------------------------------------------------
+
 	constexpr float kMainDelayInSec = 4.f; // Min. 15BPM
 
+	// ----------------------------------------------------------------------------------------------
 	// Default piano pedal settings & mul. range
+	// ----------------------------------------------------------------------------------------------
+
 	constexpr float kDefPianoPedalFalloff = 0.f; // Slowest
 	constexpr float kPianoPedalMinReleaseMul = 1.f;
 	constexpr float kPianoPedalMaxReleaseMul = 10.f;                     // Rather arbitrary, in fact I'm not sure if this should be a feature at all! (FIXME)
 	constexpr float kDefPianoPedalReleaseMul = kPianoPedalMinReleaseMul; // So because of that, by default, the influence of this parameter is nil.
+	
+	// ----------------------------------------------------------------------------------------------
+	// Modulator input is low passed a little bit for certain waveforms to "take the top off", 
+	// so modulation sounds less glitchy out of the box
+	// ----------------------------------------------------------------------------------------------
 
-	// Modulator input is low passed a little bit for certain waveforms to "take the top off"
 	constexpr float kModulatorLP = 0.875f; // Normalized range [0..1]
 
+	// ----------------------------------------------------------------------------------------------
 	// LFO modulation speed in steps (exponential)
+	// ----------------------------------------------------------------------------------------------
+
 	constexpr int kMinLFOModSpeed = -8;
 	constexpr int kMaxLFOModSpeed =  8;
 };

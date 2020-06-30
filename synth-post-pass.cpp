@@ -95,9 +95,8 @@ namespace SFM
 		// Reset tube distortion AA filter
 		m_tubeFilterAA.resetState();
 
-		// Reset delay feedback filters
-		m_delayFeedbackLPF_L.Reset(0.f);
-		m_delayFeedbackLPF_R.Reset(0.f);
+		// Reset delay feedback filter
+		m_delayFeedbackLPF.resetState();
 	}
 
 	PostPass::~PostPass()
@@ -256,13 +255,12 @@ namespace SFM
 			const float delayR = delayedR*invCrossBleedAmt + crossBleed*crossBleedAmt;
 
 			// Filter delay (12dB)
-			const float curCutoff = CutoffToHz(m_curDelayFeedbackCutoff.Sample(), m_Nyquist/2 /* More responsive */, 1.f);
-			const float Fc = curCutoff/m_sampleRate;
-			m_delayFeedbackLPF_L.SetCutoff(Fc);
-			m_delayFeedbackLPF_R.SetCutoff(Fc);
+			float filteredL = delayL, filteredR = delayR;
 
-			const float filteredL = m_delayFeedbackLPF_L.Apply(delayL);
-			const float filteredR = m_delayFeedbackLPF_R.Apply(delayR);
+			const float curCutoff = CutoffToHz(m_curDelayFeedbackCutoff.Sample(), m_Nyquist);
+			m_delayFeedbackLPF.updateLowpassCoeff(curCutoff, kSVFMinFilterQ, m_sampleRate);
+			m_delayFeedbackLPF.tick(filteredL, filteredR);
+
 			const float filteredM = filteredL*0.5f + filteredR*0.5f;
 
 			// Feed back into delay line
