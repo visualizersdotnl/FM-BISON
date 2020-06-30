@@ -39,7 +39,7 @@ namespace SFM
 					// First phase & pitch already available
 					signal = oscPolySaw(phase, pitchScale*pitch) * m_supersaw.GetAmplitude(0);
 
-					m_HPF[0].updateHighpassCoeff(m_phases[0].GetFrequency(), 0.3 /* FIXME? */, GetSampleRate());
+					m_HPF[0].updateHighpassCoeff(m_phases[0].GetFrequency(), 0.314 /* FIXME: parametrize? */, GetSampleRate());
 					m_HPF[0].tickMono(signal);
 
 					for (unsigned iOsc = 1; iOsc < kNumSupersawOscillators; ++iOsc)
@@ -48,7 +48,8 @@ namespace SFM
 						float saw = oscPolySaw(phaseObj.Sample(), pitchScale*phaseObj.GetPitch()) * m_supersaw.GetAmplitude(iOsc);
 
 						// Apply HPF to cut noise below the fundamental harmonic
-						m_HPF[iOsc].updateHighpassCoeff(phaseObj.GetFrequency(), 0.3, GetSampleRate());
+						m_HPF[iOsc].updateHighpassCoeff(m_phases[0].GetFrequency(), 0.314, GetSampleRate());
+//						m_HPF[iOsc].updateHighpassCoeff(phaseObj.GetFrequency(), 0.314, GetSampleRate());
 						m_HPF[iOsc].tickMono(saw);
 
 						signal += saw;

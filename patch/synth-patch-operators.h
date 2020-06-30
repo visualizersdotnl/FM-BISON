@@ -213,8 +213,8 @@ namespace SFM
 				patchOp.cutRightOfLSBP = false;
 
 				// Default supersaw
-				patchOp.supersawDetune = 0.f;
-				patchOp.supersawMix = 0.f;
+				patchOp.supersawDetune = kDefSupersawDetune;
+				patchOp.supersawMix = kDefSupersawMix;
 			}
 		}
 	};

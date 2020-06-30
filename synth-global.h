@@ -322,6 +322,13 @@ namespace SFM
 
 	constexpr int kMinLFOModSpeed = -8;
 	constexpr int kMaxLFOModSpeed =  8;
+
+	// ----------------------------------------------------------------------------------------------
+	// Default supersaw (JP-8000) parameters
+	// ----------------------------------------------------------------------------------------------
+
+	constexpr float kDefSupersawDetune = 0.25f;
+	constexpr float kDefSupersawMix    =  0.5f;
 };
 
 // All helper functionality is at your disposal by default
