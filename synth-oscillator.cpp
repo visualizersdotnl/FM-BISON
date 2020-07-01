@@ -43,7 +43,8 @@ namespace SFM
 					const unsigned sampleRate = GetSampleRate();
 					
 					// First phase & pitch already available
-					signal = oscPolySaw(phase, pitch) * m_supersaw.GetAmplitude(0);
+//					signal = oscPolySaw(phase, pitch) * m_supersaw.GetAmplitude(0);
+					signal = oscSaw(phase) * m_supersaw.GetAmplitude(0);
 
 					m_HPF[0].updateHighpassCoeff(filterFreq, filterQ, sampleRate);
 					m_HPF[0].tickMono(signal);
@@ -51,7 +52,8 @@ namespace SFM
 					for (unsigned iOsc = 1; iOsc < kNumSupersawOscillators; ++iOsc)
 					{
 						Phase &phaseObj = m_phases[iOsc];
-						float saw = oscPolySaw(phaseObj.Sample(), phaseObj.GetPitch()) * m_supersaw.GetAmplitude(iOsc);
+//						float saw = oscPolySaw(phaseObj.Sample(), phaseObj.GetPitch()) * m_supersaw.GetAmplitude(iOsc);
+						float saw = oscSaw(phaseObj.Sample()) * m_supersaw.GetAmplitude(iOsc);
 
 						m_HPF[iOsc].updateHighpassCoeff(filterFreq, filterQ, sampleRate);
 						m_HPF[iOsc].tickMono(saw);
@@ -62,7 +64,7 @@ namespace SFM
 
 				break;
 
-			/* Bandlimited (DCO/LFO) */
+			/* Band-limited (DCO/LFO) */
 
 			case kSine:
 				signal = oscSine(modulated);
