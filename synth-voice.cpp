@@ -145,7 +145,7 @@ namespace SFM
 		SFM_ASSERT(LFOModDepth >= 0.f);
 		
 		// Calculate LFO value
-		const float modLFO = m_modLFO.Sample(0.f); // Multiply by LFOModDepth? (FIXME)
+		const float modLFO = m_modLFO.Sample(0.f);
 
 		auto modulate = [](float input, float modulation, float depth)
 		{
@@ -157,7 +157,7 @@ namespace SFM
 		const float LFO2 = modulate(m_LFO2.Sample(0.f), modLFO, LFOModDepth);
 		const float blend = lerpf<float>(LFO1, LFO2, LFOBlend);
 
-		const float LFO = Clamp(blend); // FIXME: disable Clamp() and solve issue
+		const float LFO = Clamp(blend); // FIXME: remove Clamp() and solve issue
 
 		// Calc. pitch envelope & bend multipliers
 		const float pitchRangeOct = m_pitchBendRange/12.f;

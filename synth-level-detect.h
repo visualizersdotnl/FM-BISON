@@ -29,7 +29,7 @@ namespace SFM
 
 		~RMS()
 		{
-			delete m_buffer;
+			delete[] m_buffer;
 		}
 	
 	private:

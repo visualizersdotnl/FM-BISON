@@ -151,8 +151,7 @@ namespace SFM
 			const float fraction = fracf(delay);
 			const float A = m_buffer[from];
 			const float B = m_buffer[to];
-			const float value = lerpf<float>(A, B, fraction);
-			return value;
+			return lerpf<float>(A, B, fraction);
 		}
 
 		size_t size() const { return m_size; }

@@ -14,12 +14,6 @@
 
 #include "synth-global.h"
 #include "patch/synth-patch-global.h"
-// #include "synth-voice.h"
-// #include "synth-one-pole-filters.h"
-// #include "synth-post-pass.h"
-// #include "synth-phase.h"
-#include "synth-distort.h"
-// #include "synth-interpolated-parameter.h"
 #include "synth-DX7-LFO-table.h"
 
 namespace SFM
@@ -54,8 +48,7 @@ namespace SFM
 		Log("Suzie, call Dr. Bison, tell him it's for me...");
 
 		/*
-			IMPORTANT: at this point it is necessary to call SetSamplingProperties() before you can 
-			           start calling Render()
+			IMPORTANT: call SetSamplingProperties() before Render()
 		*/	
 	}
 
@@ -578,11 +571,13 @@ namespace SFM
 	void Bison::SetOperatorFilters(unsigned key, SvfLinearTrapOptimised2 *pFilters, SvfLinearTrapOptimised2 &modFilter, const PatchOperators::Operator &patchOp)
 	{
 		SFM_ASSERT(nullptr != pFilters);
+		pFilters[0].resetState();
 
 		// Calculate Q.
 		const float normQ = patchOp.resonance;
 		const float Q = ResoToQ(normQ);
 		
+		// Update filter(s)
 		float cutoffNorm = -1.f;
 		switch (patchOp.filterType)
 		{
@@ -594,19 +589,16 @@ namespace SFM
 			break;
 
 		case PatchOperators::Operator::kLowpassFilter:
-			pFilters[0].resetState();
 			cutoffNorm = lerpf<float>(patchOp.cutoff, 1.f, CalcCutoffTracking(key, patchOp)); // Track towards pass-through
 			pFilters[0].updateCoefficients(CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
 			break;
 
 		case PatchOperators::Operator::kHighpassFilter:
-			pFilters[0].resetState();
 			cutoffNorm = lerpf<float>(patchOp.cutoff, 0.f, CalcCutoffTracking(key, patchOp)); // Track towards pass-through
 			pFilters[0].updateCoefficients(CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
 			break;
 
 		case PatchOperators::Operator::kBandpassFilter:
-			pFilters[0].resetState();
 			cutoffNorm = lerpf<float>(patchOp.cutoff, 0.5f, CalcCutoffTracking(key, patchOp)); // Track towards middle freq.
 			pFilters[0].updateCoefficients(CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
 			break;
@@ -788,18 +780,18 @@ namespace SFM
 	void Bison::InitializeLFO(Voice &voice, float jitter)
 	{
 		// Initialize LFOs
-		double phaseAdj = (true == m_patch.LFOKeySync)
-			? 0.f // Synchronized 
+		double phaseShift = (true == m_patch.LFOKeySync)
+			? 0.0 // Synchronized 
 			: m_globalLFO->Get(); // Adopt running phase
 
-		phaseAdj += CalcPhaseJitter(jitter);
+		phaseShift += CalcPhaseJitter(jitter);
 
 		float frequency = m_globalLFO->GetFrequency(), modFrequency;
 		CalcLFOFreq(frequency, modFrequency, m_patch.LFOModSpeed);
 
-		voice.m_LFO1.Initialize(m_patch.LFOWaveform1, frequency, m_sampleRate, phaseAdj);
-		voice.m_LFO2.Initialize(m_patch.LFOWaveform2, frequency, m_sampleRate, phaseAdj);
-		voice.m_modLFO.Initialize(m_patch.LFOWaveform3, modFrequency, m_sampleRate, phaseAdj);
+		voice.m_LFO1.Initialize(m_patch.LFOWaveform1,   frequency,    m_sampleRate, phaseShift);
+		voice.m_LFO2.Initialize(m_patch.LFOWaveform2,   frequency,    m_sampleRate, phaseShift);
+		voice.m_modLFO.Initialize(m_patch.LFOWaveform3, modFrequency, m_sampleRate, phaseShift);
 	}
 	
 	// Initialize new voice
@@ -1828,10 +1820,10 @@ namespace SFM
 		m_curQ.SetTarget(Q);
 		
 		// Set filter type & parameters
-		bool secondFilterPass = false;      // Second pass to BISON-ize the filter
-		float secondQOffs = 0.f;            // Offset on Q for second BISON stage
-		float qDiv = 1.f;                   // Divider on Q to tame the resonance range (main stage only, tweaked for 16!)
-		float fullCutoff;                   // Full cutoff used to apply VCF
+		bool secondFilterPass = false;      // Second (LFO) pass
+		float secondQOffs = 0.f;            // Q offset for second stage
+		float qDiv = 1.f;                   // Q divider to tame the resonance range
+		float fullCutoff;                   // Full cutoff used to apply DCF
 
 		switch (m_patch.filterType)
 		{
@@ -1946,14 +1938,14 @@ namespace SFM
 				VoiceThreadContext contexts[2] = { parameters, parameters };
 				
 				// Split voices up 50/50
-//				const size_t half = voiceIndices.size();
-//				contexts[0].voiceIndices = std::vector<unsigned>(voiceIndices.begin(), voiceIndices.begin() + half);
-//				contexts[1].voiceIndices = std::vector<unsigned>(voiceIndices.begin() + half, voiceIndices.end());
+				const size_t half = voiceIndices.size();
+				contexts[0].voiceIndices = std::vector<unsigned>(voiceIndices.begin(), voiceIndices.begin() + half);
+				contexts[1].voiceIndices = std::vector<unsigned>(voiceIndices.begin() + half, voiceIndices.end());
 				
 				// Handle voices > kSingleThreadMaxVoices
-				const size_t remainder = voiceIndices.size()-kSingleThreadMaxVoices;
-				contexts[0].voiceIndices = std::vector<unsigned>(voiceIndices.begin(), voiceIndices.begin() + kSingleThreadMaxVoices);
-				contexts[1].voiceIndices = std::vector<unsigned>(voiceIndices.begin() + kSingleThreadMaxVoices, voiceIndices.end());
+//				const size_t remainder = voiceIndices.size()-kSingleThreadMaxVoices;
+//				contexts[0].voiceIndices = std::vector<unsigned>(voiceIndices.begin(), voiceIndices.begin() + kSingleThreadMaxVoices);
+//				contexts[1].voiceIndices = std::vector<unsigned>(voiceIndices.begin() + kSingleThreadMaxVoices, voiceIndices.end());
 
 				contexts[0].numSamples = contexts[1].numSamples = numSamples;
 
@@ -2001,7 +1993,7 @@ namespace SFM
 						const float curGain = voiceOp.envGain.Get(); // Abs.
 
 						if (curGain >= m_opPeaks[iOp].Get())
-							// Raise
+							// Rise
 							m_opPeaks[iOp].Apply(curGain);
 						else
 							// Fall
@@ -2029,11 +2021,11 @@ namespace SFM
 		if (Patch::kPostFilter == m_patch.aftertouchMod)
 			postWet = std::min<float>(1.f, postWet+aftertouchFiltered);
 
-		// Apply post-processing (FIXME: pass structure!)
+		// Apply post-processing (FIXME: pass structure?)
 		m_postPass->Apply(numSamples, 
 		                  /* BPM sync. */
 						  m_freqBPM,
-						  /* Auto-wah (FIXME: apply more ParameterFilter if necessary) */
+						  /* Auto-wah (FIXME: use more ParameterSlew if necessary) */
 						  m_patch.wahResonance,
 						  m_patch.wahAttack,
 						  m_patch.wahHold,
@@ -2072,7 +2064,7 @@ namespace SFM
 						  m_reverbLP_PS.Apply(m_patch.reverbLP),
 						  m_reverbHP_PS.Apply(m_patch.reverbHP),
 						  m_reverbPreDelayPS.Apply(m_patch.reverbPreDelay),
-						  /* Compressor (FIXME: apply more ParameterSlew if necessary) */
+						  /* Compressor (FIXME: use more ParameterSlew if necessary) */
 						  m_patch.compThresholddB,
 						  m_patch.compKneedB,
 						  m_patch.compRatio,

@@ -30,10 +30,6 @@ namespace SFM
 	{
 		SFM_ASSERT(detune >= 0.f && detune <= 1.f);
 
-		// The last tenth sounds out of tune, perhaps the polynomial approximation goes a little nuts there or it's something
-		// the JP-8000 also does, but I am not going to offer it.
-//		detune *= 0.9f;
-
 		// The function above seems expensive enough to skip if possible
 		if (m_curDetune != detune)
 		{

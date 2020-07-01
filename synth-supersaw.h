@@ -4,7 +4,7 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	See .CPP for details
+	See synth-supersaw.cpp for details
 */
 
 #pragma once

@@ -37,7 +37,7 @@ namespace SFM
 		SetCutoff(Fc);
 	}
 		
-	virtual ~LowpassFilter() {}
+	~LowpassFilter() {}
 
 	void Reset(float value)
 	{
@@ -82,7 +82,7 @@ namespace SFM
 		SetCutoff(Fc);
 	}
 		
-	virtual ~HighpassFilter() {}
+	~HighpassFilter() {}
 
 	void Reset(float value)
 	{

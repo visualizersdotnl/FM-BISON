@@ -12,7 +12,7 @@
 // FIXME:
 // - Adapt another SVF implementation and do some more homework, this one has proven not to be very stable in practice
 // - Ref. https://www.earlevel.com/main/2003/03/02/the-digital-state-variable-filter/
-// - Forget about using the fast trig. functions, we're on thin ice as it is
+// - Forget about using the fast (single precision) trigonometry functions, we're on thin ice as it is
 //
 
 //  SvfLinearTrapOptimised2.hpp

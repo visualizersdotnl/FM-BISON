@@ -6,7 +6,6 @@
 */
 
 #include "synth-auto-wah.h"
-// #include "synth-distort.h"
 #include "synth-DX7-LFO-table.h"
 
 namespace SFM
@@ -22,11 +21,11 @@ namespace SFM
 	
 	// dBs
 //	constexpr float kVoxGhostNoiseGain = 0.35481338923357547f; // -9dB
-//	constexpr float kVoxGhostNoiseGain = 0.5f;   // -6dB
-	constexpr float kVoxGhostNoiseGain = 1.f;    // -0dB
+//	constexpr float kVoxGhostNoiseGain = 0.5f; // -6dB
+	constexpr float kVoxGhostNoiseGain = 1.f;  // -0dB
 	constexpr float kGain3dB = 1.41253757f;
-	constexpr float kGainInf = kEpsilon;
-
+	constexpr float kGainInf = kEpsilon; // FIXME: use dB2Lin(kInfVolumedB)
+	
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples, bool manualRate)
 	{
 		// This effect is big and expensive, we'll skip it if not used
@@ -110,7 +109,7 @@ namespace SFM
 			const float envGaindB = m_gainEnvdB.Apply(signaldB);
 			const float envGain   = dB2Lin(envGaindB);
 
-			if (envGain <= kGainInf) // Sidechain dB below or equal to defined epsilon?
+			if (envGain <= kGainInf) // Sidechain dB below or equal to defined minimum?
 			{
 				// Reset LFO
 				m_LFO.Reset();

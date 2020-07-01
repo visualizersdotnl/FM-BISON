@@ -113,7 +113,7 @@ namespace SFM
 		Reset();
 	}
 
-	const float kFixedGain = 0.015f; // Ref. implementation = 0.015f
+	constexpr float kFixedGain = 0.015f; // Ref. implementation 
 
 	void Reverb::Apply(float *pLeft, float *pRight, unsigned numSamples, float wet, float lowpass, float highpass)
 	{
@@ -123,7 +123,6 @@ namespace SFM
 		SFM_ASSERT(highpass >= 0.f && highpass <= 1.f);
 
 		// Set parameter targets
-		// Some are class members and I want to keep it that way
 		m_curWet.SetTarget(wet);
 		m_curWidth.SetTarget(m_width);
 		m_curRoomSize.SetTarget(m_roomSize);

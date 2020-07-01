@@ -5,7 +5,6 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	Period is [0..1], values outside of [0..1] work fine.
-
 	Includes sinus and tangent.
 */
 
@@ -28,14 +27,14 @@ namespace SFM
 		// Cosine is symmetrical around 0, let's get rid of negative values
 		x = fabs(x); 
 
-		auto phase = 1.0+x;
+		auto phase = 1.0 + x;
 
 		const auto phaseAsInt = *reinterpret_cast<unsigned long long *>(&phase);
 
 		const int exponent = (phaseAsInt>>52) - 1023;
 
 		const auto fractBits  = 32-kFastCosTabLog2Size;
-		const auto fractScale = 1<<fractBits;
+		const auto fractScale = 1 << fractBits;
 		const auto fractMask  = fractScale-1;
 
 		const unsigned significant = unsigned(((phaseAsInt<<exponent) >> (52-32)));
@@ -46,7 +45,7 @@ namespace SFM
 		const auto left  = g_fastCosTab[index];
 		const auto right = g_fastCosTab[index+1];
 
-		const auto fractMix = fraction*(1.0/fractScale);
+		const auto fractMix = fraction * (1.0/fractScale);
 		return float(left + (right-left)*fractMix);
 	}
 	
