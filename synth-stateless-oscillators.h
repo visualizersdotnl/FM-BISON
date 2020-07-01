@@ -6,6 +6,7 @@
 
 	- Phase is [0..1], this range must be adhered to except for oscSine() and oscCos()
 	- Band-limited (PolyBLEP) oscillators are called 'oscPoly...'
+	- Single precision (FIXME)
 */
 
 #pragma once
@@ -59,8 +60,8 @@ namespace SFM
 		SFM_ASSERT(phase >= 0.0 && phase <= 1.0);
 		SFM_ASSERT(duty >= 0.f && duty <= 1.f);
 
-		const double cycle = phase;
-		return (float(cycle) < duty) ? 1.f : -1.f;
+		const float cycle = float(phase);
+		return (cycle < duty) ? 1.f : -1.f;
 	}
 
 	SFM_INLINE static float oscBox(double phase)

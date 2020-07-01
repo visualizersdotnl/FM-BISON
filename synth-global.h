@@ -181,7 +181,8 @@ namespace SFM
 
 	// ----------------------------------------------------------------------------------------------
 	// Gain per voice (in dB)
-	// This keeps the voice mix nicely within acceptable range (approx. 8 voices, see https://www.kvraudio.com/forum/viewtopic.php?t=275702)
+	// This keeps the voice mix nicely within acceptable range, approx. 8 voices, 
+	// see https://www.kvraudio.com/forum/viewtopic.php?t=275702)
 	// ----------------------------------------------------------------------------------------------
 
 	constexpr float kVoiceGaindB = -9.f;
@@ -328,7 +329,7 @@ namespace SFM
 	// LowBlocker freq.
 	// ----------------------------------------------------------------------------------------------
 
-	constexpr float kLowBlockerHz = 20.f;
+	constexpr float kLowBlockerHz = 30.f;
 };
 
 // All helper functionality is at your disposal by default

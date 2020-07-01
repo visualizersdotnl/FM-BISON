@@ -5,7 +5,7 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	- This is a collection, not all are used
-	- There's tons more in Will Pirkle's code (came with the book) if you're looking for more
+	- There's tons more in Will Pirkle's code (came with his book) if you're looking for more
 */
 
 #pragma once
