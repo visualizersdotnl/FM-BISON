@@ -61,6 +61,7 @@ namespace SFM
 		}
 
 	private:
+		float m_curDetune = -1.f;
 		double m_curDetuneCurve = 0.0;
 		float m_mainMix = 0.f, m_sideMix = 0.f;
 	};
