@@ -39,12 +39,12 @@ namespace SFM
 					// aliasing going on but that's part of the JP-8000 charm, or so I've read :-)
 
 					const float filterFreq    = m_phases[3].GetFrequency(); // Fundamental harmonic
-					constexpr double filterQ  = kGoldenRatio;
+					constexpr double filterQ  = kSVFMinFilterQ;
 					const unsigned sampleRate = GetSampleRate();
 					
 					// First phase & pitch already available
-//					signal = oscPolySaw(phase, pitch) * m_supersaw.GetAmplitude(0);
-					signal = oscSaw(phase) * m_supersaw.GetAmplitude(0);
+					signal = oscPolySaw(phase, pitch) * m_supersaw.GetAmplitude(0);
+//					signal = oscSaw(phase) * m_supersaw.GetAmplitude(0);
 
 					m_HPF[0].updateHighpassCoeff(filterFreq, filterQ, sampleRate);
 					m_HPF[0].tickMono(signal);
@@ -52,8 +52,8 @@ namespace SFM
 					for (unsigned iOsc = 1; iOsc < kNumSupersawOscillators; ++iOsc)
 					{
 						Phase &phaseObj = m_phases[iOsc];
-//						float saw = oscPolySaw(phaseObj.Sample(), phaseObj.GetPitch()) * m_supersaw.GetAmplitude(iOsc);
-						float saw = oscSaw(phaseObj.Sample()) * m_supersaw.GetAmplitude(iOsc);
+						float saw = oscPolySaw(phaseObj.Sample(), phaseObj.GetPitch()) * m_supersaw.GetAmplitude(iOsc);
+//						float saw = oscSaw(phaseObj.Sample()) * m_supersaw.GetAmplitude(iOsc);
 
 						m_HPF[iOsc].updateHighpassCoeff(filterFreq, filterQ, sampleRate);
 						m_HPF[iOsc].tickMono(saw);

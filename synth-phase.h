@@ -35,7 +35,7 @@ namespace SFM
 			Initialize(1.f, sampleRate); 
 		}
 
-		SFM_INLINE void Initialize(double frequency, unsigned sampleRate, double phaseShift = 0.f)
+		SFM_INLINE void Initialize(double frequency, unsigned sampleRate, double phaseShift = 0.0)
 		{
 			m_frequency = frequency;
 			m_sampleRate = sampleRate;
