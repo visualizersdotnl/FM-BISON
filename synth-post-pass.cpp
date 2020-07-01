@@ -73,6 +73,9 @@ namespace SFM
 ,		m_curTubeDrive(kDefTubeDrive, m_oversamplingRate, kDefParameterLatency)
 ,		m_curTubeOffset(0.f, m_oversamplingRate, kDefParameterLatency)
 
+		// Low blocker
+,		m_lowBlocker(kLowBlockerHz, sampleRate)
+
 		// External effects
 ,		m_wah(sampleRate, Nyquist)
 ,		m_reverb(sampleRate, Nyquist)
@@ -160,7 +163,7 @@ namespace SFM
 
 			Chorus/Phaser + Delay
 
-			Should not introduce any latency.
+			Mixed on top of original signal, does not introduce latency.
 
 		 ------------------------------------------------------------------------------------------------------ */
 
@@ -376,7 +379,7 @@ namespace SFM
 
 			Reverb
 
-			Should not introduce any unwarranted latency.
+			Could possibly introduce minor latency; please check (FIXME).
 
 		 ------------------------------------------------------------------------------------------------------ */
 
@@ -402,7 +405,7 @@ namespace SFM
 
 		/* ----------------------------------------------------------------------------------------------------
 
-			Final pass: Master value, DC blocker, safety clamp
+			Final pass: DC blocker & low blocker, master volume, safety clamp
 
 		 ------------------------------------------------------------------------------------------------------ */
 
@@ -414,11 +417,12 @@ namespace SFM
 			float sampleL = m_pBufL[iSample];
 			float sampleR = m_pBufR[iSample];
 
+			m_DCBlocker.Apply(sampleL, sampleR);
+//			m_lowBlocker.Apply(sampleL, sampleR);
+
 			const float gain = dB2Lin(m_curMasterVoldB.Sample());
 			sampleL *= gain;
 			sampleR *= gain;
-
-			m_DCBlocker.Apply(sampleL, sampleR);
 
 			// Clamp(): we won't assume anything about the host's take on output outside [-1..1]
 			pLeftOut[iSample]  = Clamp(sampleL);

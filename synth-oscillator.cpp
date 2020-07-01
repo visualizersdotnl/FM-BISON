@@ -34,8 +34,12 @@ namespace SFM
 
 			case kSupersaw:
 				{
-					const float filterFreq    = m_phases[0].GetFrequency();
-					constexpr double filterQ  = 0.314;
+					// The supersaw consists of 7 oscillators; the third oscillator is the 'main' oscillator at the fundamental frequency (the first harmonic).
+					// I use this frequency to apply a HPF to each oscillator to eliminate 'fold back' aliasing beyond this frequency. There will still be
+					// aliasing going on but that's part of the JP-8000 charm, or so I've read :-)
+
+					const float filterFreq    = m_phases[3].GetFrequency(); // Fundamental harmonic
+					constexpr double filterQ  = kGoldenRatio;
 					const unsigned sampleRate = GetSampleRate();
 					
 					// First phase & pitch already available
@@ -49,7 +53,6 @@ namespace SFM
 						Phase &phaseObj = m_phases[iOsc];
 						float saw = oscPolySaw(phaseObj.Sample(), phaseObj.GetPitch()) * m_supersaw.GetAmplitude(iOsc);
 
-						// Apply HPF to cut noise below the fundamental harmonic
 						m_HPF[iOsc].updateHighpassCoeff(filterFreq, filterQ, sampleRate);
 						m_HPF[iOsc].tickMono(saw);
 

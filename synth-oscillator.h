@@ -110,7 +110,7 @@ namespace SFM
 				m_supersaw.SetMix(supersawMix);
 
 				for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
-					m_phases[iOsc].Initialize(m_supersaw.CalculateDetunedFreq(iOsc, frequency), sampleRate, mt_randf() /* Important: randomized phases, prevents flanging */);
+					m_phases[iOsc].Initialize(m_supersaw.CalculateDetunedFreq(iOsc, frequency), sampleRate, mt_randf() /* Important: randomized phases, prevents flanging! */);
 			}
 		}
 
@@ -151,10 +151,23 @@ namespace SFM
 				phase.Reset();
 		}
 		
-		SFM_INLINE float    GetFrequency()   const { return m_phases[0].GetFrequency();  }
-		SFM_INLINE unsigned GetSampleRate()  const { return m_phases[0].GetSampleRate(); }
-		SFM_INLINE double   GetPhase()       const { return m_phases[0].Get();           } // Warning: this value *can* be out of bounds! [0..1]
-		SFM_INLINE Waveform GetWaveform()    const { return m_form;                      }
+		SFM_INLINE float GetFrequency() const 
+		{ 
+			return (m_form != kSupersaw)
+				? m_phases[0].GetFrequency()
+				: m_phases[3].GetFrequency();
+		}
+
+		// - Warning: this value *can* be out of bounds! ([0..1])
+		// - Useless for kSupersaw
+		SFM_INLINE double GetPhase() const 
+		{ 
+			SFM_ASSERT(m_form != kSupersaw);
+			return m_phases[0].Get();           
+		} 
+
+		SFM_INLINE unsigned GetSampleRate() const { return m_phases[0].GetSampleRate(); }
+		SFM_INLINE Waveform GetWaveform()   const { return m_form;                      }
 
 		float Sample(float phaseShift);
 	};

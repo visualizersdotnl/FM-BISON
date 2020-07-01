@@ -323,6 +323,12 @@ namespace SFM
 
 	constexpr float kDefSupersawDetune = 0.25f;
 	constexpr float kDefSupersawMix    =  0.5f;
+
+	// ----------------------------------------------------------------------------------------------
+	// LowBlocker freq.
+	// ----------------------------------------------------------------------------------------------
+
+	constexpr float kLowBlockerHz = 20.f;
 };
 
 // All helper functionality is at your disposal by default

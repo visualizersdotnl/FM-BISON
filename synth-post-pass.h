@@ -132,7 +132,8 @@ namespace SFM
 		StereoDCBlocker m_tubeDCBlocker;	
 		SvfLinearTrapOptimised2 m_tubeFilterAA;
 		
-		// DC blocker
+		// Low & DC blocker
+		LowBlocker m_lowBlocker;
 		StereoDCBlocker m_DCBlocker;
 				
 		// External effects
