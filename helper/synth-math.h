@@ -48,6 +48,12 @@ namespace SFM
 		return a*(1.f-t) + b*t;
 //		return a + (b-a)*t;
 	}
+
+	template<typename T>
+	SFM_INLINE static const T lerpf(const T &a, const T &b, double t)
+	{
+		return a*(1.0-t) + b*t;
+	}
 	
 	// Cosine interpolation (single & double prec.)
 	SFM_INLINE static float cosinterpf(float a, float b, float t)

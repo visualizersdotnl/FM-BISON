@@ -136,7 +136,7 @@ public:
 		left  = float(v0_left);
 		right = float(v0_right);
 
-		// Check if filter hasn't blown up (using SampleAssert() feels too strict)
+		// Check if filter hasn't blown up
 		SFM::FloatAssert(left);
 		SFM::FloatAssert(right);
 	}
@@ -167,7 +167,6 @@ private:
 		SFM_INLINE void updateAllpass(double cutoff, double q, double sampleRate)
 		{
 			double g = tan((cutoff / sampleRate) * SFM::kPI);
-//			const double g = SFM::fast_tanf((cutoff / sampleRate) * 0.5);
 			const double k = computeK(q, false);
 
 			computeA(g, k);
@@ -182,7 +181,6 @@ private:
 		SFM_INLINE void updateLowpass(double cutoff, double q, double sampleRate)
 		{
 			double g = tan((cutoff / sampleRate) * SFM::kPI);
-//			const double g = SFM::fast_tanf((cutoff / sampleRate) * 0.5);
 			const double k = computeK(q, false);
 
 			computeA(g, k);
@@ -197,7 +195,6 @@ private:
 		SFM_INLINE void updateHighpass(double cutoff, double q, double sampleRate)
 		{
 			const double g = tan((cutoff / sampleRate) * SFM::kPI);
-//			const double g = SFM::fast_tanf((cutoff / sampleRate) * 0.5);
 			const double k = computeK(q, false);
 
 			computeA(g, k);
@@ -217,8 +214,7 @@ private:
 			if (type != NO_FLT_TYPE)
 			{
 				double g = tan((cutoff / sampleRate) * SFM::kPI);
-//				double g = SFM::fast_tanf((cutoff / sampleRate) * 0.5);
-				const double k = computeK(q, type == BELL_FILTER /* USE GAIN FOR BELL FILTER ONLY */);
+				const double k = computeK(q, type == BELL_FILTER /* Use gain for bell (peak) filter only */);
 			
 				switch (type) {
 					case LOW_PASS_FILTER:
