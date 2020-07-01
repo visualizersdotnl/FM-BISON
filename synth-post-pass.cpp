@@ -22,17 +22,17 @@
 namespace SFM
 {
 	// Remedies sampling artifacts whilst sweeping a delay line
-	const float kSweepCutoffHz = 50.f;
+	constexpr float kSweepCutoffHz = 50.f;
 
 	// Oversampling factor for 24dB MOOG filter & tube distortion
-	const unsigned kOversampleStages = 2;
-	const unsigned kOversample = 4; // 2^kOversampleStages
+	constexpr unsigned kOversampleStages = 2;
+	constexpr unsigned kOversample = 4; // 2^kOversampleStages
 
 	// Max. delay feedback (so as not to create an endless loop)
-	const float kMaxDelayFeedback = 0.95f; // Like Ableton does, or so I've been told by Paul
+	constexpr float kMaxDelayFeedback = 0.95f; // Like Ableton does, or so I've been told by Paul
 
 	// Delay line size (main delay)
-	const float kMainDelayLineSize = kMainDelayInSec;
+	constexpr float kMainDelayLineSize = kMainDelayInSec;
 
 	PostPass::PostPass(unsigned sampleRate, unsigned maxSamplesPerBlock, unsigned Nyquist) :
 		m_sampleRate(sampleRate), m_Nyquist(Nyquist)
@@ -369,6 +369,9 @@ namespace SFM
 		// Downsample (result) (FIXME: do I need to reset?)
 		m_oversamplingL.processSamplesDown(inputBlockL);
 		m_oversamplingR.processSamplesDown(inputBlockR);
+
+		// FIXME
+//		const float samplingLatency = m_oversamplingL.getLatencyInSamples();
 
 		/* ----------------------------------------------------------------------------------------------------
 

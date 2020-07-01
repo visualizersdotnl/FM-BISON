@@ -12,6 +12,9 @@
 	Improved:
 		- Smooth interpolation between vowels
 		- Stereo support
+
+	Important: do *not* call more often than than GetSampleRate() per second, the coefficients were designed for either 44.1KHz or 48KHz,
+	           I'm not sure (nor is it a big difference)
 */
 
 #pragma once
@@ -86,6 +89,13 @@ namespace SFM
 		}
 		
 		// Interpolates between vowels ('vowel' range is [0..kNumVowels-1])
+		// Don't call more often per second than SampleRate()
 		void Apply(float &sampleL, float &sampleR, float vowel, float preGain = 0.707f /* -3dB */);
+
+		unsigned GetSampleRate() const
+		{
+			// It's my estimation that the coefficients were designed for 44.1Khz, maybe 48Khz
+			return 44100;
+		}
 	};
 }

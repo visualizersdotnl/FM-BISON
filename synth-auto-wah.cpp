@@ -59,8 +59,19 @@ namespace SFM
 			// Done
 			return;
 		}
+		
+		// FIXME: VowelizerV1 has coefficients for a fixed sample rate, so we'll be simply skipping those few samples
+		//        Not the best sounding nor most elegant solution, but I'm eagerly waiting to replace it for my own
+		//        (vowel) vocoder soon (FIXME)
 
-		for (unsigned iSample = 0; iSample  < numSamples; ++iSample)
+		const unsigned voxSampleRate = m_vowelizerV1.GetSampleRate();
+		const float voxRatio = std::max<float>(1.f, m_sampleRate/float(voxSampleRate));
+		const unsigned voxIntRatio = unsigned(roundf(voxRatio)); // Just round to the closest integer, fast and easy
+
+		// Borrow this class to linearly interpolate between results (should be fine with so little samples)
+		InterpolatedParameter<kLinInterpolate> InterpolatedVowelL(0.f, voxIntRatio), InterpolatedVowelR(0.f, voxIntRatio);
+
+		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
 			// Get parameters
 			const float resonance  = m_curResonance.Sample();
@@ -155,6 +166,9 @@ namespace SFM
 
 			/*
 				Vowelize
+
+				FIXME: until VowelizerV1 is replaced everything is calculated as usual, except for that little block below that only samples
+				       every N samples and interpolates in between because it can't handle arbitrary sample rates
 			*/
 
 			// Calc. vox. LFO A (sample) and B (amplitude)
@@ -166,11 +180,12 @@ namespace SFM
 			const float voxLFO_B  = lerpf<float>(1.f, fabsf(voxOsc), toLFO);
 			
 			// Calc. vox. "ghost" noise
-			const float ghostRand = mt_randf(); // (rand()%256)/255.f;
+			const float ghostRand = mt_randf();
 			const float ghostSig  = ghostRand*kVoxGhostNoiseGain;
 			const float ghostEnv  = m_voxGhostEnv.Apply(sensEnvGain * voxLFO_B * voxGhost);
 			const float ghost     = ghostSig*ghostEnv;
 
+			// Calc. vowel
 			// I dislike frequent fmodf() calls but according to MSVC's profiler we're in the clear
 			// I add a small amount to the maximum since we need to actually reach kMaxWahSpeakVowel
 			static_assert(unsigned(kMaxWahSpeakVowel) < VowelizerV1::kNumVowels-1);
@@ -182,8 +197,23 @@ namespace SFM
 			// Apply 12dB LPF
 			m_voxLPF.updateLowpassCoeff(CutoffToHz(voxCut, m_Nyquist), ResoToQ(voxReso), m_sampleRate);
 			m_voxLPF.tick(vowelL, vowelR);
-
-			m_vowelizerV1.Apply(vowelL, vowelR, vowel);
+			
+			// FIXME
+			if (0 == (iSample % voxIntRatio))
+			{
+				// Apply filter
+				m_vowelizerV1.Apply(vowelL, vowelR, vowel);
+				
+				// Set interpolators
+				InterpolatedVowelL.Set(vowelL);
+				InterpolatedVowelR.Set(vowelR);
+			}
+			else
+			{
+				// Use interpolated result
+				vowelL = InterpolatedVowelL.Sample();
+				vowelR = InterpolatedVowelR.Sample();
+			}
 
 			filteredL = lerpf<float>(filteredL, vowelL, voxWet);
 			filteredR = lerpf<float>(filteredR, vowelR, voxWet);

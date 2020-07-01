@@ -130,10 +130,11 @@ namespace SFM
 		m_curDampening.SetTarget(m_dampening);
 		m_curPreDelay.SetTarget(m_preDelay);
 
-		// Avoid the edges of the spectrum
-		const float lowCutoffHz  = CutoffToHz(lowpass*0.9f + 0.1f, m_Nyquist);
-		const float highCutoffHz = CutoffToHz(0.1f + (1.f-highpass)*0.9f, m_Nyquist);
+		// Avoid the cutoff edges
+		const float lowCutoffHz  = CutoffToHz(lowpass*0.95f + 0.05f, m_Nyquist);
 		m_curLP.SetTarget(lowCutoffHz);
+
+		const float highCutoffHz = CutoffToHz(0.05f + (1.f-highpass)*0.95f, m_Nyquist);
 		m_curHP.SetTarget(highCutoffHz);
 
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
@@ -141,7 +142,7 @@ namespace SFM
 			const float curWet = m_curWet.Sample() * kMaxReverbWet; // Doesn't sound like much if fully open, consider different mix below? (FIXME)
 			const float dry = 1.f-curWet;
 
-			// Stereo effect
+			// Stereo (width) effect
 			const float width = m_curWidth.Sample();
 			const float wet1  = curWet*(width/2.f + 0.5f);
 			const float wet2  = curWet*((1.f-width)/2.f);
