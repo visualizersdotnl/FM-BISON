@@ -223,11 +223,6 @@ namespace SFM
 			return result;
 		}
 
-		SFM_INLINE float Get() const 
-		{
-			return m_feedback;
-		}
-
 	private:
 		float m_prevSample = 0.f;
 		float m_feedback   = 0.f;

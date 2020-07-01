@@ -11,8 +11,10 @@
 	- Tube distortion
 	- Reverb
 	- Compressor
-	- Low cut
-	- Master volume & final clamp
+	- Master volume, DC blocker & final clamp
+
+	This grew into a huge class; that was of course not the intention but so far it's functional and quite well
+	documented so right now (01/07/2020) I see no reason to chop it up
 */
 
 #include "synth-post-pass.h"
@@ -70,9 +72,6 @@ namespace SFM
 ,		m_curTubeDist(0.f, m_oversamplingRate, kDefParameterLatency)
 ,		m_curTubeDrive(kDefTubeDrive, m_oversamplingRate, kDefParameterLatency)
 ,		m_curTubeOffset(0.f, m_oversamplingRate, kDefParameterLatency)
-
-		// Low cut
-,		m_lowCutFilter(kLowCutHz, sampleRate)
 
 		// External effects
 ,		m_wah(sampleRate, Nyquist)
@@ -403,7 +402,7 @@ namespace SFM
 
 		/* ----------------------------------------------------------------------------------------------------
 
-			Final pass: Low cut, master value
+			Final pass: Master value, DC blocker, safety clamp
 
 		 ------------------------------------------------------------------------------------------------------ */
 
@@ -415,13 +414,13 @@ namespace SFM
 			float sampleL = m_pBufL[iSample];
 			float sampleR = m_pBufR[iSample];
 
-			m_lowCutFilter.Apply(sampleL, sampleR);
-
 			const float gain = dB2Lin(m_curMasterVoldB.Sample());
 			sampleL *= gain;
 			sampleR *= gain;
 
-			// Clamp() is proper common practice according to a CCRMA talk I saw recently
+			m_DCBlocker.Apply(sampleL, sampleR);
+
+			// Clamp(): we won't assume anything about the host's take on output outside [-1..1]
 			pLeftOut[iSample]  = Clamp(sampleL);
 			pRightOut[iSample] = Clamp(sampleR);
 		}
@@ -449,6 +448,8 @@ namespace SFM
 	/* ----------------------------------------------------------------------------------------------------
 
 		Chorus/Phaser impl.
+
+		FIXME: these are *old* and could use a review or rewrite
 
 	 ------------------------------------------------------------------------------------------------------ */
 

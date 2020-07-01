@@ -55,6 +55,7 @@ namespace SFM
 			return m_oversamplingRate;
 		}
 
+		// Intended for a graphical indicator
 		float GetCompressorBite() const
 		{
 			return m_compressorBite.Get();
@@ -131,8 +132,8 @@ namespace SFM
 		StereoDCBlocker m_tubeDCBlocker;	
 		SvfLinearTrapOptimised2 m_tubeFilterAA;
 		
-		// Low cut filter
-		LowBlocker m_lowCutFilter;
+		// DC blocker
+		StereoDCBlocker m_DCBlocker;
 				
 		// External effects
 		AutoWah m_wah;

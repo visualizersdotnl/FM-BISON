@@ -132,7 +132,7 @@ namespace SFM
 			const float remainderL = sampleL-preFilteredL;
 			const float remainderR = sampleR-preFilteredR;
 			
-			// ...
+			// Gain adjusted by signal drive
 			const float sensEnvGain = std::fminf(1.f, envGain*curSensLin);
 
 			/*
