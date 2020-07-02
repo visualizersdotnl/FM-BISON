@@ -27,8 +27,8 @@ namespace SFM
 		SFM_INLINE void SetMix(float mix /* [0..1] */)
 		{
 			SFM_ASSERT(mix >= 0.f && mix <= 1.f);
-			m_mainMix = -0.553366f*mix + 0.99785f;
-			m_sideMix = -0.73764f*powf(mix, 2.f) + 1.2841f*mix + 0.044327f;
+			m_mainMix = float(-0.553366*mix + 0.99785);
+			m_sideMix = float(-0.73764*pow(mix, 2.0) + 1.2841*mix + 0.044327);
 		}
 
 		SFM_INLINE double CalculateDetunedFreq(unsigned iOsc, float frequency) const

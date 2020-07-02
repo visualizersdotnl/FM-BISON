@@ -4,14 +4,9 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	This object is used to interpolate parameters that need per-sample interpolation in 
-	the time domain so that it will always reproduce the same effect regardless of the
-	number of samples processed per block or the sample rate. Alternatively a fixed
-	number of samples can be chosen.
-
-	Adjusting the rate requires subsequently (re)setting the (target) value; this is
-	a bit of an annoyance at times (see synth-post-pass.cpp for example), so in my own
-	rewrite I should address this (FIXME).
+	This object is used to interpolate parameters that need per-sample interpolation in the time domain so that it 
+	will always reproduce the same effect regardless of the number of samples processed per block or the sample rate. 
+	Alternatively a fixed number of samples can be chosen.
 
 	FIXME: 
 		- Replace JUCE implementation
@@ -21,7 +16,6 @@
 
 #pragma once
 
-// FIXME
 #include "../FM-BISON-internal-plug-in/JuceLibraryCode/JuceHeader.h"
 
 #include "synth-global.h"

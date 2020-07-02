@@ -44,7 +44,7 @@ public:
     KrajeskiMoog(unsigned sampleRate) :
 		m_sampleRate(sampleRate)
 	{
-		SFM_ASSERT(sampleRate >= 0);
+		SFM_ASSERT(sampleRate > 0);
 
 		Reset();
 		
@@ -63,30 +63,19 @@ public:
 		memset(m_delay, 0, 2*5*sizeof(double));
 	}
 
-	SFM_INLINE void Apply(float& left, float& right)
+	SFM_INLINE void Apply(float &left, float &right)
 	{
 		Apply(left,  m_state[0], m_delay[0]);
 		Apply(right, m_state[1], m_delay[1]);
 	}
 
-	void Process(float* samplesL, float* samplesR, unsigned numSamples)
+	SFM_INLINE void SetParameters(float cutoff, float resonance, float drive /* Linear (not in dB) */)
 	{
-		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
-		{
-			float left = samplesL[iSample], right = samplesR[iSample];
-			Apply(left, right);
-			samplesL[iSample] += m_wetness*left;
-			samplesR[iSample] += m_wetness*right;
-		}
-	}
-
-	SFM_INLINE void SetParameters(float cutoff, float Q, float drive, float wetness = 1.f /* Set for Process() */)
-	{
-		SetCutoff(cutoff);
-		SetResonance(Q);
-		m_wetness = wetness;
-
 		SFM_ASSERT(drive >= 0.f);
+
+		SetCutoff(cutoff);
+		SetResonance(resonance);
+
 		m_drive = drive;
 	}
 	
@@ -122,9 +111,11 @@ private:
 		m_g = 0.9892 * m_wc - 0.4342 * wc2 + 0.1381 * wc3 - 0.0202 * wc4;
 	}
 
-	SFM_INLINE void Apply(float& sample, double state[], double delay[])
+	SFM_INLINE void Apply(float &sample, double state[], double delay[])
 	{
 		state[0] = tanh(m_drive * (sample - 4.0 * m_gRes * (state[4] - m_gComp * sample)));
+
+		// FIXME: test if either of these can be used without losing stability
 //		state[0] = SFM::fast_tanh(m_drive * (sample - 4.0 * m_gRes * (state[4] - m_gComp * sample)));
 //		state[0] = SFM::ultra_tanh(m_drive * (sample - 4.0 * m_gRes * (state[4] - m_gComp * sample)));
 
@@ -149,7 +140,6 @@ private:
 	unsigned m_sampleRate;
 	float    m_cutoff;
 	float    m_resonance;
-	float    m_wetness;
 	
 	// For 2 channels (stereo)
 	double m_state[2][5];
