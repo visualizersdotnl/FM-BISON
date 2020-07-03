@@ -17,6 +17,7 @@ FM. BISON - A hybrid FM synthesis engine.
 - /quarantined: Code that must be phased out because it's not up to snuff
 - /patch: FM. BISON's patch headers, laying out the entire structure an instance uses to render an instrument
 - /promotion: Promotional material (graphics, audio renders et cetera)
+- /literature: PDFs et cetera
 
 # TRAILER (30/04/2020)
 
