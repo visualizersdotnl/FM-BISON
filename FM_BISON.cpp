@@ -115,7 +115,7 @@ namespace SFM
 
 		// Create effects
 		m_postPass = new PostPass(m_sampleRate, m_samplesPerBlock, m_Nyquist);
-		const auto oversamplingRate = m_postPass->GetOversamplingRate();
+//		const auto oversamplingRate = m_postPass->GetOversamplingRate();
 
 		// Start global LFO phase
 		m_globalLFO = new Phase(m_sampleRate);
@@ -133,7 +133,7 @@ namespace SFM
 		m_curAftertouch  = { 0.f, m_samplesPerBlock, kDefParameterLatency * 3.f  /* Longer */ };
 
 		/*
-			Reset parameter filters; they reduce automation/MIDI noise (by a default cut Hz, mostly)
+			Reset parameter (slew) filters; they reduce automation/MIDI noise (by a default cut Hz, mostly)
 
 			They are kept *only* in this class since they're not a pretty sight and may need to be
 			removed or overhauled for other (non) VST projects
@@ -166,12 +166,15 @@ namespace SFM
 		m_delayWetPS            = { sampleRatePS };
 		m_delayFeedbackPS       = { sampleRatePS };
 		m_delayFeedbackCutoffPS = { sampleRatePS };
+		
+		// FIXME: should I use a different rate for these?
 		m_tubeDistPS            = { sampleRatePS };
 		m_tubeDrivePS           = { sampleRatePS };
 		m_postCutoffPS          = { sampleRatePS };
 		m_postResoPS            = { sampleRatePS };
 		m_postDrivePS           = { sampleRatePS };
 		m_postWetPS             = { sampleRatePS };
+		
 		m_wahRatePS             = { sampleRatePS };
 		m_wahDrivePS            = { sampleRatePS };
 		m_wahSpeakPS            = { sampleRatePS };
@@ -179,7 +182,7 @@ namespace SFM
 		m_wahSpeakVowelModPS    = { sampleRatePS };
 		m_wahSpeakGhostPS       = { sampleRatePS };
 		m_wahSpeakCutPS         = { sampleRatePS, 100.f /* 100MS */ };
-		m_wahSpeakResoPS        = { sampleRatePS, 10.f /*   10MS */ };
+		m_wahSpeakResoPS        = { sampleRatePS, 10.f  /*  10MS */ };
 		m_wahCutPS              = { sampleRatePS };
 		m_wahWetPS              = { sampleRatePS };
 		m_reverbWetPS           = { sampleRatePS };
@@ -1038,9 +1041,7 @@ namespace SFM
 					// Glide
 					voiceOp.amplitude.SetTarget(amplitude);
 
-					const float curFreq = voiceOp.curFreq.Get();
 					voiceOp.curFreq.SetRate(m_sampleRate, voice.m_freqGlide);
-					voiceOp.curFreq.Set(curFreq);
 					voiceOp.curFreq.SetTarget(frequency);
 				}
 
@@ -2022,62 +2023,62 @@ namespace SFM
 			postWet = std::min<float>(1.f, postWet+aftertouchFiltered);
 
 		// Apply post-processing (FIXME: pass structure?)
-		m_postPass->Apply(numSamples, 
-		                  /* BPM sync. */
-						  m_freqBPM,
-						  /* Auto-wah (FIXME: use more ParameterSlew if necessary) */
-						  m_patch.wahResonance,
-						  m_patch.wahAttack,
-						  m_patch.wahHold,
-						  m_wahRatePS.Apply(m_patch.wahRate),
-						  m_wahDrivePS.Apply(m_patch.wahDrivedB),
-						  m_wahSpeakPS.Apply(m_patch.wahSpeak),
-						  m_wahSpeakVowelPS.Apply(m_patch.wahSpeakVowel),
-						  m_wahSpeakVowelModPS.Apply(m_patch.wahSpeakVowelMod),
-						  m_wahSpeakGhostPS.Apply(m_patch.wahSpeakGhost),
-						  m_wahSpeakCutPS.Apply(m_patch.wahSpeakCut),
-						  m_wahSpeakResoPS.Apply(m_patch.wahSpeakResonance),
-						  m_wahCutPS.Apply(m_patch.wahCut),
-						  m_wahWetPS.Apply(m_patch.wahWet),
-		                  /* Chorus/Phaser */
-						  m_effectRatePS.Apply(m_patch.cpRate), 
-						  m_effectWetPS.Apply(m_patch.cpWet), 
-						  false == m_patch.cpIsPhaser,
-						  /* Delay */
-						  m_delayPS.Apply(m_patch.delayInSec),
-						  m_delayWetPS.Apply(m_patch.delayWet),
-						  m_delayFeedbackPS.Apply(m_patch.delayFeedback),
-						  m_delayFeedbackCutoffPS.Apply(m_patch.delayFeedbackCutoff),
-						  /* MOOG-style 24dB filter + Tube distort */
-		                  postCutoffHz, // Filtered above
-						  m_postResoPS.Apply(m_patch.postResonance),
-						  m_postDrivePS.Apply(m_patch.postDrivedB),
-		                  m_postWetPS.Apply(postWet),
-						  m_tubeDistPS.Apply(m_patch.tubeDistort),
-						  m_tubeDrivePS.Apply(m_patch.tubeDrive),
-						  m_patch.tubeOffset,
-						  /* Reverb */
-						  m_reverbWetPS.Apply(m_patch.reverbWet),
-						  m_reverbRoomSizePS.Apply(m_patch.reverbRoomSize),
-						  m_reverbDampeningPS.Apply(m_patch.reverbDampening),
-						  m_reverbWidthPS.Apply(m_patch.reverbWidth),
-						  m_reverbLP_PS.Apply(m_patch.reverbLP),
-						  m_reverbHP_PS.Apply(m_patch.reverbHP),
-						  m_reverbPreDelayPS.Apply(m_patch.reverbPreDelay),
-						  /* Compressor (FIXME: use more ParameterSlew if necessary) */
-						  m_patch.compThresholddB,
-						  m_patch.compKneedB,
-						  m_patch.compRatio,
-						  m_patch.compGaindB,
-						  m_patch.compAttack,
-						  m_patch.compRelease,
-						  m_compLookaheadPS.Apply(m_patch.compLookahead),
-						  m_patch.compAutoGain,
-						  m_patch.compRMSToPeak,
-						  /* Master volume */
-						  m_masterVoldBPS.Apply(m_patch.masterVoldB),
-						  /* Buffers */
-						  m_pBufL[0], m_pBufR[0], pLeft, pRight);
+		m_postPass->Apply(numSamples,
+			/* BPM sync. */
+			m_freqBPM,
+			/* Auto-wah (FIXME: use more ParameterSlew if necessary) */
+			m_patch.wahResonance,
+			m_patch.wahAttack,
+			m_patch.wahHold,
+			m_wahRatePS.Apply(m_patch.wahRate),
+			m_wahDrivePS.Apply(m_patch.wahDrivedB),
+			m_wahSpeakPS.Apply(m_patch.wahSpeak),
+			m_wahSpeakVowelPS.Apply(m_patch.wahSpeakVowel),
+			m_wahSpeakVowelModPS.Apply(m_patch.wahSpeakVowelMod),
+			m_wahSpeakGhostPS.Apply(m_patch.wahSpeakGhost),
+			m_wahSpeakCutPS.Apply(m_patch.wahSpeakCut),
+			m_wahSpeakResoPS.Apply(m_patch.wahSpeakResonance),
+			m_wahCutPS.Apply(m_patch.wahCut),
+			m_wahWetPS.Apply(m_patch.wahWet),
+			/* Chorus/Phaser */
+			m_effectRatePS.Apply(m_patch.cpRate),
+			m_effectWetPS.Apply(m_patch.cpWet),
+			false == m_patch.cpIsPhaser,
+			/* Delay */
+			m_delayPS.Apply(m_patch.delayInSec),
+			m_delayWetPS.Apply(m_patch.delayWet),
+			m_delayFeedbackPS.Apply(m_patch.delayFeedback),
+			m_delayFeedbackCutoffPS.Apply(m_patch.delayFeedbackCutoff),
+			/* MOOG-style 24dB filter + Tube distort */
+			postCutoffHz, // Filtered above
+			m_postResoPS.Apply(m_patch.postResonance),
+			m_postDrivePS.Apply(m_patch.postDrivedB),
+			m_postWetPS.Apply(postWet),
+			m_tubeDistPS.Apply(m_patch.tubeDistort),
+			m_tubeDrivePS.Apply(m_patch.tubeDrive),
+			m_patch.tubeOffset,
+			/* Reverb */
+			m_reverbWetPS.Apply(m_patch.reverbWet),
+			m_reverbRoomSizePS.Apply(m_patch.reverbRoomSize),
+			m_reverbDampeningPS.Apply(m_patch.reverbDampening),
+			m_reverbWidthPS.Apply(m_patch.reverbWidth),
+			m_reverbLP_PS.Apply(m_patch.reverbLP),
+			m_reverbHP_PS.Apply(m_patch.reverbHP),
+			m_reverbPreDelayPS.Apply(m_patch.reverbPreDelay),
+			/* Compressor (FIXME: use more ParameterSlew if necessary) */
+			m_patch.compThresholddB,
+			m_patch.compKneedB,
+			m_patch.compRatio,
+			m_patch.compGaindB,
+			m_patch.compAttack,
+			m_patch.compRelease,
+			m_compLookaheadPS.Apply(m_patch.compLookahead),
+			m_patch.compAutoGain,
+			m_patch.compRMSToPeak,
+			/* Master volume */
+			m_masterVoldBPS.Apply(m_patch.masterVoldB),
+			/* Buffers */
+			m_pBufL[0], m_pBufR[0], pLeft, pRight);
 
 		// Of all these, copies were used per voice, so skip numSamples to keep up	
 		m_curLFOBlend.Skip(numSamples);

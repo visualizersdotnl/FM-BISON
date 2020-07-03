@@ -194,7 +194,7 @@ namespace SFM
 			: (1.f == x)
 				? 1.f
 				: (x < 0.5f)
-					? -(powf(2.f, 20.f*x - 10.f) * sin((20.f*x - 11.125f) * c5))*0.5f
+					? -(powf(2.f, 20.f*x - 10.f) * sinf((20.f*x - 11.125f) * c5))*0.5f
 					: (powf(2.f, -20.f*x + 10.f) * sinf((20.f*x - 11.125f) * c5))*0.5f + 1.f;
 
 		return result;

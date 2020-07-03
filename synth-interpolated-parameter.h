@@ -6,10 +6,11 @@
 
 	This object is used to interpolate parameters that need per-sample interpolation in the time domain so that it 
 	will always reproduce the same effect regardless of the number of samples processed per block or the sample rate. 
-	Alternatively a fixed number of samples can be chosen.
+	
+ 	Alternatively a fixed number of samples can be set.
 
 	FIXME: 
-		- Replace JUCE implementation
+		- Replace JUCE implementation (also in other places where juce::SmoothedValue is used)
 		- I'm not entirely happy with the latter 2 constructors, the top one becomes ambiguous when I set the last
 		  parameter to a default value (kDefParameterLatency), which is the case 99% of the time
 */
@@ -64,14 +65,13 @@ namespace SFM
 			return m_value.getCurrentValue();
 		}
 
-		// Set directly (current & target)
+		// Set current & target
 		SFM_INLINE void Set(float value)
 		{
 			m_value.setCurrentAndTargetValue(value);
 		}
 
 		// Set target
-		// Won't affect or reset number of steps if identical!
 		SFM_INLINE void SetTarget(float value)
 		{
 			m_value.setTargetValue(value);
@@ -89,13 +89,13 @@ namespace SFM
 			m_value.skip(numSamples);
 		}
 
-		// Set rate in seconds (resets to target value)
+		// Set rate in seconds
 		SFM_INLINE void SetRate(unsigned sampleRate, float time)
 		{
 			m_value.reset(double(sampleRate), double(time));
 		}
 		
-		// Set rate in samples (resets to target value)
+		// Set rate in samples
 		SFM_INLINE void SetRate(unsigned numSamples)
 		{
 			m_value.reset(numSamples);
@@ -108,6 +108,6 @@ namespace SFM
 		}
 
 	private:
-		SmoothedValue<float, T> m_value;
+		juce::SmoothedValue<float, T> m_value;
 	};
 };

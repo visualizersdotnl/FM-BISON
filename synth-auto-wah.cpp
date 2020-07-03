@@ -5,8 +5,9 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 */
 
+#include "../FM-BISON-internal-plug-in/JuceLibraryCode/JuceHeader.h"
+
 #include "synth-auto-wah.h"
-#include "synth-DX7-LFO-table.h"
 
 namespace SFM
 {
@@ -23,7 +24,7 @@ namespace SFM
 //	constexpr float kVoxGhostNoiseGain = 0.35481338923357547f; // -9dB
 //	constexpr float kVoxGhostNoiseGain = 0.5f; // -6dB
 	constexpr float kVoxGhostNoiseGain = 1.f;  // -0dB
-	constexpr float kGain3dB = 1.41253757f;
+//	constexpr float kGain3dB = 1.41253757f;
 	constexpr float kGainInf = kEpsilon; // FIXME: use dB2Lin(kInfVolumedB)
 	
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples, bool manualRate)
@@ -61,14 +62,17 @@ namespace SFM
 		
 		// FIXME: VowelizerV1 has coefficients for a fixed sample rate, so we'll be simply skipping those few samples
 		//        Not the best sounding nor most elegant solution, but I'm eagerly waiting to replace it for my own
-		//        (vowel) vocoder soon (FIXME)
+		//        vocoder soon (FIXME)
 
 		const unsigned voxSampleRate = m_vowelizerV1.GetSampleRate();
 		const float voxRatio = std::max<float>(1.f, m_sampleRate/float(voxSampleRate));
 		const unsigned voxIntRatio = unsigned(roundf(voxRatio)); // Just round to the closest integer, fast and easy
 
 		// Borrow this class to linearly interpolate between results (should be fine with so little samples)
-		InterpolatedParameter<kLinInterpolate> InterpolatedVowelL(0.f, voxIntRatio), InterpolatedVowelR(0.f, voxIntRatio);
+		
+		juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> interpolatedVowelL, interpolatedVowelR;
+		interpolatedVowelL.reset(voxIntRatio);
+		interpolatedVowelR.reset(voxIntRatio);
 
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
@@ -204,14 +208,14 @@ namespace SFM
 				m_vowelizerV1.Apply(vowelL, vowelR, vowel);
 				
 				// Set interpolators
-				InterpolatedVowelL.Set(vowelL);
-				InterpolatedVowelR.Set(vowelR);
+				interpolatedVowelL.setTargetValue(vowelL);
+				interpolatedVowelR.setTargetValue(vowelR);
 			}
 			else
 			{
 				// Use interpolated result
-				vowelL = InterpolatedVowelL.Sample();
-				vowelR = InterpolatedVowelR.Sample();
+				vowelL = interpolatedVowelL.getNextValue();
+				vowelR = interpolatedVowelR.getNextValue();
 			}
 
 			filteredL = lerpf<float>(filteredL, vowelL, voxWet);

@@ -207,6 +207,7 @@ namespace SFM
 						phaseShift += 1.f+sample;
 					}
 				}
+				
 				// Get feedback
 				float feedback = 0.f;
 				if (-1 != voiceOp.iFeedback)
