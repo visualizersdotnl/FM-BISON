@@ -72,8 +72,7 @@ namespace SFM
 			const float fraction = fracf(delay);
 			const float A = m_buffer[from];
 			const float B = m_buffer[to];
-			float value = lerpf<float>(A, B, fraction);
-			return value;
+			return lerpf<float>(A, B, fraction);
 		}
 
 		// Same as above, but without interpolation
