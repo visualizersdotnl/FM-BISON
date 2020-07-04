@@ -69,7 +69,6 @@ namespace SFM
 		const unsigned voxIntRatio = unsigned(roundf(voxRatio)); // Just round to the closest integer, fast and easy
 
 		// Borrow this class to linearly interpolate between results (should be fine with so little samples)
-		
 		juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> interpolatedVowelL, interpolatedVowelR;
 		interpolatedVowelL.reset(voxIntRatio);
 		interpolatedVowelR.reset(voxIntRatio);
@@ -208,15 +207,21 @@ namespace SFM
 				m_vowelizerV1.Apply(vowelL, vowelR, vowel);
 				
 				// Set interpolators
-				interpolatedVowelL.setTargetValue(vowelL);
-				interpolatedVowelR.setTargetValue(vowelR);
+				if (0 != iSample)
+				{
+					interpolatedVowelL.setTargetValue(vowelL);
+					interpolatedVowelR.setTargetValue(vowelR);
+				}
+				else
+				{
+					interpolatedVowelL.setCurrentAndTargetValue(vowelL);
+					interpolatedVowelR.setCurrentAndTargetValue(vowelR);
+				}
 			}
-			else
-			{
-				// Use interpolated result
-				vowelL = interpolatedVowelL.getNextValue();
-				vowelR = interpolatedVowelR.getNextValue();
-			}
+
+			// Use interpolated result
+			vowelL = interpolatedVowelL.getNextValue();
+			vowelR = interpolatedVowelR.getNextValue();
 
 			filteredL = lerpf<float>(filteredL, vowelL, voxWet);
 			filteredR = lerpf<float>(filteredR, vowelR, voxWet);

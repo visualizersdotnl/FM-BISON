@@ -34,7 +34,7 @@ namespace SFM
 
 		const auto phaseAsInt = *reinterpret_cast<unsigned long long *>(&phase);
 
-		const int exponent = (phaseAsInt>>52) - 1023;
+		const int exponent = (phaseAsInt >> 52) - 1023;
 
 		const auto fractBits  = 32-kFastCosTabLog2Size;
 		const auto fractScale = 1 << fractBits;

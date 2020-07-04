@@ -12,6 +12,7 @@
 
 namespace SFM
 {
+	// FIXME: I could probably turn this into a reasonably accurate LUT?
 	static double DetuneToCurve(double detune)
 	{
 		// "Since the Roland JP-8000 is a hardware synthesizer, it uses MIDI protocol to transfer control data.
@@ -31,7 +32,7 @@ namespace SFM
 		SFM_ASSERT(detune >= 0.f && detune <= 1.f);
 
 		// The function above seems expensive enough to skip if possible
-		if (m_curDetune != detune)
+//		if (m_curDetune != detune)
 		{
 			m_curDetuneCurve = DetuneToCurve(detune);
 			m_curDetune = detune;
