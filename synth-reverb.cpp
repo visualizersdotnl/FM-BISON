@@ -149,25 +149,38 @@ namespace SFM
 			float outL = 0.f;
 			float outR = 0.f;
 
-			const double defQ = 0.5;
+			constexpr double defQ = 0.3;
 			m_preLPF.updateLowpassCoeff(m_curLP.Sample(),  defQ, m_sampleRate);
 			m_preHPF.updateHighpassCoeff(m_curHP.Sample(), defQ, m_sampleRate); 
 			
 			const float inL = *pLeft;
 			const float inR = *pRight;
+
+//			if (inL+inR < kEpsilon)
+//			{
+//				// FIXME: prevents precision error accumulation in filters
+//				m_preLPF.resetState();
+//				m_preHPF.resetState();
+//			}
 			
 			// Apply LPF & HPF filters (FIXME: mabe just do these for the single "mixed" signal?)
 			float LPF_L = inL, LPF_R = inR;
 			float HPF_L = inL, HPF_R = inR;
-			m_preLPF.tick(LPF_L, LPF_R);
-			m_preHPF.tick(HPF_L, HPF_R);
+
+			if (inL+inR > kEpsilon)
+			{
+				m_preLPF.tick(LPF_L, LPF_R);
+				m_preHPF.tick(HPF_L, HPF_R);
+			}
 
 			// Simple mix (does the job)
-			const float mix = ( (LPF_L*lowpass + LPF_R*lowpass)*0.5f + (HPF_L*highpass + HPF_R*highpass)*0.5f );
+			const float mixL = 0.5f*LPF_L + 0.5f*HPF_L;
+			const float mixR = 0.5f*LPF_R + 0.5f*HPF_R;
+			const float mix = Clamp(mixL*0.5f + mixR*0.5f);
 
 			// Pre-delay			
 			m_preDelayLine.Write(mix);
-			const float monaural = m_preDelayLine.Read(m_sampleRate*m_curPreDelay.Sample()) * kFixedGain;
+			const float monaural = m_preDelayLine.Read((m_preDelayLine.size()-1)*m_curPreDelay.Sample()) * kFixedGain;
 
 			// Accumulate comb filters in parallel
 			const float dampening = m_curDampening.Sample();

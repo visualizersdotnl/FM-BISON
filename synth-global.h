@@ -241,8 +241,8 @@ namespace SFM
 	constexpr float kDefReverbWidth = 0.5f;
 
 	// Reverb pre-delay line max. size
-	constexpr float kReverbPreDelayMax = 0.5f;   // 500MS
-	constexpr float kDefReverbPreDelay = 0.001f; //  10MS
+	constexpr float kReverbPreDelayMax = 1.f; // Normalized (see synth-reverb.cpp)
+	constexpr float kDefReverbPreDelay = 0.f; //
 
 	// ----------------------------------------------------------------------------------------------
 	// Compressor range & defaults
