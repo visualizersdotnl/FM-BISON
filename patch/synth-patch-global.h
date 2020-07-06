@@ -286,7 +286,7 @@ namespace SFM
 			reverbWidth = kDefReverbWidth;
 			reverbLP = 1.f;
 			reverbHP = 1.f;
-			reverbPreDelay = kDefReverbPreDelay;
+			reverbPreDelay = 0.f;
 
 			// Default compression
 			compThresholddB = kDefCompThresholddB;

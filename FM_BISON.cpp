@@ -125,8 +125,8 @@ namespace SFM
 		// Reset global interpolated parameters
 		m_curLFOBlend    = { m_patch.LFOBlend, m_sampleRate, kDefParameterLatency };
 		m_curLFOModDepth = { m_patch.LFOModDepth, m_sampleRate, kDefParameterLatency };
-		m_curCutoff      = { CutoffToHz(m_patch.cutoff, m_Nyquist), m_samplesPerBlock, kDefParameterLatency };
-		m_curQ           = { ResoToQ(m_patch.resonance), m_sampleRate, kDefParameterLatency };
+		m_curCutoff      = { SVF_CutoffToHz(m_patch.cutoff, m_Nyquist), m_samplesPerBlock, kDefParameterLatency };
+		m_curQ           = { SVF_ResoToQ(m_patch.resonance), m_sampleRate, kDefParameterLatency };
 		m_curPitchBend   = { 0.f, m_samplesPerBlock, kDefParameterLatency };
 		m_curAmpBend     = { 0.f, m_samplesPerBlock, kDefParameterLatency };
 		m_curModulation  = { 0.f, m_samplesPerBlock, kDefParameterLatency * 1.5f /* Longer */ };
@@ -578,7 +578,7 @@ namespace SFM
 
 		// Calculate Q.
 		const float normQ = patchOp.resonance;
-		const float Q = ResoToQ(normQ);
+		const float Q = SVF_ResoToQ(normQ);
 		
 		// Update filter(s)
 		float cutoffNorm = -1.f;
@@ -593,17 +593,17 @@ namespace SFM
 
 		case PatchOperators::Operator::kLowpassFilter:
 			cutoffNorm = lerpf<float>(patchOp.cutoff, 1.f, CalcCutoffTracking(key, patchOp)); // Track towards pass-through
-			pFilters[0].updateCoefficients(CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
+			pFilters[0].updateCoefficients(SVF_CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
 			break;
 
 		case PatchOperators::Operator::kHighpassFilter:
 			cutoffNorm = lerpf<float>(patchOp.cutoff, 0.f, CalcCutoffTracking(key, patchOp)); // Track towards pass-through
-			pFilters[0].updateCoefficients(CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
+			pFilters[0].updateCoefficients(SVF_CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
 			break;
 
 		case PatchOperators::Operator::kBandpassFilter:
 			cutoffNorm = lerpf<float>(patchOp.cutoff, 0.5f, CalcCutoffTracking(key, patchOp)); // Track towards middle freq.
-			pFilters[0].updateCoefficients(CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
+			pFilters[0].updateCoefficients(SVF_CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
 			break;
 
 		case PatchOperators::Operator::kAllPassFilter:
@@ -614,7 +614,7 @@ namespace SFM
 				for (unsigned iAllpass = 0; iAllpass < kNumVoiceAllpasses; ++iAllpass)
 				{
 					pFilters[iAllpass].resetState();
-					pFilters[iAllpass].updateCoefficients(CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::ALL_PASS_FILTER, m_sampleRate);
+					pFilters[iAllpass].updateCoefficients(SVF_CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::ALL_PASS_FILTER, m_sampleRate);
 				}
 			}
 			
@@ -632,7 +632,7 @@ namespace SFM
 			
 			// Filter the remaining waveforms a little to "take the top off"
 			default:
-				modFilter.updateLowpassCoeff(CutoffToHz(kModulatorLP, m_Nyquist), kSVFLowestFilterQ, m_sampleRate);
+				modFilter.updateLowpassCoeff(SVF_CutoffToHz(kModulatorLP, m_Nyquist), kSVFLowestFilterQ, m_sampleRate);
 				break;
 		}
 		
@@ -1814,8 +1814,8 @@ namespace SFM
 		const float resonance = m_resoPS.Apply(m_patch.resonance);
 
 		// Using smoothstepf() to add a little curvature, chiefly intended to appease basic MIDI controls
-		/* const */ float cutoff = CutoffToHz(smoothstepf(normCutoff), m_Nyquist);
-		/* const */ float Q = ResoToQ(smoothstepf(resonance*m_patch.resonanceLimit));
+		/* const */ float cutoff = SVF_CutoffToHz(smoothstepf(normCutoff), m_Nyquist);
+		/* const */ float Q = SVF_ResoToQ(smoothstepf(resonance*m_patch.resonanceLimit));
 		
 		m_curCutoff.SetTarget(cutoff);
 		m_curQ.SetTarget(Q);
@@ -1831,7 +1831,7 @@ namespace SFM
 		default:
 		case Patch::kNoFilter:
 			filterType1 = SvfLinearTrapOptimised2::NO_FLT_TYPE;
-			fullCutoff = CutoffToHz(1.f, m_Nyquist);
+			fullCutoff = SVF_CutoffToHz(1.f, m_Nyquist);
 			break;
 
 		case Patch::kLowpassFilter:
@@ -1840,19 +1840,19 @@ namespace SFM
 			secondQOffs = 0.1f;
 			filterType1 = SvfLinearTrapOptimised2::LOW_PASS_FILTER;
 			filterType2 = SvfLinearTrapOptimised2::LOW_PASS_FILTER;
-			fullCutoff = CutoffToHz(1.f, m_Nyquist);
+			fullCutoff = SVF_CutoffToHz(1.f, m_Nyquist);
 			break;
 
 		case Patch::kHighpassFilter:
 			filterType1 = SvfLinearTrapOptimised2::HIGH_PASS_FILTER;
-			fullCutoff = CutoffToHz(0.f, m_Nyquist);
+			fullCutoff = SVF_CutoffToHz(0.f, m_Nyquist);
 			break;
 
 		case Patch::kBandpassFilter:
 			// Pretty standard with a reduced resonance range
 			qDiv *= 0.25f;
 			filterType1 = SvfLinearTrapOptimised2::BAND_PASS_FILTER;
-			fullCutoff = CutoffToHz(1.f, m_Nyquist);
+			fullCutoff = SVF_CutoffToHz(1.f, m_Nyquist);
 			break;
 		}
 
@@ -2015,7 +2015,8 @@ namespace SFM
 
 		// Calculate post-pass filter cutoff freq.
 		const float postNormCutoff = m_postCutoffPS.Apply(m_patch.postCutoff);
-		const float postCutoffHz = CutoffToHz(postNormCutoff, m_Nyquist/2 /* Nice range; check synth-post-pass.cpp for max. range */, 0.f);
+		SFM_ASSERT(postNormCutoff >= 0.f && postNormCutoff <= 1.f);
+		const float postCutoffHz = postNormCutoff * m_Nyquist*0.5f; // Nice range; check synth-post-pass.cpp for max. range
 
 		// Feed either a flat or aftertouch parameter to the post-pass to define the filter's wetness
 		float postWet = m_patch.postWet;

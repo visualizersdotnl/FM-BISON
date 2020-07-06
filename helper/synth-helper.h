@@ -171,7 +171,7 @@ namespace SFM
 	 ------------------------------------------------------------------------------------------------------ */
 
 	// Normalized cutoff [0..1] to Hz
-	SFM_INLINE static float CutoffToHz(float cutoff, unsigned Nyquist, float minCutoff = kSVFMinFilterCutoffHz)
+	SFM_INLINE static float SVF_CutoffToHz(float cutoff, unsigned Nyquist, float minCutoff = kSVFMinFilterCutoffHz)
 	{
 		// Allowed according to SVF impl.: [16.0..Nyquist]
 		const unsigned maxCutoff = Nyquist;
@@ -180,7 +180,7 @@ namespace SFM
 	}
 
 	// Normalized resonance [0..1] to Q
-	SFM_INLINE static float ResoToQ(float resonance)
+	SFM_INLINE static float SVF_ResoToQ(float resonance)
 	{
 		// Allowed: [0.025..40.0]
 		// Default: 0.5
@@ -191,7 +191,12 @@ namespace SFM
 		return Q;
 	}
 
-	// Snap floating point value to zero (nicked from JUCE)
+	/* ----------------------------------------------------------------------------------------------------
+
+		Single prec. 'snap-to-zero' (nicked from JUCE)
+
+	 ------------------------------------------------------------------------------------------------------ */
+
 	SFM_INLINE static float SnapToZero(float value)
 	{
 		return (false == (value < -1.0e-8f || value > 1.0e-8f)) ? 0.f : value;

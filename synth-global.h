@@ -205,14 +205,17 @@ namespace SFM
 	constexpr float kMaxReverbWet = 0.55f;
 
 	// ----------------------------------------------------------------------------------------------
-	// Master output volume range & default in dB
+	// Master output volume range & default in dB + our definition of -INF
 	// ----------------------------------------------------------------------------------------------
 
-	constexpr int kInfVolumedB   = -1000; // Arbitrary number
 	constexpr int kMinVolumedB   =   -96;
 	constexpr int kMaxVolumedB   =     3;
 	constexpr int kDefVolumedB   =   -12;
 	constexpr int kVolumeRangedB = kMaxVolumedB-kMinVolumedB;
+
+	// Nicked from juce::Decibels
+	constexpr int   kInfdB  = -100; 
+	constexpr float kInfLin = 9.99999975e-06f; // dB2Lin(kInfdB)
 
 	// ----------------------------------------------------------------------------------------------
 	// (Monophonic) frequency glide (in seconds)
@@ -240,9 +243,8 @@ namespace SFM
 	constexpr float kMaxReverbWidth = 2.f;
 	constexpr float kDefReverbWidth = 0.5f;
 
-	// Reverb pre-delay line max. size
-	constexpr float kReverbPreDelayMax = 1.f; // Normalized (see synth-reverb.cpp)
-	constexpr float kDefReverbPreDelay = 0.f; //
+	// Reverb pre-delay line length (in seconds)
+	constexpr float kReverbPreDelayLen = 0.5f; // 500MS
 
 	// ----------------------------------------------------------------------------------------------
 	// Compressor range & defaults

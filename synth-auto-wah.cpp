@@ -20,13 +20,6 @@ namespace SFM
 	constexpr float  kVoxRateScale  =   2.f; // Rate ratio: vox. S&H
 	constexpr float  kCutRateScale  = 0.25f; // Rate ratio: cutoff modulation
 	
-	// dBs
-//	constexpr float kVoxGhostNoiseGain = 0.35481338923357547f; // -9dB
-//	constexpr float kVoxGhostNoiseGain = 0.5f; // -6dB
-	constexpr float kVoxGhostNoiseGain = 1.f;  // -0dB
-//	constexpr float kGain3dB = 1.41253757f;
-	constexpr float kGainInf = kEpsilon; // FIXME: use dB2Lin(kInfVolumedB)
-	
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples, bool manualRate)
 	{
 		// This effect is big and expensive, we'll skip it if not used
@@ -112,7 +105,7 @@ namespace SFM
 			const float envGaindB = m_gainEnvdB.Apply(signaldB);
 			const float envGain   = dB2Lin(envGaindB);
 
-			if (envGain <= kGainInf) // Sidechain dB below or equal to defined minimum?
+			if (envGain <= kInfLin) // Sidechain dB below or equal to defined minimum?
 			{
 				// Reset LFO
 				m_LFO.Reset();
@@ -127,7 +120,7 @@ namespace SFM
 
 			// Cut off high end: that's what we'll work with
 			float preFilteredL = sampleL, preFilteredR = sampleR;
-			m_preFilterHP.updateCoefficients(CutoffToHz(lowCut, m_Nyquist), kPreLowCutQ, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
+			m_preFilterHP.updateCoefficients(SVF_CutoffToHz(lowCut, m_Nyquist), kPreLowCutQ, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
 			m_preFilterHP.tick(preFilteredL, preFilteredR);
 
 			// Store remainder to add back into mix
@@ -149,12 +142,12 @@ namespace SFM
 			const float normCutoff = (1.f-kLPCutLFORange) + modLFO*kLPCutLFORange;
 
 			SFM_ASSERT(normCutoff >= 0.f && normCutoff <= 1.f);
-			const float cutoffHz = CutoffToHz(normCutoff, m_Nyquist);
+			const float cutoffHz = SVF_CutoffToHz(normCutoff, m_Nyquist);
 
 			// Calc. Q (less signal more resonance, gives the sweep a nice bite)
 			const float rangeQ = resonance*(kLPResoMax-kLPResoMin);            
 			const float normQ  = kLPResoMin + rangeQ*(1.f-sensEnvGain);
-			const float Q      = ResoToQ(normQ);             
+			const float Q      = SVF_ResoToQ(normQ);             
 
 			m_postFilterLP.updateLowpassCoeff(cutoffHz, Q, m_sampleRate);
 			m_postFilterLP.tick(filteredL, filteredR);
@@ -183,7 +176,7 @@ namespace SFM
 			
 			// Calc. vox. "ghost" noise
 			const float ghostRand = mt_randf();
-			const float ghostSig  = ghostRand*kVoxGhostNoiseGain;
+			const float ghostSig  = ghostRand;
 			const float ghostEnv  = m_voxGhostEnv.Apply(sensEnvGain * voxLFO_B * voxGhost);
 			const float ghost     = ghostSig*ghostEnv;
 
@@ -197,7 +190,7 @@ namespace SFM
 			float vowelL = filteredL + ghost, vowelR = filteredR + ghost;
 
 			// Apply 12dB LPF
-			m_voxLPF.updateLowpassCoeff(CutoffToHz(voxCut, m_Nyquist), ResoToQ(voxReso), m_sampleRate);
+			m_voxLPF.updateLowpassCoeff(SVF_CutoffToHz(voxCut, m_Nyquist), SVF_ResoToQ(voxReso), m_sampleRate);
 			m_voxLPF.tick(vowelL, vowelR);
 			
 			// FIXME

@@ -192,9 +192,21 @@ namespace SFM
 			m_curRoomSize.Set(0.f);
 			m_curDampening.Set(0.f);
 
-			const float cutHz = CutoffToHz(kDefReverbFilter, m_Nyquist);
-			m_curLP.Set(cutHz);
-			m_curHP.Set(cutHz);
+			const float cutNorm = kDefReverbFilter;
+			m_curLP.Set(LowpassToHz(cutNorm));
+			m_curHP.Set(HighpassToHz(cutNorm));	
+		}
+
+		float LowpassToHz(float lowpass) const
+		{
+			SFM_ASSERT(lowpass >= 0.f && lowpass <= 1.f);
+			return SVF_CutoffToHz(lowpass*0.95f + 0.05f, m_Nyquist); // Avoid full cut
+		}
+
+		float HighpassToHz(float highpass) const
+		{
+			SFM_ASSERT(highpass >= 0.f && highpass <= 1.f);
+			return SVF_CutoffToHz((1.f-highpass)*0.95f, m_Nyquist); // Avoid full cut
 		}
 	
 	public:
@@ -223,10 +235,10 @@ namespace SFM
 			m_dampening = dampening;			
 		}
 
-		SFM_INLINE void SetPreDelay(float timeInSec)
+		SFM_INLINE void SetPreDelay(float preDelay)
 		{
-			SFM_ASSERT(timeInSec >= 0.f && timeInSec <= kReverbPreDelayMax);
-			m_preDelay = timeInSec;
+			SFM_ASSERT(preDelay >= 0.f && preDelay <= 1.f);
+			m_preDelay = preDelay;
 		}
 
 		// Samples are read & written sequentially so one buffer per channel suffices

@@ -65,7 +65,7 @@ namespace SFM
 			const float RMS = sqrtf(sum/m_numSamples);
 			FloatAssert(RMS);
 
-			return (0.f != RMS) ? Lin2dB(RMS) : kInfVolumedB;
+			return (0.f != RMS) ? Lin2dB(RMS) : kInfdB;
 		}
 
 		void Reset()
@@ -106,7 +106,7 @@ namespace SFM
 		SFM_INLINE float GetdB() const
 		{
 			const float peakEnv = m_peak;
-			return (0.f != peakEnv) ? Lin2dB(peakEnv) : kInfVolumedB;
+			return (0.f != peakEnv) ? Lin2dB(peakEnv) : kInfdB;
 		}
 
 		SFM_INLINE void SetAttack(float attackInSec)

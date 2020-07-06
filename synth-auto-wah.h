@@ -35,7 +35,7 @@ namespace SFM
 			m_sampleRate(sampleRate), m_Nyquist(Nyquist)
 //,			m_RMS(sampleRate, 0.005f)
 ,			m_peak(sampleRate, kMinWahAttack)
-,			m_gainEnvdB(sampleRate, kInfVolumedB)
+,			m_gainEnvdB(sampleRate, kInfdB)
 ,			m_voxSandH(sampleRate)
 ,			m_voxGhostEnv(sampleRate, 0.f)
 ,			m_curResonance(0.f, sampleRate, kDefParameterLatency)

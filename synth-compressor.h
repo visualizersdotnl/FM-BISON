@@ -30,7 +30,7 @@ namespace SFM
 ,			m_outDelayR(sampleRate, kCompMaxDelay)
 ,			m_RMS(sampleRate, kCompRMSWindowSec)
 ,			m_peak(sampleRate, kMinCompAttack)
-,			m_gainEnvdB(sampleRate, kInfVolumedB)
+,			m_gainEnvdB(sampleRate, kInfdB)
 ,			m_autoGainEnvdB(sampleRate, kCompAutoGainMS)
 //,			m_autoGainEnvdB(sampleRate, kInfVolumedB)
 ,			m_curThresholddB(kDefCompThresholddB, sampleRate, kDefParameterLatency)
@@ -78,7 +78,7 @@ namespace SFM
 
 //		FollowerEnvelope m_autoGainEnvdB;
 		SignalFollower m_autoGainEnvdB;
-		float m_autoGaindB = kInfVolumedB;
+		float m_autoGaindB = kInfdB;
 
 		// Interpolated parameters
 		InterpolatedParameter<kLinInterpolate> m_curThresholddB;

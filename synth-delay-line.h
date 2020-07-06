@@ -64,8 +64,8 @@ namespace SFM
 		}
 
 		// Delay is specified in samples relative to sample rate
-		// Write first, then read
-		SFM_INLINE float Read(float delay)
+		// ** Write first, then read **
+		SFM_INLINE float Read(float delay) const
 		{
 			const size_t from = (m_writeIdx-1-int(delay)) % m_curSize;
 			const size_t to   = (from > 0) ? from-1 : m_curSize-1;
@@ -74,9 +74,15 @@ namespace SFM
 			const float B = m_buffer[to];
 			return lerpf<float>(A, B, fraction);
 		}
+		
+		// Read to max. oldest sample in buffer (range [0..1])
+		SFM_INLINE float ReadNormalized(float delay) const
+		{
+			return Read((m_size-1)*delay);
+		}
 
-		// Same as above, but without interpolation
-		SFM_INLINE float ReadNearest(int delay)
+		// Read without interpolation
+		SFM_INLINE float ReadNearest(int delay) const
 		{
 			const size_t index = (m_writeIdx-1-delay) % m_curSize;
 			return m_buffer[index];

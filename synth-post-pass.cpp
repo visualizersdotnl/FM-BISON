@@ -237,7 +237,7 @@ namespace SFM
 			// Write to delay line
 			const float left     = effectL;
 			const float right    = effectR;
-			const float monaural = left*0.5f + right*0.5f;
+			const float monaural = 0.5f*(left+right);
 					
 			m_delayLineL.Write(left);
 			m_delayLineM.Write(monaural);
@@ -259,11 +259,11 @@ namespace SFM
 			// Filter delay (12dB)
 			float filteredL = delayL, filteredR = delayR;
 
-			const float curCutoff = CutoffToHz(m_curDelayFeedbackCutoff.Sample(), m_Nyquist);
+			const float curCutoff = SVF_CutoffToHz(m_curDelayFeedbackCutoff.Sample(), m_Nyquist);
 			m_delayFeedbackLPF.updateLowpassCoeff(curCutoff, kSVFMinFilterQ, m_sampleRate);
 			m_delayFeedbackLPF.tick(filteredL, filteredR);
 
-			const float filteredM = filteredL*0.5f + filteredR*0.5f;
+			const float filteredM = 0.5f*(filteredL+filteredR);
 
 			// Feed back into delay line
 			float curFeedbackDry = m_curDelayFeedback.Sample();
@@ -501,7 +501,7 @@ namespace SFM
 		float filteredR = sampleR;
 
 		// Cutoff & Q
-		const float cutoffHz = CutoffToHz(normCutoff, m_Nyquist);
+		const float cutoffHz = SVF_CutoffToHz(normCutoff, m_Nyquist);
 		float Q = kSVFLowestFilterQ;
 		
 		// Apply cascading filters
