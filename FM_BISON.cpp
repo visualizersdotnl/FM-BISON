@@ -133,7 +133,7 @@ namespace SFM
 		m_curAftertouch  = { 0.f, m_samplesPerBlock, kDefParameterLatency * 3.f  /* Longer */ };
 
 		/*
-			Reset parameter (slew) filters; they reduce automation/MIDI noise (by a default cut Hz, mostly)
+			Reset parameter (slew) filters; they reduce automation/MIDI noise (by a default slew in MS, mostly)
 
 			They are kept *only* in this class since they're not a pretty sight and may need to be
 			removed or overhauled for other (non) VST projects
@@ -149,7 +149,7 @@ namespace SFM
 		m_LFOBlendPS            = { sampleRatePS };
 		m_LFOModDepthPS         = { sampleRatePS };
 		m_SandHSlewRatePS       = { sampleRatePS };
-		m_cutoffPS              = { sampleRatePS }; // FIXME
+		m_cutoffPS              = { sampleRatePS, 30.f /* 30MS */ }; // This one still has some artifacts, and I can't just keep increasing the slew rate (FIXME)
 		m_resoPS                = { sampleRatePS };
 
 		m_LFORatePS.Reset(freqLFO);
@@ -1942,11 +1942,6 @@ namespace SFM
 				const size_t half = voiceIndices.size();
 				contexts[0].voiceIndices = std::vector<unsigned>(voiceIndices.begin(), voiceIndices.begin() + half);
 				contexts[1].voiceIndices = std::vector<unsigned>(voiceIndices.begin() + half, voiceIndices.end());
-				
-				// Handle voices > kSingleThreadMaxVoices
-//				const size_t remainder = voiceIndices.size()-kSingleThreadMaxVoices;
-//				contexts[0].voiceIndices = std::vector<unsigned>(voiceIndices.begin(), voiceIndices.begin() + kSingleThreadMaxVoices);
-//				contexts[1].voiceIndices = std::vector<unsigned>(voiceIndices.begin() + kSingleThreadMaxVoices, voiceIndices.end());
 
 				contexts[0].numSamples = contexts[1].numSamples = numSamples;
 
