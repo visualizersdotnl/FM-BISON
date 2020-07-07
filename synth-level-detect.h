@@ -12,6 +12,7 @@
 
 #include "synth-global.h"
 #include "synth-sidechain-envelope.h"
+#include "synth-delay-line.h"
 
 namespace SFM
 {
@@ -20,31 +21,34 @@ namespace SFM
 	public:
 		RMS(unsigned sampleRate, float lengthInSec /* Window size */) :
 			m_numSamples(unsigned(sampleRate*lengthInSec))
-,			m_buffer(new float[m_numSamples])
+,			m_line(m_numSamples)
 		{
 			SFM_ASSERT(m_numSamples > 0);
 
 			Reset();
 		}
 
-		~RMS()
-		{
-			delete[] m_buffer;
-		}
+		~RMS() {}
 	
 	private:
 		// Inserts new sample in circular buffer
 		SFM_INLINE void Add(float sampleL, float sampleR)
 		{
 			// Pick rectified max. & raise
-			const float rectMax    = GetRectifiedMaximum(sampleL, sampleR);
-			const float samplePow2 = rectMax*rectMax;
+			const float rectMax = GetRectifiedMaximum(sampleL, sampleR);
+			const float maxPow2 = rectMax*rectMax;
+			FloatAssert(maxPow2);
+			
+			// Write to delay line
+			m_line.Write(maxPow2);
 
-			FloatAssert(samplePow2);
+			// Add to and subtract last from sum
+			m_sum += maxPow2;
+			m_sum -= m_line.ReadNormalized(1.f);
 
-			// Store in (circular) buffer
-			m_buffer[m_writeIdx++] = samplePow2;
-			m_writeIdx %= m_numSamples;
+			// Snap to zero
+			if (m_sum <= kEpsilon)
+				m_sum = 0.f;
 		}
 	
 	public:
@@ -58,27 +62,23 @@ namespace SFM
 		// Calculate RMS and return dB
 		SFM_INLINE float GetdB() const
 		{
-			float sum = 0.f;
-			for (unsigned iSample = 0; iSample < m_numSamples; ++iSample)
-				sum += m_buffer[iSample];
+			if (0.f == m_sum)
+				return kInfdB;
 
-			const float RMS = sqrtf(sum/m_numSamples);
-			FloatAssert(RMS);
-
-			return (0.f != RMS) ? Lin2dB(RMS) : kInfdB;
+			const float RMS = sqrtf(m_sum/m_numSamples);
+			return Lin2dB(RMS);
 		}
 
 		void Reset()
 		{
-			memset(m_buffer, 0, m_numSamples*sizeof(float));
-			m_writeIdx = 0;
+			m_line.Reset();
 		}
 
 	private:
 		const unsigned m_numSamples;
 
-		float *m_buffer = nullptr;
-		unsigned m_writeIdx = 0;
+		DelayLine m_line;
+		float m_sum = 0.f;
 	};
 
 	class Peak
