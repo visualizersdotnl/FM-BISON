@@ -72,19 +72,6 @@ namespace SFM
 			return current;
 		}
 
-		// Delay is specified in samples relative to sample rate
-		// Allows for LFO modulation
-		SFM_INLINE float Read(float delay)
-		{
-			const size_t from = (m_writeIdx-int(delay)) % m_size;
-			const size_t to   = (from > 0) ? from-1 : m_size-1;
-			const float fraction = fracf(delay);
-			const float A = m_buffer[from];
-			const float B = m_buffer[to];
-			const float value = lerpf<float>(A, B, fraction);
-			return value;
-		}
-
 		size_t size() const { return m_size; }
 
 	private:
@@ -139,18 +126,6 @@ namespace SFM
 			++m_writeIdx;
 
 			return output;
-		}
-
-		// Delay is specified in samples relative to sample rate
-		// Allows for LFO modulation
-		SFM_INLINE float Read(float delay)
-		{
-			const size_t from = (m_writeIdx-int(delay)) % m_size;
-			const size_t to   = (from > 0) ? from-1 : m_size-1;
-			const float fraction = fracf(delay);
-			const float A = m_buffer[from];
-			const float B = m_buffer[to];
-			return lerpf<float>(A, B, fraction);
 		}
 
 		size_t size() const { return m_size; }

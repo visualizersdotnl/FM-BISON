@@ -9,8 +9,7 @@
 
 namespace SFM
 {
-	// Defaults are tuned for 44.1KHz, so we need to adjust
-	// FIXME: is linear adjustment right?
+	// Defaults are tuned for 44.1KHz, so we need to adjust (can be done linearly, since we're working in time (sample) domain)
 	SFM_INLINE static size_t ScaleNumSamples(unsigned sampleRate, size_t numSamples)
 	{
 		const float scale = sampleRate/44100.f;
@@ -49,6 +48,9 @@ namespace SFM
 	
 	constexpr float kDefaultRoomSize = 0.8f;
 	constexpr float kDefaultWidth = 2.f;
+
+	// Pre-delay line length (in seconds)
+	constexpr float kReverbPreDelayLen = 0.5f; // 500MS
 
 	Reverb::Reverb(unsigned sampleRate, unsigned Nyquist) :
 		m_sampleRate(sampleRate), m_Nyquist(Nyquist)

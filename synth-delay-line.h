@@ -91,7 +91,7 @@ namespace SFM
 		SFM_INLINE float ReadNormalized(float delay) const
 		{
 			SFM_ASSERT(delay >= 0.f && delay <= 1.f);
-			return Read(m_size*delay);
+			return Read((m_size-1)*delay);
 		}
 
 		size_t size() const { return m_size; }
