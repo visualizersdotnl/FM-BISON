@@ -1914,7 +1914,7 @@ namespace SFM
 					voiceIndices.push_back(iVoice);
 			}
 
-#if defined(DISABLE_VOICE_THREAD)
+#if defined(SFM_DISABLE_VOICE_THREAD)
 			if (true)
 #else
 			if (voiceIndices.size() <= kSingleThreadMaxVoices)
@@ -1922,7 +1922,7 @@ namespace SFM
 			{
 				// Render all voices on current thread
 				VoiceThreadContext context(parameters);
-				context.voiceIndices = voiceIndices;
+				context.voiceIndices = std::move(voiceIndices);
 				context.numSamples = numSamples;
 				context.pDestL = m_pBufL[0];
 				context.pDestR = m_pBufR[0];

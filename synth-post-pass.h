@@ -95,7 +95,7 @@ namespace SFM
 		DelayLine m_delayLineM;
 		DelayLine m_delayLineR;
 		SvfLinearTrapOptimised2 m_delayFeedbackLPF;
-		InterpolatedParameter<kLinInterpolate> m_curDelay;
+		InterpolatedParameter<kLinInterpolate> m_curDelayInSec;
 		InterpolatedParameter<kLinInterpolate> m_curDelayWet;
 		InterpolatedParameter<kLinInterpolate> m_curDelayFeedback;
 		InterpolatedParameter<kLinInterpolate> m_curDelayFeedbackCutoff;

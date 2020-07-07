@@ -33,8 +33,9 @@ namespace SFM
 	// Max. delay feedback (so as not to create an endless loop)
 	constexpr float kMaxDelayFeedback = 0.95f; // Like Ableton does, or so I've been told by Paul
 
-	// Delay line size (main delay)
+	// Delay line size (main delay) & cross bleed amount
 	constexpr float kMainDelayLineSize = kMainDelayInSec;
+	constexpr float kDelayCrossbleeding = 0.3f;
 
 	PostPass::PostPass(unsigned sampleRate, unsigned maxSamplesPerBlock, unsigned Nyquist) :
 		m_sampleRate(sampleRate), m_Nyquist(Nyquist)
@@ -43,7 +44,7 @@ namespace SFM
 ,		m_delayLineL(unsigned(sampleRate*kMainDelayLineSize))
 ,		m_delayLineM(unsigned(sampleRate*kMainDelayLineSize))
 ,		m_delayLineR(unsigned(sampleRate*kMainDelayLineSize))
-,		m_curDelay(0.f, sampleRate, kDefParameterLatency * 4.f /* Slower */)
+,		m_curDelayInSec(0.f, sampleRate, kDefParameterLatency * 4.f /* Slower */)
 ,		m_curDelayWet(0.f, sampleRate, kDefParameterLatency)
 ,		m_curDelayFeedback(0.f, sampleRate, kDefParameterLatency)
 ,		m_curDelayFeedbackCutoff(1.f, sampleRate, kDefParameterLatency)
@@ -124,10 +125,10 @@ namespace SFM
 		SFM_ASSERT(nullptr != pLeftIn  && nullptr != pRightIn);
 		SFM_ASSERT(nullptr != pLeftOut && nullptr != pRightOut);
 		SFM_ASSERT(numSamples > 0);
-		SFM_ASSERT(rateBPM >= 0.f); // FIXME
+		SFM_ASSERT(rateBPM >= 0.f);
 		SFM_ASSERT(cpRate >= 0.f && cpRate <= 1.f);
 		SFM_ASSERT(cpWet  >= 0.f && cpWet  <= 1.f);
-		SFM_ASSERT(delayInSec >= 0.f);
+		SFM_ASSERT(delayInSec >= 0.f && delayInSec <= kMainDelayInSec);
 		SFM_ASSERT(delayWet >= 0.f && delayWet <= 1.f);
 		SFM_ASSERT(delayFeedback >= 0.f && delayFeedback <= 1.f);
 		SFM_ASSERT(masterVoldB >= kMinVolumedB && masterVoldB <= kMaxVolumedB);
@@ -154,7 +155,7 @@ namespace SFM
 		 ------------------------------------------------------------------------------------------------------ */
 
 		if (true == useBPM)
-			wahRate = rateBPM; // FIXME: test this!
+			wahRate = rateBPM; // Tested, works fine!
 
 		m_wah.SetParameters(wahResonance, wahAttack, wahHold, wahRate, wahDrivedB, wahSpeak, wahSpeakVowel, wahSpeakVowelMod, wahSpeakGhost, wahSpeakCut, wahSpeakReso, wahCut, wahWet);
 		m_wah.Apply(m_pBufL, m_pBufR, numSamples, false == useBPM);
@@ -190,7 +191,7 @@ namespace SFM
 		const float delay = (false == useBPM) ? delayInSec : 1.f/rateBPM;
 		SFM_ASSERT(delay >= 0.f && delay <= kMainDelayInSec);
 
-		m_curDelay.SetTarget(delay);
+		m_curDelayInSec.SetTarget(delay);
 		m_curDelayWet.SetTarget(delayWet);
 		m_curDelayFeedback.SetTarget(delayFeedback);
 		m_curDelayFeedbackCutoff.SetTarget(delayFeedbackCutoff);
@@ -231,8 +232,8 @@ namespace SFM
 			effectFunc(sampleL, sampleR, effectL, effectR, effectWet);
 
 			// Apply delay
-			const float curDelay = m_curDelay.Sample();
-			SFM_ASSERT(curDelay >= 0.f && curDelay <= kMainDelayInSec);
+			const float curDelayInSec = m_curDelayInSec.Sample();
+			SFM_ASSERT(curDelayInSec >= 0.f && curDelayInSec <= kMainDelayInSec);
 
 			// Write to delay line
 			const float left     = effectL;
@@ -244,13 +245,13 @@ namespace SFM
 			m_delayLineR.Write(right);
 			
 			// Sample delay line
-			const float delaySamples = m_sampleRate*curDelay;
-			const float delayedL = m_delayLineL.Read(delaySamples);
-			const float delayedM = m_delayLineM.Read(delaySamples);
-			const float delayedR = m_delayLineR.Read(delaySamples);
+			const float curDelay = curDelayInSec/kMainDelayInSec;
+			const float delayedL = m_delayLineL.ReadNormalized(curDelay);
+			const float delayedM = m_delayLineM.ReadNormalized(curDelay);
+			const float delayedR = m_delayLineR.ReadNormalized(curDelay);
 			
 			// Bleed delay samples a bit
-			constexpr float crossBleedAmt = 0.3f;
+			constexpr float crossBleedAmt = kDelayCrossbleeding;
 			constexpr float invCrossBleedAmt = 1.f-crossBleedAmt;
 			const float crossBleed = delayedM;
 			const float delayL = delayedL*invCrossBleedAmt + crossBleed*crossBleedAmt;

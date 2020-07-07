@@ -3,6 +3,11 @@
 	FM. BISON hybrid FM synthesis -- Fractional delay line w/feeedback.
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
+
+	A few rules:
+	- Always write first, then read and write feedback
+	- Read() and ReadNearest() will wrap around
+	- ReadNormalized() reads up to the line's size (i.e. the very last written sample)
 */
 
 #pragma once
@@ -44,7 +49,8 @@ namespace SFM
 			SFM_ASSERT(numSamples > 0 && numSamples <= m_size);
 			m_curSize = numSamples;
 
-			m_writeIdx = 0;
+			// If it's a larger buffer things stay as they are, otherwise it may wrap around
+			m_writeIdx = m_writeIdx % m_curSize;
 		}
 
 		SFM_INLINE void Write(float sample)
@@ -63,8 +69,7 @@ namespace SFM
 			m_buffer[index] = newSample;
 		}
 
-		// Delay is specified in samples relative to sample rate
-		// ** Write first, then read **
+		// Delay is specified in (fractional) number of samples
 		SFM_INLINE float Read(float delay) const
 		{
 			const size_t from = (m_writeIdx-1-int(delay)) % m_curSize;
@@ -74,18 +79,19 @@ namespace SFM
 			const float B = m_buffer[to];
 			return lerpf<float>(A, B, fraction);
 		}
-		
-		// Read to max. oldest sample in buffer (range [0..1])
-		SFM_INLINE float ReadNormalized(float delay) const
-		{
-			return Read((m_size-1)*delay);
-		}
 
 		// Read without interpolation
 		SFM_INLINE float ReadNearest(int delay) const
 		{
 			const size_t index = (m_writeIdx-1-delay) % m_curSize;
 			return m_buffer[index];
+		}
+		
+		// Read using normalized range [0..1]
+		SFM_INLINE float ReadNormalized(float delay) const
+		{
+			SFM_ASSERT(delay >= 0.f && delay <= 1.f);
+			return Read(m_size*delay);
 		}
 
 		size_t size() const { return m_size; }

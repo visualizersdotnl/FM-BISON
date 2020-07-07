@@ -61,8 +61,8 @@ namespace SFM
 ,		m_curRoomSize(0.f, sampleRate, kDefParameterLatency)
 ,		m_curDampening(0.f, sampleRate, kDefParameterLatency)
 ,		m_curPreDelay(0.f, sampleRate, kDefParameterLatency*3.f)
-,		m_curLP(LowpassToHz(kDefReverbFilter), sampleRate, kDefParameterLatency)
-,		m_curHP(HighpassToHz(kDefReverbFilter), sampleRate, kDefParameterLatency)
+,		m_curPreLPF_Fc(LowpassToFc(kDefReverbFilter), sampleRate, kDefParameterLatency)
+,		m_curPreHPF_Fc(HighpassToFc(kDefReverbFilter), sampleRate, kDefParameterLatency)
 	{
 		// Semi-fixed
 		static_assert(8 == kReverbNumCombs);
@@ -109,8 +109,9 @@ namespace SFM
 			m_allPassesR[iAllPass].SetSizeAndBuffer(size+stereoSpread, pCur+size);
 			offset += size + (size+stereoSpread);
 		}
-
-		Reset();
+		
+		// Clear buffer
+		memset(m_buffer, 0, m_totalBufSize);
 	}
 
 	constexpr float kFixedGain = 0.015f; // Taken from ref. implementation 
@@ -129,8 +130,8 @@ namespace SFM
 		m_curDampening.SetTarget(m_dampening);
 		m_curPreDelay.SetTarget(m_preDelay);
 
-		m_curLP.SetTarget(LowpassToHz(lowpass));
-		m_curHP.SetTarget(HighpassToHz(highpass));
+		m_curPreLPF_Fc.SetTarget(LowpassToFc(lowpass));
+		m_curPreHPF_Fc.SetTarget(HighpassToFc(highpass));
 
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
@@ -150,21 +151,18 @@ namespace SFM
 			float outR = 0.f;
 
 			// Mix to monaural & filter
-			m_preLPF.updateLowpassCoeff(m_curLP.Sample(), kSVF12dBFalloffQ, m_sampleRate);
-			m_preHPF.updateHighpassCoeff(m_curHP.Sample(), kSVF12dBFalloffQ, m_sampleRate);
-
 			/* const */ float monaural = 0.5f*(inL+inR);
 
-			float mixLPF = monaural, mixHPF = monaural;
-			m_preLPF.tickMono(mixLPF);
-			m_preHPF.tickMono(mixHPF);
+			m_preLPF.SetCutoff(m_curPreLPF_Fc.Sample());
+			m_preHPF.SetCutoff(m_curPreHPF_Fc.Sample());
+			const float mixLPF = m_preLPF.Apply(monaural);
+			const float mixHPF = m_preHPF.Apply(monaural);
 
 			monaural = 0.5f*(mixLPF+mixHPF);
 
 			// Apply pre-delay			
 			m_preDelayLine.Write(monaural);
-//			monaural = m_preDelayLine.ReadNormalized(m_curPreDelay.Sample()) * kFixedGain;
-			monaural = m_preDelayLine.Read(m_sampleRate*m_curPreDelay.Sample()*kReverbPreDelayLen) * kFixedGain; // Sounds less dry
+			monaural = m_preDelayLine.ReadNormalized(m_curPreDelay.Sample()) * kFixedGain;
 
 			// Accumulate comb filters in parallel
 			const float dampening = m_curDampening.Sample();
@@ -195,13 +193,6 @@ namespace SFM
 			// Mix
 			const float left  = outL*wet1 + outR*wet2 + inL*dry;
 			const float right = outR*wet1 + outL*wet2 + inR*dry;
-
-			if (GetRectifiedMaximum(left, right) <= kEpsilon)
-			{
-				// Reset filters (FIXME: hack to stabilize continuous SVF filter w/o oversampling)
-				m_preLPF.resetState();
-				m_preHPF.resetState();
-			}
 
 			*pLeft++  = left;
 			*pRight++ = right;

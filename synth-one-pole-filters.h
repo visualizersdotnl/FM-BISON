@@ -92,7 +92,7 @@ namespace SFM
 	void SetCutoff(float Fc)
 	{
 		SFM_ASSERT(Fc >= 0.f && Fc <= 1.f);
-		m_cutoff = -expf(-2.f*kPI*(1.f-Fc));
+		m_cutoff = -expf(-2.f*kPI*(0.5f-Fc));
 		m_gain = 1.f+m_cutoff;
 	}
 

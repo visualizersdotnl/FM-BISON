@@ -6,17 +6,16 @@
 
 	FIXME:
 		- Supply all parameters at once using a single SetParameters() function
-		- Consider using Will Pirkle's algorithm (refer to book)
+		- Better LPF+HPF filter mix
 */
 
 #pragma once
-
-#include "3rdparty/SvfLinearTrapOptimised2.hpp"
 
 #include "synth-global.h"
 #include "synth-oscillator.h"
 #include "synth-interpolated-parameter.h"
 #include "synth-delay-line.h"
+#include "synth-one-pole-filters.h"
 
 namespace SFM
 {
@@ -180,34 +179,17 @@ namespace SFM
 		}
 
 	private:
-		SFM_INLINE void Reset()
-		{
-			memset(m_buffer, 0, m_totalBufSize);
-
-			m_preLPF.resetState();
-			m_preHPF.resetState();
-			
-			m_curWet.Set(0.f);
-			m_curWidth.Set(kMinReverbWidth);
-			m_curRoomSize.Set(0.f);
-			m_curDampening.Set(0.f);
-
-			const float cutNorm = kDefReverbFilter;
-			m_curLP.Set(LowpassToHz(cutNorm));
-			m_curHP.Set(HighpassToHz(cutNorm));	
-		}
-
-		SFM_INLINE float LowpassToHz(float lowpass) const
+		SFM_INLINE float LowpassToFc(float lowpass) const
 		{
 			SFM_ASSERT(lowpass >= 0.f && lowpass <= 1.f);
-			return SVF_CutoffToHz(lowpass, m_Nyquist);
+			return (lowpass*m_Nyquist)/m_sampleRate;
 		}
 
-		SFM_INLINE float HighpassToHz(float highpass) const
+		SFM_INLINE float HighpassToFc(float highpass) const
 		{
 			SFM_ASSERT(highpass >= 0.f && highpass <= 1.f);
-			return SVF_CutoffToHz(1.f-highpass, m_Nyquist);
-		}
+			return ((1.f-highpass)*m_Nyquist)/m_sampleRate;
+ 		}
 	
 	public:
 		SFM_INLINE void SetWidth(float width)
@@ -247,10 +229,12 @@ namespace SFM
 	private:
 		const unsigned m_sampleRate;
 		const unsigned m_Nyquist;
+		const unsigned m_NyquistAt44100 = 44100/2;
 
 		DelayLine m_preDelayLine;
 
-		SvfLinearTrapOptimised2 m_preLPF, m_preHPF;
+		LowpassFilter m_preLPF;
+		HighpassFilter m_preHPF;
 
 		ReverbComb m_combsL[kReverbNumCombs], m_combsR[kReverbNumCombs];
 		ReverbAllPass m_allPassesL[kReverbNumAllPasses], m_allPassesR[kReverbNumAllPasses];
@@ -267,7 +251,7 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curRoomSize;
 		InterpolatedParameter<kLinInterpolate> m_curDampening;
 		InterpolatedParameter<kLinInterpolate> m_curPreDelay;
-		InterpolatedParameter<kLinInterpolate> m_curLP, m_curHP;
+		InterpolatedParameter<kLinInterpolate> m_curPreLPF_Fc, m_curPreHPF_Fc;
 
 		// Single buffer is used for all passes, this likely favors cache (FIXME: check)
 		size_t m_totalBufSize;
