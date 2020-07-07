@@ -5,6 +5,7 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 */
 
+// Include JUCE (for juce::SmoothedValue)
 #include "../FM-BISON-internal-plug-in/JuceLibraryCode/JuceHeader.h"
 
 #include "synth-auto-wah.h"

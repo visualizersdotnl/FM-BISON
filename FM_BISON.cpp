@@ -1719,7 +1719,7 @@ namespace SFM
 
 		if (numSamples > m_samplesPerBlock)
 		{
-			// JUCE didn't keep it's promise, or so I think
+			// According to JUCE's documentation this *can* occur, but I don't think it ever does (nor should)
 			SFM_ASSERT(false);
 			return;
 		}

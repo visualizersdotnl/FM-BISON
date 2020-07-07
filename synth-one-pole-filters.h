@@ -127,8 +127,6 @@ namespace SFM
 	{
 		m_filterA.Reset(value);
 		m_filterB.Reset(value);
-
-		m_current = 0.f;
 	}
 
 	void SetCutoff(float Fc)
@@ -139,24 +137,22 @@ namespace SFM
 
 	SFM_INLINE float Apply(float input)
 	{
-		m_current = m_filterB.Apply(m_filterA.Apply(input));
-		return m_current;
+		return m_filterB.Apply(m_filterA.Apply(input));
 	}
 
 	SFM_INLINE float Get() const
 	{
-		return m_current;
+		return m_filterB.Get();
 	}
 
 	private:
 		LowpassFilter m_filterA;
 		LowpassFilter m_filterB;
-
-		float m_current = 0.f;
 	};
 
 	/* Low cut (stereo) */
-	
+
+#if 0	
 	class LowBlocker 
 	{
 	public:
@@ -196,6 +192,37 @@ namespace SFM
 
 		float m_feedbackL; 
 		float m_feedbackR;
+	};
+#endif
+
+	class LowBlocker 
+	{
+	public:
+		LowBlocker(float lowCutHz, unsigned sampleRate)
+		{
+			SFM_ASSERT(lowCutHz > 0.f && sampleRate > 0);
+			
+			const float Fc = lowCutHz/sampleRate;
+			m_filterL.SetCutoff(Fc);
+			m_filterR.SetCutoff(Fc);
+		}
+	
+		~LowBlocker() {}
+
+		SFM_INLINE void Reset()
+		{
+			m_filterL.Reset(0.f);
+			m_filterR.Reset(0.f);
+		}
+	
+		SFM_INLINE void Apply(float& left, float& right)
+		{
+			left =  m_filterL.Apply(left);
+			right = m_filterR.Apply(right);
+		}
+
+	private:
+		HighpassFilter m_filterL, m_filterR;
 	};
 
 	/* DC blocker (incl. stereo) */

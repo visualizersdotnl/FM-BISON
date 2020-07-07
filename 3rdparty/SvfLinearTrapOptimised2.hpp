@@ -1,18 +1,13 @@
 
 //
 // Modified to fit FM. BISON:
-// - Fitted to compile without dependencies
-// - Stereo support (retained monaural mode, see tickMono())
-// - Added a few setup functions
-// - Stability assertions
-// - Added a few smaller update functions for specific filter types
+// - Removed external dependencies
+// - Stereo support (single channel retained, see tickMono())
+// - Added a few quick setup functions
 // - Added getFilterType()
-// - A stable Q range of [0.025..40] is gauranteed (according to original author), but a default and minimum of 0.5 enhances stability without oversampling (for now)
-//
-// FIXME:
-// - Adapt another SVF implementation and do some more homework, this one has proven not to be very stable in practice
-// - Ref. https://www.earlevel.com/main/2003/03/02/the-digital-state-variable-filter/
-// - Forget about using the fast (single precision) trigonometry functions, we're on thin ice as it is
+// - A stable Q range of [0.025..40] is gauranteed (according to original author), but a default and minimum of 0.5 enhances stability w/o oversampling
+// - As we're on thin ice as it is, don't go and use any fast trigonometry approximation functions
+// - Filter is prone to blowing up when ran continuously (at least w/o oversampling)
 //
 
 //  SvfLinearTrapOptimised2.hpp
@@ -84,7 +79,7 @@ public:
 		_coef.update(cutoff, q, type, sampleRate);
 	}
 
-	// Quicker versions for PostPass::Apply() & Reverb::Apply()
+	// A few quick update functions
 	SFM_INLINE void updateAllpassCoeff(double cutoff, double q, double sampleRate) {
 		_coef.updateAllpass(cutoff, q, sampleRate);
 	}
@@ -135,19 +130,12 @@ public:
 		const double v0_right = tickImpl(right, _v1_right, _v2_right, _v3_right, _ic1eq_right, _ic2eq_right);
 		left  = float(v0_left);
 		right = float(v0_right);
-
-		// Check if filter hasn't blown up
-		SFM::FloatAssert(left);
-		SFM::FloatAssert(right);
 	}
 	
 	// Do *not* mix with stereo tick() call without first calling resetState()
 	SFM_INLINE void tickMono(float &sample) {
 		const double filtered = tickImpl(sample, _v1_left,  _v2_left,  _v3_left,  _ic1eq_left,  _ic2eq_left);
 		sample = float(filtered);
-
-		// Same as in tick()
-		SFM::FloatAssert(sample);
 	}
 
 	// Returns (latest) filter type
@@ -163,7 +151,6 @@ private:
 			_A = _ASqrt = 1;
 		}
 
-		// Added for PostPass::Apply()
 		SFM_INLINE void updateAllpass(double cutoff, double q, double sampleRate)
 		{
 			double g = tan((cutoff / sampleRate) * SFM::kPI);
@@ -177,7 +164,6 @@ private:
 			_type = SvfLinearTrapOptimised2::ALL_PASS_FILTER;
 		}
 
-		// Added for Reverb::Apply()
 		SFM_INLINE void updateLowpass(double cutoff, double q, double sampleRate)
 		{
 			double g = tan((cutoff / sampleRate) * SFM::kPI);
@@ -191,7 +177,6 @@ private:
 			_type = SvfLinearTrapOptimised2::LOW_PASS_FILTER;
 		}
 
-		// Added for Reverb::Apply()
 		SFM_INLINE void updateHighpass(double cutoff, double q, double sampleRate)
 		{
 			const double g = tan((cutoff / sampleRate) * SFM::kPI);

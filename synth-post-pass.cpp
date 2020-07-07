@@ -81,7 +81,7 @@ namespace SFM
 ,		m_wah(sampleRate, Nyquist)
 ,		m_reverb(sampleRate, Nyquist)
 ,		m_compressor(sampleRate)
-,		m_compressorBite(5.f / (sampleRate/maxSamplesPerBlock))
+,		m_compressorBiteLPF(5.f / (sampleRate/maxSamplesPerBlock))
 		
 		// CP wetness & master volume
 ,		m_curEffectWet(0.f, sampleRate, kDefParameterLatency)
@@ -397,13 +397,13 @@ namespace SFM
 		 ------------------------------------------------------------------------------------------------------ */
 
 		 m_compressor.SetParameters(compThresholddB, compKneedB, compRatio, compGaindB, compAttack, compRelease, compLookahead);
-		 m_compressorBite.Apply(m_compressor.Apply(m_pBufL, m_pBufR, numSamples, compAutoGain, compRMSToPeak));
+		 m_compressorBiteLPF.Apply(m_compressor.Apply(m_pBufL, m_pBufR, numSamples, compAutoGain, compRMSToPeak));
 
 #endif
 
 		/* ----------------------------------------------------------------------------------------------------
 
-			Final pass: DC blocker & low blocker, master volume, safety clamp
+			Final pass: blockers, master volume, safety clamp
 
 		 ------------------------------------------------------------------------------------------------------ */
 
@@ -415,8 +415,8 @@ namespace SFM
 			float sampleL = m_pBufL[iSample];
 			float sampleR = m_pBufR[iSample];
 
+			m_lowBlocker.Apply(sampleL, sampleR);
 			m_DCBlocker.Apply(sampleL, sampleR);
-//			m_lowBlocker.Apply(sampleL, sampleR);
 
 			const float gain = dB2Lin(m_curMasterVoldB.Sample());
 			sampleL *= gain;

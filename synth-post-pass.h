@@ -58,7 +58,7 @@ namespace SFM
 		// Intended for a graphical indicator
 		float GetCompressorBite() const
 		{
-			return m_compressorBite.Get();
+			return m_compressorBiteLPF.Get();
 		}
 
 	private:
@@ -142,7 +142,7 @@ namespace SFM
 		Compressor m_compressor;
 
 		// Exposed to be used, chiefly, as indicator
-		LowpassFilter12dB m_compressorBite;
+		LowpassFilter12dB m_compressorBiteLPF;
 
 		// Misc.
 		InterpolatedParameter<kLinInterpolate> m_curEffectWet;
