@@ -39,7 +39,7 @@ namespace SFM
 					// aliasing going on but that's part of the JP-8000 charm, or so I've read :-)
 
 					const float filterFreq    = m_phases[3].GetFrequency(); // Fundamental harmonic
-					constexpr double filterQ  = kSVFMinFilterQ;
+					constexpr double filterQ  = kSVF12dBFalloffQ; // kSVFMinFilterQ;
 					const unsigned sampleRate = GetSampleRate();
 					
 					// First phase & pitch already available

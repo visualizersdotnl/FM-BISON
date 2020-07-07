@@ -608,7 +608,7 @@ namespace SFM
 
 		case PatchOperators::Operator::kAllPassFilter:
 			{
-				// Track towards middle
+				// Track towards middle (FIXME: verify)
 				cutoffNorm = lerpf<float>(patchOp.cutoff, 0.5f, CalcCutoffTracking(key, patchOp));
 
 				for (unsigned iAllpass = 0; iAllpass < kNumVoiceAllpasses; ++iAllpass)

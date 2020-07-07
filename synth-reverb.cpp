@@ -150,9 +150,8 @@ namespace SFM
 			float outR = 0.f;
 
 			// Mix to monaural & filter
-			constexpr double defQ = 0.5;
-			m_preLPF.updateLowpassCoeff(m_curLP.Sample(), defQ, m_sampleRate);
-			m_preHPF.updateHighpassCoeff(m_curHP.Sample(), defQ, m_sampleRate);
+			m_preLPF.updateLowpassCoeff(m_curLP.Sample(), kSVF12dBFalloffQ, m_sampleRate);
+			m_preHPF.updateHighpassCoeff(m_curHP.Sample(), kSVF12dBFalloffQ, m_sampleRate);
 
 			/* const */ float monaural = 0.5f*(inL+inR);
 

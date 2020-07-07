@@ -12,10 +12,10 @@
 namespace SFM
 {
 	// Local constant parameters (I've got enough paramaters as it is!)
-	constexpr double kPreLowCutQ    =   0.5; // Q (SVF range)
-	constexpr float  kLPResoMin     = 0.01f; // Q (normalized)
-	constexpr float  kLPResoMax     =  0.6f; //
-	constexpr float  kLPCutLFORange = 0.95f; // LFO cutoff range (normalized)
+	constexpr double kPreLowCutQ    = kSVF12dBFalloffQ; // Q (SVF range)
+	constexpr float  kLPResoMin     = 0.01f;            // Q (normalized)
+	constexpr float  kLPResoMax     =  0.6f;            //
+	constexpr float  kLPCutLFORange = 0.95f;            // LFO cutoff range (normalized)
 
 	constexpr float  kVoxRateScale  =   2.f; // Rate ratio: vox. S&H
 	constexpr float  kCutRateScale  = 0.25f; // Rate ratio: cutoff modulation
@@ -104,6 +104,23 @@ namespace SFM
 			const float signaldB  = m_peak.Run(sampleL, sampleR);
 			const float envGaindB = m_gainEnvdB.Apply(signaldB);
 			const float envGain   = dB2Lin(envGaindB);
+
+			if (envGain <= kEpsilon)
+			{
+				// Reset LFO
+				m_LFO.Reset();
+
+				// Reset filters (FIXME: hack to stabilize continuous SVF filter w/o oversampling)
+				m_preFilterHP.resetState();
+				m_postFilterLP.resetState();
+
+				// Reset 'Vox' objects
+				m_voxOscPhase.Reset(); // S&H phase
+				m_voxSandH.Reset();    // S&H state
+//				m_voxGhostEnv.Reset(); // Ghost follower
+				m_voxLPF.resetState(); // Reset filter (FIXME: see above)
+//				m_vowelizerV1.Reset(); // Reset coefficients
+			}
 
 			// Cut off high end: that's what we'll work with
 			float preFilteredL = sampleL, preFilteredR = sampleR;
@@ -205,23 +222,6 @@ namespace SFM
 
 			filteredL = lerpf<float>(filteredL, vowelL, voxWet);
 			filteredR = lerpf<float>(filteredR, vowelR, voxWet);
-
-			if (GetRectifiedMaximum(filteredL, filteredR) <= kEpsilon) // Sidechain dB below or equal to epsilon?
-			{
-				// Reset LFO
-				m_LFO.Reset();
-
-				// Reset filters (FIXME: hack to stabilize continuous SVF filter w/o oversampling)
-				m_preFilterHP.resetState();
-				m_postFilterLP.resetState();
-
-				// Reset 'Vox' objects
-				m_voxOscPhase.Reset(); // S&H phase
-				m_voxSandH.Reset();    // S&H state
-				m_voxGhostEnv.Reset(); // Ghost follower
-				m_voxLPF.resetState(); // Reset SVF (FIXME: see above)
-				m_vowelizerV1.Reset(); // Reset coefficients
-			}
 
 			/*
 				Final mix

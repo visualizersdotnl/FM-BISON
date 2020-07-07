@@ -197,16 +197,16 @@ namespace SFM
 			m_curHP.Set(HighpassToHz(cutNorm));	
 		}
 
-		float LowpassToHz(float lowpass) const
+		SFM_INLINE float LowpassToHz(float lowpass) const
 		{
 			SFM_ASSERT(lowpass >= 0.f && lowpass <= 1.f);
-			return SVF_CutoffToHz(lowpass*0.95f + 0.05f, m_Nyquist); // Avoid full cut
+			return SVF_CutoffToHz(lowpass, m_Nyquist);
 		}
 
-		float HighpassToHz(float highpass) const
+		SFM_INLINE float HighpassToHz(float highpass) const
 		{
 			SFM_ASSERT(highpass >= 0.f && highpass <= 1.f);
-			return SVF_CutoffToHz((1.f-highpass)*0.95f, m_Nyquist); // Avoid full cut
+			return SVF_CutoffToHz(1.f-highpass, m_Nyquist);
 		}
 	
 	public:

@@ -143,8 +143,8 @@ namespace SFM
 	constexpr float kMainCutoffAftertouchRange = 0.66f; // Limits aftertouch cutoff to avoid that low range of the cutoff that's not allowed (SVF, < 16.0), which may cause filter instability
 	constexpr float kDefMainFilterResonance    =   0.f; // Filter's default normalized resonance
 
-	// I've read that this particular Q should result in a 12dB per octave falloff, but I need to try and analyze that to be sure (FIXME)
-	constexpr float kSVFStandardFalloffQ = 0.707106769f; // 1 / Square root of 2 (see https://github.com/juce-framework/JUCE/blob/master/modules/juce_dsp/processors/juce_StateVariableFilter.h)
+	// This particular Q should result in a 12dB per octave falloff, but I need to try and analyze that to be sure (FIXME)
+	constexpr float kSVF12dBFalloffQ = 0.707106769f; // = 1.f/sqrtf(2.f) -> see https://github.com/juce-framework/JUCE/blob/master/modules/juce_dsp/processors/juce_StateVariableFilter.h
 	
 	// Normalized resonance range is limited for a smoother "knob feel" for the main voice filter
 	constexpr float kDefMainFilterResonanceLimit = 0.6f;

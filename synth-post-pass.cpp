@@ -260,7 +260,7 @@ namespace SFM
 			float filteredL = delayL, filteredR = delayR;
 
 			const float curCutoff = SVF_CutoffToHz(m_curDelayFeedbackCutoff.Sample(), m_Nyquist);
-			m_delayFeedbackLPF.updateLowpassCoeff(curCutoff, kSVFMinFilterQ, m_sampleRate);
+			m_delayFeedbackLPF.updateLowpassCoeff(curCutoff, kSVF12dBFalloffQ, m_sampleRate);
 			m_delayFeedbackLPF.tick(filteredL, filteredR);
 
 			// Reset filter (FIXME: hack to stabilize continuous SVF filter w/o oversampling)
@@ -324,9 +324,8 @@ namespace SFM
 
 		// Apply post filter & tube distortion
 
-		// Anti-aliasing filter (according to Redmon this cutoff is near ideal in terms of stability)
-		// It has also proven to eliminate some unwanted harmonics in the higher end of the spectrum as a bonus
-		m_tubeFilterAA.updateLowpassCoeff(m_oversamplingRate/4, kSVFLowestFilterQ, m_oversamplingRate); 
+		// Anti-aliasing filter (performed on entire signal to cut off all harmonics above the host sample rate)
+		m_tubeFilterAA.updateLowpassCoeff(m_oversamplingRate/4, kSVF12dBFalloffQ, m_oversamplingRate); 
 
 		for (unsigned iSample = 0; iSample < numOversamples; ++iSample)
 		{
@@ -360,16 +359,19 @@ namespace SFM
 			
 			// Remove DC offset
 			m_tubeDCBlocker.Apply(filteredL, filteredR);
-				
-			// Remove (most if not all) aliasing
-			m_tubeFilterAA.tick(filteredL, filteredR);
-
+			
 			// Mix them
 			sampleL += postSampleL*curPostWet;
 			sampleR += postSampleR*curPostWet;
 				
-			pOverL[iSample] = lerpf<float>(sampleL, sampleL+filteredL, amount);
-			pOverR[iSample] = lerpf<float>(sampleR, sampleR+filteredR, amount);
+			sampleL = lerpf<float>(sampleL, sampleL+filteredL, amount);
+			sampleR = lerpf<float>(sampleR, sampleR+filteredR, amount);
+
+			// Remove aliasing (originally meant for tube dist., but best applied to clean up entire signal)
+			m_tubeFilterAA.tick(sampleL, sampleR);
+
+			pOverL[iSample] = sampleL;
+			pOverR[iSample] = sampleR;
 		}
 
 		// Downsample result
@@ -506,7 +508,7 @@ namespace SFM
 
 		// Cutoff & Q
 		const float cutoffHz = SVF_CutoffToHz(normCutoff, m_Nyquist);
-		float Q = kSVFLowestFilterQ;
+		float Q = kSVFLowestFilterQ; // FIXME: use higher Q?
 		
 		// Apply cascading filters
 		for (auto &filter : m_allpassFilters)
@@ -515,7 +517,7 @@ namespace SFM
 			filter.tick(filteredL, filteredR);
 
 			// Adds a little "space"
-			Q += Q*0.1f;
+			Q += Q;
 		}
 		
 		// Mix result with dry signal
