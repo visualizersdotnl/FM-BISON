@@ -94,12 +94,6 @@ namespace SFM
 		// Initialize JUCE (over)sampling objects
 		m_oversamplingL.initProcessing(maxSamplesPerBlock);
 		m_oversamplingR.initProcessing(maxSamplesPerBlock);
-
-		// Reset tube distortion AA filter
-		m_tubeFilterAA.resetState();
-
-		// Reset delay feedback filter
-		m_delayFeedbackLPF.resetState();
 	}
 
 	PostPass::~PostPass()
@@ -258,15 +252,12 @@ namespace SFM
 			const float delayR = delayedR*invCrossBleedAmt + crossBleed*crossBleedAmt;
 
 			// Filter delay
-			float filteredL = delayL, filteredR = delayR;
+			const float curFc = (m_curDelayFeedbackCutoff.Sample() * m_Nyquist/8)/m_sampleRate; // Limited range (8th of Nyquist) gives a more pronounced effect
+			m_delayFeedbackLPF_L.SetCutoff(curFc);
+			m_delayFeedbackLPF_R.SetCutoff(curFc);
 
-			const float curCutoff = SVF_CutoffToHz(m_curDelayFeedbackCutoff.Sample(), m_Nyquist);
-			m_delayFeedbackLPF.updateLowpassCoeff(curCutoff, kSVF12dBFalloffQ, m_sampleRate);
-			m_delayFeedbackLPF.tick(filteredL, filteredR);
-
-			// Reset filter (FIXME: hack to stabilize continuous SVF filter w/o oversampling)
-			if (GetRectifiedMaximum(filteredL, filteredR) <= kEpsilon)
-				m_delayFeedbackLPF.resetState();
+			const float filteredL = m_delayFeedbackLPF_L.Apply(delayL);
+			const float filteredR = m_delayFeedbackLPF_R.Apply(delayR);
 
 			const float filteredM = 0.5f*(filteredL+filteredR);
 

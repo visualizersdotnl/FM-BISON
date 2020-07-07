@@ -96,8 +96,8 @@ namespace SFM
 		Peak m_peak;
 		FollowerEnvelope m_gainEnvdB;
 
-		SvfLinearTrapOptimised2 m_preFilterHP;
-		SvfLinearTrapOptimised2 m_postFilterLP;
+		SvfLinearTrapOptimised2 m_preFilterHPF;
+		SvfLinearTrapOptimised2 m_postFilterLPF;
 		
 		Phase m_voxOscPhase;
 		SampleAndHold m_voxSandH;

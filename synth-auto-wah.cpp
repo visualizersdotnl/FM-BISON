@@ -105,27 +105,20 @@ namespace SFM
 			const float envGaindB = m_gainEnvdB.Apply(signaldB);
 			const float envGain   = dB2Lin(envGaindB);
 
-			if (envGain <= kEpsilon)
+			if (envGain <= kInfLin) // Signal fell silent?
 			{
 				// Reset LFO
 				m_LFO.Reset();
 
-				// Reset filters (FIXME: hack to stabilize continuous SVF filter w/o oversampling)
-				m_preFilterHP.resetState();
-				m_postFilterLP.resetState();
-
-				// Reset 'Vox' objects
-				m_voxOscPhase.Reset(); // S&H phase
-				m_voxSandH.Reset();    // S&H state
-//				m_voxGhostEnv.Reset(); // Ghost follower
-				m_voxLPF.resetState(); // Reset filter (FIXME: see above)
-//				m_vowelizerV1.Reset(); // Reset coefficients
+				// Reset 'Vox' S&H
+				m_voxOscPhase.Reset(); // Phase
+				m_voxSandH.Reset();    // State
 			}
 
 			// Cut off high end: that's what we'll work with
 			float preFilteredL = sampleL, preFilteredR = sampleR;
-			m_preFilterHP.updateCoefficients(SVF_CutoffToHz(lowCut, m_Nyquist), kPreLowCutQ, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
-			m_preFilterHP.tick(preFilteredL, preFilteredR);
+			m_preFilterHPF.updateCoefficients(SVF_CutoffToHz(lowCut, m_Nyquist), kPreLowCutQ, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
+			m_preFilterHPF.tick(preFilteredL, preFilteredR);
 
 			// Store remainder to add back into mix
 			const float remainderL = sampleL-preFilteredL;
@@ -153,8 +146,8 @@ namespace SFM
 			const float normQ  = kLPResoMin + rangeQ*(1.f-sensEnvGain);
 			const float Q      = SVF_ResoToQ(normQ);             
 
-			m_postFilterLP.updateLowpassCoeff(cutoffHz, Q, m_sampleRate);
-			m_postFilterLP.tick(filteredL, filteredR);
+			m_postFilterLPF.updateLowpassCoeff(cutoffHz, Q, m_sampleRate);
+			m_postFilterLPF.tick(filteredL, filteredR);
 
 			/*
 				Add (low) remainder to signal
@@ -216,12 +209,20 @@ namespace SFM
 				}
 			}
 
-			// Use interpolated result
+			// Use interpolated result (softens up the result a little at higher sample rates)
 			vowelL = interpolatedVowelL.getNextValue();
 			vowelR = interpolatedVowelR.getNextValue();
 
 			filteredL = lerpf<float>(filteredL, vowelL, voxWet);
 			filteredR = lerpf<float>(filteredR, vowelR, voxWet);
+
+			if (GetRectifiedMaximum(filteredL, filteredR) <= kEpsilon)
+			{
+				// Reset filters (FIXME: hack to stabilize continuous SVF filter w/o oversampling)
+				m_preFilterHPF.resetState();
+				m_postFilterLPF.resetState();
+				m_voxLPF.resetState();
+			}
 
 			/*
 				Final mix

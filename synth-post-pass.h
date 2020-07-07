@@ -15,7 +15,7 @@
 #include "3rdparty/SvfLinearTrapOptimised2.hpp"
 #include "3rdparty/KrajeskiModel.h"
 
-// Include JUCE (for up- and downsampling)
+// Include JUCE (for juce::dsp::Oversampling)
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "synth-global.h"
@@ -94,7 +94,7 @@ namespace SFM
 		DelayLine m_delayLineL;
 		DelayLine m_delayLineM;
 		DelayLine m_delayLineR;
-		SvfLinearTrapOptimised2 m_delayFeedbackLPF;
+		LowpassFilter12dB m_delayFeedbackLPF_L, m_delayFeedbackLPF_R;
 		InterpolatedParameter<kLinInterpolate> m_curDelayInSec;
 		InterpolatedParameter<kLinInterpolate> m_curDelayWet;
 		InterpolatedParameter<kLinInterpolate> m_curDelayFeedback;

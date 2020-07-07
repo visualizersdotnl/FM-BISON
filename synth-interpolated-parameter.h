@@ -17,6 +17,7 @@
 
 #pragma once
 
+// Include JUCE (for juce::SmoothedValue)
 #include "../FM-BISON-internal-plug-in/JuceLibraryCode/JuceHeader.h"
 
 #include "synth-global.h"
