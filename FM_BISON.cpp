@@ -138,10 +138,9 @@ namespace SFM
 			They are kept *only* in this class since they're not a pretty sight and may need to be
 			removed or overhauled for other (non) VST projects
 
-			Their sample rate is the amount of calls it takes, approximately, to render a second
-			of audio: sample rate divided by (max.) block size
 		*/
 
+		// Their sample rate is the amount of Render() calls it takes to render a second of audio
 		const unsigned sampleRatePS = m_sampleRate/m_samplesPerBlock;
 
 		// Global
