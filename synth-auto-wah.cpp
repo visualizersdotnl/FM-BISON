@@ -5,10 +5,8 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 */
 
-// Include JUCE (for juce::SmoothedValue)
-#include "../FM-BISON-internal-plug-in/JuceLibraryCode/JuceHeader.h"
-
 #include "synth-auto-wah.h"
+#include "synth-DX7-LFO-table.h"
 
 namespace SFM
 {
@@ -16,56 +14,21 @@ namespace SFM
 	constexpr double kPreLowCutQ    = kSVF12dBFalloffQ; // Q (SVF range)
 	constexpr float  kLPResoMin     = 0.01f;            // Q (normalized)
 	constexpr float  kLPResoMax     =  0.6f;            //
-	constexpr float  kLPCutLFORange = 0.95f;            // LFO cutoff range (normalized)
+	constexpr float  kLPCutLFORange = 0.99f;            // LFO cutoff range (normalized)
 
 	constexpr float  kVoxRateScale  =   2.f; // Rate ratio: vox. S&H
 	constexpr float  kCutRateScale  = 0.25f; // Rate ratio: cutoff modulation
 	
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples, bool manualRate)
 	{
-		// This effect is big and expensive, we'll skip it if not used
-		if (0.f == m_curWet.Get() && 0.f == m_curWet.GetTarget())
-		{
-			m_curResonance.Skip(numSamples);
-			m_curAttack.Skip(numSamples);
-			m_curHold.Skip(numSamples);
-			m_curRate.Skip(numSamples);
-			m_curDrivedB.Skip(numSamples);
-			m_curResonance.Skip(numSamples);
-			m_curSpeak.Skip(numSamples);
-			m_curSpeakVowel.Skip(numSamples);
-			m_curSpeakVowelMod.Skip(numSamples);
-			m_curSpeakGhost.Skip(numSamples);
-			m_curSpeakCut.Skip(numSamples);
-			m_curSpeakReso.Skip(numSamples);
-			m_curCut.Skip(numSamples);
-			m_curWet.Skip(numSamples);
-
-			for (unsigned iSample = 0; iSample  < numSamples; ++iSample)
-			{
-				const float sampleL = pLeft[iSample];
-				const float sampleR = pRight[iSample];
-
-				// Keep running peak calc.
-				m_peak.Run(sampleL, sampleR);
-			}
-
-			// Done
-			return;
-		}
-		
-		// FIXME: VowelizerV1 has coefficients for a fixed sample rate, so we'll be simply skipping those few samples
-		//        Not the best sounding nor most elegant solution, but I'm eagerly waiting to replace it for my own
-		//        vocoder soon (FIXME)
+		// FIXME: VowelizerV1 only supports a fixed sample rate, so we'll just skip the nearest amount of samples
+		//        so it will sound nearly the same at different sample rates; must be replaced by my own vocoder soon!
 
 		const unsigned voxSampleRate = m_vowelizerV1.GetSampleRate();
 		const float voxRatio = std::max<float>(1.f, m_sampleRate/float(voxSampleRate));
-		const unsigned voxIntRatio = unsigned(roundf(voxRatio)); // Just round to the closest integer, fast and easy
+		const unsigned voxIntRatio = unsigned(roundf(voxRatio)); // Simply round to closest integer
 
-		// Borrow this class to linearly interpolate between results (should be fine with so little samples)
-		juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> interpolatedVowelL, interpolatedVowelR;
-		interpolatedVowelL.reset(voxIntRatio);
-		interpolatedVowelR.reset(voxIntRatio);
+		float vowelHoldL = 0.f, vowelHoldR = 0.f;
 
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
@@ -88,8 +51,10 @@ namespace SFM
 			m_gainEnvdB.SetAttack(curAttack*100.f); // FIXME: why does this *sound* right at one tenth of what it should be?
 			m_gainEnvdB.SetRelease(curHold*100.f);  // 
 
-			// Pick rate from DX7 table if not in BPM sync. mode
-			const float adjRate = (true == manualRate) ? MIDI_To_DX7_LFO_Hz(curRate) : curRate;
+			// BMP sync. or manual?
+			const float adjRate = (true == manualRate)
+				? MIDI_To_DX7_LFO_Hz(curRate) // Fetch rate in Hz from DX7 LFO table
+				: 2.f/curRate;                // This ratio works, tested with a metronome and delay effect with feedback enabled
 
 			m_LFO.SetFrequency(adjRate*kCutRateScale);
 
@@ -105,16 +70,6 @@ namespace SFM
 			const float signaldB  = m_peak.Run(sampleL, sampleR);
 			const float envGaindB = m_gainEnvdB.Apply(signaldB);
 			const float envGain   = dB2Lin(envGaindB);
-
-			if (envGain <= kInfLin) // Signal fell silent?
-			{
-				// Reset LFO
-				m_LFO.Reset();
-
-				// Reset 'Vox' S&H
-				m_voxOscPhase.Reset(); // Phase
-				m_voxSandH.Reset();    // State
-			}
 
 			// Cut off high end: that's what we'll work with
 			float preFilteredL = sampleL, preFilteredR = sampleR;
@@ -160,29 +115,28 @@ namespace SFM
 			/*
 				Vowelize
 
-				FIXME: until VowelizerV1 is replaced everything is calculated as usual, except for that little block below that only samples
-				       every N samples and interpolates in between because it can't handle arbitrary sample rates
+				FIXME: until VowelizerV1 is replaced, everything is calculated as usual *except* that VowelizerV1 is sampled at it's
+				       own sample rate as it's coefficients were generated for it specifically; otherwise the pitch changes drastically
+					   as the main sample rate goes up
 			*/
 
 			// Calc. vox. LFO A (sample) and B (amplitude)
 			const double voxPhase = m_voxOscPhase.Sample();
-			const float oscInput  = mt_randfc();
+			const float oscInput  = mt_randfc()*0.995f; // Evade edges
 			const float voxOsc    = m_voxSandH.Sample(voxPhase, oscInput);
 			const float toLFO     = steepstepf(voxMod);
 			const float voxLFO_A  = lerpf<float>(0.f, voxOsc, toLFO);
 			const float voxLFO_B  = lerpf<float>(1.f, fabsf(voxOsc), toLFO);
 			
 			// Calc. vox. "ghost" noise
-			const float ghostRand = mt_randf();
+			const float ghostRand = mt_randfc();
 			const float ghostSig  = ghostRand;
 			const float ghostEnv  = m_voxGhostEnv.Apply(sensEnvGain * voxLFO_B * voxGhost);
 			const float ghost     = ghostSig*ghostEnv;
 
 			// Calc. vowel
-			// I dislike frequent fmodf() calls but according to MSVC's profiler we're in the clear
-			// I add a small amount to the maximum since we need to actually reach kMaxWahSpeakVowel
-			static_assert(unsigned(kMaxWahSpeakVowel) < VowelizerV1::kNumVowels-1);
-			const float vowel = fabsf(fmodf(voxVow+voxLFO_A, kMaxWahSpeakVowel + 0.001f /* Leaks into 'U' vowel, which is quite similar */));
+			static_assert(1 + unsigned(kMaxWahSpeakVowel) < VowelizerV1::kNumVowels-1);
+			const float vowel = (1.f+voxVow) + voxLFO_A;
 		
 			// Filter and mix
 			float vowelL = filteredL + ghost, vowelR = filteredR + ghost;
@@ -191,31 +145,19 @@ namespace SFM
 			m_voxLPF.updateLowpassCoeff(SVF_CutoffToHz(voxCut, m_Nyquist), SVF_ResoToQ(voxReso), m_sampleRate);
 			m_voxLPF.tick(vowelL, vowelR);
 			
-			// FIXME
+			// Sample
 			if (0 == (iSample % voxIntRatio))
 			{
 				// Apply filter
 				m_vowelizerV1.Apply(vowelL, vowelR, vowel);
 				
-				// Set interpolators
-				if (0 != iSample)
-				{
-					interpolatedVowelL.setTargetValue(vowelL);
-					interpolatedVowelR.setTargetValue(vowelR);
-				}
-				else
-				{
-					interpolatedVowelL.setCurrentAndTargetValue(vowelL);
-					interpolatedVowelR.setCurrentAndTargetValue(vowelR);
-				}
+				// Hold values until next tick
+				vowelHoldL = vowelL;
+				vowelHoldR = vowelR;
 			}
 
-			// Use interpolated result (softens up the result a little at higher sample rates)
-			vowelL = interpolatedVowelL.getNextValue();
-			vowelR = interpolatedVowelR.getNextValue();
-
-			filteredL = lerpf<float>(filteredL, vowelL, voxWet);
-			filteredR = lerpf<float>(filteredR, vowelR, voxWet);
+			filteredL = lerpf<float>(filteredL, vowelHoldL, voxWet); // Mix with 'held' values
+			filteredR = lerpf<float>(filteredR, vowelHoldR, voxWet); //
 
 			if (GetRectifiedMaximum(filteredL, filteredR) <= kEpsilon)
 			{

@@ -1039,8 +1039,10 @@ namespace SFM
 				{
 					// Glide
 					voiceOp.amplitude.SetTarget(amplitude);
-
+					
+					const float curFreq = voiceOp.curFreq.Get();
 					voiceOp.curFreq.SetRate(m_sampleRate, voice.m_freqGlide);
+					voiceOp.curFreq.Set(curFreq);
 					voiceOp.curFreq.SetTarget(frequency);
 				}
 

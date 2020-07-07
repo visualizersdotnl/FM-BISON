@@ -276,16 +276,16 @@ namespace SFM
 	constexpr float kDefWahResonance     =   0.5f; // 50%
 	constexpr float kMinWahAttack        = 0.001f; // 1MS
 	constexpr float kMaxWahAttack        =    1.f; // 1 sec.
-	constexpr float kDefWahAttack        = 0.125f; // 125MS 
+	constexpr float kDefWahAttack        = 0.350f; // 350MS 
 	constexpr float kMinWahHold          = 0.001f; // 1MS
 	constexpr float kMaxWahHold          =    1.f; // 1 sec.
-	constexpr float kDefWahHold          =  0.25f; // 250MS
+	constexpr float kDefWahHold          =   0.4f; // 400MS
 
 	constexpr float kMinWahRate          =    0.f; // DX7 rate (synth-DX7-LFO-table.h)
-	constexpr float kMaxWahRate          =   25.f; //
-	constexpr float kDefWahRate          =  12.5f; //
+	constexpr float kMaxWahRate          =   15.f; // 
+	constexpr float kDefWahRate          =   7.5f; //
 
-	constexpr float kMinWahDrivedB       =  -12.f;
+	constexpr float kMinWahDrivedB       =  -12.f; 
 	constexpr float kMaxWahDrivedB       =   12.f;
 	constexpr float kDefWahDrivedB       =    3.f;
 

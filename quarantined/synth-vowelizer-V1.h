@@ -28,6 +28,7 @@ namespace SFM
 	public:
 		enum Vowel
 		{
+			kWrap, // Added for easy bipolar LFO modulation between kA and kO
 			kA,
 			kE,
 			kI,
@@ -38,6 +39,7 @@ namespace SFM
 
 	private:
 		double m_interpolatedCoeffs[11]; // Calculated by Apply()
+		double m_blendCoeff;             // Calculated by Reset()
 		double m_ring[2][10];            // Used by Calculate()
 
 		SFM_INLINE double Calculate(float sample, unsigned iChan)
@@ -77,19 +79,12 @@ namespace SFM
 		VowelizerV1()
 		{
 			Reset();
-
-			// Make sure AutoWah stays in range
-			static_assert(kMaxWahSpeakVowel < kNumVowels-1);
 		}
 
-		void Reset()
-		{
-			memset(m_ring[0], 0, 10*sizeof(double));
-			memset(m_ring[1], 0, 10*sizeof(double));
-		}
+		void Reset();
 		
 		// Interpolates between vowels ('vowel' range is [0..kNumVowels-1])
-		// Don't call more often per second than SampleRate()
+		// Don't call more often per second than GetSampleRate()
 		void Apply(float &sampleL, float &sampleR, float vowel, float preGain = 0.707f /* -3dB */);
 
 		unsigned GetSampleRate() const

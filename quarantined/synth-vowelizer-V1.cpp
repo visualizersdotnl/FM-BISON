@@ -9,10 +9,17 @@
 
 const double kVowelCoeffs[SFM::VowelizerV1::kNumVowels][11]= 
 {
+	// kWrap (E)
+	{
+		4.36215e-06,
+		8.90438318, -36.55179099, 91.05750846, -152.422234, 179.1170248,
+		-149.6496211, 87.78352223, -34.60687431, 8.282228154, -0.914150747
+	},
+
 	// A
 	{ 
 //		8.11044e-06,
-		3.11044e-06,
+		4.11044e-06,
 		8.943665402, -36.83889529, 92.01697887, -154.337906, 181.6233289,
 		-151.8651235, 89.09614114, -35.10298511, 8.388101016,  -0.923313471
 	},
@@ -48,27 +55,45 @@ const double kVowelCoeffs[SFM::VowelizerV1::kNumVowels][11]=
 
 namespace SFM
 {
+	constexpr float kCoeffBlendSlewMS = 5.f;
+
+	void VowelizerV1::Reset()
+	{
+		memcpy(m_interpolatedCoeffs, kVowelCoeffs[kA], 11*sizeof(double)); 
+
+		// Used to interpolate between different sets of coefficients to avoid pops
+		m_blendCoeff = exp(-1000.0 / (kCoeffBlendSlewMS*GetSampleRate())); 
+
+		memset(m_ring[0], 0, 10*sizeof(double));
+		memset(m_ring[1], 0, 10*sizeof(double));
+	}
+
 	void VowelizerV1::Apply(float &sampleL, float &sampleR, float vowel, float preGain /* = 0.707f, -3dB */)
 	{
 		sampleL *= preGain;
 		sampleR *= preGain;
 
 		// Calculate interpolated coefficients (check http://www.kvraudio.com/forum/viewtopic.php?=f=33&t=492329)
-		SFM_ASSERT(vowel >= 0.f && vowel <= 4.f);
+		SFM_ASSERT(vowel >= 0.f && vowel <= kNumVowels-1);
 
 		const unsigned indexA = unsigned(vowel) % kNumVowels;
 		const unsigned indexB = (indexA+1) % kNumVowels;
 
-		const float delta = fracf(vowel);
+		const float fraction = fracf(vowel);
+		const float delta = (indexB > indexA) ? fraction : 1.f-fraction;
 
 		const double *pA = kVowelCoeffs[indexA];
 		const double *pB = kVowelCoeffs[indexB];
 
-		const float curvedDelta = cosinterpf(0.0, 1.0, delta); // easeInOutQuintf(delta);
+		const float curvedDelta = cosinterpf(0.f, 1.f, delta);
 		SFM_ASSERT(curvedDelta >= 0.f && curvedDelta <= 1.f);
 
 		for (unsigned iCoeff = 0; iCoeff < 11; ++iCoeff)
-			m_interpolatedCoeffs[iCoeff] = lerpf<double>(*pA++, *pB++, curvedDelta);
+		{
+			const double curCoeff = m_interpolatedCoeffs[iCoeff]; 
+			const double targetCoeff = lerpf<double>(*pA++, *pB++, curvedDelta);
+			m_interpolatedCoeffs[iCoeff] = targetCoeff + m_blendCoeff*(curCoeff-targetCoeff);
+		}
 		
 		// Apply & store
 		sampleL = (float) Calculate(sampleL, 0);

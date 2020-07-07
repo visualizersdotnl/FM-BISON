@@ -13,7 +13,6 @@
 #include "synth-sidechain-envelope.h"
 #include "synth-delay-line.h"
 #include "synth-oscillator.h"
-#include "synth-DX7-LFO-table.h"
 #include "quarantined/synth-vowelizer-V1.h"
 #include "synth-interpolated-parameter.h"
 #include "synth-level-detect.h"

@@ -5,10 +5,23 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	This object is used to interpolate parameters that need per-sample interpolation in the time domain so that it 
-	will always reproduce the same effect regardless of the number of samples processed per block or the sample rate. 
-	
- 	Alternatively a fixed number of samples can be set.
+	will always reproduce the same effect regardless of the number of samples processed per block or the sample rate.
+	Alternatively a fixed number of samples can be set.
 
+	Do *always* call Set() and SetTarget() after calling SetRate() during interpolation to restore the current value
+	and set the new target. This is a bit of a design flaw in juce::SmoothedValue if you ask me.
+	
+	So what you do is:
+
+	'
+		const float curValue = interpolator.Get();
+		interpolator.SetRate(sampleRate, timeInSec);
+		interpolator.Set(curValue);
+		interpolator.SetTarget(targetValue);
+	'
+
+	I'm not fixing this as long was use juce::SmoothedValue.
+	
 	FIXME: 
 		- Replace JUCE implementation (also in other places where juce::SmoothedValue is used)
 		- I'm not entirely happy with the latter 2 constructors, the top one becomes ambiguous when I set the last

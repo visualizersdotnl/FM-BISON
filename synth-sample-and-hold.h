@@ -7,11 +7,10 @@
 
 #pragma once
 
-#include "../FM-BISON-internal-plug-in/JuceLibraryCode/JuceHeader.h"
-
 #include "synth-global.h"
 #include "synth-stateless-oscillators.h"
 #include "synth-phase.h"
+#include "synth-interpolated-parameter.h"
 
 namespace SFM
 {
@@ -20,6 +19,7 @@ namespace SFM
 	public:
 		SampleAndHold(unsigned sampleRate) :
 			m_sampleRate(sampleRate)
+,			m_curSignal(0.f, sampleRate, m_slewRate)
 		{
 			Reset();
 		}
@@ -33,15 +33,16 @@ namespace SFM
 			// Gate?
 			if (m_prevGate != curGate)
 			{
-				// Update slew rate and set input as new target
-				m_curSignal.reset(m_sampleRate, m_slewRate);
-				m_curSignal.setTargetValue(input);
+				const float curSignal = m_curSignal.Get();
+				m_curSignal.SetRate(m_sampleRate, m_slewRate);
+				m_curSignal.Set(curSignal);
+				m_curSignal.SetTarget(input);
 			}
 
 			m_prevGate = curGate;
 
 			// Slew towards target input
-			return Clamp(m_curSignal.getNextValue()); // Clamp to gaurantee output range (FIXME)
+			return Clamp(m_curSignal.Sample());
 		}
 
 		void SetSlewRate(float rateInSeconds)
@@ -53,7 +54,7 @@ namespace SFM
 		void Reset()
 		{
 			m_prevGate = -1.f;
-			m_curSignal.setCurrentAndTargetValue(0.f);
+			m_curSignal.Set(0.f);
 		}
 
 	private:
@@ -64,6 +65,6 @@ namespace SFM
 
 		// State
 		float m_prevGate = -1.f;
-		SmoothedValue<float, ValueSmoothingTypes::Linear> m_curSignal;
+		InterpolatedParameter<kLinInterpolate> m_curSignal;
 	};
 }
