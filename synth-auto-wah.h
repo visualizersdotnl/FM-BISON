@@ -97,7 +97,6 @@ namespace SFM
 		FollowerEnvelope m_gainEnvdB;
 
 		SvfLinearTrapOptimised2 m_preFilterHP;
-		SvfLinearTrapOptimised2 m_preFilterLP[3];
 		SvfLinearTrapOptimised2 m_postFilterLP;
 		
 		Phase m_voxOscPhase;

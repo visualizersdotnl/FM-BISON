@@ -167,7 +167,7 @@ namespace SFM
 		m_delayFeedbackPS       = { sampleRatePS };
 		m_delayFeedbackCutoffPS = { sampleRatePS };
 		
-		// FIXME: should I use a different rate for these?
+		// These apply to effects operating on oversampled data, but that's not relevant to ParameterSlew
 		m_tubeDistPS            = { sampleRatePS };
 		m_tubeDrivePS           = { sampleRatePS };
 		m_postCutoffPS          = { sampleRatePS };

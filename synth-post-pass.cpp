@@ -256,12 +256,16 @@ namespace SFM
 			const float delayL = delayedL*invCrossBleedAmt + crossBleed*crossBleedAmt;
 			const float delayR = delayedR*invCrossBleedAmt + crossBleed*crossBleedAmt;
 
-			// Filter delay (12dB)
+			// Filter delay
 			float filteredL = delayL, filteredR = delayR;
 
 			const float curCutoff = SVF_CutoffToHz(m_curDelayFeedbackCutoff.Sample(), m_Nyquist);
 			m_delayFeedbackLPF.updateLowpassCoeff(curCutoff, kSVFMinFilterQ, m_sampleRate);
 			m_delayFeedbackLPF.tick(filteredL, filteredR);
+
+			// Reset filter (FIXME: hack to stabilize continuous SVF filter w/o oversampling)
+			if (GetRectifiedMaximum(filteredL, filteredR) <= kEpsilon)
+				m_delayFeedbackLPF.resetState();
 
 			const float filteredM = 0.5f*(filteredL+filteredR);
 
@@ -368,7 +372,7 @@ namespace SFM
 			pOverR[iSample] = lerpf<float>(sampleR, sampleR+filteredR, amount);
 		}
 
-		// Downsample (result) (FIXME: do I need to reset?)
+		// Downsample result
 		m_oversamplingL.processSamplesDown(inputBlockL);
 		m_oversamplingR.processSamplesDown(inputBlockR);
 

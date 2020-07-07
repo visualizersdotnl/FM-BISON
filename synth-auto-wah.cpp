@@ -105,19 +105,6 @@ namespace SFM
 			const float envGaindB = m_gainEnvdB.Apply(signaldB);
 			const float envGain   = dB2Lin(envGaindB);
 
-			if (envGain <= kInfLin) // Sidechain dB below or equal to defined minimum?
-			{
-				// Reset LFO
-				m_LFO.Reset();
-
-				// Reset 'Vox' objects
-				m_voxOscPhase.Reset(); // S&H phase
-				m_voxSandH.Reset();    // S&H state
-//				m_voxGhostEnv.Reset(); // Ghost follower
-//				m_voxLPF.resetState(); // Reset SVF
-//				m_vowelizerV1.Reset(); // Reset coefficients
-			}
-
 			// Cut off high end: that's what we'll work with
 			float preFilteredL = sampleL, preFilteredR = sampleR;
 			m_preFilterHP.updateCoefficients(SVF_CutoffToHz(lowCut, m_Nyquist), kPreLowCutQ, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
@@ -189,7 +176,7 @@ namespace SFM
 			// Filter and mix
 			float vowelL = filteredL + ghost, vowelR = filteredR + ghost;
 
-			// Apply 12dB LPF
+			// Apply LPF
 			m_voxLPF.updateLowpassCoeff(SVF_CutoffToHz(voxCut, m_Nyquist), SVF_ResoToQ(voxReso), m_sampleRate);
 			m_voxLPF.tick(vowelL, vowelR);
 			
@@ -218,6 +205,23 @@ namespace SFM
 
 			filteredL = lerpf<float>(filteredL, vowelL, voxWet);
 			filteredR = lerpf<float>(filteredR, vowelR, voxWet);
+
+			if (GetRectifiedMaximum(filteredL, filteredR) <= kEpsilon) // Sidechain dB below or equal to epsilon?
+			{
+				// Reset LFO
+				m_LFO.Reset();
+
+				// Reset filters (FIXME: hack to stabilize continuous SVF filter w/o oversampling)
+				m_preFilterHP.resetState();
+				m_postFilterLP.resetState();
+
+				// Reset 'Vox' objects
+				m_voxOscPhase.Reset(); // S&H phase
+				m_voxSandH.Reset();    // S&H state
+				m_voxGhostEnv.Reset(); // Ghost follower
+				m_voxLPF.resetState(); // Reset SVF (FIXME: see above)
+				m_vowelizerV1.Reset(); // Reset coefficients
+			}
 
 			/*
 				Final mix

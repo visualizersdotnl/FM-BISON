@@ -93,7 +93,7 @@ namespace SFM
 			// Is carrier (output)
 			bool isCarrier;
 			
-			// 12dB filter(s)
+			// Filters
 			SvfLinearTrapOptimised2 filters[kNumVoiceAllpasses];
 			SvfLinearTrapOptimised2 modFilter; // Set to default by Reset()
 

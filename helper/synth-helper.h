@@ -168,6 +168,12 @@ namespace SFM
 
 		Helper functions for SVF filter.
 
+		Please note that the SVF filter is not 100% stable w/o oversampling, therefore until another
+		filter for continuous operation (PostPass) is in place the state should be reset when it falls
+		silent
+
+		Obviously that's *not* pretty and must be fixed (FIXME, see Github issue(s))
+
 	 ------------------------------------------------------------------------------------------------------ */
 
 	// Normalized cutoff [0..1] to Hz

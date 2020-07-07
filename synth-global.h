@@ -130,7 +130,7 @@ namespace SFM
 
 	// Main (SVF) filter Q range (not to be confused with normalized resonance, max. must be <= 40.f, the impl. says)
 	// Helper function ResoToQ() scales to range automatically
-	constexpr float kSVFLowestFilterQ = 0.025f; // Use carefully, a Q this low can cause instability after a while
+	constexpr float kSVFLowestFilterQ = 0.025f; // Use carefully, a Q has shown to cause instability (filter slowly 'blowing up')
 	constexpr float kSVFMinFilterQ    = 0.5f;   // See https://www.earlevel.com/main/2003/03/02/the-digital-state-variable-filter/
 	constexpr float kSVFMaxFilterQ    = 14.f;
 	constexpr float kSVFFilterQRange  = kSVFMaxFilterQ-kSVFMinFilterQ;
@@ -142,6 +142,9 @@ namespace SFM
 	constexpr float kDefMainFilterCutoff       =   1.f; // Normalized; no (or minimal) filtering (when acting as LPF at least)
 	constexpr float kMainCutoffAftertouchRange = 0.66f; // Limits aftertouch cutoff to avoid that low range of the cutoff that's not allowed (SVF, < 16.0), which may cause filter instability
 	constexpr float kDefMainFilterResonance    =   0.f; // Filter's default normalized resonance
+
+	// I've read that this particular Q should result in a 12dB per octave falloff, but I need to try and analyze that to be sure (FIXME)
+	constexpr float kSVFStandardFalloffQ = 0.707106769f; // 1 / Square root of 2 (see https://github.com/juce-framework/JUCE/blob/master/modules/juce_dsp/processors/juce_StateVariableFilter.h)
 	
 	// Normalized resonance range is limited for a smoother "knob feel" for the main voice filter
 	constexpr float kDefMainFilterResonanceLimit = 0.6f;

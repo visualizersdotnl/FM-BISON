@@ -157,15 +157,10 @@ namespace SFM
 			/* const */ float monaural = 0.5f*(inL+inR);
 
 			float mixLPF = monaural, mixHPF = monaural;
+			m_preLPF.tickMono(mixLPF);
+			m_preHPF.tickMono(mixHPF);
 
-			// Quick fix to keep instability-prone SVF filter in check
-			if (monaural > kInfLin)
-			{
-				m_preLPF.tickMono(mixLPF);
-				m_preHPF.tickMono(mixHPF);
-
-				monaural = Clamp(0.5f*(mixLPF+mixHPF));
-			}
+			monaural = 0.5f*(mixLPF+mixHPF);
 
 			// Apply pre-delay			
 			m_preDelayLine.Write(monaural);
@@ -201,6 +196,14 @@ namespace SFM
 			// Mix
 			const float left  = outL*wet1 + outR*wet2 + inL*dry;
 			const float right = outR*wet1 + outL*wet2 + inR*dry;
+
+			if (GetRectifiedMaximum(left, right) <= kEpsilon)
+			{
+				// Reset filters (FIXME: hack to stabilize continuous SVF filter w/o oversampling)
+				m_preLPF.resetState();
+				m_preHPF.resetState();
+			}
+
 			*pLeft++  = left;
 			*pRight++ = right;
 		}
