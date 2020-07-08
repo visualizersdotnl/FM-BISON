@@ -57,10 +57,9 @@ namespace SFM
 ,		m_phaserSweep(sampleRate)
 ,		m_phaserSweepLPF((kSweepCutoffHz*2.f)/sampleRate) // Tweaked a little for effect
 
-		// Up- and downsampler (JUCE)
+		// Oversampling (JUCE)
 ,		m_oversamplingRate(sampleRate*kOversample)
-,		m_oversamplingL(1, kOversampleStages, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true)
-,		m_oversamplingR(1, kOversampleStages, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true)
+,		m_oversampling(2, kOversampleStages, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true)
 
 		// Post filter
 ,		m_postFilter(m_oversamplingRate)
@@ -91,9 +90,8 @@ namespace SFM
 		m_pBufL  = reinterpret_cast<float *>(mallocAligned(maxSamplesPerBlock*sizeof(float), 16));
 		m_pBufR  = reinterpret_cast<float *>(mallocAligned(maxSamplesPerBlock*sizeof(float), 16));
 
-		// Initialize JUCE (over)sampling objects
-		m_oversamplingL.initProcessing(maxSamplesPerBlock);
-		m_oversamplingR.initProcessing(maxSamplesPerBlock);
+		// Initialize JUCE oversampling object
+		m_oversampling.initProcessing(maxSamplesPerBlock);
 	}
 
 	PostPass::~PostPass()
@@ -262,9 +260,7 @@ namespace SFM
 			const float filteredM = 0.5f*(filteredL+filteredR);
 
 			// Feed back into delay line
-			float curFeedbackDry = m_curDelayFeedback.Sample();
-			float curFeedback = curFeedbackDry*kMaxDelayFeedback;
-
+			const float curFeedback =  m_curDelayFeedback.Sample()*kMaxDelayFeedback;
 			m_delayLineL.WriteFeedback(filteredL, curFeedback);
 			m_delayLineM.WriteFeedback(filteredM, curFeedback);
 			m_delayLineR.WriteFeedback(filteredR, curFeedback);
@@ -301,23 +297,22 @@ namespace SFM
 		m_curTubeDrive.SetTarget(tubeDrive);
 		m_curTubeOffset.SetTarget(tubeOffset);
 
-		// Oversample L/R for the coming steps
-		juce::dsp::AudioBlock<float> inputBlockL(&m_pBufL, 1, numSamples);
-		juce::dsp::AudioBlock<float> inputBlockR(&m_pBufR, 1, numSamples);
+		// Oversample for this stage
+		float *inputBuffers[2] = { m_pBufL, m_pBufR };
+		juce::dsp::AudioBlock<float> inputBlock(inputBuffers, 2, numSamples);
 
-		// FIXME: use *one* instance!
-		auto outBlockL = m_oversamplingL.processSamplesUp(inputBlockL);
-		auto outBlockR = m_oversamplingR.processSamplesUp(inputBlockR);
+		auto outBlock = m_oversampling.processSamplesUp(inputBlock);
+		SFM_ASSERT(numOversamples == outBlock.getNumSamples());
 
-		SFM_ASSERT(numOversamples == outBlockL.getNumSamples());
+		float *pOverL = outBlock.getChannelPointer(0);
+		float *pOverR = outBlock.getChannelPointer(1);
 
-		float *pOverL = outBlockL.getChannelPointer(0);
-		float *pOverR = outBlockR.getChannelPointer(0);
-
+		//
 		// Apply post filter & tube distortion
+		//
 
-		// Anti-aliasing filter (performed on entire signal to cut off all harmonics above the host sample rate)
-		m_tubeFilterAA.updateLowpassCoeff(m_oversamplingRate/4, kSVF12dBFalloffQ, m_oversamplingRate); 
+		// Anti-aliasing filter (performed on entire signal to cut off all harmonics above the host Nyquist rate)
+		m_tubeFilterAA.updateLowpassCoeff(m_Nyquist, kSVF12dBFalloffQ, m_oversamplingRate); 
 
 		for (unsigned iSample = 0; iSample < numOversamples; ++iSample)
 		{
@@ -359,7 +354,7 @@ namespace SFM
 			sampleL = lerpf<float>(sampleL, sampleL+filteredL, amount);
 			sampleR = lerpf<float>(sampleR, sampleR+filteredR, amount);
 
-			// Remove aliasing (originally meant for tube dist., but best applied to clean up entire signal)
+			// Remove aliasing (originally meant for tube dist., but applied right here to clean up entire signal)
 			m_tubeFilterAA.tick(sampleL, sampleR);
 
 			pOverL[iSample] = sampleL;
@@ -367,11 +362,10 @@ namespace SFM
 		}
 
 		// Downsample result
-		m_oversamplingL.processSamplesDown(inputBlockL);
-		m_oversamplingR.processSamplesDown(inputBlockR);
+		m_oversampling.processSamplesDown(inputBlock);
 
 		// FIXME
-//		const float samplingLatency = m_oversamplingL.getLatencyInSamples();
+//		const float samplingLatency = m_oversampling.getLatencyInSamples();
 
 		/* ----------------------------------------------------------------------------------------------------
 

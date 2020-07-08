@@ -22,6 +22,7 @@ namespace SFM
 		return fast_cosf(x-0.25f); 
 	}
 
+	// FIXME: move to synth-fast-tan.h?
 	SFM_INLINE static float fast_tanf(float x) 
 	{ 
 		return fast_sinf(x)/fast_cosf(x); 

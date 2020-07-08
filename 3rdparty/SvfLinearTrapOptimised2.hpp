@@ -1,9 +1,9 @@
 
 //
 // Modified to fit FM. BISON:
-// - Removed external dependencies
+// - No external dependencies
 // - Stereo support (single channel retained, see tickMono())
-// - Added a few quick setup functions
+// - Added a few specific setup functions
 // - Added getFilterType()
 // - A stable Q range of [0.025..40] is gauranteed (according to original author), but a default and minimum of 0.5 enhances stability w/o oversampling
 // - As we're on thin ice as it is, don't go and use any fast trigonometry approximation functions
@@ -35,7 +35,10 @@
 #ifndef SvfLinearTrapOptimised2_hpp
 #define SvfLinearTrapOptimised2_hpp
 
-#include "../synth-global.h"
+#define _USE_MATH_DEFINES
+#include <math.h>
+
+#include "../synth-global.h" // SFM_INLINE
 
 /*!
  @class SvfLinearTrapOptimised2
@@ -52,8 +55,8 @@ public:
 	enum FLT_TYPE {LOW_PASS_FILTER, BAND_PASS_FILTER, HIGH_PASS_FILTER, NOTCH_FILTER, PEAK_FILTER, ALL_PASS_FILTER, BELL_FILTER, LOW_SHELF_FILTER, HIGH_SHELF_FILTER, NO_FLT_TYPE};
 	
 	SvfLinearTrapOptimised2() {
-		_ic1eq_left = _ic2eq_left = _v1_left = _v2_left = _v3_left = 0.;
-		_ic1eq_right = _ic2eq_right = _v1_right = _v2_right = _v3_right = 0.;
+		_ic1eq_left = _ic2eq_left = _v1_left = _v2_left = _v3_left = 0.0;
+		_ic1eq_right = _ic2eq_right = _v1_right = _v2_right = _v3_right = 0.0;
 	}
 	
 	/*!
@@ -79,7 +82,7 @@ public:
 		_coef.update(cutoff, q, type, sampleRate);
 	}
 
-	// A few quick update functions
+	// A few shorthand update functions
 	SFM_INLINE void updateAllpassCoeff(double cutoff, double q, double sampleRate) {
 		_coef.updateAllpass(cutoff, q, sampleRate);
 	}
@@ -94,6 +97,12 @@ public:
 
 	SFM_INLINE void updateNone() {
 		_coef.updateNone();
+	}
+	
+	// This copies *only* the coefficients of the specified filter, use at your own risk
+	SFM_INLINE void updateCopy(const SvfLinearTrapOptimised2 &filter)
+	{
+		_coef = filter._coef;
 	}
 	
 	/*!
@@ -153,7 +162,7 @@ private:
 
 		SFM_INLINE void updateAllpass(double cutoff, double q, double sampleRate)
 		{
-			double g = tan((cutoff / sampleRate) * SFM::kPI);
+			double g = tan((cutoff / sampleRate) * M_PI);
 			const double k = computeK(q, false);
 
 			computeA(g, k);
@@ -166,7 +175,7 @@ private:
 
 		SFM_INLINE void updateLowpass(double cutoff, double q, double sampleRate)
 		{
-			double g = tan((cutoff / sampleRate) * SFM::kPI);
+			double g = tan((cutoff / sampleRate) * M_PI);
 			const double k = computeK(q, false);
 
 			computeA(g, k);
@@ -179,7 +188,7 @@ private:
 
 		SFM_INLINE void updateHighpass(double cutoff, double q, double sampleRate)
 		{
-			const double g = tan((cutoff / sampleRate) * SFM::kPI);
+			const double g = tan((cutoff / sampleRate) * M_PI);
 			const double k = computeK(q, false);
 
 			computeA(g, k);
@@ -198,7 +207,7 @@ private:
 		SFM_INLINE void update(double cutoff, double q = 0.5, SvfLinearTrapOptimised2::FLT_TYPE type = LOW_PASS_FILTER, double sampleRate = 44100) {
 			if (type != NO_FLT_TYPE)
 			{
-				double g = tan((cutoff / sampleRate) * SFM::kPI);
+				double g = tan((cutoff / sampleRate) * M_PI);
 				const double k = computeK(q, type == BELL_FILTER /* Use gain for bell (peak) filter only */);
 			
 				switch (type) {

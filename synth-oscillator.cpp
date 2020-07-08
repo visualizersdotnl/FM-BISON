@@ -36,30 +36,46 @@ namespace SFM
 				{
 					// The supersaw consists of 7 oscillators; the third oscillator is the 'main' oscillator at the fundamental frequency (the first harmonic).
 					// I use this frequency to apply a HPF to each oscillator to eliminate 'fold back' aliasing beyond this frequency. There will still be
-					// aliasing going on but that's part of the JP-8000 charm, or so I've read :-)
-
-					const float filterFreq    = m_phases[3].GetFrequency(); // Fundamental harmonic
-					constexpr double filterQ  = kSVF12dBFalloffQ; // kSVFMinFilterQ;
-					const unsigned sampleRate = GetSampleRate();
+					// aliasing going on but that's part of the charm
 					
-					// First phase & pitch already available
-					signal = oscPolySaw(phase, pitch) * m_supersaw.GetAmplitude(0);
-//					signal = oscSaw(phase) * m_supersaw.GetAmplitude(0);
+					// Filter parameters
+					const float filterFreq    = m_phases[3].GetFrequency(); // Fundamental harmonic
+					constexpr double filterQ  = kSVF12dBFalloffQ;
+					const unsigned sampleRate = GetSampleRate();
 
+					// Get amplitudes
+					const float sideMix = m_supersaw.GetSideMix();
+					const float mainMix = m_supersaw.GetMainMix();
+
+					// Generate saws
+					float saws[kNumSupersawOscillators];
+					saws[0] = oscPolySaw(phase, pitch) * sideMix;
+					saws[1] = oscPolySaw(m_phases[1].Sample(), m_phases[1].GetPitch()) * sideMix;
+					saws[2] = oscPolySaw(m_phases[2].Sample(), m_phases[2].GetPitch()) * sideMix;
+					saws[3] = oscPolySaw(m_phases[3].Sample(), m_phases[3].GetPitch()) * mainMix;
+					saws[4] = oscPolySaw(m_phases[4].Sample(), m_phases[4].GetPitch()) * sideMix;
+					saws[5] = oscPolySaw(m_phases[5].Sample(), m_phases[5].GetPitch()) * sideMix;
+					saws[6] = oscPolySaw(m_phases[6].Sample(), m_phases[6].GetPitch()) * sideMix;
+
+					// Filter saws below fundamental freq.
 					m_HPF[0].updateHighpassCoeff(filterFreq, filterQ, sampleRate);
-					m_HPF[0].tickMono(signal);
+					m_HPF[0].tickMono(saws[0]);
+					m_HPF[1].updateCopy(m_HPF[0]);
+					m_HPF[1].tickMono(saws[1]);
+					m_HPF[2].updateCopy(m_HPF[0]);
+					m_HPF[2].tickMono(saws[2]);
+					m_HPF[3].updateCopy(m_HPF[0]);
+					m_HPF[3].tickMono(saws[3]);
+					m_HPF[4].updateCopy(m_HPF[0]);
+					m_HPF[4].tickMono(saws[4]);
+					m_HPF[5].updateCopy(m_HPF[0]);
+					m_HPF[5].tickMono(saws[5]);
+					m_HPF[6].updateCopy(m_HPF[0]);
+					m_HPF[6].tickMono(saws[6]);
 
-					for (unsigned iOsc = 1; iOsc < kNumSupersawOscillators; ++iOsc)
-					{
-						Phase &phaseObj = m_phases[iOsc];
-						float saw = oscPolySaw(phaseObj.Sample(), phaseObj.GetPitch()) * m_supersaw.GetAmplitude(iOsc);
-//						float saw = oscSaw(phaseObj.Sample()) * m_supersaw.GetAmplitude(iOsc);
-
-						m_HPF[iOsc].updateHighpassCoeff(filterFreq, filterQ, sampleRate);
-						m_HPF[iOsc].tickMono(saw);
-
+					// Accumulate saws
+					for (auto saw : saws)
 						signal += saw;
-					}
 				}
 
 				break;

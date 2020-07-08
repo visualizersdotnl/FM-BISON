@@ -1,13 +1,12 @@
 
 //
 // Modified to fit FM. BISON:
-// - Compiles without dependencies
+// - No external dependencies
 // - Stereo support
 // - Unrolled loop
 // - Added a few setup functions
 // - Stability assertion
 // - Optimized SetCutoff() & SetResonance()
-// - Stereo processing loop (Process())
 //
 // Source: https://github.com/ddiakopoulos/MoogLadders/tree/master/src
 //
@@ -101,7 +100,7 @@ private:
 
 		m_wc = 2 * MOOG_PI * m_cutoff / m_sampleRate;
 
-		// Traded in favour of less pow() calls
+		// Below: without pow() calls
 //		m_g = 0.9892 * m_wc - 0.4342 * pow(m_wc, 2) + 0.1381 * pow(m_wc, 3) - 0.0202 * pow(m_wc, 4);
 
 		const double wc2 = m_wc*m_wc;
@@ -114,10 +113,6 @@ private:
 	SFM_INLINE void Apply(float &sample, double state[], double delay[])
 	{
 		state[0] = tanh(m_drive * (sample - 4.0 * m_gRes * (state[4] - m_gComp * sample)));
-
-		// FIXME: test if either of these can be used without losing stability
-//		state[0] = SFM::fast_tanh(m_drive * (sample - 4.0 * m_gRes * (state[4] - m_gComp * sample)));
-//		state[0] = SFM::ultra_tanh(m_drive * (sample - 4.0 * m_gRes * (state[4] - m_gComp * sample)));
 
 		state[1] = m_g * (0.3/1.3 * state[0] + 1.0/1.3 * delay[0] - state[1]) + state[1];
 		delay[0] = state[0];

@@ -51,7 +51,7 @@ namespace SFM
 			return (1.0 + m_curDetuneCurve*kRelations[iOsc])*frequency;
 		}
 
-		SFM_INLINE float GetAmplitude(unsigned iOsc) const
+		SFM_INLINE float GetMix(unsigned iOsc) const
 		{
 			SFM_ASSERT(iOsc < kNumSupersawOscillators);
 			
@@ -59,6 +59,9 @@ namespace SFM
 			 ? m_mainMix
 			 : m_sideMix;
 		}
+
+		SFM_INLINE float GetSideMix() const { return m_sideMix; }
+		SFM_INLINE float GetMainMix() const { return m_mainMix; }
 
 	private:
 		float m_curDetune = -1.f;

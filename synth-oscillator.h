@@ -70,7 +70,7 @@ namespace SFM
 
 	private:
 		/* const */ Waveform m_form;
-		Phase m_phases[kNumSupersawOscillators]; // FIXME: reduce footprint by allocating all but one separately?
+		Phase m_phases[kNumSupersawOscillators];
 
 		// Oscillators with state
 		PinkNoise     m_pinkNoise;

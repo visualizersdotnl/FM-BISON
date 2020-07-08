@@ -113,10 +113,9 @@ namespace SFM
 		Phase m_phaserSweep;
 		LowpassFilter m_phaserSweepLPF;
 		
-		// Oversampling (JUCE)
+		// Oversampling (using JUCE, FIXME)
 		const unsigned m_oversamplingRate;
-		juce::dsp::Oversampling<float> m_oversamplingL;
-		juce::dsp::Oversampling<float> m_oversamplingR;
+		juce::dsp::Oversampling<float> m_oversampling;
 
 		// Post filter & interpolated parameters
 		KrajeskiMoog m_postFilter;
