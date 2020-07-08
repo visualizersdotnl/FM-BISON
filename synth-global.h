@@ -132,7 +132,7 @@ namespace SFM
 	// Helper function ResoToQ() scales to range automatically
 	constexpr float kSVFLowestFilterQ = 0.025f; // Use carefully, a Q has shown to cause instability (filter slowly 'blowing up')
 	constexpr float kSVFMinFilterQ    = 0.5f;   // See https://www.earlevel.com/main/2003/03/02/the-digital-state-variable-filter/
-	constexpr float kSVFMaxFilterQ    = 14.f;
+	constexpr float kSVFMaxFilterQ    = 12.f;
 	constexpr float kSVFFilterQRange  = kSVFMaxFilterQ-kSVFMinFilterQ;
 
 	constexpr float kMinFilterCutoff      =  0.f; // Normalized min. filter cutoff; range is simply [0..1] (use CutoffToHz())
@@ -142,9 +142,6 @@ namespace SFM
 	constexpr float kDefMainFilterCutoff       =   1.f; // Normalized; no (or minimal) filtering (when acting as LPF at least)
 	constexpr float kMainCutoffAftertouchRange = 0.66f; // Limits aftertouch cutoff to avoid that low range of the cutoff that's not allowed (SVF, < 16.0), which may cause filter instability
 	constexpr float kDefMainFilterResonance    =   0.f; // Filter's default normalized resonance
-
-	// This particular Q should result in a 12dB per octave falloff, but I need to try and analyze that to be sure (FIXME)
-	constexpr float kSVF12dBFalloffQ = 0.707106769f; // = 1.f/sqrtf(2.f) -> see https://github.com/juce-framework/JUCE/blob/master/modules/juce_dsp/processors/juce_StateVariableFilter.h
 	
 	// Normalized resonance range is limited for a smoother "knob feel" for the main voice filter
 	constexpr float kDefMainFilterResonanceLimit = 0.6f;
@@ -155,7 +152,7 @@ namespace SFM
 	// Default post-pass filter drive range & default (dB)	
 	constexpr float kMinPostFilterDrivedB = -3.f;
 	constexpr float kMaxPostFilterDrivedB =  6.f;
-	constexpr float kDefPostFilterDrivedB =  0.f;
+	constexpr float kDefPostFilterDrivedB =  3.f;
 
 	// ----------------------------------------------------------------------------------------------
 	// Tube distortion
@@ -165,8 +162,8 @@ namespace SFM
 	constexpr float kMinTubeDrive  =   0.f;
 	constexpr float kMaxTubeDrive  = 100.f;
 	constexpr float kDefTubeDrive  =  10.f;
-	constexpr float kMinTubeOffset = -0.1f;
-	constexpr float kMaxTubeOffset =  0.1f;
+	constexpr float kMinTubeOffset = -0.3f;
+	constexpr float kMaxTubeOffset =  0.3f;
 
 	// ----------------------------------------------------------------------------------------------
 	// Envelope

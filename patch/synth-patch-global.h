@@ -167,7 +167,7 @@ namespace SFM
 		float resonanceLimit;
 		
 		// Post-pass 24dB MOOG-style ladder filter
-		float postCutoff; // Up to 1/4th of Nyquist for now (see Render())
+		float postCutoff;
 		float postResonance;
 		float postDrivedB;
 		float postWet;

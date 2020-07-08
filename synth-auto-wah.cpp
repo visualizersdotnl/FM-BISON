@@ -11,10 +11,10 @@
 namespace SFM
 {
 	// Local constant parameters (I've got enough paramaters as it is!)
-	constexpr double kPreLowCutQ    = kSVF12dBFalloffQ; // Q (SVF range)
-	constexpr float  kLPResoMin     = 0.01f;            // Q (normalized)
-	constexpr float  kLPResoMax     =  0.6f;            //
-	constexpr float  kLPCutLFORange = 0.99f;            // LFO cutoff range (normalized)
+	constexpr double kPreLowCutQ    = kSVFMinFilterQ; // Q (SVF range)
+	constexpr float  kLPResoMin     = 0.01f;          // Q (normalized)
+	constexpr float  kLPResoMax     =  0.6f;          //
+	constexpr float  kLPCutLFORange = 0.99f;          // LFO cutoff range (normalized)
 
 	constexpr float  kVoxRateScale  =   2.f; // Rate ratio: vox. S&H
 	constexpr float  kCutRateScale  = 0.25f; // Rate ratio: cutoff modulation
@@ -148,7 +148,7 @@ namespace SFM
 			// Sample
 			if (0 == (iSample % voxIntRatio))
 			{
-				// Apply filter
+				// Apply filter (introduces a few harmonics in the top end)
 				m_vowelizerV1.Apply(vowelL, vowelR, vowel);
 				
 				// Hold values until next tick

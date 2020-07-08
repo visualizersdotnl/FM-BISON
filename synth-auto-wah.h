@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "3rdparty/SvfLinearTrapOptimised2.hpp"
+#include "3rdparty/filters/SvfLinearTrapOptimised2.hpp"
 
 #include "synth-global.h"
 #include "synth-sidechain-envelope.h"

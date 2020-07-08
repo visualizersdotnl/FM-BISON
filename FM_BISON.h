@@ -36,7 +36,7 @@
 	Third party credits (all of them public domain, please contact us if we're mistaken):
 	- ADSR (modified & fixed) by Nigel Redmon (http://www.earlevel.com)
 	- SvfLinearTrapOptimised2.hpp (modified) by Fred Anton Corvest (https://github.com/FredAntonCorvest/Common-DSP)
-	- MOOG-style ladder filter 'KrajeskiModel' (https://github.com/ddiakopoulos/MoogLadders/blob/master/src/)
+	- Public domain MOOG-style ladder filters (https://github.com/ddiakopoulos/MoogLadders/blob/master/src/)
 	- Reverb based on FreeVerb by Volker Böhm
 	- TinyMT Mersenne-Twister random generator by Makoto Matsumoto and Mutsuo Saito 
 	- Yamaha DX7 LFO rates taken from Sean Bolton's Hexter

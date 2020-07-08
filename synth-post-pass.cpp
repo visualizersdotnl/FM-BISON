@@ -66,8 +66,8 @@ namespace SFM
 		// Post filter
 ,		m_postFilter(m_oversamplingRate)
 ,		m_curPostCutoff(0.f, m_oversamplingRate, kDefParameterLatency * 2.f /* Longer */)
-,		m_curPostQ(0.f, m_oversamplingRate, kDefParameterLatency)
-,		m_curPostDrivedB(0.f, m_oversamplingRate, kDefParameterLatency)
+,		m_curPostReso(0.f, m_oversamplingRate, kDefParameterLatency)
+,		m_curPostDrive(0.f, m_oversamplingRate, kDefParameterLatency)
 ,		m_curPostWet(0.f, m_oversamplingRate, kDefParameterLatency)
 		
 		// Tube distort
@@ -107,7 +107,7 @@ namespace SFM
 	                     float wahResonance, float wahAttack, float wahHold, float wahRate, float wahDrivedB, float wahSpeak, float wahSpeakVowel, float wahSpeakVowelMod, float wahSpeakGhost, float wahSpeakCut, float wahSpeakReso, float wahCut, float wahWet,
 	                     float cpRate, float cpWet, bool isChorus,
 	                     float delayInSec, float delayWet, float delayFeedback, float delayFeedbackCutoff,
-	                     float postCutoff, float postQ, float postDrivedB, float postWet,
+	                     float postCutoff, float postReso, float postDrivedB, float postWet,
 						 float tubeDistort, float tubeDrive, float tubeOffset,
 	                     float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
 	                     float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead, bool compAutoGain, float compRMSToPeak,
@@ -125,6 +125,8 @@ namespace SFM
 		SFM_ASSERT(delayInSec >= 0.f && delayInSec <= kMainDelayInSec);
 		SFM_ASSERT(delayWet >= 0.f && delayWet <= 1.f);
 		SFM_ASSERT(delayFeedback >= 0.f && delayFeedback <= 1.f);
+		SFM_ASSERT(postCutoff >= 0.f && postCutoff <= 1.f);
+//		SFM_ASSERT(postReso >= 0.f && postReso <= 1.f);
 		SFM_ASSERT(masterVoldB >= kMinVolumedB && masterVoldB <= kMaxVolumedB);
 		SFM_ASSERT(tubeDistort >= 0.f && tubeDistort <= 1.f);
 		SFM_ASSERT(tubeDrive >= kMinTubeDrive && tubeDrive <= kMaxTubeDrive);
@@ -288,8 +290,8 @@ namespace SFM
 
 		// Set post filter parameters
 		m_curPostCutoff.SetTarget(postCutoff);
-		m_curPostQ.SetTarget(postQ);
-		m_curPostDrivedB.SetTarget(postDrivedB);
+		m_curPostReso.SetTarget(postReso);
+		m_curPostDrive.SetTarget(dB2Lin(postDrivedB));
 		m_curPostWet.SetTarget(postWet);
 		
 		// Set tube distortion parameters
@@ -306,56 +308,58 @@ namespace SFM
 
 		float *pOverL = outBlock.getChannelPointer(0);
 		float *pOverR = outBlock.getChannelPointer(1);
-
+		
 		//
-		// Apply post filter & tube distortion
+		// Apply post filter, tube distortion & AA
 		//
 
-		// Anti-aliasing filter (performed on entire signal to cut off all harmonics above the host Nyquist rate)
-		m_tubeFilterAA.updateLowpassCoeff(m_Nyquist, kSVF12dBFalloffQ, m_oversamplingRate); 
+		// Anti-aliasing filters: one to attenuate distortion harmonics above host sample rate, one to attenuate harmonics above host Nyquist
+		m_tubeFilterAA.updateLowpassCoeff(m_sampleRate, kSVFLowestFilterQ, m_oversamplingRate); 
+		m_filterAA.updateLowpassCoeff(m_Nyquist, kSVFLowestFilterQ, m_oversamplingRate); 
 
 		for (unsigned iSample = 0; iSample < numOversamples; ++iSample)
 		{
 			float sampleL = pOverL[iSample]; 
 			float sampleR = pOverR[iSample];
-				
+
 			// Apply 24dB post filter
+			const float curPostCutoff = m_curPostCutoff.Sample();
+			const float curPostReso   = m_curPostReso.Sample();
+			const float curPostDrive  = m_curPostDrive.Sample();
+			const float curPostWet    = m_curPostWet.Sample();
+
 			float filteredL = sampleL, filteredR = sampleR;
 
-			const float curPostCutoff = m_curPostCutoff.Sample();
-			const float curPostQ = m_curPostQ.Sample();
-			const float curPostDrive = dBToGain(m_curPostDrivedB.Sample());
-			const float curPostWet = m_curPostWet.Sample();
-
-			m_postFilter.SetParameters(curPostCutoff, curPostQ, curPostDrive);
+			m_postFilter.SetParameters(40.f + curPostCutoff*10000.f, curPostReso /* [0..1] */, curPostDrive);
 			m_postFilter.Apply(filteredL, filteredR);
 
-			const float postSampleL = filteredL;
-			const float postSampleR = filteredR;
+			const float postWetCurved = cosinterpf(0.f, 1.f, curPostWet);
+			const float postSampleL = lerpf<float>(sampleL, sampleL+filteredL, postWetCurved);
+			const float postSampleR = lerpf<float>(sampleR, sampleR+filteredR, postWetCurved);
 
-			// Apply distortion				
-			filteredL = sampleL; 
-			filteredR = sampleR;
+			// Apply distortion (on top of filter)		
+			float distortedL = postSampleL;
+			float distortedR = postSampleR;
 
 			const float amount = m_curTubeDist.Sample();
 			const float drive  = m_curTubeDrive.Sample();
 			const float offset = m_curTubeOffset.Sample();
 			
-			filteredL = ClassicCubicClip((offset + filteredL)*drive);
-			filteredR = ClassicCubicClip((offset + filteredR)*drive);
+			distortedL = ClassicCubicClip((offset+distortedL)*drive);
+			distortedR = ClassicCubicClip((offset+distortedR)*drive);
 			
 			// Remove DC offset
-			m_tubeDCBlocker.Apply(filteredL, filteredR);
-			
-			// Add & mix
-			sampleL += postSampleL*curPostWet;
-			sampleR += postSampleR*curPostWet;
-				
-			sampleL = lerpf<float>(sampleL, sampleL+filteredL, amount);
-			sampleR = lerpf<float>(sampleR, sampleR+filteredR, amount);
+			m_tubeDCBlocker.Apply(distortedL, distortedR);
 
-			// Remove aliasing (originally meant for tube dist., but applied right here to clean up entire signal)
-			m_tubeFilterAA.tick(sampleL, sampleR);
+			// Apply distortion AA filter
+			m_tubeFilterAA.tick(distortedL, distortedR);
+			
+			// Mix results
+			sampleL = lerpf<float>(postSampleL, distortedL, amount);
+			sampleR = lerpf<float>(postSampleR, distortedR, amount);
+
+			// Apply final AA filter
+			m_filterAA.tick(sampleL, sampleR);
 
 			pOverL[iSample] = sampleL;
 			pOverR[iSample] = sampleR;

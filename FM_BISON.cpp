@@ -62,7 +62,7 @@ namespace SFM
 	/* ----------------------------------------------------------------------------------------------------
 
 		OnSetSamplingProperties() is called by JUCE, but what it does is set up the basic properties
-		necessary to start rendering so it can be used in any situation.
+		necessary to start rendering so it can be used in any situation
 
 	 ------------------------------------------------------------------------------------------------------ */
 
@@ -172,7 +172,7 @@ namespace SFM
 		// These apply to effects operating on oversampled data, but that's not relevant to ParameterSlew
 		m_tubeDistPS            = { sampleRatePS };
 		m_tubeDrivePS           = { sampleRatePS };
-		m_postCutoffPS          = { sampleRatePS };
+		m_postCutoffPS          = { sampleRatePS, 30.f /* 30MS */ };
 		m_postResoPS            = { sampleRatePS };
 		m_postDrivePS           = { sampleRatePS };
 		m_postWetPS             = { sampleRatePS };
@@ -244,7 +244,7 @@ namespace SFM
 			opPeak.Reset(0.f);
 			opPeak.SetSampleRate(sampleRate);
 			opPeak.SetAttack(1.f);
-			opPeak.SetRelease(10.f);
+			opPeak.SetRelease(2.f);
 		}
 	}
 
@@ -2016,9 +2016,8 @@ namespace SFM
 		// Calculate post-pass filter cutoff freq.
 		const float postNormCutoff = m_postCutoffPS.Apply(m_patch.postCutoff);
 		SFM_ASSERT(postNormCutoff >= 0.f && postNormCutoff <= 1.f);
-		const float postCutoffHz = postNormCutoff * m_Nyquist*0.5f; // Nice range; check synth-post-pass.cpp for max. range
 
-		// Feed either a flat or aftertouch parameter to the post-pass to define the filter's wetness
+		// Calc. post filter wetness
 		float postWet = m_patch.postWet;
 		if (Patch::kPostFilter == m_patch.aftertouchMod)
 			postWet = std::min<float>(1.f, postWet+aftertouchFiltered);
@@ -2051,7 +2050,7 @@ namespace SFM
 			m_delayFeedbackPS.Apply(m_patch.delayFeedback),
 			m_delayFeedbackCutoffPS.Apply(m_patch.delayFeedbackCutoff),
 			/* MOOG-style 24dB filter + Tube distort */
-			postCutoffHz, // Filtered above
+			m_postCutoffPS.Apply(m_patch.postCutoff),
 			m_postResoPS.Apply(m_patch.postResonance),
 			m_postDrivePS.Apply(m_patch.postDrivedB),
 			m_postWetPS.Apply(postWet),

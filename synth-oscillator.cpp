@@ -40,7 +40,7 @@ namespace SFM
 					
 					// Filter parameters
 					const float filterFreq    = m_phases[3].GetFrequency(); // Fundamental harmonic
-					constexpr double filterQ  = kSVF12dBFalloffQ;
+					constexpr double filterQ  = 0.707;
 					const unsigned sampleRate = GetSampleRate();
 
 					// Get amplitudes

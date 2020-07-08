@@ -1,14 +1,23 @@
 
+// ----------------------------------------------------------------------------------------------------
 //
-// Modified to fit FM. BISON:
+// Modified for FM. BISON
+//
 // - No external dependencies
-// - Stereo support (single channel retained, see tickMono())
-// - Added a few specific setup functions
+// - Stereo support (monaural remains, see tickMono())
+// - Added specific setup functions
 // - Added getFilterType()
-// - A stable Q range of [0.025..40] is gauranteed (according to original author), but a default and minimum of 0.5 enhances stability w/o oversampling
-// - As we're on thin ice as it is, don't go and use any fast trigonometry approximation functions
-// - Filter is prone to blowing up when ran continuously (at least w/o oversampling)
+// 
+// - Stable Q range of [0.025..40] is gauranteed, but for stability using the default Q of 0.5
+//   seems to be the safe bet, certainly without oversampling; I've had situations where this
+//   filter ran continously for a longer time and eventually blew up
 //
+// - Using cheaper trig. approximation functions may seem like a good idea but we're on thin
+//   ice as it is
+//
+// - Like most audio/DSP code out there it's messy, I won't fix that
+//
+// ----------------------------------------------------------------------------------------------------
 
 //  SvfLinearTrapOptimised2.hpp
 //
@@ -35,10 +44,10 @@
 #ifndef SvfLinearTrapOptimised2_hpp
 #define SvfLinearTrapOptimised2_hpp
 
-#define _USE_MATH_DEFINES
-#include <math.h>
+#define _USE_MATH_DEFINES // for M_PI
+#include <math.h>         //
 
-#include "../synth-global.h" // SFM_INLINE
+#include "../../synth-global.h" // for SFM_INLINE
 
 /*!
  @class SvfLinearTrapOptimised2

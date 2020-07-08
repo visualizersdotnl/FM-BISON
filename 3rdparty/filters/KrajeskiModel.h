@@ -1,23 +1,24 @@
 
+// ----------------------------------------------------------------------------------------------------
 //
-// Modified to fit FM. BISON:
-// - No external dependencies
+// Modified for FM. BISON
+//
+// - No external dependencies (including LadderBase (class))
 // - Stereo support
-// - Unrolled loop
-// - Added a few setup functions
-// - Stability assertion
-// - Optimized SetCutoff() & SetResonance()
+// - Replaced MOOG_PI with M_PI
+// - Added SetParameters()
+// - Misc. minor modifications 
 //
-// Source: https://github.com/ddiakopoulos/MoogLadders/tree/master/src
+// - Like most audio/DSP code out there it's messy, I won't fix that
 //
+// ----------------------------------------------------------------------------------------------------
 
 #pragma once
 
-#include "../synth-global.h"
+#define _USE_MATH_DEFINES
+#include <math.h>
 
-#ifndef MOOG_PI
-	#define MOOG_PI 3.14159265358979323846264338327950288
-#endif
+#include "../../synth-global.h"
 
 /*
 This class implements Tim Stilson's MoogVCF filter
@@ -62,45 +63,38 @@ public:
 		memset(m_delay, 0, 2*5*sizeof(double));
 	}
 
+	SFM_INLINE void SetParameters(float cutoff, float resonance, float drive /* Gain (linear) */)
+	{
+		SetCutoff(cutoff);
+		SetResonance(resonance);
+
+		SFM_ASSERT(drive >= 0.f);
+		m_drive = drive;
+	}
+
 	SFM_INLINE void Apply(float &left, float &right)
 	{
 		Apply(left,  m_state[0], m_delay[0]);
 		Apply(right, m_state[1], m_delay[1]);
 	}
-
-	SFM_INLINE void SetParameters(float cutoff, float resonance, float drive /* Linear (not in dB) */)
-	{
-		SFM_ASSERT(drive >= 0.f);
-
-		SetCutoff(cutoff);
-		SetResonance(resonance);
-
-		m_drive = drive;
-	}
 	
 private:
-	SFM_INLINE void SetResonance(float r)
+	SFM_INLINE void SetResonance(float resonance)
 	{
-		SFM_ASSERT(r >= 0.f && r <= 1.f);
-		m_resonance = r;
+		SFM_ASSERT(resonance >= 0.f && resonance <= 1.f);
 
-		// Traded in favour of less pow() calls
 //		m_gRes = m_resonance * (1.0029 + 0.0526 * m_wc - 0.926 * pow(m_wc, 2) + 0.0218 * pow(m_wc, 3));
 
 		const double wc2 = m_wc*m_wc;
 		const double wc3 = wc2*m_wc;
 
-		m_gRes = m_resonance * (1.0029 + 0.0526 * m_wc - 0.926 * wc2 + 0.0218 * wc3);
+		m_gRes = resonance * (1.0029 + 0.0526 * m_wc - 0.926 * wc2 + 0.0218 * wc3);
 	}
 	
-	SFM_INLINE void SetCutoff(float c)
+	SFM_INLINE void SetCutoff(float cutoff)
 	{
-		// FIXME: assert?
-		m_cutoff = c;
+		m_wc = 2 * M_PI * cutoff / m_sampleRate;
 
-		m_wc = 2 * MOOG_PI * m_cutoff / m_sampleRate;
-
-		// Below: without pow() calls
 //		m_g = 0.9892 * m_wc - 0.4342 * pow(m_wc, 2) + 0.1381 * pow(m_wc, 3) - 0.0202 * pow(m_wc, 4);
 
 		const double wc2 = m_wc*m_wc;
@@ -128,17 +122,14 @@ private:
 
 		sample = float(state[4]);
 
-		// Is filter still stable?
+		// Filter still in working order?
 		SFM::SampleAssert(sample);
 	}
 
-	unsigned m_sampleRate;
-	float    m_cutoff;
-	float    m_resonance;
+	const unsigned m_sampleRate;
 	
-	// For 2 channels (stereo)
-	double m_state[2][5];
-	double m_delay[2][5];
+	double m_state[2][5]; // 2 channels (stereo)
+	double m_delay[2][5]; //
 
 	double m_wc;    // The angular frequency of the cutoff
 	double m_g;     // A derived parameter for the cutoff frequency

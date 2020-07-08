@@ -13,8 +13,9 @@
 		- Smooth interpolation between vowels
 		- Stereo support
 
-	Important: do *not* call more often than than GetSampleRate() per second, the coefficients were designed for either 44.1KHz or 48KHz,
-	           I'm not sure (nor is it a big difference)
+	Important: 
+		- Do *not* call more often than than GetSampleRate() per second, the coefficients were designed for either 44.1KHz or 48KHz (can't be sure)
+		- Introduces a few harmonics in the top end
 */
 
 #pragma once

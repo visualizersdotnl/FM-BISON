@@ -52,11 +52,11 @@ namespace SFM
 		}
 
 		// Initialize at value and initialize rate & time
-		InterpolatedParameter(float value, unsigned sampleRate, float time /* In sec. */) :
+		InterpolatedParameter(float value, unsigned sampleRate, float timeInSec) :
 			m_value(value)
 		{
-			SFM_ASSERT(time >= 0.f);
-			SetRate(sampleRate, time);
+			SFM_ASSERT(timeInSec >= 0.f);
+			SetRate(sampleRate, timeInSec);
 			Set(value);
 		}
 
@@ -71,7 +71,10 @@ namespace SFM
 
 		SFM_INLINE float Sample()
 		{
-			return m_value.getNextValue();
+			const float result = m_value.getNextValue();
+//			const float target = m_value.getTargetValue();
+
+			return result;
 		}
 
 		SFM_INLINE float Get() const

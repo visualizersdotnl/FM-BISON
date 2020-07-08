@@ -12,8 +12,8 @@
 
 #pragma once
 
-#include "3rdparty/SvfLinearTrapOptimised2.hpp"
-#include "3rdparty/KrajeskiModel.h"
+#include "3rdparty/filters/SvfLinearTrapOptimised2.hpp"
+#include "3rdparty/filters/KrajeskiModel.h"
 
 // Include JUCE (for juce::dsp::Oversampling)
 #include "../JuceLibraryCode/JuceHeader.h"
@@ -43,7 +43,7 @@ namespace SFM
 				   float wahResonance, float wahAttack, float wahHold, float wahRate, float wahDrivedB, float wahSpeak, float wahSpeakVowel, float wahSpeakVowelMod, float wahSpeakGhost, float wahSpeakCut, float wahSpeakReso, float wahCut, float wahWet,
 		           float cpRate, float cpWet, bool isChorus,
 		           float delayInSec, float delayWet, float delayFeedback, float delayFeedbackCutoff,
-		           float postCutoff, float postQ, float postDrivedB, float postWet,
+		           float postCutoff, float postReso, float postDrivedB, float postWet,
 		           float tubeDistort, float tubeDrive, float tubeOffset,
 		           float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
 		           float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead, bool compAutoGain, float compRMSToPeak,
@@ -114,16 +114,16 @@ namespace SFM
 		LowpassFilter m_phaserSweepLPF;
 		
 		// Oversampling (using JUCE, FIXME)
-		const unsigned m_oversamplingStages;
-		const unsigned m_oversamplingFactor;
+		const unsigned m_oversamplingStages; // These two exist in case the amount of stages become dynamic
+		const unsigned m_oversamplingFactor; //
 		const unsigned m_oversamplingRate;
 		juce::dsp::Oversampling<float> m_oversampling;
 
 		// Post filter & interpolated parameters
 		KrajeskiMoog m_postFilter;
 		InterpolatedParameter<kLinInterpolate> m_curPostCutoff;
-		InterpolatedParameter<kLinInterpolate> m_curPostQ;
-		InterpolatedParameter<kLinInterpolate> m_curPostDrivedB;
+		InterpolatedParameter<kLinInterpolate> m_curPostReso;
+		InterpolatedParameter<kLinInterpolate> m_curPostDrive;
 		InterpolatedParameter<kLinInterpolate> m_curPostWet;
 
 		// Tube distortion filter (AA), DC blocker & interpolated parameters
@@ -132,6 +132,7 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curTubeOffset;
 		StereoDCBlocker m_tubeDCBlocker;	
 		SvfLinearTrapOptimised2 m_tubeFilterAA;
+		SvfLinearTrapOptimised2 m_filterAA;
 		
 		// Low & DC blocker
 		LowBlocker m_lowBlocker;

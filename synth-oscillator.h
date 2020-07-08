@@ -15,7 +15,7 @@
 #pragma warning(push)
 #pragma warning(disable: 4324) // Tell MSVC to shut it about padding I'm aware of
 
-#include "3rdparty/SvfLinearTrapOptimised2.hpp"
+#include "3rdparty/filters/SvfLinearTrapOptimised2.hpp"
 
 #include "synth-global.h"
 #include "synth-phase.h"

@@ -1,13 +1,17 @@
 
+// ----------------------------------------------------------------------------------------------------
 //
 // Modified to fit FM. BISON:
 // - Shoved into SFM namespace (collided with JUCE's ADSR)
 // - Separate target ratios for A/D/R
 // - Made a few functions 'const'
-// - Converted to double precision to avoid an attack "bug" (rounding artifact), as per Nigel Redmon's advice
+// - Converted to double precision to avoid an attack "bug" (rounding artifact), as per Nigel Redmon's
+//   advice
 // - Access to current release rate for SFM::Envelope::OnPianoSustain()
-// - Extra state to finish attack prior to entering piano sustain phase (extra state so we don't need a boolean, not that it really matters though)
+// - Extra state to finish attack prior to entering piano sustain phase (extra state so we don't need 
+//   a boolean, not that it really matters though)
 //
+// ----------------------------------------------------------------------------------------------------
 
 //
 //  ADSR.h
