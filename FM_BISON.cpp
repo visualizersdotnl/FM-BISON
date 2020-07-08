@@ -125,7 +125,7 @@ namespace SFM
 		// Reset global interpolated parameters
 		m_curLFOBlend    = { m_patch.LFOBlend, m_sampleRate, kDefParameterLatency };
 		m_curLFOModDepth = { m_patch.LFOModDepth, m_sampleRate, kDefParameterLatency };
-		m_curCutoff      = { SVF_CutoffToHz(m_patch.cutoff, m_Nyquist), m_samplesPerBlock, kDefParameterLatency };
+		m_curCutoff      = { SVF_CutoffToHz(m_patch.cutoff, m_Nyquist), m_samplesPerBlock, kDefParameterLatency * 2.f /* Longer */ };
 		m_curQ           = { SVF_ResoToQ(m_patch.resonance), m_sampleRate, kDefParameterLatency };
 		m_curPitchBend   = { 0.f, m_samplesPerBlock, kDefParameterLatency };
 		m_curAmpBend     = { 0.f, m_samplesPerBlock, kDefParameterLatency };
@@ -148,7 +148,7 @@ namespace SFM
 		m_LFOBlendPS            = { sampleRatePS };
 		m_LFOModDepthPS         = { sampleRatePS };
 		m_SandHSlewRatePS       = { sampleRatePS };
-		m_cutoffPS              = { sampleRatePS, 30.f /* 30MS */ }; // This one still has some artifacts, and I can't just keep increasing the slew rate (FIXME)
+		m_cutoffPS              = { sampleRatePS, 30.f /* 30MS */ };
 		m_resoPS                = { sampleRatePS };
 
 		m_LFORatePS.Reset(freqLFO);
@@ -238,9 +238,10 @@ namespace SFM
 		// Reset peak filters
 		for (auto &opPeak : m_opPeaks)
 		{
+			opPeak.Reset(0.f);
 			opPeak.SetSampleRate(sampleRate);
-			opPeak.SetAttack(0.1f);
-			opPeak.SetRelease(1.f);
+			opPeak.SetAttack(1.f);
+			opPeak.SetRelease(10.f);
 		}
 	}
 

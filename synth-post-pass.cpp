@@ -26,8 +26,9 @@ namespace SFM
 	// Remedies sampling artifacts whilst sweeping a delay line
 	constexpr float kSweepCutoffHz = 50.f;
 
-	// Threshold above we switch from 2 stages to 1 stage (oversampling)
-	constexpr unsigned kOversamplingStageThreshold = 48000; // 48KHz
+	// Oversampling (for 24dB filter & tube distortion)
+	constexpr unsigned kOversamplingStages = 2;
+	constexpr unsigned kOversamplingFactor = 4;
 
 	// Max. delay feedback (so as not to create an endless loop)
 	constexpr float kMaxDelayFeedback = 0.95f; // Like Ableton does, or so I've been told by Paul
@@ -43,7 +44,7 @@ namespace SFM
 ,		m_delayLineL(unsigned(sampleRate*kMainDelayLineSize))
 ,		m_delayLineM(unsigned(sampleRate*kMainDelayLineSize))
 ,		m_delayLineR(unsigned(sampleRate*kMainDelayLineSize))
-,		m_curDelayInSec(0.f, sampleRate, kDefParameterLatency * 4.f /* Slower */)
+,		m_curDelayInSec(0.f, sampleRate, kDefParameterLatency * 4.f /* Longer */)
 ,		m_curDelayWet(0.f, sampleRate, kDefParameterLatency)
 ,		m_curDelayFeedback(0.f, sampleRate, kDefParameterLatency)
 ,		m_curDelayFeedbackCutoff(1.f, sampleRate, kDefParameterLatency)
@@ -57,14 +58,14 @@ namespace SFM
 ,		m_phaserSweepLPF((kSweepCutoffHz*2.f)/sampleRate) // Tweaked a little for effect
 
 		// Oversampling (JUCE)
-,		m_oversamplingStages((sampleRate <= kOversamplingStageThreshold) ? 2 : 1)
-,		m_oversamplingFactor(m_oversamplingStages*2)
+,		m_oversamplingStages(kOversamplingStages)
+,		m_oversamplingFactor(kOversamplingFactor)
 ,		m_oversamplingRate(sampleRate*m_oversamplingFactor)
 ,		m_oversampling(2, m_oversamplingStages, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true)
 
 		// Post filter
 ,		m_postFilter(m_oversamplingRate)
-,		m_curPostCutoff(0.f, m_oversamplingRate, kDefParameterLatency)
+,		m_curPostCutoff(0.f, m_oversamplingRate, kDefParameterLatency * 2.f /* Longer */)
 ,		m_curPostQ(0.f, m_oversamplingRate, kDefParameterLatency)
 ,		m_curPostDrivedB(0.f, m_oversamplingRate, kDefParameterLatency)
 ,		m_curPostWet(0.f, m_oversamplingRate, kDefParameterLatency)
