@@ -26,9 +26,8 @@ namespace SFM
 	// Remedies sampling artifacts whilst sweeping a delay line
 	constexpr float kSweepCutoffHz = 50.f;
 
-	// Oversampling factor for 24dB MOOG filter & tube distortion
-	constexpr unsigned kOversampleStages = 2;
-	constexpr unsigned kOversample = 4; // 2^kOversampleStages
+	// Threshold above we switch from 2 stages to 1 stage (oversampling)
+	constexpr unsigned kOversamplingStageThreshold = 48000; // 48KHz
 
 	// Max. delay feedback (so as not to create an endless loop)
 	constexpr float kMaxDelayFeedback = 0.95f; // Like Ableton does, or so I've been told by Paul
@@ -58,8 +57,10 @@ namespace SFM
 ,		m_phaserSweepLPF((kSweepCutoffHz*2.f)/sampleRate) // Tweaked a little for effect
 
 		// Oversampling (JUCE)
-,		m_oversamplingRate(sampleRate*kOversample)
-,		m_oversampling(2, kOversampleStages, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true)
+,		m_oversamplingStages((sampleRate <= kOversamplingStageThreshold) ? 2 : 1)
+,		m_oversamplingFactor(m_oversamplingStages*2)
+,		m_oversamplingRate(sampleRate*m_oversamplingFactor)
+,		m_oversampling(2, m_oversamplingStages, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true)
 
 		// Post filter
 ,		m_postFilter(m_oversamplingRate)
@@ -284,7 +285,7 @@ namespace SFM
 
 		 ------------------------------------------------------------------------------------------------------ */
 
-		const auto numOversamples = numSamples*kOversample;
+		const auto numOversamples = numSamples*m_oversamplingFactor;
 
 		// Set post filter parameters
 		m_curPostCutoff.SetTarget(postCutoff);

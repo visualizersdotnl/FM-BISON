@@ -114,6 +114,8 @@ namespace SFM
 		LowpassFilter m_phaserSweepLPF;
 		
 		// Oversampling (using JUCE, FIXME)
+		const unsigned m_oversamplingStages;
+		const unsigned m_oversamplingFactor;
 		const unsigned m_oversamplingRate;
 		juce::dsp::Oversampling<float> m_oversampling;
 
