@@ -138,6 +138,9 @@ namespace SFM
 			They are kept *only* in this class since they're not a pretty sight and may need to be
 			removed or overhauled for other (non) VST projects
 
+			Some have a longer slew MS because they're more prone to artifacts, usually in conjuction with
+			a longer parameter latency for their InterpolatedParameter counterpart
+
 		*/
 
 		// Their sample rate is the amount of Render() calls it takes to render a second of audio
