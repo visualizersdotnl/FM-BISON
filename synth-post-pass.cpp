@@ -144,8 +144,6 @@ namespace SFM
 
 			Auto-wah
 
-			Can cause latency, but only if in use (i.e. wet).
-
 		 ------------------------------------------------------------------------------------------------------ */
 
 		if (true == useBPM)
@@ -267,7 +265,7 @@ namespace SFM
 			m_delayLineM.WriteFeedback(filteredM, curFeedback);
 			m_delayLineR.WriteFeedback(filteredR, curFeedback);
 
-			// Mix FX with (filtered) delay
+			// Add (filtered, FIXME?) delay
 			const float wet = m_curDelayWet.Sample();
 			m_pBufL[iSample] = left  + wet*filteredL;
 			m_pBufR[iSample] = right + wet*filteredR;
@@ -349,7 +347,7 @@ namespace SFM
 			// Remove DC offset
 			m_tubeDCBlocker.Apply(filteredL, filteredR);
 			
-			// Mix them
+			// Add & mix
 			sampleL += postSampleL*curPostWet;
 			sampleR += postSampleR*curPostWet;
 				
@@ -474,7 +472,7 @@ namespace SFM
 		const float chorusL = m_chorusDL.Read(delay + spread*m_chorusSweepLPF1.Apply(sweepL));
 		const float chorusR = m_chorusDL.Read(delay + spread*m_chorusSweepLPF2.Apply(sweepR));
 		
-		// Mix result with dry signal
+		// Add result to dry signal
 		wetness *= kMaxChorusPhaserWet;
 		outL = sampleL + wetness*chorusL; 
 		outR = sampleR + wetness*chorusR; 
@@ -508,7 +506,7 @@ namespace SFM
 			Q += Q;
 		}
 		
-		// Mix result with dry signal
+		// Add result to dry signal
 		wetness *= kMaxChorusPhaserWet;
 		outL = sampleL + wetness*filteredL;
 		outR = sampleR + wetness*filteredR;
