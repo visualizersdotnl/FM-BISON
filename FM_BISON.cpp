@@ -115,7 +115,6 @@ namespace SFM
 
 		// Create effects
 		m_postPass = new PostPass(m_sampleRate, m_samplesPerBlock, m_Nyquist);
-//		const auto oversamplingRate = m_postPass->GetOversamplingRate();
 
 		// Start global LFO phase
 		m_globalLFO = new Phase(m_sampleRate);

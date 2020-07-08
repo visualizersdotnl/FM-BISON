@@ -7,8 +7,9 @@
 	- Auto-wah
 	- Delay
 	- Yamaha Reface CP-style chorus & phaser
-	- Post filter (24dB)
-	- Tube distortion
+	- Post filter (24dB)   - 2X oversampling
+	- Tube distortion      - 4X oversampling
+	- Anti-aliasing filter - 4X oversampling
 	- Reverb
 	- Compressor
 	- Master volume, DC blocker & final clamp
@@ -26,10 +27,6 @@ namespace SFM
 	// Remedies sampling artifacts whilst sweeping a delay line
 	constexpr float kSweepCutoffHz = 50.f;
 
-	// Oversampling (for 24dB filter & tube distortion)
-	constexpr unsigned kOversamplingStages = 2;
-	constexpr unsigned kOversamplingFactor = 4;
-
 	// Max. delay feedback (so as not to create an endless loop)
 	constexpr float kMaxDelayFeedback = 0.95f; // Like Ableton does, or so I've been told by Paul
 
@@ -38,7 +35,7 @@ namespace SFM
 	constexpr float kDelayCrossbleeding = 0.3f;
 
 	PostPass::PostPass(unsigned sampleRate, unsigned maxSamplesPerBlock, unsigned Nyquist) :
-		m_sampleRate(sampleRate), m_Nyquist(Nyquist)
+		m_sampleRate(sampleRate), m_Nyquist(Nyquist), m_sampleRate2X(sampleRate*2), m_sampleRate4X(sampleRate*4)
 
 		// Delay
 ,		m_delayLineL(unsigned(sampleRate*kMainDelayLineSize))
@@ -57,23 +54,21 @@ namespace SFM
 ,		m_phaserSweep(sampleRate)
 ,		m_phaserSweepLPF((kSweepCutoffHz*2.f)/sampleRate) // Tweaked a little for effect
 
-		// Oversampling (JUCE)
-,		m_oversamplingStages(kOversamplingStages)
-,		m_oversamplingFactor(kOversamplingFactor)
-,		m_oversamplingRate(sampleRate*m_oversamplingFactor)
-,		m_oversampling(2, m_oversamplingStages, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true)
+		// Oversampling (stereo)
+,		m_oversampling2X(2, 1, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true)
+,		m_oversampling4X(2, 2, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true)
 
 		// Post filter
-,		m_postFilter(m_oversamplingRate)
-,		m_curPostCutoff(0.f, m_oversamplingRate, kDefParameterLatency * 2.f /* Longer */)
-,		m_curPostReso(0.f, m_oversamplingRate, kDefParameterLatency)
-,		m_curPostDrive(0.f, m_oversamplingRate, kDefParameterLatency)
-,		m_curPostWet(0.f, m_oversamplingRate, kDefParameterLatency)
+,		m_postFilter(m_sampleRate2X)
+,		m_curPostCutoff(0.f, m_sampleRate2X, kDefParameterLatency * 2.f /* Longer */)
+,		m_curPostReso(0.f, m_sampleRate2X, kDefParameterLatency)
+,		m_curPostDrive(0.f, m_sampleRate2X, kDefParameterLatency)
+,		m_curPostWet(0.f, m_sampleRate2X, kDefParameterLatency)
 		
 		// Tube distort
-,		m_curTubeDist(0.f, m_oversamplingRate, kDefParameterLatency)
-,		m_curTubeDrive(kDefTubeDrive, m_oversamplingRate, kDefParameterLatency)
-,		m_curTubeOffset(0.f, m_oversamplingRate, kDefParameterLatency)
+,		m_curTubeDist(0.f, m_sampleRate4X, kDefParameterLatency)
+,		m_curTubeDrive(kDefTubeDrive, m_sampleRate4X, kDefParameterLatency)
+,		m_curTubeOffset(0.f, m_sampleRate4X, kDefParameterLatency)
 
 		// Low blocker
 ,		m_lowBlocker(kLowBlockerHz, sampleRate)
@@ -92,8 +87,9 @@ namespace SFM
 		m_pBufL  = reinterpret_cast<float *>(mallocAligned(maxSamplesPerBlock*sizeof(float), 16));
 		m_pBufR  = reinterpret_cast<float *>(mallocAligned(maxSamplesPerBlock*sizeof(float), 16));
 
-		// Initialize JUCE oversampling object
-		m_oversampling.initProcessing(maxSamplesPerBlock);
+		// Initialize JUCE oversampling objects (FIXME)
+		m_oversampling2X.initProcessing(maxSamplesPerBlock);
+		m_oversampling4X.initProcessing(maxSamplesPerBlock);
 	}
 
 	PostPass::~PostPass()
@@ -275,7 +271,7 @@ namespace SFM
 
 		/* ----------------------------------------------------------------------------------------------------
 
-			Oversampled: 24dB ladder filter, tube distortion
+			Oversampled: 24dB ladder filter (2X), tube distortion & AA (4X)
 
 			JUCE says:
 			" Choose between FIR or IIR filtering depending on your needs in term of latency and phase 
@@ -286,43 +282,33 @@ namespace SFM
 
 		 ------------------------------------------------------------------------------------------------------ */
 
-		const auto numOversamples = numSamples*m_oversamplingFactor;
-
 		// Set post filter parameters
 		m_curPostCutoff.SetTarget(postCutoff);
 		m_curPostReso.SetTarget(postReso);
 		m_curPostDrive.SetTarget(dB2Lin(postDrivedB));
 		m_curPostWet.SetTarget(postWet);
 		
-		// Set tube distortion parameters
-		m_curTubeDist.SetTarget(tubeDistort);
-		m_curTubeDrive.SetTarget(tubeDrive);
-		m_curTubeOffset.SetTarget(tubeOffset);
-
-		// Oversample for this stage
+		// Main buffers
 		float *inputBuffers[2] = { m_pBufL, m_pBufR };
 		juce::dsp::AudioBlock<float> inputBlock(inputBuffers, 2, numSamples);
 
-		auto outBlock = m_oversampling.processSamplesUp(inputBlock);
-		SFM_ASSERT(numOversamples == outBlock.getNumSamples());
+		// Current number of samples
+		size_t numOversamples; 
 
-		float *pOverL = outBlock.getChannelPointer(0);
-		float *pOverR = outBlock.getChannelPointer(1);
-		
-		//
-		// Apply post filter, tube distortion & AA
-		//
+		// Oversample 2X
+		auto outBlock2X = m_oversampling2X.processSamplesUp(inputBlock);
+		numOversamples = outBlock2X.getNumSamples();
+		SFM_ASSERT(numOversamples == numSamples*2);
 
-		// Anti-aliasing filters: one to attenuate distortion harmonics above host sample rate, one to attenuate harmonics above host Nyquist
-		m_tubeFilterAA.updateLowpassCoeff(m_sampleRate, kSVFLowestFilterQ, m_oversamplingRate); 
-		m_filterAA.updateLowpassCoeff(m_Nyquist, kSVFLowestFilterQ, m_oversamplingRate); 
+		float *p2X_L = outBlock2X.getChannelPointer(0);
+		float *p2X_R = outBlock2X.getChannelPointer(1);
 
+		// Apply 24dB post filter
 		for (unsigned iSample = 0; iSample < numOversamples; ++iSample)
 		{
-			float sampleL = pOverL[iSample]; 
-			float sampleR = pOverR[iSample];
+			float sampleL = p2X_L[iSample]; 
+			float sampleR = p2X_R[iSample];
 
-			// Apply 24dB post filter
 			const float curPostCutoff = m_curPostCutoff.Sample();
 			const float curPostReso   = m_curPostReso.Sample();
 			const float curPostDrive  = m_curPostDrive.Sample();
@@ -330,46 +316,68 @@ namespace SFM
 
 			float filteredL = sampleL, filteredR = sampleR;
 
-			m_postFilter.SetParameters(40.f + curPostCutoff*10000.f, curPostReso /* [0..1] */, curPostDrive);
+			m_postFilter.SetParameters(100.f + curPostCutoff*10000.f /* "Just right" */, curPostReso /* [0..1] */, curPostDrive);
 			m_postFilter.Apply(filteredL, filteredR);
 
-			const float postWetCurved = cosinterpf(0.f, 1.f, curPostWet);
-			const float postSampleL = lerpf<float>(sampleL, sampleL+filteredL, postWetCurved);
-			const float postSampleR = lerpf<float>(sampleR, sampleR+filteredR, postWetCurved);
+			p2X_L[iSample] = lerpf<float>(sampleL, sampleL+filteredL, curPostWet);
+			p2X_R[iSample] = lerpf<float>(sampleR, sampleR+filteredR, curPostWet);
+		}
 
-			// Apply distortion (on top of filter)		
-			float distortedL = postSampleL;
-			float distortedR = postSampleR;
+		// Downsample result
+		m_oversampling2X.processSamplesDown(inputBlock);
+
+		// Set tube distortion parameters
+		m_curTubeDist.SetTarget(tubeDistort);
+		m_curTubeDrive.SetTarget(tubeDrive);
+		m_curTubeOffset.SetTarget(tubeOffset);
+
+		// Anti-aliasing filters: one to attenuate distortion harmonics above host sample rate, one to attenuate harmonics above host Nyquist
+		m_tubeFilterAA.updateLowpassCoeff(m_sampleRate, kSVFLowestFilterQ, m_sampleRate4X); 
+		m_filterAA.updateLowpassCoeff(m_Nyquist, kSVFMinFilterQ, m_sampleRate4X); 
+
+		// Oversample 4X
+		auto outBlock4X = m_oversampling4X.processSamplesUp(inputBlock);
+		numOversamples = outBlock4X.getNumSamples();
+		SFM_ASSERT(numOversamples == numSamples*4);
+
+		float *p4X_L = outBlock4X.getChannelPointer(0);
+		float *p4X_R = outBlock4X.getChannelPointer(1);
+
+		// Apply distortion & AA
+		for (unsigned iSample = 0; iSample < numOversamples; ++iSample)
+		{
+			// Get L/R & parameters
+			float sampleL = p4X_L[iSample];
+			float sampleR = p4X_R[iSample];
 
 			const float amount = m_curTubeDist.Sample();
 			const float drive  = m_curTubeDrive.Sample();
 			const float offset = m_curTubeOffset.Sample();
 			
+			// Apply cubic distortion
+			float distortedL = sampleL, distortedR = sampleR;
 			distortedL = ClassicCubicClip((offset+distortedL)*drive);
 			distortedR = ClassicCubicClip((offset+distortedR)*drive);
 			
-			// Remove DC offset
+			// Remove possible DC offset
 			m_tubeDCBlocker.Apply(distortedL, distortedR);
 
 			// Apply distortion AA filter
 			m_tubeFilterAA.tick(distortedL, distortedR);
 			
-			// Mix results
-			sampleL = lerpf<float>(postSampleL, distortedL, amount);
-			sampleR = lerpf<float>(postSampleR, distortedR, amount);
+			// Add result
+			sampleL = sampleL + distortedL*amount;
+			sampleR = sampleR + distortedR*amount;
 
 			// Apply final AA filter
 			m_filterAA.tick(sampleL, sampleR);
 
-			pOverL[iSample] = sampleL;
-			pOverR[iSample] = sampleR;
+			p4X_L[iSample] = sampleL;
+			p4X_R[iSample] = sampleR;
 		}
 
 		// Downsample result
-		m_oversampling.processSamplesDown(inputBlock);
-
-		// FIXME
-//		const float samplingLatency = m_oversampling.getLatencyInSamples();
+		m_oversampling4X.processSamplesDown(inputBlock);
 
 		/* ----------------------------------------------------------------------------------------------------
 

@@ -50,11 +50,6 @@ namespace SFM
 		           float masterVol,
 		           const float *pLeftIn, const float *pRightIn, float *pLeftOut, float *pRightOut);
 
-		unsigned GetOversamplingRate() const
-		{
-			return m_oversamplingRate;
-		}
-
 		// Intended for a graphical indicator
 		float GetCompressorBite() const
 		{
@@ -85,6 +80,8 @@ namespace SFM
 		
 		const unsigned m_sampleRate;
 		const unsigned m_Nyquist;
+		const unsigned m_sampleRate2X; // For convenience
+		const unsigned m_sampleRate4X; //
 
 		// Intermediate buffers
 		float *m_pBufL = nullptr;
@@ -112,12 +109,10 @@ namespace SFM
 		SvfLinearTrapOptimised2 m_allpassFilters[kNumPhaserStages];
 		Phase m_phaserSweep;
 		LowpassFilter m_phaserSweepLPF;
-		
-		// Oversampling (using JUCE, FIXME)
-		const unsigned m_oversamplingStages; // These two exist in case the amount of stages become dynamic
-		const unsigned m_oversamplingFactor; //
-		const unsigned m_oversamplingRate;
-		juce::dsp::Oversampling<float> m_oversampling;
+
+		// Oversampling (FIXME: JUCE)
+		juce::dsp::Oversampling<float> m_oversampling2X;
+		juce::dsp::Oversampling<float> m_oversampling4X;
 
 		// Post filter & interpolated parameters
 		KrajeskiMoog m_postFilter;
