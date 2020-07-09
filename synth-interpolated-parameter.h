@@ -26,6 +26,7 @@
 		- Replace JUCE implementation (also in other places where juce::SmoothedValue is used)
 		- I'm not entirely happy with the latter 2 constructors, the top one becomes ambiguous when I set the last
 		  parameter to a default value (kDefParameterLatency), which is the case 99% of the time
+		- I've had it interpolating past the target, which in turn resulted in invalid parameters; maybe that's fixed in JUCE 6?
 */
 
 #pragma once

@@ -39,7 +39,7 @@
 	- Public domain MOOG-style ladder filters: https://github.com/ddiakopoulos/MoogLadders/blob/master/src/
 	- Reverb based on FreeVerb by Volker Böhm
 	- TinyMT Mersenne-Twister random generator by Makoto Matsumoto and Mutsuo Saito 
-	- Yamaha DX7 LFO rates taken from Sean Bolton's Hexter
+	- Yamaha DX7 LFO rates (synth-DX7-LFO-table.h) taken from Sean Bolton's Hexter
 	- Fast cosine approximation supplied by Erik 'Kusma' Faye-Lund
 	- There are 2 depndencies on JUCE (currently these have little priority as we use JUCE for our product line)
 	- 'PolyBLEP'-based oscillators were lifted from https://github.com/martinfinke/PolyBLEP; by various authors (I keep a copy in /3rdparty/PolyBLEP (ref.))

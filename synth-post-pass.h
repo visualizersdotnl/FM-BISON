@@ -13,8 +13,9 @@
 #pragma once
 
 #include "3rdparty/filters/SvfLinearTrapOptimised2.hpp"
-#include "3rdparty/filters/KrajeskiModel.h"
-#include "3rdparty/filters/MicrotrackerModel.h"
+// #include "3rdparty/filters/KrajeskiModel.h"
+// #include "3rdparty/filters/MicrotrackerModel.h"
+#include "3rdparty/filters/MusicDSPModel.h"
 
 // Include JUCE (for juce::dsp::Oversampling)
 #include "../JuceLibraryCode/JuceHeader.h"
@@ -114,8 +115,9 @@ namespace SFM
 		juce::dsp::Oversampling<float> m_oversampling4X;
 
 		// Post filter & interpolated parameters
-		KrajeskiMoog m_postFilter;
+//		KrajeskiMoog m_postFilter;
 //		MicrotrackerMoog m_postFilter;
+		MusicDSPMoog m_postFilter; // For now this is the best sounding of all 3, but I want to test more! (FIXME)
 		InterpolatedParameter<kLinInterpolate> m_curPostCutoff;
 		InterpolatedParameter<kLinInterpolate> m_curPostReso;
 		InterpolatedParameter<kLinInterpolate> m_curPostDrive;

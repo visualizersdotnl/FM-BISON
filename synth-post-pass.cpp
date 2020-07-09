@@ -7,7 +7,7 @@
 	- Auto-wah
 	- Delay
 	- Yamaha Reface CP-style chorus & phaser
-	- Post filter (24dB)   - 2X oversampling
+	- Post filter (24dB)   - 4X oversampling
 	- Tube distortion      - 4X oversampling
 	- Anti-aliasing filter - 4X oversampling
 	- Reverb
@@ -16,6 +16,9 @@
 
 	This grew into a huge class; that was of course not the intention but so far it's functional and quite well
 	documented so right now (01/07/2020) I see no reason to chop it up
+
+	However, the amount of processing done every Render() cycle is significant, so I should look into disabling
+	certain effects when they do not contribute to the patch (at that particular moment)
 */
 
 #include "synth-post-pass.h"

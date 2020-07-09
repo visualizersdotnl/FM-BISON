@@ -23,8 +23,6 @@
 // Based on an implementation by Magnus Jonsson
 // https://github.com/magnusjonsson/microtracker (unlicense)
 
-#pragma once
-
 class MicrotrackerMoog
 {
 public:

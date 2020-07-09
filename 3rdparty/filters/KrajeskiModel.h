@@ -9,7 +9,7 @@
 // - Added SetParameters()
 // - Misc. minor modifications 
 //
-// - Like most audio/DSP code out there it's messy, I won't fix that
+// - Like most audio/DSP code out there it's a big messy and not very verbose, but I'll keep it as-is
 //
 // ----------------------------------------------------------------------------------------------------
 

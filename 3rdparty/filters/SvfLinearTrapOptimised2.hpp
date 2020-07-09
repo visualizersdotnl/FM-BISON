@@ -15,7 +15,7 @@
 // - Using cheaper trig. approximation functions may seem like a good idea but we're on thin
 //   ice as it is
 //
-// - Like most audio/DSP code out there it's messy, I won't fix that
+// - Like most audio/DSP code out there it's a big messy and not very verbose, but I'll keep it as-is
 //
 // ----------------------------------------------------------------------------------------------------
 
