@@ -71,6 +71,12 @@ namespace SFM
 			const float envGaindB = m_gainEnvdB.Apply(signaldB);
 			const float envGain   = dB2Lin(envGaindB);
 
+			if (envGain <= kEpsilon)
+			{
+				// It feels right to reset the "motion" during silence
+				m_LFO.Reset();
+			}
+
 			// Cut off high end: that's what we'll work with
 			float preFilteredL = sampleL, preFilteredR = sampleR;
 			m_preFilterHPF.updateCoefficients(SVF_CutoffToHz(lowCut, m_Nyquist), kPreLowCutQ, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
