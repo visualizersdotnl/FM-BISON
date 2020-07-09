@@ -35,7 +35,7 @@ namespace SFM
 	constexpr float kDelayCrossbleeding = 0.3f;
 
 	PostPass::PostPass(unsigned sampleRate, unsigned maxSamplesPerBlock, unsigned Nyquist) :
-		m_sampleRate(sampleRate), m_Nyquist(Nyquist), m_sampleRate2X(sampleRate*2), m_sampleRate4X(sampleRate*4)
+		m_sampleRate(sampleRate), m_Nyquist(Nyquist), m_sampleRate4X(sampleRate*4)
 
 		// Delay
 ,		m_delayLineL(unsigned(sampleRate*kMainDelayLineSize))
@@ -55,15 +55,14 @@ namespace SFM
 ,		m_phaserSweepLPF((kSweepCutoffHz*2.f)/sampleRate) // Tweaked a little for effect
 
 		// Oversampling (stereo)
-,		m_oversampling2X(2, 1, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true)
 ,		m_oversampling4X(2, 2, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true)
 
 		// Post filter
-,		m_postFilter(m_sampleRate2X)
-,		m_curPostCutoff(0.f, m_sampleRate2X, kDefParameterLatency * 2.f /* Longer */)
-,		m_curPostReso(0.f, m_sampleRate2X, kDefParameterLatency)
-,		m_curPostDrive(0.f, m_sampleRate2X, kDefParameterLatency)
-,		m_curPostWet(0.f, m_sampleRate2X, kDefParameterLatency)
+,		m_postFilter(m_sampleRate4X)
+,		m_curPostCutoff(0.f, m_sampleRate4X, kDefParameterLatency * 2.f /* Longer */)
+,		m_curPostReso(0.f, m_sampleRate4X, kDefParameterLatency)
+,		m_curPostDrive(0.f, m_sampleRate4X, kDefParameterLatency)
+,		m_curPostWet(0.f, m_sampleRate4X, kDefParameterLatency)
 		
 		// Tube distort
 ,		m_curTubeDist(0.f, m_sampleRate4X, kDefParameterLatency)
@@ -87,8 +86,7 @@ namespace SFM
 		m_pBufL  = reinterpret_cast<float *>(mallocAligned(maxSamplesPerBlock*sizeof(float), 16));
 		m_pBufR  = reinterpret_cast<float *>(mallocAligned(maxSamplesPerBlock*sizeof(float), 16));
 
-		// Initialize JUCE oversampling objects (FIXME)
-		m_oversampling2X.initProcessing(maxSamplesPerBlock);
+		// Initialize JUCE oversampling object (FIXME)
 		m_oversampling4X.initProcessing(maxSamplesPerBlock);
 	}
 
@@ -287,28 +285,34 @@ namespace SFM
 		m_curPostReso.SetTarget(postReso);
 		m_curPostDrive.SetTarget(dB2Lin(postDrivedB));
 		m_curPostWet.SetTarget(postWet);
+
+		// Set tube distortion parameters
+		m_curTubeDist.SetTarget(tubeDistort);
+		m_curTubeDrive.SetTarget(tubeDrive);
+		m_curTubeOffset.SetTarget(tubeOffset);
+
+		// Anti-aliasing filters: one to attenuate distortion harmonics, one to attenuate harmonics above host Nyquist
+		m_tubeFilterAA.updateLowpassCoeff(m_sampleRate, kSVFMinFilterQ, m_sampleRate4X); 
+		m_filterAA.updateLowpassCoeff(m_Nyquist, 0.15 /* FIXME */, m_sampleRate4X); 
 		
 		// Main buffers
 		float *inputBuffers[2] = { m_pBufL, m_pBufR };
 		juce::dsp::AudioBlock<float> inputBlock(inputBuffers, 2, numSamples);
 
-		// Current number of samples
-		size_t numOversamples; 
+		// Oversample 4X
+		auto outBlock = m_oversampling4X.processSamplesUp(inputBlock);
+		const size_t numOversamples = outBlock.getNumSamples();
+		SFM_ASSERT(numOversamples == numSamples*4);
 
-		// Oversample 2X
-		auto outBlock2X = m_oversampling2X.processSamplesUp(inputBlock);
-		numOversamples = outBlock2X.getNumSamples();
-		SFM_ASSERT(numOversamples == numSamples*2);
+		float *pOverL = outBlock.getChannelPointer(0);
+		float *pOverR = outBlock.getChannelPointer(1);
 
-		float *p2X_L = outBlock2X.getChannelPointer(0);
-		float *p2X_R = outBlock2X.getChannelPointer(1);
-
-		// Apply 24dB post filter
 		for (unsigned iSample = 0; iSample < numOversamples; ++iSample)
 		{
-			float sampleL = p2X_L[iSample]; 
-			float sampleR = p2X_R[iSample];
-
+			float sampleL = pOverL[iSample]; 
+			float sampleR = pOverR[iSample];
+			
+			// Apply 24dB post filter
 			const float curPostCutoff = m_curPostCutoff.Sample();
 			const float curPostReso   = m_curPostReso.Sample();
 			const float curPostDrive  = m_curPostDrive.Sample();
@@ -316,46 +320,18 @@ namespace SFM
 
 			float filteredL = sampleL, filteredR = sampleR;
 
-			m_postFilter.SetParameters(100.f + curPostCutoff*10000.f /* "Just right" */, curPostReso /* [0..1] */, curPostDrive);
+			m_postFilter.SetParameters(80.f + curPostCutoff*10000.f /* "Just right" */, curPostReso /* [0..1] */, curPostDrive);
 			m_postFilter.Apply(filteredL, filteredR);
 
-			p2X_L[iSample] = lerpf<float>(sampleL, sampleL+filteredL, curPostWet);
-			p2X_R[iSample] = lerpf<float>(sampleR, sampleR+filteredR, curPostWet);
-		}
-
-		// Downsample result
-		m_oversampling2X.processSamplesDown(inputBlock);
-
-		// Set tube distortion parameters
-		m_curTubeDist.SetTarget(tubeDistort);
-		m_curTubeDrive.SetTarget(tubeDrive);
-		m_curTubeOffset.SetTarget(tubeOffset);
-
-		// Anti-aliasing filters: one to attenuate distortion harmonics above host sample rate, one to attenuate harmonics above host Nyquist
-		m_tubeFilterAA.updateLowpassCoeff(m_sampleRate, kSVFLowestFilterQ, m_sampleRate4X); 
-		m_filterAA.updateLowpassCoeff(m_Nyquist, kSVFMinFilterQ, m_sampleRate4X); 
-
-		// Oversample 4X
-		auto outBlock4X = m_oversampling4X.processSamplesUp(inputBlock);
-		numOversamples = outBlock4X.getNumSamples();
-		SFM_ASSERT(numOversamples == numSamples*4);
-
-		float *p4X_L = outBlock4X.getChannelPointer(0);
-		float *p4X_R = outBlock4X.getChannelPointer(1);
-
-		// Apply distortion & AA
-		for (unsigned iSample = 0; iSample < numOversamples; ++iSample)
-		{
-			// Get L/R & parameters
-			float sampleL = p4X_L[iSample];
-			float sampleR = p4X_R[iSample];
-
+			const float postL = lerpf<float>(sampleL, filteredL, curPostWet);
+			const float postR = lerpf<float>(sampleR, filteredR, curPostWet);
+			
+			// Apply (cubic) distortion
 			const float amount = m_curTubeDist.Sample();
 			const float drive  = m_curTubeDrive.Sample();
 			const float offset = m_curTubeOffset.Sample();
 			
-			// Apply cubic distortion
-			float distortedL = sampleL, distortedR = sampleR;
+			float distortedL = postL, distortedR = postR;
 			distortedL = ClassicCubicClip((offset+distortedL)*drive);
 			distortedR = ClassicCubicClip((offset+distortedR)*drive);
 			
@@ -365,19 +341,21 @@ namespace SFM
 			// Apply distortion AA filter
 			m_tubeFilterAA.tick(distortedL, distortedR);
 			
-			// Add result
-			sampleL = sampleL + distortedL*amount;
-			sampleR = sampleR + distortedR*amount;
+			// Mix results
+			sampleL = lerpf<float>(postL, distortedL, amount);
+			sampleR = lerpf<float>(postR, distortedR, amount);
 
 			// Apply final AA filter
 			m_filterAA.tick(sampleL, sampleR);
 
-			p4X_L[iSample] = sampleL;
-			p4X_R[iSample] = sampleR;
+			// Mix
+			pOverL[iSample] = sampleL;
+			pOverR[iSample] = sampleR;
 		}
-
+	
 		// Downsample result
 		m_oversampling4X.processSamplesDown(inputBlock);
+
 
 		/* ----------------------------------------------------------------------------------------------------
 
@@ -398,7 +376,7 @@ namespace SFM
 
 			Compressor
 
-			Introduces latency when 'compLookahead' is larger than zero.
+			Causes latency when 'compLookahead' is larger than zero.
 
 		 ------------------------------------------------------------------------------------------------------ */
 

@@ -36,13 +36,13 @@
 	Third party credits (all of them public domain, please contact us if we're mistaken):
 	- ADSR (modified & fixed) by Nigel Redmon (http://www.earlevel.com)
 	- SvfLinearTrapOptimised2.hpp (modified) by Fred Anton Corvest (https://github.com/FredAntonCorvest/Common-DSP)
-	- Public domain MOOG-style ladder filters (https://github.com/ddiakopoulos/MoogLadders/blob/master/src/)
+	- Public domain MOOG-style ladder filters: https://github.com/ddiakopoulos/MoogLadders/blob/master/src/
 	- Reverb based on FreeVerb by Volker Böhm
 	- TinyMT Mersenne-Twister random generator by Makoto Matsumoto and Mutsuo Saito 
 	- Yamaha DX7 LFO rates taken from Sean Bolton's Hexter
 	- Fast cosine approximation supplied by Erik 'Kusma' Faye-Lund
 	- There are 2 depndencies on JUCE (currently these have little priority as we use JUCE for our product line)
-	- 'PolyBLEP'-based oscillators were lifted from https://github.com/martinfinke/PolyBLEP; by various authors (I keep a copy in /3rdparty as ref.)
+	- 'PolyBLEP'-based oscillators were lifted from https://github.com/martinfinke/PolyBLEP; by various authors (I keep a copy in /3rdparty/PolyBLEP (ref.))
 	- I've ported a lot of interpolation functions from http://easings.net to single prec.
 	- And a few bits and bytes left and right; these are often credited in or close to the implementation
 

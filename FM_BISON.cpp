@@ -242,8 +242,8 @@ namespace SFM
 		{
 			opPeak.Reset(0.f);
 			opPeak.SetSampleRate(sampleRate);
-			opPeak.SetAttack(1.f);
-			opPeak.SetRelease(2.f);
+			opPeak.SetAttack(0.1f);
+			opPeak.SetRelease(0.5f);
 		}
 	}
 
@@ -1972,7 +1972,7 @@ namespace SFM
 			Calculate peak for each operator (for visualization only; remove or comment out if unnecessary)
 		*/
 
-		// Find peaks
+		// Calc. peaks (not the most sturdy way to do it but it suffices)
 		if (0 == m_voiceCount)
 		{
 			for (auto &opPeak : m_opPeaks)
@@ -1990,13 +1990,12 @@ namespace SFM
 
 					if (true == voiceOp.enabled)
 					{
-						const float curGain = voiceOp.envGain.Get(); // Abs.
+						const float peakGain = m_opPeaks[iOp].Get();
+						const float curGain  = voiceOp.envGain.Get(); // Abs.
 
-						if (curGain >= m_opPeaks[iOp].Get())
-							// Rise
+						if (curGain > peakGain)
 							m_opPeaks[iOp].Apply(curGain);
-						else
-							// Fall
+						else if (curGain < peakGain)
 							m_opPeaks[iOp].Apply(0.f);
 					}
 				}

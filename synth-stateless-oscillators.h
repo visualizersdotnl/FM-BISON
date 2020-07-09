@@ -73,15 +73,18 @@ namespace SFM
 	/*
 		Band-limited (PolyBLEP) oscillators
 		
-		- Based on: https://github.com/martinfinke/PolyBLEP
-		- A copy of the original can be found @ /3rdparty/PolyBlep/...
-		- There are a lot more waveforms ready to use (though I shouldn't go overboard, but perhaps focus on more variations of sine)
+		- Links:
+		  * https://github.com/martinfinke/PolyBLEP 
+		  * http://www.kvraudio.com/forum/viewtopic.php?t=375517
+		  * https://dsp.stackexchange.com/questions/54790/polyblamp-anti-aliasing-in-c
+		
+		- A copy of Martin Finke's implementation can be found @ /3rdparty/PolyBLEP
 		
 		I've kept this implementation and it's helper functions all in one spot, though I did
-		rename a few things to keep it consistent with my style.
+		rename a few things to keep it consistent with my style
 
 		Keep in mind that PolyBLEP is *not* the best solution for band-limited oscillators, but it does a relatively good job for
-		it's CPU footprint; it gets better the higher the sample rate is.
+		it's CPU footprint; it gets better the higher the sample rate is
 	*/
 
 	namespace Poly
@@ -98,51 +101,51 @@ namespace SFM
 
 		// Adapted from "Phaseshaping Oscillator Algorithms for Musical Sound Synthesis" by Jari Kleimola, Victor Lazzarini, Joseph Timoney, and Vesa Valimaki.
 		// http://www.acoustics.hut.fi/publications/papers/smc2010-phaseshaping/
-		SFM_INLINE static float BLEP(double point, double dT /* This is, usually, just the pitch of the oscillator */) 
+		SFM_INLINE static double BLEP(double point, double dT /* This is, usually, just the pitch of the oscillator */) 
 		{
 			if (point < dT)
 				// Discontinuities between 0 & 1
-				return (float) -Squared(point/dT - 1.0);
+				return -Squared(point/dT - 1.0);
 			else if (point > 1.0 - dT)
 				// Discontinuities between -1 & 0
-				return (float) Squared((point - 1.0)/dT + 1.0);
+				return Squared((point - 1.0)/dT + 1.0);
 			else
-				return 0.f;
+				return 0.0;
 		}
 	
-		// Source: http://metafunction.co.uk/all-about-digital-oscillators-part-2-blits-bleps/
-		SFM_INLINE static float BLEP_Unused(double point, double dT /* This is, usually, just the pitch of the oscillator */) 
+		// By Tale (KVR): http://www.kvraudio.com/forum/viewtopic.php?t=375517
+		SFM_INLINE static double BLEP_by_Tale(double point, double dT) 
 		{
 			if (point < dT)
 			{
 				// Discontinuities between 0 & 1
 				point /= dT;
-				return float(point+point - point*point - 1.0);
+				return point+point - point*point - 1.0;
 			}			
 			else if (point > 1.0 - dT)
 			{
 				// Discontinuities between -1 & 0
 				point = (point - 1.0)/dT;
-				return float(point*point + point+point + 1.0);
+				return point*point + point+point + 1.0;
 			}
 			else
-				return 0.f;
+				return (float) 0.0;
 		}
 
-		SFM_INLINE static float BLAMP(double point, double dT)
+		SFM_INLINE static double BLAMP(double point, double dT)
 		{
 			if (point < dT) 
 			{
-				point = point / dT - 1.0;
-				return float(-1.0 / 3.0 * Squared(point) * point);
+				point = point/dT - 1.0;
+				return -1.0 / 3.0*Squared(point) * point;
 			} 
 			else if (point > 1.0 - dT) 
 			{
-				point = (point - 1.0) / dT + 1.0;
-				return float(1.0 / 3.0 * Squared(point) * point);
+				point = (point - 1.0) /dT + 1.0;
+				return 1.0 / 3.0*Squared(point) * point;
 			} 
 			else 
-				return 0.f;
+				return 0.0;
 		}
 	}
 
@@ -225,44 +228,6 @@ namespace SFM
 		rectified += 2.0 * pitch * Poly::BLAMP(P1, pitch);
 
 		return float(rectified) * 0.707f; // Curtail a bit (-3dB), otherwise it's just too loud
-	}
-
-	SFM_INLINE static float oscPolyTrapezoid(double phase, double pitch)
-	{
-		SFM_ASSERT(phase >= 0.0 && phase <= 1.0);
-		SFM_ASSERT(pitch > 0.0);
-
-		double triangle = phase*4.0;
-		if (triangle >= 3.0)
-		{
-			triangle -= 4.0;
-		}
-		else if (triangle > 1.0)
-		{
-			triangle = 2.0 - triangle;
-		}
-
-		triangle = std::max<double>(-1.0, std::min<double>(1.0, 2.0*triangle));
-		
-		double P1 = phase + 0.125;
-		P1 -= Poly::bitwiseOrZero(P1);
-
-		double P2 = P1 + 0.5;
-		P2 -= Poly::bitwiseOrZero(P2);
-
-		// Triangle #1
-		triangle += 4.0 * pitch * (Poly::BLAMP(P1, pitch) - Poly::BLAMP(P2, pitch));
-
-		P1 = phase + 0.375;
-		P1 -= Poly::bitwiseOrZero(P1);
-
-		P2 = P1 + 0.5;
-		P2 -= Poly::bitwiseOrZero(P2);
-
-		// Triangle #2
-		double trapezoid = triangle += 4.0 * pitch * (Poly::BLAMP(P1, pitch) - Poly::BLAMP(P2, pitch));
-
-		return float(trapezoid);
 	}
 
 	SFM_INLINE static float oscPolyRectangle(double phase, double pitch, float width)

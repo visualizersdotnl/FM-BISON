@@ -28,7 +28,7 @@ namespace SFM
 
 		SFM_INLINE float Sample(double phase, float input)
 		{
-			const float curGate = oscBox(phase);
+			const float curGate = oscSquare(phase);
 			
 			// Gate?
 			if (m_prevGate != curGate)

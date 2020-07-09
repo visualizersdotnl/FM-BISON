@@ -42,7 +42,6 @@ namespace SFM
 			kPolySaw,
 			kPolyRamp,
 			kPolyRectifiedSine,
-			kPolyTrapezoid,
 			kPolyRectangle,
 			kBump,
 

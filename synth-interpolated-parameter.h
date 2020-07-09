@@ -9,7 +9,7 @@
 	Alternatively a fixed number of samples can be set.
 
 	Do *always* call Set() and SetTarget() after calling SetRate() during interpolation to restore the current value
-	and set the new target. This is a bit of a design flaw in juce::SmoothedValue if you ask me.
+	and set the new target. This is a small design flaw in juce::SmoothedValue I feel.
 	
 	So what you do is:
 

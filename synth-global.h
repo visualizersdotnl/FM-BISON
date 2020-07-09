@@ -132,7 +132,7 @@ namespace SFM
 	// Helper function ResoToQ() scales to range automatically
 	constexpr float kSVFLowestFilterQ = 0.025f; // Use carefully, a Q has shown to cause instability (filter slowly 'blowing up')
 	constexpr float kSVFMinFilterQ    = 0.5f;   // See https://www.earlevel.com/main/2003/03/02/the-digital-state-variable-filter/
-	constexpr float kSVFMaxFilterQ    = 12.f;
+	constexpr float kSVFMaxFilterQ    = 14.f;   // Actual max. is 40.f
 	constexpr float kSVFFilterQRange  = kSVFMaxFilterQ-kSVFMinFilterQ;
 
 	constexpr float kMinFilterCutoff      =  0.f; // Normalized min. filter cutoff; range is simply [0..1] (use CutoffToHz())
@@ -151,7 +151,7 @@ namespace SFM
 
 	// Default post-pass filter drive range & default (dB)	
 	constexpr float kMinPostFilterDrivedB = -3.f;
-	constexpr float kMaxPostFilterDrivedB =  6.f;
+	constexpr float kMaxPostFilterDrivedB = 12.f;
 	constexpr float kDefPostFilterDrivedB =  3.f;
 
 	// ----------------------------------------------------------------------------------------------
@@ -322,7 +322,7 @@ namespace SFM
 	// ----------------------------------------------------------------------------------------------
 
 	constexpr float kDefSupersawDetune = 0.25f;
-	constexpr float kDefSupersawMix    =  0.5f;
+	constexpr float kDefSupersawMix    =  0.1f;
 
 	// ----------------------------------------------------------------------------------------------
 	// LowBlocker freq.

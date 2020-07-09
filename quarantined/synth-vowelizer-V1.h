@@ -15,7 +15,7 @@
 
 	Important: 
 		- Do *not* call more often than than GetSampleRate() per second, the coefficients were designed for either 44.1KHz or 48KHz (can't be sure)
-		- Introduces a few harmonics in the top end
+		- Has a bit of aliasing visible near and beyond Nyquist; might be a filter characteristic in combination with the harmonic content it's applied to
 */
 
 #pragma once
@@ -29,7 +29,7 @@ namespace SFM
 	public:
 		enum Vowel
 		{
-			kWrap, // Added for easy bipolar LFO modulation between kA and kO
+			kWrap, // Added for easy bipolar ([-1..1]) LFO modulation between kA and kO
 			kA,
 			kE,
 			kI,

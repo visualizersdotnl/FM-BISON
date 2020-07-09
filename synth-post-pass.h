@@ -14,6 +14,7 @@
 
 #include "3rdparty/filters/SvfLinearTrapOptimised2.hpp"
 #include "3rdparty/filters/KrajeskiModel.h"
+#include "3rdparty/filters/MicrotrackerModel.h"
 
 // Include JUCE (for juce::dsp::Oversampling)
 #include "../JuceLibraryCode/JuceHeader.h"
@@ -80,8 +81,7 @@ namespace SFM
 		
 		const unsigned m_sampleRate;
 		const unsigned m_Nyquist;
-		const unsigned m_sampleRate2X; // For convenience
-		const unsigned m_sampleRate4X; //
+		const unsigned m_sampleRate4X; // Convenience
 
 		// Intermediate buffers
 		float *m_pBufL = nullptr;
@@ -110,12 +110,12 @@ namespace SFM
 		Phase m_phaserSweep;
 		LowpassFilter m_phaserSweepLPF;
 
-		// Oversampling (FIXME: JUCE)
-		juce::dsp::Oversampling<float> m_oversampling2X;
+		// Oversampling (JUCE, FIXME)
 		juce::dsp::Oversampling<float> m_oversampling4X;
 
 		// Post filter & interpolated parameters
 		KrajeskiMoog m_postFilter;
+//		MicrotrackerMoog m_postFilter;
 		InterpolatedParameter<kLinInterpolate> m_curPostCutoff;
 		InterpolatedParameter<kLinInterpolate> m_curPostReso;
 		InterpolatedParameter<kLinInterpolate> m_curPostDrive;
