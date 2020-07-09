@@ -323,6 +323,7 @@ namespace SFM
 			m_postFilter.SetParameters(80.f + curPostCutoff*10000.f /* "Just right" */, curPostReso /* [0..1] */, curPostDrive);
 			m_postFilter.Apply(filteredL, filteredR);
 
+			// Mix
 			const float postL = lerpf<float>(sampleL, filteredL, curPostWet);
 			const float postR = lerpf<float>(sampleR, filteredR, curPostWet);
 			
