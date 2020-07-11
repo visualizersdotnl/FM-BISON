@@ -92,10 +92,6 @@ namespace SFM
 
 		// Initialize JUCE oversampling object (FIXME)
 		m_oversampling4X.initProcessing(maxSamplesPerBlock);
-
-		// FIXME
-		m_butterAA_L.SetSampleRate(m_sampleRate);
-		m_butterAA_R.SetSampleRate(m_sampleRate);
 	}
 
 	PostPass::~PostPass()
@@ -141,40 +137,14 @@ namespace SFM
 
 		/* ----------------------------------------------------------------------------------------------------
 
-			Copy (filtered for AA using (steep) Butterworth) samples to local buffers
+			Copy samples to local buffers
 
 		 ------------------------------------------------------------------------------------------------------ */
 
-//		const size_t bufSize = numSamples * sizeof(float);
+		const size_t bufSize = numSamples * sizeof(float);
 
-		// FIXME
-		m_butterAA_L.Set(m_Nyquist, 0.f);
-		m_butterAA_R.Set(m_Nyquist, 0.f);
-
-		StereoLatencyDelayLine latencyLine(3);
-
-		// FIXME: interpolate
-		const float delta = steepstepf(antiAliasing);
-
-		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
-		{
-			float sampleL = pLeftIn[iSample];
-			float sampleR = pRightIn[iSample];
-
-			latencyLine.Write(sampleL, sampleR);
-
-			auto drySample = latencyLine.Read();
-
-			// FIXME
-//			sampleL = lerpf<float>(drySample[0], m_butterAA_L.Run(sampleL), delta);
-//			sampleR = lerpf<float>(drySample[1], m_butterAA_R.Run(sampleR), delta);
-
-			m_pBufL[iSample] = sampleL;
-			m_pBufR[iSample] = sampleR;
-		}
-
-//		memcpy(m_pBufL, pLeftIn,  bufSize);
-//		memcpy(m_pBufR, pRightIn, bufSize);
+		memcpy(m_pBufL, pLeftIn,  bufSize);
+		memcpy(m_pBufR, pRightIn, bufSize);
 
 #if !defined(SFM_DISABLE_FX)
 
@@ -333,12 +303,16 @@ namespace SFM
 		m_curTubeDrive.SetTarget(tubeDrive);
 		m_curTubeOffset.SetTarget(tubeOffset);
 
-		// Anti-aliasing filter: to attenuate frequencies below the host sample rate (distortion)
-		m_tubeFilterAA.updateLowpassCoeff(m_sampleRate, kSVFLowestFilterQ, m_sampleRate4X); 
+		// Anti-aliasing filter: attenuates frequencies below the host sample rate (distortion)
+		const double tubeCutFc = m_sampleRate / double(m_sampleRate4X);
+		m_tubeFilterAA_L.setBiquad(bq_type_lowpass, tubeCutFc, 0.707, 0.0);
+		m_tubeFilterAA_L.setBiquad(bq_type_lowpass, tubeCutFc, 0.707, 0.0);
 
-		// Anti-aliasing filter: to attenuate frequencies above/around 'cutAA' (FIXME: interpolate)
-		const float cutAA = lerpf<float>(m_sampleRate4X/4.f /* Nyquist 2X */, float(m_Nyquist) /* Nyquist 1X */, antiAliasing);
-		m_finalFilterAA.updateLowpassCoeff(cutAA, 0.075, m_sampleRate4X); 
+		// Anti-aliasing filter: attenuates the top end
+		const double antiAliasingCutHz = lerpf<double>(m_sampleRate /* SR */, double(m_Nyquist) /* Nyquist 1X */, antiAliasing);
+		const double antiAliasingCutFc = antiAliasingCutHz / m_sampleRate4X;
+		m_finalFilterAA_L.setBiquad(bq_type_lowpass, antiAliasingCutFc, 0.3, 0.0);
+		m_finalFilterAA_R.setBiquad(bq_type_lowpass, antiAliasingCutFc, 0.3, 0.0);
 		
 		// Main buffers
 		float *inputBuffers[2] = { m_pBufL, m_pBufR };
@@ -358,7 +332,8 @@ namespace SFM
 			float sampleR = pOverR[iSample];
 
 			// Apply final AA filter
-			m_finalFilterAA.tick(sampleL, sampleR);
+			sampleL = m_finalFilterAA_L.process(sampleL);
+			sampleR = m_finalFilterAA_R.process(sampleR);
 
 			// Apply 24dB post filter
 			const float curPostCutoff = m_curPostCutoff.Sample();
@@ -388,7 +363,8 @@ namespace SFM
 			m_tubeDCBlocker.Apply(distortedL, distortedR);
 
 			// Apply distortion AA filter
-			m_tubeFilterAA.tick(distortedL, distortedR);
+			m_tubeFilterAA_L.process(distortedL);
+			m_tubeFilterAA_R.process(distortedR);
 			
 			// Mix results
 			sampleL = lerpf<float>(postL, distortedL, amount);

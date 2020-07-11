@@ -14,8 +14,8 @@
 
 #include "3rdparty/filters/SvfLinearTrapOptimised2.hpp"
 #include "3rdparty/filters/MusicDSPModel.h"
-
-#include "3rdparty/filters/Butterworth24dB.h"
+// #include "3rdparty/filters/Butterworth24dB.h"
+#include "3rdparty/filters/Biquad.h"
 
 // Include JUCE (for juce::dsp::Oversampling)
 #include "../JuceLibraryCode/JuceHeader.h"
@@ -88,10 +88,6 @@ namespace SFM
 		// Intermediate buffers
 		float *m_pBufL = nullptr;
 		float *m_pBufR = nullptr;
-		
-		// Initial AA
-		Butterworth24dB m_butterAA_L;
-		Butterworth24dB m_butterAA_R;
 
 		// Delay lines & delay's interpolated parameters
 		DelayLine m_delayLineL;
@@ -131,8 +127,8 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curTubeDrive;
 		InterpolatedParameter<kLinInterpolate> m_curTubeOffset;
 		StereoDCBlocker m_tubeDCBlocker;	
-		SvfLinearTrapOptimised2 m_tubeFilterAA;
-		SvfLinearTrapOptimised2 m_finalFilterAA;
+		Biquad m_tubeFilterAA_L, m_tubeFilterAA_R;
+		Biquad m_finalFilterAA_L, m_finalFilterAA_R;
 		
 		// Low & DC blocker
 		LowBlocker m_lowBlocker;
