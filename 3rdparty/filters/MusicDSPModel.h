@@ -32,9 +32,8 @@ public:
 		m_sampleRate(sampleRate)
 	{
 		Reset();
-
-		SetCutoff(1000.f);
-		SetResonance(0.1f);
+		
+		SetParameters(1000.f, 0.1f, 1.f);
 	}
 
 	~MusicDSPMoog() {}
@@ -49,8 +48,7 @@ public:
 
 	SFM_INLINE void SetParameters(float cutoff, float resonance, float drive /* Gain (linear) */)
 	{
-		SetCutoff(cutoff);
-		SetResonance(resonance);
+		SetCutoff(cutoff, resonance); // Resonance relies on cutoff
 
 		SFM_ASSERT(drive >= 0.f);
 		m_drive = drive;
@@ -69,7 +67,7 @@ private:
 		m_resonance = resonance * (t2 + 6.0 * t1) / (t2 - 6.0 * t1);
 	}
 
-	SFM_INLINE void SetCutoff(float cutoff)
+	SFM_INLINE void SetCutoff(float cutoff, float resonance)
 	{
 		m_cutoff = 2.0 * cutoff / m_sampleRate;
 
@@ -78,13 +76,11 @@ private:
 		t1 = (1.0 - p) * 1.386249;
 		t2 = 12.0 + t1 * t1;
 
-		SetResonance(m_resonance);
+		SetResonance(resonance);
 	}
 
 	SFM_INLINE void Apply(float &sample, double *stage, double *delay)
 	{
-		SFM_ASSERT(iChannel < 2);
-
 		double x = sample*m_drive - m_resonance*stage[3];
 
 		// Four cascaded one-pole filters (bilinear transform)

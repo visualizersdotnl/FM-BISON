@@ -166,11 +166,18 @@ namespace SFM
 	constexpr float kMaxTubeOffset =  0.3f;
 
 	// ----------------------------------------------------------------------------------------------
+	// Anti-aliasing (during oversampled stage, 0.f is host Nyquist, 1.f is host sample rate)
+	// ----------------------------------------------------------------------------------------------
+
+	constexpr float kDefAntiAliasing = 0.25f;
+
+	// ----------------------------------------------------------------------------------------------
 	// Envelope
 	// ----------------------------------------------------------------------------------------------
 
 	// Envelope rate multiplier range (or 'global')
-	// Range (as in seconds) taken from Arturia DX7-V (http://downloads.arturia.com/products/dx7-v/manual/dx7-v_Manual_1_0_EN.pdf)
+	// Range (as in seconds) taken from Arturia DX7-V 
+	// Ref. http://downloads.arturia.com/products/dx7-v/manual/dx7-v_Manual_1_0_EN.pdf
 	constexpr float kEnvMulMin = 0.1f;
 	constexpr float kEnvMulMax = 60.f;
 	constexpr float kEnvMulRange = kEnvMulMax-kEnvMulMin;

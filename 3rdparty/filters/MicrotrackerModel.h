@@ -31,8 +31,7 @@ public:
 	{
 		Reset();
 
-		SetCutoff(1000.f);
-		SetResonance(0.1f);
+		SetParameters(1000.f, 0.1f, 1.f);
 	}
 
 	~MicrotrackerMoog() {}

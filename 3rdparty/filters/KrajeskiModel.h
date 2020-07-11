@@ -48,11 +48,10 @@ public:
 
 		Reset();
 		
-		m_drive = 1.0;
+//		m_drive = 1.0;
 		m_gComp = 1.0;
 		
-		SetCutoff(1000.f);
-		SetResonance(0.1f);
+		SetParameters(1000.f, 0.1f, 1.f);
 	}
 	
 	~KrajeskiMoog() {}

@@ -4,12 +4,13 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
+	- Copy / First AA-filter
 	- Auto-wah
 	- Delay
 	- Yamaha Reface CP-style chorus & phaser
-	- Post filter (24dB)   - 4X oversampling
-	- Tube distortion      - 4X oversampling
-	- Anti-aliasing filter - 4X oversampling
+	- Post filter (24dB)          - 4X oversampling
+	- Tube distortion             - 4X oversampling
+	- Second anti-aliasing filter - 4X oversampling
 	- Reverb
 	- Compressor
 	- Master volume, DC blocker & final clamp
@@ -91,6 +92,10 @@ namespace SFM
 
 		// Initialize JUCE oversampling object (FIXME)
 		m_oversampling4X.initProcessing(maxSamplesPerBlock);
+
+		// FIXME
+		m_butterAA_L.SetSampleRate(m_sampleRate);
+		m_butterAA_R.SetSampleRate(m_sampleRate);
 	}
 
 	PostPass::~PostPass()
@@ -106,6 +111,7 @@ namespace SFM
 	                     float delayInSec, float delayWet, float delayFeedback, float delayFeedbackCutoff,
 	                     float postCutoff, float postReso, float postDrivedB, float postWet,
 						 float tubeDistort, float tubeDrive, float tubeOffset,
+						 float antiAliasing,
 	                     float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
 	                     float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead, bool compAutoGain, float compRMSToPeak,
 	                     float masterVoldB,
@@ -127,15 +133,42 @@ namespace SFM
 		SFM_ASSERT(masterVoldB >= kMinVolumedB && masterVoldB <= kMaxVolumedB);
 		SFM_ASSERT(tubeDistort >= 0.f && tubeDistort <= 1.f);
 		SFM_ASSERT(tubeDrive >= kMinTubeDrive && tubeDrive <= kMaxTubeDrive);
+		SFM_ASSERT(antiAliasing >= 0.f && antiAliasing <= 1.f);
 		SFM_ASSERT(tubeOffset >= kMinTubeOffset && tubeOffset <= kMaxTubeOffset);
 
 		// Only adapt the BPM if it fits in the delay line (Ableton does this so why won't we?)
 		const bool useBPM = false == (rateBPM < 1.f/kMainDelayInSec);
 
-		// Copy inputs to local buffers (a bit wasteful but in practice this does not involve a whole lot of samples)
-		const size_t bufSize = numSamples * sizeof(float);
-		memcpy(m_pBufL, pLeftIn,  bufSize);
-		memcpy(m_pBufR, pRightIn, bufSize);
+		/* ----------------------------------------------------------------------------------------------------
+
+			Copy (filtered for AA using (steep) Butterworth) samples to local buffers
+
+		 ------------------------------------------------------------------------------------------------------ */
+
+//		const size_t bufSize = numSamples * sizeof(float);
+
+		// FIXME
+		m_butterAA_L.Set(m_Nyquist, 0.f);
+		m_butterAA_R.Set(m_Nyquist, 0.f);
+
+		// FIXME: interpolate
+		const float delta = steepstepf(antiAliasing);
+
+		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
+		{
+			float sampleL = pLeftIn[iSample];
+			float sampleR = pRightIn[iSample];
+
+			// FIXME
+			sampleL = lerpf<float>(sampleL, m_butterAA_L.Run(sampleL), delta);
+			sampleR = lerpf<float>(sampleR, m_butterAA_R.Run(sampleR), delta);
+
+			m_pBufL[iSample] = sampleL;
+			m_pBufR[iSample] = sampleR;
+		}
+
+//		memcpy(m_pBufL, pLeftIn,  bufSize);
+//		memcpy(m_pBufR, pRightIn, bufSize);
 
 #if !defined(SFM_DISABLE_FX)
 
@@ -272,7 +305,7 @@ namespace SFM
 
 		/* ----------------------------------------------------------------------------------------------------
 
-			Oversampled: 24dB ladder filter (2X), tube distortion & AA (4X)
+			Oversampled: 24dB ladder filter, tube distortion & AA (4X)
 
 			JUCE says:
 			" Choose between FIR or IIR filtering depending on your needs in term of latency and phase 
@@ -294,9 +327,12 @@ namespace SFM
 		m_curTubeDrive.SetTarget(tubeDrive);
 		m_curTubeOffset.SetTarget(tubeOffset);
 
-		// Anti-aliasing filters: one to attenuate distortion harmonics, one to attenuate harmonics above host Nyquist
-		m_tubeFilterAA.updateLowpassCoeff(m_sampleRate, kSVFMinFilterQ, m_sampleRate4X); 
-		m_filterAA.updateLowpassCoeff(m_Nyquist, 0.15 /* FIXME */, m_sampleRate4X); 
+		// Anti-aliasing filter: to attenuate frequencies below the host sample rate (distortion)
+		m_tubeFilterAA.updateLowpassCoeff(m_sampleRate, kSVFLowestFilterQ, m_sampleRate4X); 
+
+		// Anti-aliasing filter: to attenuate frequencies above/around 'cutAA'
+		const float cutAA = lerpf<float>(m_sampleRate4X/4.f /* Nyquist 2X */, float(m_Nyquist) /* Nyquist 1X */, antiAliasing);
+		m_finalFilterAA.updateLowpassCoeff(cutAA, 0.075, m_sampleRate4X); 
 		
 		// Main buffers
 		float *inputBuffers[2] = { m_pBufL, m_pBufR };
@@ -314,7 +350,10 @@ namespace SFM
 		{
 			float sampleL = pOverL[iSample]; 
 			float sampleR = pOverR[iSample];
-			
+
+			// Apply final AA filter
+			m_finalFilterAA.tick(sampleL, sampleR);
+
 			// Apply 24dB post filter
 			const float curPostCutoff = m_curPostCutoff.Sample();
 			const float curPostReso   = m_curPostReso.Sample();
@@ -349,10 +388,7 @@ namespace SFM
 			sampleL = lerpf<float>(postL, distortedL, amount);
 			sampleR = lerpf<float>(postR, distortedR, amount);
 
-			// Apply final AA filter
-			m_filterAA.tick(sampleL, sampleR);
-
-			// Mix
+			// Write
 			pOverL[iSample] = sampleL;
 			pOverR[iSample] = sampleR;
 		}

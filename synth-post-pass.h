@@ -13,9 +13,9 @@
 #pragma once
 
 #include "3rdparty/filters/SvfLinearTrapOptimised2.hpp"
-// #include "3rdparty/filters/KrajeskiModel.h"
-// #include "3rdparty/filters/MicrotrackerModel.h"
 #include "3rdparty/filters/MusicDSPModel.h"
+
+#include "3rdparty/filters/Butterworth24dB.h"
 
 // Include JUCE (for juce::dsp::Oversampling)
 #include "../JuceLibraryCode/JuceHeader.h"
@@ -47,6 +47,7 @@ namespace SFM
 		           float delayInSec, float delayWet, float delayFeedback, float delayFeedbackCutoff,
 		           float postCutoff, float postReso, float postDrivedB, float postWet,
 		           float tubeDistort, float tubeDrive, float tubeOffset,
+				   float antiAliasing,
 		           float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
 		           float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead, bool compAutoGain, float compRMSToPeak,
 		           float masterVol,
@@ -87,6 +88,10 @@ namespace SFM
 		// Intermediate buffers
 		float *m_pBufL = nullptr;
 		float *m_pBufR = nullptr;
+		
+		// Initial AA
+		Butterworth24dB m_butterAA_L;
+		Butterworth24dB m_butterAA_R;
 
 		// Delay lines & delay's interpolated parameters
 		DelayLine m_delayLineL;
@@ -115,9 +120,7 @@ namespace SFM
 		juce::dsp::Oversampling<float> m_oversampling4X;
 
 		// Post filter & interpolated parameters
-//		KrajeskiMoog m_postFilter;
-//		MicrotrackerMoog m_postFilter;
-		MusicDSPMoog m_postFilter; // For now this is the best sounding of all 3, but I want to test more! (FIXME)
+		MusicDSPMoog m_postFilter;
 		InterpolatedParameter<kLinInterpolate> m_curPostCutoff;
 		InterpolatedParameter<kLinInterpolate> m_curPostReso;
 		InterpolatedParameter<kLinInterpolate> m_curPostDrive;
@@ -129,7 +132,7 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curTubeOffset;
 		StereoDCBlocker m_tubeDCBlocker;	
 		SvfLinearTrapOptimised2 m_tubeFilterAA;
-		SvfLinearTrapOptimised2 m_filterAA;
+		SvfLinearTrapOptimised2 m_finalFilterAA;
 		
 		// Low & DC blocker
 		LowBlocker m_lowBlocker;

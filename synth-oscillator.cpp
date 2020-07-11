@@ -40,14 +40,14 @@ namespace SFM
 					
 					// Filter parameters
 					const float filterFreq    = m_phases[3].GetFrequency(); // Fundamental harmonic
-					constexpr double filterQ  = kSVFMinFilterQ;
+					constexpr double filterQ  = 0.314; // kSVFMinFilterQ
 					const unsigned sampleRate = GetSampleRate();
 
 					// Get amplitudes
 					const float sideMix = m_supersaw.GetSideMix();
 					const float mainMix = m_supersaw.GetMainMix();
 
-					// Generate saws
+					// Generate saws (band-limited)
 					float saws[kNumSupersawOscillators];
 					saws[0] = oscPolySaw(phase, pitch) * sideMix;
 					saws[1] = oscPolySaw(m_phases[1].Sample(), m_phases[1].GetPitch()) * sideMix;
@@ -56,6 +56,19 @@ namespace SFM
 					saws[4] = oscPolySaw(m_phases[4].Sample(), m_phases[4].GetPitch()) * sideMix;
 					saws[5] = oscPolySaw(m_phases[5].Sample(), m_phases[5].GetPitch()) * sideMix;
 					saws[6] = oscPolySaw(m_phases[6].Sample(), m_phases[6].GetPitch()) * sideMix;
+
+
+/*
+					// Generate saws (naive, as documented in thesis)
+					float saws[kNumSupersawOscillators];
+					saws[0] = oscSaw(phase) * sideMix;
+					saws[1] = oscSaw(m_phases[1].Sample()) * sideMix;
+					saws[2] = oscSaw(m_phases[2].Sample()) * sideMix;
+					saws[3] = oscSaw(m_phases[3].Sample()) * mainMix;
+					saws[4] = oscSaw(m_phases[4].Sample()) * sideMix;
+					saws[5] = oscSaw(m_phases[5].Sample()) * sideMix;
+					saws[6] = oscSaw(m_phases[6].Sample()) * sideMix;
+*/
 
 					// Filter saws below fundamental freq.
 					m_HPF[0].updateHighpassCoeff(filterFreq, filterQ, sampleRate);

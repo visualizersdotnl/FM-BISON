@@ -45,7 +45,7 @@ namespace SFM
 		m_curPolyphony = m_patch.maxVoices;
 
 		Log("Instance of FM. BISON engine initalized");
-		Log("Suzie, call Dr. Bison, tell him it's for me...");
+		Log("Suzie, call DR. BISON, tell him it's for me...");
 
 		/*
 			IMPORTANT: call SetSamplingProperties() before Render()
@@ -2055,6 +2055,8 @@ namespace SFM
 			m_tubeDistPS.Apply(m_patch.tubeDistort),
 			m_tubeDrivePS.Apply(m_patch.tubeDrive),
 			m_patch.tubeOffset,
+			/* AA */
+			m_patch.antiAliasing, // FIXME: filter, interpolate
 			/* Reverb */
 			m_reverbWetPS.Apply(m_patch.reverbWet),
 			m_reverbRoomSizePS.Apply(m_patch.reverbRoomSize),
