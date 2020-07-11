@@ -151,6 +151,8 @@ namespace SFM
 		m_butterAA_L.Set(m_Nyquist, 0.f);
 		m_butterAA_R.Set(m_Nyquist, 0.f);
 
+		StereoLatencyDelayLine latencyLine(3);
+
 		// FIXME: interpolate
 		const float delta = steepstepf(antiAliasing);
 
@@ -159,9 +161,13 @@ namespace SFM
 			float sampleL = pLeftIn[iSample];
 			float sampleR = pRightIn[iSample];
 
+			latencyLine.Write(sampleL, sampleR);
+
+			auto drySample = latencyLine.Read();
+
 			// FIXME
-			sampleL = lerpf<float>(sampleL, m_butterAA_L.Run(sampleL), delta);
-			sampleR = lerpf<float>(sampleR, m_butterAA_R.Run(sampleR), delta);
+//			sampleL = lerpf<float>(drySample[0], m_butterAA_L.Run(sampleL), delta);
+//			sampleR = lerpf<float>(drySample[1], m_butterAA_R.Run(sampleR), delta);
 
 			m_pBufL[iSample] = sampleL;
 			m_pBufR[iSample] = sampleR;
@@ -330,7 +336,7 @@ namespace SFM
 		// Anti-aliasing filter: to attenuate frequencies below the host sample rate (distortion)
 		m_tubeFilterAA.updateLowpassCoeff(m_sampleRate, kSVFLowestFilterQ, m_sampleRate4X); 
 
-		// Anti-aliasing filter: to attenuate frequencies above/around 'cutAA'
+		// Anti-aliasing filter: to attenuate frequencies above/around 'cutAA' (FIXME: interpolate)
 		const float cutAA = lerpf<float>(m_sampleRate4X/4.f /* Nyquist 2X */, float(m_Nyquist) /* Nyquist 1X */, antiAliasing);
 		m_finalFilterAA.updateLowpassCoeff(cutAA, 0.075, m_sampleRate4X); 
 		

@@ -15,7 +15,7 @@
 #pragma warning(push)
 #pragma warning(disable: 4324) // Tell MSVC to shut it about padding I'm aware of
 
-#include "3rdparty/filters/SvfLinearTrapOptimised2.hpp"
+#include "3rdparty/filters/Biquad.h"
 
 #include "synth-global.h"
 #include "synth-phase.h"
@@ -75,12 +75,21 @@ namespace SFM
 		PinkNoise     m_pinkNoise;
 		SampleAndHold m_sampleAndHold;
 
-		// Supersaw utility class & filter
+		// Supersaw utility class & filters
 		Supersaw m_supersaw;
-		SvfLinearTrapOptimised2 m_HPF[kNumSupersawOscillators];
+		Biquad m_HPF[kNumSupersawOscillators];
 
 		// Signal
 		float m_signal = 0.f;
+
+		void UpdateSupersawFilters()
+		{
+			const unsigned sampleRate = GetSampleRate();
+			constexpr double Q = 0.707;
+
+			for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
+				m_HPF[iOsc].setBiquad(bq_type_highpass, m_phases[iOsc].GetFrequency()/sampleRate, Q, 0.0);
+		}
 		
 	public:
 		Oscillator(unsigned sampleRate = 1) :
@@ -102,14 +111,20 @@ namespace SFM
 			}
 			else
 			{
-				for (auto &HPF : m_HPF)
-					HPF.resetState();
-
 				m_supersaw.SetDetune(supersawDetune);
 				m_supersaw.SetMix(supersawMix);
 
+				for (auto &filter : m_HPF)
+					filter.reset();
+
 				for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
-					m_phases[iOsc].Initialize(m_supersaw.CalculateDetunedFreq(iOsc, frequency), sampleRate, mt_randf() /* Important: randomized phases, prevents flanging! */);
+				{
+					const double detune = m_supersaw.GetDetune(iOsc);
+					m_phases[iOsc].Initialize(detune*frequency, sampleRate, mt_randf() /* Important: randomized phases, prevents flanging! */);
+				}
+				
+				// FIXME: for FM. BISON this can be skipped since SetFrequency() is always called by Voice::Sample()
+//				UpdateSupersawFilters();
 			}
 		}
 
@@ -135,7 +150,12 @@ namespace SFM
 			else
 			{
 				for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
-					m_phases[iOsc].SetFrequency(m_supersaw.CalculateDetunedFreq(iOsc, frequency));
+				{
+					const double detune = m_supersaw.GetDetune(iOsc);
+					m_phases[iOsc].SetFrequency(detune*frequency);
+				}
+
+				UpdateSupersawFilters();
 			}
 		}
 

@@ -34,14 +34,9 @@ namespace SFM
 
 			case kSupersaw:
 				{
-					// The supersaw consists of 7 oscillators; the third oscillator is the 'main' oscillator at the fundamental frequency (the first harmonic).
-					// I use this frequency to apply a HPF to each oscillator to eliminate 'fold back' aliasing beyond this frequency. There will still be
-					// aliasing going on but that's part of the charm
-					
-					// Filter parameters
-					const float filterFreq    = m_phases[3].GetFrequency(); // Fundamental harmonic
-					constexpr double filterQ  = 0.314; // kSVFMinFilterQ
-					const unsigned sampleRate = GetSampleRate();
+					// The supersaw consists of 7 oscillators; the third oscillator is the 'main' oscillator at the fundamental frequency.
+					// I apply a HPF to each oscillator to eliminate 'fold back' aliasing beyond this frequency. There will still be
+					// aliasing going on but that's "part of the charm", or so I'm told
 
 					// Get amplitudes
 					const float sideMix = m_supersaw.GetSideMix();
@@ -57,34 +52,14 @@ namespace SFM
 					saws[5] = oscPolySaw(m_phases[5].Sample(), m_phases[5].GetPitch()) * sideMix;
 					saws[6] = oscPolySaw(m_phases[6].Sample(), m_phases[6].GetPitch()) * sideMix;
 
-
-/*
-					// Generate saws (naive, as documented in thesis)
-					float saws[kNumSupersawOscillators];
-					saws[0] = oscSaw(phase) * sideMix;
-					saws[1] = oscSaw(m_phases[1].Sample()) * sideMix;
-					saws[2] = oscSaw(m_phases[2].Sample()) * sideMix;
-					saws[3] = oscSaw(m_phases[3].Sample()) * mainMix;
-					saws[4] = oscSaw(m_phases[4].Sample()) * sideMix;
-					saws[5] = oscSaw(m_phases[5].Sample()) * sideMix;
-					saws[6] = oscSaw(m_phases[6].Sample()) * sideMix;
-*/
-
 					// Filter saws below fundamental freq.
-					m_HPF[0].updateHighpassCoeff(filterFreq, filterQ, sampleRate);
-					m_HPF[0].tickMono(saws[0]);
-					m_HPF[1].updateCopy(m_HPF[0]);
-					m_HPF[1].tickMono(saws[1]);
-					m_HPF[2].updateCopy(m_HPF[0]);
-					m_HPF[2].tickMono(saws[2]);
-					m_HPF[3].updateCopy(m_HPF[0]);
-					m_HPF[3].tickMono(saws[3]);
-					m_HPF[4].updateCopy(m_HPF[0]);
-					m_HPF[4].tickMono(saws[4]);
-					m_HPF[5].updateCopy(m_HPF[0]);
-					m_HPF[5].tickMono(saws[5]);
-					m_HPF[6].updateCopy(m_HPF[0]);
-					m_HPF[6].tickMono(saws[6]);
+					saws[0] = m_HPF[0].process(saws[0]);
+					saws[1] = m_HPF[1].process(saws[1]);
+					saws[2] = m_HPF[2].process(saws[2]);
+					saws[3] = m_HPF[3].process(saws[3]);
+					saws[4] = m_HPF[4].process(saws[4]);
+					saws[5] = m_HPF[5].process(saws[5]);
+					saws[6] = m_HPF[6].process(saws[6]);
 
 					// Accumulate saws
 					for (auto saw : saws)

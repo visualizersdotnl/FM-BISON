@@ -6,7 +6,6 @@
 
 	- Phase is [0..1], this range must be adhered to except for oscSine() and oscCos()
 	- Band-limited (PolyBLEP) oscillators are called 'oscPoly...'
-	- Single precision (FIXME)
 */
 
 #pragma once

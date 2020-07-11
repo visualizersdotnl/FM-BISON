@@ -27,11 +27,11 @@ namespace SFM
 		SFM_INLINE void SetMix(float mix /* [0..1] */)
 		{
 			SFM_ASSERT(mix >= 0.f && mix <= 1.f);
-			m_mainMix = float(-0.553366*mix + 0.99785);
-			m_sideMix = float(-0.73764*pow(mix, 2.0) + 1.2841*mix + 0.044327);
+			m_mainMix = float(-0.55366*mix + 0.99785);
+			m_sideMix = float(-0.73764*(mix*mix) + 1.2841*mix + 0.044327);
 		}
 
-		SFM_INLINE double CalculateDetunedFreq(unsigned iOsc, float frequency) const
+		SFM_INLINE double GetDetune(unsigned iOsc) const
 		{
 			SFM_ASSERT(iOsc < kNumSupersawOscillators);
 			SFM_ASSERT(frequency >= 0.f);
@@ -48,7 +48,7 @@ namespace SFM
 				 0.10745242
 			};
 
-			return (1.0 + m_curDetuneCurve*kRelations[iOsc])*frequency;
+			return (1.0 + m_curDetuneCurve*kRelations[iOsc]);
 		}
 
 		SFM_INLINE float GetMix(unsigned iOsc) const

@@ -75,6 +75,11 @@ namespace SFM
 			m_pitchScale = ratio;
 		}
 
+		SFM_INLINE void OffsetPhase(double value)
+		{
+			m_phase += value;
+		}
+
 		SFM_INLINE float    GetFrequency()    const { return float(m_frequency);  }
 		SFM_INLINE unsigned GetSampleRate()   const { return m_sampleRate;        }
 		SFM_INLINE double   GetPitch()        const { return m_pitch;             }

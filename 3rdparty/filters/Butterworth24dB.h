@@ -31,13 +31,18 @@ class Butterworth24dB
 public:
     Butterworth24dB()
 	{
+		Reset();
+	}
+
+    ~Butterworth24dB() {}
+
+	void Reset()
+	{
 		m_history1 = 0.0;
 		m_history2 = 0.0;
 		m_history3 = 0.0;
 		m_history4 = 0.0;
 	}
-
-    ~Butterworth24dB() {}
 
     void SetSampleRate(unsigned fs)
 	{
@@ -48,8 +53,8 @@ public:
 		m_t2 = 2.0 * fs;
 		m_t3 = pi / fs;
 
-		m_min_cutoff = fs * 0.0;  // 0.01;
-		m_max_cutoff = fs * 0.49; // 0.45;
+		m_min_cutoff = fs * 0.01; // 0.01;
+		m_max_cutoff = fs *  0.5; // 0.45;
 	}
 
     void Set(double cutoff, double q)

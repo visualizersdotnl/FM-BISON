@@ -8,6 +8,7 @@
 	- Always write first, then read and write feedback
 	- Read() and ReadNearest() will wrap around
 	- ReadNormalized() reads up to the line's size (i.e. the very last written sample)
+	- Currently Resize() does not allow buffer to grow (FIXME)
 */
 
 #pragma once
@@ -41,7 +42,8 @@ namespace SFM
 		{
 			memset(m_buffer, 0, m_size*sizeof(float));
 		}
-
+		
+		// FIXME: also allow buffer to grow
 		void Resize(size_t numSamples)
 		{
 			Reset();
@@ -99,8 +101,46 @@ namespace SFM
 	private:
 		const size_t m_size;
 		float *m_buffer;
-		unsigned m_writeIdx;
 
+		unsigned m_writeIdx;
 		size_t m_curSize;
+	};
+
+	// This class is primarily intended to alleviate small latencies (such as correction when using fourth order filters, to name one)
+	// Only accepts sizes that are a power of 2
+	class StereoLatencyDelayLine
+	{
+	public:
+		StereoLatencyDelayLine(size_t size) :
+			m_size(size)
+,			m_writeIdx(0)
+		{
+			m_buffer.resize(size);
+		}
+
+		~StereoLatencyDelayLine() {}
+
+		// Write samples
+		void Write(float left, float right)
+		{
+			const auto writeIdx = m_writeIdx % m_size;
+			m_buffer[writeIdx][0] = left;
+			m_buffer[writeIdx][1] = right;
+
+			++m_writeIdx;
+		}
+
+		// Returns last written samples (first sample is left, second is right)
+		const std::array<float, 2> &Read() const
+		{
+			const size_t readIdx = ((m_writeIdx-1)-(m_size-1)) % m_size;
+			return m_buffer[readIdx];
+		}
+
+	private:
+		const size_t m_size;
+		std::vector<std::array<float, 2>> m_buffer;
+		
+		size_t m_writeIdx;
 	};
 }
