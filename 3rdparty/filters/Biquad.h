@@ -4,7 +4,8 @@
 // Modified for FM. BISON
 //
 // This filter is the basic building block of filters; it does *not* respond well to rapid changes
-// of the frequency, so much like the Butterworth 24dB it's mostly suited for specific tasks
+// of the frequency, so much like the Butterworth 24dB it's mostly suited for specific tasks; that
+// said, this filter is rather versatile (well suited for an EQ for example)
 //
 // ** Refrain from setting parameters one by one as they all call calcBiquad(), just use setBiquad()
 //    to set up the filter as needed **
@@ -12,6 +13,8 @@
 // - No external dependencies
 // - Added reset() function
 // - Misc. modifications
+//
+// I can't say I'm a big fan of how most DSP code is written but I'll try to keep it as-is.
 //
 // ----------------------------------------------------------------------------------------------------
 

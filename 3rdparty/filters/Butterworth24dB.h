@@ -6,14 +6,13 @@
 // This is an ideal filter for steep cutoffs without ripple
 //
 // - No external dependencies
-// - Stereo support (not yet, FIXME)
 // - Misc. minor modifications 
+// - FIXME: needs stereo support
+// - FIXME: needs optimization
 //
-// - Like most audio/DSP code out there it's a big messy and not very verbose, but I'll keep it as-is
+// I can't say I'm a big fan of how most DSP code is written but I'll try to keep it as-is.
 //
 // Source: https://www.musicdsp.org/en/latest/Filters/243-butterworth-optimized-c-class.html
-//
-// FIXME: optimize!
 //
 // ----------------------------------------------------------------------------------------------------
 
