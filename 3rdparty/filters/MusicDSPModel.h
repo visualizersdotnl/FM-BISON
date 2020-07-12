@@ -7,6 +7,7 @@
 // - Stereo support
 // - Replaced MOOG_PI with M_PI
 // - Added SetParameters()
+// - Added soft clip (SFM::ultra_tanh()) to prevent blowing up with samples outside of [-1..1] range
 // - Misc. minor modifications 
 //
 // I can't say I'm a big fan of how most DSP code is written but I'll try to keep it as-is.
@@ -81,7 +82,7 @@ private:
 
 	SFM_INLINE void Apply(float &sample, double *stage, double *delay)
 	{
-		double x = sample*m_drive - m_resonance*stage[3];
+		double x = SFM::ultra_tanh(sample*m_drive - m_resonance*stage[3]);
 
 		// Four cascaded one-pole filters (bilinear transform)
 		stage[0] = x * p + delay[0]  * p - k * stage[0];
