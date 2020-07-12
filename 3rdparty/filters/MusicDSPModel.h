@@ -40,10 +40,10 @@ public:
 
 	SFM_INLINE void Reset()
 	{
-		memset(m_stage[0], 0, sizeof(m_stage[0]));
-		memset(m_stage[1], 0, sizeof(m_stage[1]));
-		memset(m_delay[0], 0, sizeof(m_delay[0]));
-		memset(m_delay[1], 0, sizeof(m_delay[1]));
+		memset(m_stage[0], 0, 4*sizeof(double));
+		memset(m_stage[1], 0, 4*sizeof(double));
+		memset(m_delay[0], 0, 4*sizeof(double));
+		memset(m_delay[1], 0, 4*sizeof(double));
 	}
 
 	SFM_INLINE void SetParameters(float cutoff, float resonance, float drive /* Gain (linear) */)
@@ -100,7 +100,7 @@ private:
 		sample = float(stage[3]);
 
 		// Filter still in working order?
-		SFM::SampleAssert(sample);
+		SFM::FloatAssert(sample);
 	}
 
 	const unsigned m_sampleRate;

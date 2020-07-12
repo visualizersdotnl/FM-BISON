@@ -34,7 +34,6 @@ namespace SFM
 		SFM_INLINE double GetDetune(unsigned iOsc) const
 		{
 			SFM_ASSERT(iOsc < kNumSupersawOscillators);
-			SFM_ASSERT(frequency >= 0.f);
 
 			// Relation between frequencies (slightly asymmetric)
 			const double kRelations[kNumSupersawOscillators] = 

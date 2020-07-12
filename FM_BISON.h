@@ -270,7 +270,6 @@ namespace SFM
 			SvfLinearTrapOptimised2::FLT_TYPE filterType1;
 			SvfLinearTrapOptimised2::FLT_TYPE filterType2;
 			bool resetFilter;
-			float qDiv;
 			bool secondFilterPass;
 			float secondQOffs;
 			float fullCutoff;

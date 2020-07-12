@@ -156,7 +156,7 @@ namespace SFM
 			{
 				// Apply filter (introduces a few harmonics in the top end)
 				m_vowelizerV1.Apply(vowelL, vowelR, vowel);
-				
+			
 				// Hold values until next tick
 				vowelHoldL = vowelL;
 				vowelHoldR = vowelR;

@@ -47,7 +47,7 @@ namespace SFM
 		{
 			m_voxOscPhase.Initialize(kDefWahRate, sampleRate);
 			m_voxSandH.SetSlewRate(kWahVoxSandHSlewRate);
-			m_voxLPF.resetState();
+			m_voxLPF.resetState();			
 			
 			m_LFO.Initialize(Oscillator::Waveform::kPolySaw, kDefWahRate, m_sampleRate, 0.f);
 		}

@@ -135,7 +135,7 @@ namespace SFM
 	constexpr float kSVFMaxFilterQ    = 14.f;   // Actual max. is 40.f
 	constexpr float kSVFFilterQRange  = kSVFMaxFilterQ-kSVFMinFilterQ;
 
-	constexpr float kMinFilterCutoff      =  0.f; // Normalized min. filter cutoff; range is simply [0..1] (use CutoffToHz())
+	constexpr float kMinFilterCutoff      =  0.f; // Normalized min. filter cutoff; range is simply [0..1] (use SVF_CutoffToHz())
 	constexpr float kSVFMinFilterCutoffHz = 16.f; // See impl.
 
 	// Default main (SVF) filter settings

@@ -7,7 +7,7 @@
 //
 // - No external dependencies
 // - Misc. minor modifications 
-// - FIXME: needs stereo support
+// - Stereo support
 // - FIXME: needs optimization
 //
 // I can't say I'm a big fan of how most DSP code is written but I'll try to keep it as-is.
@@ -37,10 +37,8 @@ public:
 
 	void Reset()
 	{
-		m_history1 = 0.0;
-		m_history2 = 0.0;
-		m_history3 = 0.0;
-		m_history4 = 0.0;
+		memset(m_historyL, 0, 4*sizeof(double));
+		memset(m_historyR, 0, 4*sizeof(double));
 	}
 
     void SetSampleRate(unsigned fs)
@@ -53,20 +51,20 @@ public:
 		m_t3 = pi / fs;
 
 		m_min_cutoff = fs * 0.01; // 0.01;
-		m_max_cutoff = fs *  0.5; // 0.45;
+		m_max_cutoff = fs * 0.45; // 0.45;
 	}
 
-    void Set(double cutoff, double q)
+    void SetCutoffAndQ(double cutoff, double q)
 	{
 		if (cutoff < m_min_cutoff)
 			cutoff = m_min_cutoff;
 		else if(cutoff > m_max_cutoff)
 			cutoff = m_max_cutoff;
 
-		if(q < 0.f)
-			q = 0.f;
-		else if(q > 1.f)
-			q = 1.f;
+		if(q < 0.0)
+			q = 0.0;
+		else if(q > 1.0)
+			q = 1.0;
 
 		double wp = m_t2 * tan(m_t3*cutoff);
 		double bd, bd_tmp, b1, b2;
@@ -97,36 +95,50 @@ public:
 		m_coef3 = (bd_tmp - m_t2*b1) * bd;
 	}
 
-    float Run(float input)
+	// Do *not* mix with stereo Apply() call without first calling Reset()
+	void Apply(float &sample)
+	{
+		sample = Run(sample, m_historyL);
+	}
+
+	void Apply(float &left, float &right)
+	{
+		left  = Run(left,  m_historyL);
+		right = Run(right, m_historyR);
+	}
+
+private:
+    float Run(float input, double *history)
 	{
 		double output = input*m_gain;
 		double new_hist;
 
-		output -= m_history1*m_coef0;
-		new_hist = output - m_history2*m_coef1;
+		output -= history[0]*m_coef0;
+		new_hist = output - history[1]*m_coef1;
 
-		output = new_hist + m_history1*2.0;
-		output += m_history2;
+		output = new_hist + history[0]*2.0;
+		output += history[1];
 
-		m_history2 = m_history1;
-		m_history1 = new_hist;
+		history[1] = history[0];
+		history[0] = new_hist;
 
-		output -= m_history3*m_coef2;
-		new_hist = output - m_history4*m_coef3;
+		output -= history[2]*m_coef2;
+		new_hist = output - history[3]*m_coef3;
 
-		output = new_hist + m_history3*2.0;
-		output += m_history4;
+		output = new_hist + history[2]*2.0;
+		output += history[3];
 
-		m_history4 = m_history3;
-		m_history3 = new_hist;
+		history[3] = history[2];
+		history[2] = new_hist;
 
 		return (float) output;
 	}
 
-private:
+	double m_historyL[4];
+	double m_historyR[4];
+
     double m_t0, m_t1, m_t2, m_t3;
     double m_coef0, m_coef1, m_coef2, m_coef3;
-    double m_history1, m_history2, m_history3, m_history4;
     double m_gain;
     double m_min_cutoff, m_max_cutoff;
 };

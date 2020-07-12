@@ -90,8 +90,8 @@ namespace SFM
 
 		unsigned GetSampleRate() const
 		{
-			// It's my estimation that the coefficients were designed for 44.1Khz, maybe 48Khz
-			return 44100;
+			// It's my estimation that the coefficients were designed for 44.1KHz or 48KHz, so to be safe, I'll pick the latter
+			return 48000;;
 		}
 	};
 }

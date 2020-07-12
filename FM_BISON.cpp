@@ -1672,23 +1672,21 @@ namespace SFM
 					float filteredR = right;
 							
 					// Cutoff & Q, finally, for *this* sample
-					/* const */ float sampCutoff = curCutoff.Sample()*(1.f - cutAfter*kMainCutoffAftertouchRange);
-					const float sampQ = curQ.Sample()*context.qDiv;
-							
-					// Add some sparkle?
-					// Cascade!
+					const float normCutoff = curCutoff.Sample()*(1.f - cutAfter*kMainCutoffAftertouchRange);
+					const float cutoffHz = lerpf<float>(context.fullCutoff, normCutoff, filterEnv);
+					const float sampQ = curQ.Sample();
+
 					if (true == context.secondFilterPass)
 					{
 						SFM_ASSERT(SvfLinearTrapOptimised2::NO_FLT_TYPE != context.filterType2);
 
-						const float secondCutoff = lerpf<float>(context.fullCutoff, secondCutoffLPS.Apply(sampCutoff), filterEnv); 
-						const float secondQ      = std::min<float>(kSVFMaxFilterQ, sampQ+context.secondQOffs);
-						voice.m_filterSVF2.updateCoefficients(secondCutoff, secondQ, context.filterType2, m_sampleRate);
+						const float secondQ = std::min<float>(kSVFMaxFilterQ, sampQ+context.secondQOffs);
+						voice.m_filterSVF2.updateCoefficients(cutoffHz, secondQ, context.filterType2, m_sampleRate);
 						voice.m_filterSVF2.tick(filteredL, filteredR);
 					}
 
 					// Ref: https://github.com/FredAntonCorvest/Common-DSP/blob/master/Filter/SvfLinearTrapOptimised2Demo.cpp
-					voice.m_filterSVF1.updateCoefficients(lerpf<float>(context.fullCutoff, sampCutoff, filterEnv), sampQ, context.filterType1, m_sampleRate);
+					voice.m_filterSVF1.updateCoefficients(cutoffHz, sampQ, context.filterType1, m_sampleRate);
 					voice.m_filterSVF1.tick(filteredL, filteredR);
 							
 					left  = filteredL;
@@ -1825,17 +1823,15 @@ namespace SFM
 		m_curQ.SetTarget(Q);
 		
 		// Set filter type & parameters
-		bool secondFilterPass = false;      // Second (LFO) pass
-		float secondQOffs = 0.f;            // Q offset for second stage
-		float qDiv = 1.f;                   // Q divider to tame the resonance range
-		float fullCutoff;                   // Full cutoff used to apply DCF
+		bool secondFilterPass = false;                           // Second pass
+		float secondQOffs = 0.f;                                 // Q offset for second stage
+		const float fullCutoff = SVF_CutoffToHz(1.f, m_Nyquist); // Full cutoff used to apply DCF
 
 		switch (m_patch.filterType)
 		{
 		default:
 		case Patch::kNoFilter:
 			filterType1 = SvfLinearTrapOptimised2::NO_FLT_TYPE;
-			fullCutoff = SVF_CutoffToHz(1.f, m_Nyquist);
 			break;
 
 		case Patch::kLowpassFilter:
@@ -1844,19 +1840,14 @@ namespace SFM
 			secondQOffs = 0.1f;
 			filterType1 = SvfLinearTrapOptimised2::LOW_PASS_FILTER;
 			filterType2 = SvfLinearTrapOptimised2::LOW_PASS_FILTER;
-			fullCutoff = SVF_CutoffToHz(1.f, m_Nyquist);
 			break;
 
 		case Patch::kHighpassFilter:
 			filterType1 = SvfLinearTrapOptimised2::HIGH_PASS_FILTER;
-			fullCutoff = SVF_CutoffToHz(0.f, m_Nyquist);
 			break;
 
 		case Patch::kBandpassFilter:
-			// Pretty standard with a reduced resonance range
-			qDiv *= 0.25f;
 			filterType1 = SvfLinearTrapOptimised2::BAND_PASS_FILTER;
-			fullCutoff = SVF_CutoffToHz(1.f, m_Nyquist);
 			break;
 		}
 
@@ -1903,7 +1894,6 @@ namespace SFM
 			parameters.filterType1 = filterType1;
 			parameters.filterType2 = filterType2;
 			parameters.resetFilter = resetFilter;
-			parameters.qDiv = qDiv;
 			parameters.secondFilterPass = secondFilterPass;
 			parameters.secondQOffs = secondQOffs;
 			parameters.fullCutoff = fullCutoff;
