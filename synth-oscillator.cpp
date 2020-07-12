@@ -52,6 +52,7 @@ namespace SFM
 					saws[5] = oscPolySaw(m_phases[5].Sample(), m_phases[5].GetPitch()) * sideMix;
 					saws[6] = oscPolySaw(m_phases[6].Sample(), m_phases[6].GetPitch()) * sideMix;
 
+/*
 					// Filter saws below fundamental freq.
 					saws[0] = m_HPF[0].process(saws[0]);
 					saws[1] = m_HPF[1].process(saws[1]);
@@ -64,6 +65,16 @@ namespace SFM
 					// Accumulate saws
 					for (auto saw : saws)
 						signal += saw;
+*/
+
+					// Filter saws below fundamental freq. and accumulate
+					signal += m_HPF[0].process(saws[0]);
+					signal += m_HPF[1].process(saws[1]);
+					signal += m_HPF[2].process(saws[2]);
+					signal += m_HPF[3].process(saws[3]);
+					signal += m_HPF[4].process(saws[4]);
+					signal += m_HPF[5].process(saws[5]);
+					signal += m_HPF[6].process(saws[6]);
 				}
 
 				break;
