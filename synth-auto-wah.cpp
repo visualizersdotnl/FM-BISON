@@ -7,6 +7,7 @@
 
 #include "synth-auto-wah.h"
 #include "synth-DX7-LFO-table.h"
+#include "synth-distort.h"
 
 namespace SFM
 {
@@ -156,6 +157,9 @@ namespace SFM
 			{
 				// Apply filter (introduces a few harmonics in the top end)
 				m_vowelizerV1.Apply(vowelL, vowelR, vowel);
+
+				vowelL = ZoelzerClip(vowelL);
+				vowelR = ZoelzerClip(vowelR);
 			
 				// Hold values until next tick
 				vowelHoldL = vowelL;

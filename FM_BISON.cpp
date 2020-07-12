@@ -1665,7 +1665,7 @@ namespace SFM
 
 #if !defined(SFM_DISABLE_FX)						
 
-				// Apply & mix filter (FIXME: write single sequential loop (see Github issue), prepare buffer(s) on initialization)
+				// Apply & mix filter (FIXME: move to sequential loop?)
 				if (false == noFilter)
 				{	
 					float filteredL = left;
@@ -1808,8 +1808,6 @@ namespace SFM
 
 		SvfLinearTrapOptimised2::FLT_TYPE filterType1; // Actually the *second* step if 'secondFilterpass' is true, and the only if it's false
 		SvfLinearTrapOptimised2::FLT_TYPE filterType2 = SvfLinearTrapOptimised2::NO_FLT_TYPE;
-		
-		static_assert(16.f >= kSVFMinFilterCutoffHz);
 		
 		// Set target cutoff (Hz) & Q
 		const float normCutoff = m_cutoffPS.Apply(m_patch.cutoff);
