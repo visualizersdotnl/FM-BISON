@@ -18,9 +18,6 @@
 
 #pragma once
 
-#define _USE_MATH_DEFINES
-#include <math.h>
-
 #include "../../synth-global.h"
 
 static constexpr float BUDDA_Q_SCALE = 6.0;

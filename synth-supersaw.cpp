@@ -30,7 +30,13 @@ namespace SFM
 	void Supersaw::SetDetune(float detune /* [0..1] */)
 	{
 		SFM_ASSERT(detune >= 0.f && detune <= 1.f);
-		m_curDetuneCurve = DetuneToCurve(detune);
-		SFM_ASSERT(m_curDetuneCurve >= 0.0 && m_curDetuneCurve <= 1.0);
+
+		if (m_curDetune != detune)
+		{
+			m_curDetune = detune;
+
+			m_curDetuneCurve = DetuneToCurve(detune);
+			SFM_ASSERT(m_curDetuneCurve >= 0.0 && m_curDetuneCurve <= 1.0);
+		}
 	}
 }

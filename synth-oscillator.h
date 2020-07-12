@@ -82,7 +82,8 @@ namespace SFM
 		// Signal
 		float m_signal = 0.f;
 
-		void UpdateSupersawFilters()
+		// Do *not* call this function needlessly
+		SFM_INLINE void UpdateSupersawFilters()
 		{
 			const unsigned sampleRate = GetSampleRate();
 			constexpr double Q = kDefGainAtCutoff;
@@ -123,8 +124,7 @@ namespace SFM
 					m_phases[iOsc].Initialize(detune*frequency, sampleRate, mt_randf() /* Important: randomized phases, prevents flanging! */);
 				}
 				
-				// FIXME: for FM. BISON this can be skipped since SetFrequency() is always called by Voice::Sample()
-//				UpdateSupersawFilters();
+				UpdateSupersawFilters();
 			}
 		}
 
@@ -149,13 +149,17 @@ namespace SFM
 			}
 			else
 			{
-				for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
+				// This is relatively expensive, so if the 4th oscillator (neutral) equals frequency we should bail
+				if (frequency != m_phases[3].GetFrequency())
 				{
-					const double detune = m_supersaw.GetDetune(iOsc);
-					m_phases[iOsc].SetFrequency(detune*frequency);
-				}
+					for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
+					{
+						const double detune = m_supersaw.GetDetune(iOsc);
+						m_phases[iOsc].SetFrequency(detune*frequency);
+					}
 
-				UpdateSupersawFilters();
+					UpdateSupersawFilters();
+				}
 			}
 		}
 

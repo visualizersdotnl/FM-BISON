@@ -12,7 +12,7 @@
 //
 // - No external dependencies
 // - Added reset() function
-// - Misc. modifications
+// - Misc. modifications, fixes & optimizations
 //
 // I can't say I'm a big fan of how most DSP code is written but I'll try to keep it as-is.
 //
@@ -39,6 +39,11 @@
 #ifndef Biquad_h
 #define Biquad_h
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
+#include "../../synth-global.h"
+
 enum {
     bq_type_lowpass = 0,
     bq_type_highpass,
@@ -51,32 +56,76 @@ enum {
 
 class Biquad {
 public:
-    Biquad();
-    Biquad(int type, double Fc, double Q, double peakGainDB);
-    ~Biquad();
+	Biquad()
+	{
+		reset();
+	}
+
+	Biquad(int type, double Fc, double Q, double peakGainDB)
+	{
+		setBiquad(type, Fc, Q, peakGainDB);
+		z1 = z2 = 0.0;
+	}
+
+	~Biquad() {}
+
 	void reset();
-    void setType(int type);
-    void setQ(double Q);
-    void setFc(double Fc);
-    void setPeakGain(double peakGainDB);
-    void setBiquad(int type, double Fc, double Q, double peakGain);
-    float process(float in);
+
+	// Avoid calling these separately (encouraged by *not* inlining them)
+	void setType(int type);
+	void setQ(double Q);
+	void setFc(double Fc);
+	void setPeakGain(double peakGaindB);
+
+	void setBiquad(int type, double Fc, double Q, double peakGaindB);
+	float process(float in);
     
 protected:
-    void calcBiquad(void);
+	void calcBiquad(void);
+	void calcBiquadHPF(void);
 
-    int m_type;
-    double m_Fc, m_Q, m_peakGain;
+	int m_type;
+	double m_Fc, m_Q, m_peakGain, m_FcK, m_peakGainV;
 
-    double a0, a1, a2, b1, b2;
-    double z1, z2;
+	double a0, a1, a2, b1, b2;
+	double z1, z2;
 };
 
-inline float Biquad::process(float in) {
-    double out = in * a0 + z1;
-    z1 = in * a1 + z2 - b1 * out;
-    z2 = in * a2 - b2 * out;
-    return float(out);
+SFM_INLINE float Biquad::process(float in) {
+	double out = in * a0 + z1;
+	z1 = in * a1 + z2 - b1 * out;
+	z2 = in * a2 - b2 * out;
+	return float(out);
 }
+
+SFM_INLINE void Biquad::setBiquad(int type, double Fc, double Q, double peakGaindB)
+{
+	m_type = type;
+	m_Q = Q;
+	m_Fc = Fc;
+	m_FcK = tan(M_PI*m_Fc);
+	m_peakGain = peakGaindB;
+	m_peakGainV = (0.0 != m_peakGain) ? pow(10.0, fabs(m_peakGain) / 20.0) : 1.0/20.0;
+	
+	if (bq_type_highpass == m_type)
+		calcBiquadHPF();
+	else
+		calcBiquad();
+}
+
+SFM_INLINE void Biquad::calcBiquadHPF()
+{
+	SFM_ASSERT(bq_type_highpass == m_type);
+
+	double norm;
+	double K = m_FcK; // tan(M_PI * m_Fc);
+
+	norm = 1 / (1 + K / m_Q + K * K);
+	a0 = 1 * norm;
+	a1 = -2 * a0;
+	a2 = a0;
+	b1 = 2 * (K * K - 1) * norm;
+	b2 = (1 - K / m_Q + K * K) * norm;
+ }
 
 #endif // Biquad_h

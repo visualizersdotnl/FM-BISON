@@ -150,7 +150,7 @@ namespace SFM
 		m_LFOBlendPS            = { sampleRatePS };
 		m_LFOModDepthPS         = { sampleRatePS };
 		m_SandHSlewRatePS       = { sampleRatePS };
-		m_cutoffPS              = { sampleRatePS, 30.f /* 30MS */ };
+		m_cutoffPS              = { sampleRatePS, 100.f /* 100MS */ };
 		m_resoPS                = { sampleRatePS };
 
 		m_LFORatePS.Reset(freqLFO);
@@ -171,7 +171,7 @@ namespace SFM
 		// These apply to effects operating on oversampled data, but that's not relevant to ParameterSlew
 		m_tubeDistPS            = { sampleRatePS };
 		m_tubeDrivePS           = { sampleRatePS };
-		m_postCutoffPS          = { sampleRatePS, 30.f /* 30MS */ };
+		m_postCutoffPS          = { sampleRatePS, 100.f /* 100MS */ };
 		m_postResoPS            = { sampleRatePS };
 		m_postDrivePS           = { sampleRatePS };
 		m_postWetPS             = { sampleRatePS };
@@ -194,7 +194,7 @@ namespace SFM
 		m_reverbLP_PS           = { sampleRatePS };
 		m_reverbPreDelayPS      = { sampleRatePS, 100.f /* 100MS */ };
 		m_compLookaheadPS       = { sampleRatePS, 100.f /* 100MS */ };
-		m_masterVoldBPS         = { sampleRatePS };
+		m_masterVoldBPS         = { sampleRatePS, 100.f /* 100MS */ };
 
 		m_effectWetPS.Reset(m_patch.cpWet);
 		m_effectRatePS.Reset(m_patch.cpRate);
