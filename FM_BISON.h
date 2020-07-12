@@ -33,19 +33,21 @@
 	- Parameters are not just interpolated by also filtered to alleviate crackle during automation or MIDI control (see 'ParameterSlew')
 	- 'SFM' is a legacy prefix & namespace name
 
-	Third party credits (all of them public domain, please contact us if we're mistaken):
-	- ADSR (modified & fixed) & Biquad filter by Nigel Redmon (http://www.earlevel.com)
-	- SvfLinearTrapOptimised2.hpp (modified) by Fred Anton Corvest (https://github.com/FredAntonCorvest/Common-DSP)
-	- Public domain MOOG-style ladder filters: https://github.com/ddiakopoulos/MoogLadders/blob/master/src/
+	Third party credits (public domain, please contact us if we're mistaken):
+	- ADSR & Biquad filter by Nigel Redmon (http://www.earlevel.com)
+	- SvfLinearTrapOptimised2.hpp by Fred Anton Corvest (https://github.com/FredAntonCorvest/Common-DSP)
+	- MOOG-style ladder filter: https://github.com/ddiakopoulos/MoogLadders/blob/master/src/
 	- Butterworth 24dB filter found @ http://www.musicdsp.org
 	- Reverb based on FreeVerb by Volker Böhm
 	- TinyMT Mersenne-Twister random generator by Makoto Matsumoto and Mutsuo Saito 
 	- Yamaha DX7 LFO rates (synth-DX7-LFO-table.h) taken from Sean Bolton's Hexter
 	- Fast cosine approximation supplied by Erik 'Kusma' Faye-Lund
-	- There are 2 depndencies on JUCE (currently these have little priority as we use JUCE for our product line)
+	- There are 2 dependencies on JUCE (currently these have little priority as we use JUCE for our product line)
 	- 'PolyBLEP'-based oscillators were lifted from https://github.com/martinfinke/PolyBLEP; by various authors (I keep a copy in /3rdparty/PolyBLEP (ref.))
 	- I've ported a lot of interpolation functions from http://easings.net to single prec.
-	- And a few bits and bytes left and right; these are all credited in or close to the implementation
+	- A few bits and bytes left and right; these are all credited in or close to the implementation
+
+	Most of these were modified and optimized by us
 
 	** Depends on JUCE 6.01 or compatible! **
 	
