@@ -305,8 +305,8 @@ namespace SFM
 
 		// Anti-aliasing filter: attenuates frequencies below the host sample rate (distortion)
 		const double tubeCutFc = m_sampleRate / double(m_sampleRate4X);
-		m_tubeFilterAA_L.setBiquad(bq_type_lowpass, tubeCutFc, 0.707, 0.0);
-		m_tubeFilterAA_L.setBiquad(bq_type_lowpass, tubeCutFc, 0.707, 0.0);
+		m_tubeFilterAA_L.setBiquad(bq_type_lowpass, tubeCutFc, kDefGainAtCutoff, 0.0);
+		m_tubeFilterAA_L.setBiquad(bq_type_lowpass, tubeCutFc, kDefGainAtCutoff, 0.0);
 
 		// Anti-aliasing filter: attenuates the top end
 		const double antiAliasingCutHz = lerpf<double>(m_sampleRate /* SR */, double(m_Nyquist) /* Nyquist 1X */, antiAliasing);
@@ -343,7 +343,7 @@ namespace SFM
 
 			float filteredL = sampleL, filteredR = sampleR;
 
-			m_postFilter.SetParameters(80.f + curPostCutoff*10000.f /* "Just right" */, curPostReso /* [0..1] */, curPostDrive);
+			m_postFilter.SetParameters(kMinPostFilterCutoffHz + curPostCutoff*kPostFilterCutoffRange, curPostReso /* [0..1] */, curPostDrive);
 			m_postFilter.Apply(filteredL, filteredR);
 
 			// Mix

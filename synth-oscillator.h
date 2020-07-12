@@ -85,7 +85,7 @@ namespace SFM
 		void UpdateSupersawFilters()
 		{
 			const unsigned sampleRate = GetSampleRate();
-			constexpr double Q = 0.707;
+			constexpr double Q = kDefGainAtCutoff;
 
 			for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
 				m_HPF[iOsc].setBiquad(bq_type_highpass, m_phases[iOsc].GetFrequency()/sampleRate, Q, 0.0);
