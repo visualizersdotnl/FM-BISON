@@ -37,6 +37,9 @@ namespace SFM
 	// Delay line size (main delay) & cross bleed amount
 	constexpr float kMainDelayLineSize = kMainDelayInSec;
 	constexpr float kDelayCrossbleeding = 0.3f;
+	
+	// The compressor's 'bite' is filtered so it can be used as a GUI indicator; the higher this value the brighter it comes up and quicker it fades
+	constexpr float kCompressorBiteCutHz = 480.f;
 
 	PostPass::PostPass(unsigned sampleRate, unsigned maxSamplesPerBlock, unsigned Nyquist) :
 		m_sampleRate(sampleRate), m_Nyquist(Nyquist), m_sampleRate4X(sampleRate*4)
@@ -80,7 +83,7 @@ namespace SFM
 ,		m_wah(sampleRate, Nyquist)
 ,		m_reverb(sampleRate, Nyquist)
 ,		m_compressor(sampleRate)
-,		m_compressorBiteLPF(5.f / (sampleRate/maxSamplesPerBlock))
+,		m_compressorBiteLPF(kCompressorBiteCutHz/sampleRate)
 		
 		// CP wetness & master volume
 ,		m_curEffectWet(0.f, sampleRate, kDefParameterLatency)

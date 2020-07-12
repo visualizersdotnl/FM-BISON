@@ -108,8 +108,8 @@ namespace SFM
 			pRight[iSample] = delayedR*gain;
 		}
 
-		SFM_ASSERT(0 != numSamples);
-		bite = bite/numSamples;
+		if (numSamples > 0)
+			bite = bite/numSamples;
 
 		return bite;
 	}

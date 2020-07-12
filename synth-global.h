@@ -177,7 +177,7 @@ namespace SFM
 	// Anti-aliasing (during oversampled stage, 0.f is host Nyquist, 1.f is host sample rate)
 	// ----------------------------------------------------------------------------------------------
 
-	constexpr float kDefAntiAliasing = 0.25f;
+	constexpr float kDefAntiAliasing = 0.161803398875f; // Golden ratio * 0.1
 
 	// ----------------------------------------------------------------------------------------------
 	// Envelope
