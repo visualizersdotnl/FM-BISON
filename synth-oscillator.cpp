@@ -34,9 +34,9 @@ namespace SFM
 
 			case kSupersaw:
 				{
-					// The supersaw consists of 7 oscillators; the third oscillator is the 'main' oscillator at the fundamental frequency.
-					// I apply a HPF to each oscillator to eliminate 'fold back' aliasing beyond this frequency. There will still be
-					// aliasing going on but that's "part of the charm", or so I'm told
+					// The supersaw consists of 7 oscillators; the third oscillator is the 'main' oscillator at the fundamental frequency
+					// I apply a HPF to each oscillator to eliminate 'fold back' aliasing beyond this frequency 
+					// There will still be some aliasing going on but that's "part of the charm", or so I'm told
 
 					// Get amplitudes
 					const float sideMix = m_supersaw.GetSideMix();
