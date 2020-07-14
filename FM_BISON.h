@@ -88,6 +88,10 @@
 
 namespace SFM
 {
+	// 'Structure was padded due to alignment specifier'
+	#pragma warning (push)
+	#pragma warning (disable: 4324)
+
 	/*
 		Interface tailored for JUCE VST plug-in
 		Keep in mind this was never designed as a class but rather for embedded purposes, so it's not C++ 1-0-1
@@ -365,11 +369,8 @@ namespace SFM
 		ParameterSlew m_SandHSlewRatePS;
 		ParameterSlew m_cutoffPS, m_resoPS;
 		ParameterSlew m_effectWetPS, m_effectRatePS;
-		ParameterSlew m_delayPS, m_delayWetPS, m_delayFeedbackPS, m_delayFeedbackCutoffPS;
-		ParameterSlew m_postCutoffPS;
-		ParameterSlew m_postResoPS;
-		ParameterSlew m_postDrivePS;
-		ParameterSlew m_postWetPS;
+		ParameterSlew m_delayPS, m_delayWetPS, m_delayDrivePS, m_delayFeedbackPS, m_delayFeedbackCutoffPS;
+		ParameterSlew m_postCutoffPS, m_postResoPS, m_postDrivePS, m_postWetPS;
 		ParameterSlew m_tubeDistPS, m_tubeDrivePS;
 		ParameterSlew m_wahRatePS, m_wahDrivePS, m_wahSpeakPS, m_wahSpeakVowelPS, m_wahSpeakVowelModPS, m_wahSpeakGhostPS, m_wahSpeakCutPS, m_wahSpeakResoPS, m_wahCutPS, m_wahWetPS;
 		ParameterSlew m_reverbWetPS;
@@ -429,4 +430,6 @@ namespace SFM
 		// Per operator peaks
 		FollowerEnvelope m_opPeaks[kNumOperators];
 	};
+
+	#pragma warning (pop)
 }

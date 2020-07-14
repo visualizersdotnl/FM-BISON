@@ -304,10 +304,14 @@ namespace SFM
 	constexpr float kMaxWahSpeakVowel    =    3.f;
 
 	// ----------------------------------------------------------------------------------------------
-	// Size of main delay effect's line in seconds
+	// Size of main delay effect's line in seconds & drive (dB) range
 	// ----------------------------------------------------------------------------------------------
 
 	constexpr float kMainDelayInSec = 4.f; // Min. 15BPM
+
+	constexpr float kMinDelayDrivedB = -12.f;
+	constexpr float kMaxDelayDrivedB =  12.f;
+	constexpr float kDefDelayDrivedB =   0.f;
 
 	// ----------------------------------------------------------------------------------------------
 	// Default piano pedal settings & mul. range

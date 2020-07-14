@@ -108,6 +108,7 @@ namespace SFM
 		// Delay
 		float delayInSec;
 		float delayWet;
+		float delayDrivedB; // [kMinDelayDrivedB..kMaxDelayDrivedB]
 		float delayFeedback;
 		float delayFeedbackCutoff;
 
@@ -258,6 +259,7 @@ namespace SFM
 			// No delay
 			delayInSec = 0.f;
 			delayWet = 0.f;
+			delayDrivedB = kDefDelayDrivedB;
 			delayFeedback = 0.f;
 			delayFeedbackCutoff = 1.f;
 

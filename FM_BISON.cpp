@@ -140,6 +140,8 @@ namespace SFM
 			Some have a longer slew MS because they're more prone to artifacts, usually in conjuction with
 			a longer parameter latency for their InterpolatedParameter counterpart
 
+			This of course causes the response of certain parameters to be slower (or shorter) than
+			the default settings, but for now I regard that simply as the instrument's behaviour
 		*/
 
 		// Their sample rate is the amount of Render() calls it takes to render a second of audio
@@ -2053,6 +2055,7 @@ namespace SFM
 			/* Delay */
 			m_delayPS.Apply(m_patch.delayInSec),
 			m_delayWetPS.Apply(m_patch.delayWet),
+			m_delayDrivePS.Apply(m_patch.delayDrivedB),
 			m_delayFeedbackPS.Apply(m_patch.delayFeedback),
 			m_delayFeedbackCutoffPS.Apply(m_patch.delayFeedbackCutoff),
 			/* MOOG-style 24dB filter + Tube distort */

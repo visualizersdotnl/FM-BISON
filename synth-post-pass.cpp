@@ -50,6 +50,7 @@ namespace SFM
 ,		m_delayLineR(unsigned(sampleRate*kMainDelayLineSize))
 ,		m_curDelayInSec(0.f, sampleRate, kDefParameterLatency * 4.f /* Longer */)
 ,		m_curDelayWet(0.f, sampleRate, kDefParameterLatency)
+,		m_curDelayDrive(1.f /* 0dB */, sampleRate, kDefParameterLatency)
 ,		m_curDelayFeedback(0.f, sampleRate, kDefParameterLatency)
 ,		m_curDelayFeedbackCutoff(1.f, sampleRate, kDefParameterLatency)
 		
@@ -107,7 +108,7 @@ namespace SFM
 	                     float rateBPM,
 	                     float wahResonance, float wahAttack, float wahHold, float wahRate, float wahDrivedB, float wahSpeak, float wahSpeakVowel, float wahSpeakVowelMod, float wahSpeakGhost, float wahSpeakCut, float wahSpeakReso, float wahCut, float wahWet,
 	                     float cpRate, float cpWet, bool isChorus,
-	                     float delayInSec, float delayWet, float delayFeedback, float delayFeedbackCutoff,
+	                     float delayInSec, float delayWet, float delayDrivedB, float delayFeedback, float delayFeedbackCutoff,
 	                     float postCutoff, float postReso, float postDrivedB, float postWet,
 						 float tubeDistort, float tubeDrive, float tubeOffset,
 						 float antiAliasing,
@@ -126,6 +127,7 @@ namespace SFM
 		SFM_ASSERT(cpWet  >= 0.f && cpWet  <= 1.f);
 		SFM_ASSERT(delayInSec >= 0.f && delayInSec <= kMainDelayInSec);
 		SFM_ASSERT(delayWet >= 0.f && delayWet <= 1.f);
+		SFM_ASSERT(delayDrivedB >= kMinDelayDrivedB && delayDrivedB <= kMaxDelayDrivedB);
 		SFM_ASSERT(delayFeedback >= 0.f && delayFeedback <= 1.f);
 		SFM_ASSERT(postCutoff >= 0.f && postCutoff <= 1.f);
 //		SFM_ASSERT(postReso >= 0.f && postReso <= 1.f);
@@ -196,6 +198,7 @@ namespace SFM
 
 		m_curDelayInSec.SetTarget(delay);
 		m_curDelayWet.SetTarget(delayWet);
+		m_curDelayDrive.SetTarget(dB2Lin(delayDrivedB));
 		m_curDelayFeedback.SetTarget(delayFeedback);
 		m_curDelayFeedbackCutoff.SetTarget(delayFeedbackCutoff);
 		
@@ -238,14 +241,15 @@ namespace SFM
 			const float curDelayInSec = m_curDelayInSec.Sample();
 			SFM_ASSERT(curDelayInSec >= 0.f && curDelayInSec <= kMainDelayInSec);
 
-			// Write to delay line
+			// Write driven samples to delay line
 			const float left     = effectL;
 			const float right    = effectR;
 			const float monaural = 0.5f*(left+right);
-					
-			m_delayLineL.Write(left);
-			m_delayLineM.Write(monaural);
-			m_delayLineR.Write(right);
+			
+			const float drive = m_curDelayDrive.Sample();
+			m_delayLineL.Write(left     * drive);
+			m_delayLineM.Write(monaural * drive);
+			m_delayLineR.Write(right    * drive);
 			
 			// Sample delay line
 			const float curDelay = curDelayInSec/kMainDelayInSec;

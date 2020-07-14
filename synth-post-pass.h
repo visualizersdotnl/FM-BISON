@@ -44,7 +44,7 @@ namespace SFM
 		           float rateBPM, /* See impl. for details! */
 				   float wahResonance, float wahAttack, float wahHold, float wahRate, float wahDrivedB, float wahSpeak, float wahSpeakVowel, float wahSpeakVowelMod, float wahSpeakGhost, float wahSpeakCut, float wahSpeakReso, float wahCut, float wahWet,
 		           float cpRate, float cpWet, bool isChorus,
-		           float delayInSec, float delayWet, float delayFeedback, float delayFeedbackCutoff,
+		           float delayInSec, float delayWet, float delayDrivedB, float delayFeedback, float delayFeedbackCutoff,
 		           float postCutoff, float postReso, float postDrivedB, float postWet,
 		           float tubeDistort, float tubeDrive, float tubeOffset,
 				   float antiAliasing,
@@ -96,6 +96,7 @@ namespace SFM
 		LowpassFilter12dB m_delayFeedbackLPF_L, m_delayFeedbackLPF_R;
 		InterpolatedParameter<kLinInterpolate> m_curDelayInSec;
 		InterpolatedParameter<kLinInterpolate> m_curDelayWet;
+		InterpolatedParameter<kLinInterpolate> m_curDelayDrive;
 		InterpolatedParameter<kLinInterpolate> m_curDelayFeedback;
 		InterpolatedParameter<kLinInterpolate> m_curDelayFeedbackCutoff;
 		
