@@ -68,7 +68,7 @@ namespace SFM
 
 			// This is a happy little accident since SetFrequency() expects a frequency but
 			// gets a 10th of the pitch instead; but it sounds good so I'm not messing with this
-			m_chorusSweepMod.SetFrequency(m_chorusSweep.GetPitch()*0.1);
+			m_chorusSweepMod.SetFrequency(m_chorusSweep.GetPitch()*0.1f);
 		}
 
 		SFM_INLINE void SetPhaserRate(float rate, float scale) // [0..1]

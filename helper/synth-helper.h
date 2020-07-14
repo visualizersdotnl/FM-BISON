@@ -52,13 +52,13 @@ namespace SFM
 	 ------------------------------------------------------------------------------------------------------ */
 
 	// Frequency to pitch
-	SFM_INLINE static double CalculatePitch(double frequency, unsigned sampleRate)
+	SFM_INLINE static float CalculatePitch(float frequency, unsigned sampleRate)
 	{
 		return frequency/sampleRate;
 	}
 
 	// Frequency to angular pitch
-	SFM_INLINE static double CalculateAngularPitch(double frequency, unsigned sampleRate)
+	SFM_INLINE static float CalculateAngularPitch(float frequency, unsigned sampleRate)
 	{
 		return CalculatePitch(frequency, sampleRate)*k2PI;
 	}
@@ -66,7 +66,7 @@ namespace SFM
 	// Note to frequency
 	SFM_INLINE static float NoteToFreq(unsigned note)
 	{
-		return float(kBaseHz * pow(2.0, (note - 69.0) / 12.0 /* 1 octave equals 12 semitones */));
+		return kBaseHz * powf(2.f, (note - 69.f) / 12.f /* 1 octave equals 12 semitones */);
 	}
 
 	/* ----------------------------------------------------------------------------------------------------

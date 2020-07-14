@@ -15,7 +15,7 @@ namespace SFM
 	constexpr unsigned kMIDIMiddleC = 60;
 
 	// LUT to get frequency for a MIDI key
-	extern double g_MIDIToFreqLUT[kMIDINumKeys];
+	extern float g_MIDIToFreqLUT[kMIDINumKeys];
 	void CalculateMIDIToFrequencyLUT();
 
 	// Taken from (give or take a few additions): https://github.com/FluidSynth/fluidsynth/blob/master/src/midi/fluid_midi.h

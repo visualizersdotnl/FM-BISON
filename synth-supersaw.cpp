@@ -13,7 +13,7 @@
 namespace SFM
 {
 	// FIXME: I could probably turn this into a reasonably accurate LUT?
-	static double DetuneToCurve(double detune)
+	static double DetuneToCurve(float detune)
 	{
 		// "Since the Roland JP-8000 is a hardware synthesizer, it uses MIDI protocol to transfer control data.
 		//  MIDI values are from a scale of 0 to 127 (128 in total). The detune of the Super Saw is therefore

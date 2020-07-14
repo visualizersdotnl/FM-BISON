@@ -471,7 +471,7 @@ namespace SFM
 	void PostPass::ApplyChorus(float sampleL, float sampleR, float &outL, float &outR, float wetness)
 	{
 		// Sweep modulation LFO
-		const float sweepMod = fast_cosf(float(m_chorusSweepMod.Sample()));
+		const float sweepMod = fast_cosf(m_chorusSweepMod.Sample());
 		
 		// Sweep LFOs
 		const float phase = float(m_chorusSweep.Sample());

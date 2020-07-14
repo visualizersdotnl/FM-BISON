@@ -128,7 +128,7 @@ namespace SFM
 			*/
 
 			// Calc. vox. LFO A (sample) and B (amplitude)
-			const double voxPhase = m_voxOscPhase.Sample();
+			const float voxPhase  = m_voxOscPhase.Sample();
 			const float oscInput  = mt_randfc()*0.995f; // Evade edges
 			const float voxOsc    = m_voxSandH.Sample(voxPhase, oscInput);
 			const float toLFO     = steepstepf(voxMod);

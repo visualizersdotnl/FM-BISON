@@ -14,13 +14,13 @@ namespace SFM
 	{
 		constexpr float defaultDuty = 0.25f;
 
-		const double phase = m_phases[0].Sample();
-		const double pitch = m_phases[0].GetPitch(); // For PolyBLEP
+		const float phase = m_phases[0].Sample();
+		const float pitch = m_phases[0].GetPitch(); // For PolyBLEP
 		
 		// Calling fmodf() certainly warrants a comparison and branch
-		const double modulated = (0.f == phaseShift)
+		const float modulated = (0.f == phaseShift)
 			? phase // Gauranteed to be [0..1]
-			: fmod(phase+phaseShift, 1.0);
+			: fmodf(phase+phaseShift, 1.f);
 		
 		// This switch statement has never shown up during profiling
 		float signal = 0.f;

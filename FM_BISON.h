@@ -141,7 +141,7 @@ namespace SFM
 		void Render(unsigned numSamples, float bendWheel, float modulation, float aftertouch, float *pLeft, float *pRight);
 
 		// Set BPM (can be used as LFO frequency)
-		void SetBPM(double BPM, bool resetPhase)
+		void SetBPM(float BPM, bool resetPhase)
 		{
 			m_resetPhaseBPM = resetPhase;
 
@@ -315,7 +315,7 @@ namespace SFM
 		// Parameters (patch)
 		Patch m_patch;
 
-		double m_BPM;         // Current BPM (if any)
+		float m_BPM;          // Current BPM (if any)
 		float m_freqBPM;      // Current BPM ratio-adjusted frequency (updated in Render())
 		bool m_resetPhaseBPM; // Set if phase of BPM lock has to be reset
 

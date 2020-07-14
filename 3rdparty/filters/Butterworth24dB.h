@@ -18,6 +18,9 @@
 
 #pragma once
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 #include "../../synth-global.h"
 
 static constexpr float BUDDA_Q_SCALE = 6.0;
@@ -40,7 +43,7 @@ public:
 
     void SetSampleRate(unsigned fs)
 	{
-		double pi = 4.0 * atan(1.0);
+		const double pi = M_PI;
 
 		m_t0 = 4.0 * fs*fs;
 		m_t1 = 8.0 * fs*fs;

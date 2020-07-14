@@ -9,15 +9,15 @@
 
 namespace SFM
 {
-	double g_MIDIToFreqLUT[kMIDINumKeys];
+	float g_MIDIToFreqLUT[kMIDINumKeys];
 
 	void CalculateMIDIToFrequencyLUT()
 	{
-		const double base = kBaseHz;
+		const float base = kBaseHz;
 		for (unsigned iKey = 0; iKey < kMIDINumKeys; ++iKey)
 		{
-			const double frequency = base * pow(2.0, (iKey-69.0)/12.0);
-			g_MIDIToFreqLUT[iKey] = fabs(frequency);
+			const float frequency = base * powf(2.f, (iKey-69.f)/12.f);
+			g_MIDIToFreqLUT[iKey] = fabsf(frequency);
 		}
 	}
 }

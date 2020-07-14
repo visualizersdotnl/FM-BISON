@@ -99,7 +99,7 @@ namespace SFM
 			Initialize(kNone, 0.f, sampleRate, 0.0);
 		}
 
-		void Initialize(Waveform form, float frequency, unsigned sampleRate, double phaseShift, float supersawDetune = 0.f, float supersawMix = 0.f)
+		void Initialize(Waveform form, float frequency, unsigned sampleRate, float phaseShift, float supersawDetune = 0.f, float supersawMix = 0.f)
 		{
 			m_form = form;
 			
@@ -120,7 +120,7 @@ namespace SFM
 
 				for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
 				{
-					const double detune = m_supersaw.GetDetune(iOsc);
+					const float detune = m_supersaw.GetDetune(iOsc);
 					m_phases[iOsc].Initialize(detune*frequency, sampleRate, mt_randf() /* Important: randomized phases, prevents flanging! */);
 				}
 				
@@ -154,7 +154,7 @@ namespace SFM
 				{
 					for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
 					{
-						const double detune = m_supersaw.GetDetune(iOsc);
+						const float detune = m_supersaw.GetDetune(iOsc);
 						m_phases[iOsc].SetFrequency(detune*frequency);
 					}
 
@@ -183,7 +183,7 @@ namespace SFM
 
 		// - Warning: this value *can* be out of bounds! ([0..1])
 		// - Useless for kSupersaw
-		SFM_INLINE double GetPhase() const 
+		SFM_INLINE float GetPhase() const 
 		{ 
 			SFM_ASSERT(m_form != kSupersaw);
 			return m_phases[0].Get();           

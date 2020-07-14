@@ -4,7 +4,8 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	See synth-supersaw.cpp for details
+	- I've kept parts of these calculations double precision
+	- See synth-supersaw.cpp for details
 */
 
 #pragma once
@@ -31,7 +32,7 @@ namespace SFM
 			m_sideMix = float(-0.73764*(mix*mix) + 1.2841*mix + 0.044327);
 		}
 
-		SFM_INLINE double GetDetune(unsigned iOsc) const
+		SFM_INLINE float GetDetune(unsigned iOsc) const
 		{
 			SFM_ASSERT(iOsc < kNumSupersawOscillators);
 
@@ -47,7 +48,7 @@ namespace SFM
 				 0.10745242
 			};
 
-			return (1.0 + m_curDetuneCurve*kRelations[iOsc]);
+			return float(1.0 + m_curDetuneCurve*kRelations[iOsc]);
 		}
 
 		SFM_INLINE float GetMix(unsigned iOsc) const

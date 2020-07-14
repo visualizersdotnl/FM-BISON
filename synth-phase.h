@@ -4,8 +4,7 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	- Phase period is [0..1]
-	- Uses double precision internally
+	Phase period is [0..1]
 */
 
 #pragma once
@@ -18,10 +17,10 @@ namespace SFM
 	class Phase
 	{
 	private:
-		double   m_frequency;
+		float    m_frequency;
 		unsigned m_sampleRate;
-		double   m_pitch;
-		double   m_phase;
+		float    m_pitch;
+		float    m_phase;
 
 	public:
 		Phase()
@@ -34,19 +33,19 @@ namespace SFM
 			Initialize(1.f, sampleRate); 
 		}
 
-		SFM_INLINE void Initialize(double frequency, unsigned sampleRate, double phaseShift = 0.0)
+		SFM_INLINE void Initialize(float frequency, unsigned sampleRate, float phaseShift = 0.f)
 		{
 			m_frequency = frequency;
 			m_sampleRate = sampleRate;
 			m_pitch = CalculatePitch(frequency, sampleRate);
-			m_phase = fmod(phaseShift, 1.0);
+			m_phase = fmodf(phaseShift, 1.f);
 
-			SFM_ASSERT(m_phase >= 0.0 && m_phase <= 1.0);
+			SFM_ASSERT(m_phase >= 0.f && m_phase <= 1.f);
 		}
 
 		SFM_INLINE void Reset()
 		{
-			m_phase = 0.0;
+			m_phase = 0.f;
 		}
 
 		SFM_INLINE void PitchBend(float bend)
@@ -55,26 +54,24 @@ namespace SFM
 			m_pitch = CalculatePitch(m_frequency*bend, m_sampleRate);
 		}
 
-		SFM_INLINE void SetFrequency(double frequency)
+		SFM_INLINE void SetFrequency(float frequency)
 		{
 			m_pitch = CalculatePitch(frequency, m_sampleRate);
 			m_frequency = frequency;
 		}
 
-		SFM_INLINE float    GetFrequency()    const { return float(m_frequency);  }
-		SFM_INLINE unsigned GetSampleRate()   const { return m_sampleRate;        }
-		SFM_INLINE double   GetPitch()        const { return m_pitch;             }
-		SFM_INLINE double   Get()             const { return m_phase;             }
+		SFM_INLINE float     GetFrequency()    const { return m_frequency;  }
+		SFM_INLINE unsigned  GetSampleRate()   const { return m_sampleRate; }
+		SFM_INLINE float     GetPitch()        const { return m_pitch;      }
+		SFM_INLINE float     Get()             const { return m_phase;      }
 
-		SFM_INLINE double Sample()
+		SFM_INLINE float Sample()
 		{
-			if (m_phase >= 1.0)
-			{
-				m_phase -= 1.0;
-			}
+			if (m_phase >= 1.f)
+				m_phase -= 1.f;
 			
-			const double curPhase = m_phase;
-			SFM_ASSERT(curPhase >= 0.0 && curPhase <= 1.0);
+			const float curPhase = m_phase;
+			SFM_ASSERT(curPhase >= 0.f && curPhase <= 1.f);
 
 			m_phase += m_pitch;
 			
@@ -83,7 +80,7 @@ namespace SFM
 
 		SFM_INLINE void Skip(unsigned count)
 		{
-			m_phase = fmod(m_phase + m_pitch*count, 1.0);
+			m_phase = fmodf(m_phase + m_pitch*count, 1.0);
 		}
 	};
 }
