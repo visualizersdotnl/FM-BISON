@@ -52,13 +52,15 @@ namespace SFM
 	 ------------------------------------------------------------------------------------------------------ */
 
 	// Frequency to pitch
-	SFM_INLINE static float CalculatePitch(float frequency, unsigned sampleRate)
+	template<typename FloatType>
+	SFM_INLINE static FloatType CalculatePitch(FloatType frequency, unsigned sampleRate)
 	{
 		return frequency/sampleRate;
 	}
 
 	// Frequency to angular pitch
-	SFM_INLINE static float CalculateAngularPitch(float frequency, unsigned sampleRate)
+	template<typename FloatType>
+	SFM_INLINE static FloatType CalculateAngularPitch(FloatType frequency, unsigned sampleRate)
 	{
 		return CalculatePitch(frequency, sampleRate)*k2PI;
 	}

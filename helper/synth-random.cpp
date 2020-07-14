@@ -16,7 +16,7 @@ namespace SFM
 
 	void InitializeRandomGenerator()
 	{
-		const uint32_t seed = 0xbadf00d;
+		const uint32_t seed = rand();
 		tinymt32_init(&s_genState, seed);
 	}
 

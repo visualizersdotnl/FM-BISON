@@ -54,7 +54,7 @@ namespace SFM
 {
 	/*
 		Almost all contants used by FM. BISON and it's host are defined here; I initially chose to stick them in one place because 
-		this was a much  smaller project and there simply weren't too many them
+		this was a much smaller project and there simply weren't too many them
 
 		This changed over time and now more and more of them are defined close to or in the implementation they're relevant instead; 
 		new ones that go here should be either used in different places or, important: be of use by the host software
