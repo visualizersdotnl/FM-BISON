@@ -180,14 +180,18 @@ namespace SFM
 
 		return saw;
 	}
-
+	
+	// FIXME: it uses a different PolyBLEP function, but it's not faster
 	SFM_INLINE static float oscPolySawFaster(float phase, float pitch)
 	{
 		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
 		SFM_ASSERT(pitch > 0.f);
 
-		float saw = 2.f*(phase+0.5f) - 1.f;
-		saw -= Poly::BLEP_by_Tale(phase, pitch);
+		float P1 = phase + 0.5f;
+		P1 -= Poly::bitwiseOrZero(P1);
+
+		float saw = 2.f*P1 - 1.f;
+		saw -= Poly::BLEP_by_Tale(P1, pitch);
 
 		return saw;
 	}

@@ -67,20 +67,20 @@ namespace SFM
 
 		SFM_INLINE float Sample()
 		{
-			if (m_phase >= 1.f)
-				m_phase -= 1.f;
-			
 			const float curPhase = m_phase;
 			SFM_ASSERT(curPhase >= 0.f && curPhase <= 1.f);
 
 			m_phase += m_pitch;
+
+			if (m_phase >= 1.f)
+				m_phase -= 1.f;
 			
 			return curPhase;
 		}
 
 		SFM_INLINE void Skip(unsigned count)
 		{
-			m_phase = fmodf(m_phase + m_pitch*count, 1.0);
+			m_phase = fmodf(m_phase + m_pitch*count, 1.f);
 		}
 	};
 }

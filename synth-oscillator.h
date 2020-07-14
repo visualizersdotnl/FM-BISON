@@ -121,7 +121,7 @@ namespace SFM
 				for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
 				{
 					const float detune = m_supersaw.GetDetune(iOsc);
-					m_phases[iOsc].Initialize(detune*frequency, sampleRate, mt_randf() /* Important: randomized phases, prevents flanging! */);
+					m_phases[iOsc].Initialize(detune*frequency, sampleRate, (iOsc != 3) ? mt_randf() : 0.f /* Important: randomized phases, prevents flanging! */);
 				}
 				
 				UpdateSupersawFilters();

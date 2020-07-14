@@ -44,22 +44,22 @@ namespace SFM
 
 					// Generate saws (band-limited)
 					float saws[kNumSupersawOscillators];
-					saws[0] = oscPolySawFaster(phase, pitch) * sideMix;
-					saws[1] = oscPolySawFaster(m_phases[1].Sample(), m_phases[1].GetPitch()) * sideMix;
-					saws[2] = oscPolySawFaster(m_phases[2].Sample(), m_phases[2].GetPitch()) * sideMix;
-					saws[3] = oscPolySawFaster(m_phases[3].Sample(), m_phases[3].GetPitch()) * mainMix;
-					saws[4] = oscPolySawFaster(m_phases[4].Sample(), m_phases[4].GetPitch()) * sideMix;
-					saws[5] = oscPolySawFaster(m_phases[5].Sample(), m_phases[5].GetPitch()) * sideMix;
-					saws[6] = oscPolySawFaster(m_phases[6].Sample(), m_phases[6].GetPitch()) * sideMix;
+					saws[0] = oscPolySawFaster(phase, pitch);                                 // * sideMix;
+					saws[1] = oscPolySawFaster(m_phases[1].Sample(), m_phases[1].GetPitch()); // * sideMix;
+					saws[2] = oscPolySawFaster(m_phases[2].Sample(), m_phases[2].GetPitch()); // * sideMix;
+					saws[3] = oscPolySawFaster(m_phases[3].Sample(), m_phases[3].GetPitch()); // * mainMix;
+					saws[4] = oscPolySawFaster(m_phases[4].Sample(), m_phases[4].GetPitch()); // * sideMix;
+					saws[5] = oscPolySawFaster(m_phases[5].Sample(), m_phases[5].GetPitch()); // * sideMix;
+					saws[6] = oscPolySawFaster(m_phases[6].Sample(), m_phases[6].GetPitch()); // * sideMix;
 
 					// Filter saws below osc. frequency and accumulate
-					signal += m_HPF[0].process(saws[0]);
-					signal += m_HPF[1].process(saws[1]);
-					signal += m_HPF[2].process(saws[2]);
-					signal += m_HPF[3].process(saws[3]);
-					signal += m_HPF[4].process(saws[4]);
-					signal += m_HPF[5].process(saws[5]);
-					signal += m_HPF[6].process(saws[6]);
+					signal += m_HPF[0].process(saws[0]) * sideMix;
+					signal += m_HPF[1].process(saws[1]) * sideMix;
+					signal += m_HPF[2].process(saws[2]) * sideMix;
+					signal += m_HPF[3].process(saws[3]) * mainMix;
+					signal += m_HPF[4].process(saws[4]) * sideMix;
+					signal += m_HPF[5].process(saws[5]) * sideMix;
+					signal += m_HPF[6].process(saws[6]) * sideMix;
 				}
 
 				break;
