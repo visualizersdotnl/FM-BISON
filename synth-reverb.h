@@ -208,8 +208,8 @@ namespace SFM
 
 		DelayLine m_preDelayLine;
 
-		LowpassFilter m_preLPF;
-		HighpassFilter m_preHPF;
+		SinglePoleLPF m_preLPF;
+		SinglePoleHPF m_preHPF;
 
 		ReverbComb m_combsL[kReverbNumCombs], m_combsR[kReverbNumCombs];
 		ReverbAllPass m_allPassesL[kReverbNumAllPasses], m_allPassesR[kReverbNumAllPasses];

@@ -4,11 +4,9 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	Ref.: https://www.earlevel.com/main/2012/12/15/a-one-pole-filter/
-
-	- LP, HP 
+	- LPF, HPF, cascaded LPF
 	- Low cut (stereo)
-	- DC blocker (incl. stereo)
+	- DC blocker (stereo)
 
 	There are more single pole filters in this codebase but they usually have a special purpose which
 	makes their implementation a tad different (for example see synth-reverb.h), so I chose not to
@@ -26,18 +24,16 @@ namespace SFM
 {
 	/* Lowpass */
 
-	class LowpassFilter
+	class SinglePoleLPF
 	{
 	public:
-		LowpassFilter(float Fc = 1.f) :
+		SinglePoleLPF(float Fc = 1.f) :
 			m_gain(1.f)
 ,			m_cutoff(0.f)
 ,			m_feedback(0.f)
 	{
 		SetCutoff(Fc);
 	}
-		
-	~LowpassFilter() {}
 
 	void Reset(float value)
 	{
@@ -71,18 +67,16 @@ namespace SFM
 
 	/* Highpass */
 
-	class HighpassFilter
+	class SinglePoleHPF
 	{
 	public:
-		HighpassFilter(float Fc = 1.f) :
+		SinglePoleHPF(float Fc = 1.f) :
 			m_gain(1.f)
 ,			m_cutoff(0.f)
 ,			m_feedback(0.f)
 	{
 		SetCutoff(Fc);
 	}
-		
-	~HighpassFilter() {}
 
 	void Reset(float value)
 	{
@@ -114,12 +108,12 @@ namespace SFM
 		float m_feedback;
 	};
 
-	/* Cascaded non-resonant lowpass (12dB) */
+	/* Cascaded SinglePoleLPF */
 
-	class LowpassFilter12dB
+	class CascadedSinglePoleLPF
 	{
 	public:
-		LowpassFilter12dB(float Fc = 1.f) :
+		CascadedSinglePoleLPF(float Fc = 1.f) :
 			m_filterA(Fc)
 ,			m_filterB(Fc) {}
 
@@ -146,54 +140,11 @@ namespace SFM
 	}
 
 	private:
-		LowpassFilter m_filterA;
-		LowpassFilter m_filterB;
+		SinglePoleLPF m_filterA;
+		SinglePoleLPF m_filterB;
 	};
 
 	/* Low cut (stereo) */
-
-#if 0	
-	class LowBlocker 
-	{
-	public:
-		LowBlocker(float lowCutHz, unsigned sampleRate) :
-			m_feedbackL(0.f), m_feedbackR(0.f)
-		{
-			SFM_ASSERT(lowCutHz > 0.f && sampleRate > 0);
-			SetCutoff(lowCutHz/sampleRate);
-		}
-	
-		~LowBlocker() {}
-
-		SFM_INLINE void Reset()
-		{
-			m_feedbackL = m_feedbackR = 0.f;
-		}
-	
-		SFM_INLINE void Apply(float& left, float& right)
-		{
-			m_feedbackL =  left*m_gain + m_feedbackL*m_cutoff;
-			m_feedbackR = right*m_gain + m_feedbackR*m_cutoff;
-
-			// Cut it off!
-			left  -= m_feedbackL;
-			right -= m_feedbackR;
-		}
-
-	private: 
-		SFM_INLINE void SetCutoff(float Fc)
-		{
-			SFM_ASSERT(Fc >= 0.f && Fc <= 1.f);
-			m_cutoff = expf(-2.f*kPI*Fc);
-			m_gain = 1.f-m_cutoff;
-		}
-
-		float m_gain, m_cutoff;
-
-		float m_feedbackL; 
-		float m_feedbackR;
-	};
-#endif
 
 	class LowBlocker 
 	{
@@ -222,38 +173,10 @@ namespace SFM
 		}
 
 	private:
-		HighpassFilter m_filterL, m_filterR;
+		SinglePoleHPF m_filterL, m_filterR;
 	};
 
-	/* DC blocker (incl. stereo) */
-
-	class DCBlocker
-	{
-	public:
-		DCBlocker() {}
-		~DCBlocker() {}
-
-		SFM_INLINE void Reset()
-		{
-			m_prevSample = 0.f;
-			m_feedback = 0.f;
-		}
-
-		SFM_INLINE float Apply(float sample)
-		{
-			constexpr float R = 0.995f;
-			const float result = sample - m_prevSample + R*m_feedback;
-			
-			m_prevSample = sample;
-			m_feedback = result;
-
-			return result;
-		}
-
-	private:
-		float m_prevSample = 0.f;
-		float m_feedback   = 0.f;
-	};
+	/* DC blocker (stereo) */
 
 	class StereoDCBlocker
 	{
@@ -278,7 +201,7 @@ namespace SFM
 		}
 
 	private:
-		float m_prevSample[2] = { 0.f };
-		float m_feedback[2]   = { 0.f };
+		float m_prevSample[2] = { 0.f, 0.f };
+		float m_feedback[2]   = { 0.f, 0.f };
 	};
 }

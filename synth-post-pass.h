@@ -93,7 +93,7 @@ namespace SFM
 		DelayLine m_delayLineL;
 		DelayLine m_delayLineM;
 		DelayLine m_delayLineR;
-		LowpassFilter12dB m_delayFeedbackLPF_L, m_delayFeedbackLPF_R;
+		CascadedSinglePoleLPF m_delayFeedbackLPF_L, m_delayFeedbackLPF_R;
 		InterpolatedParameter<kLinInterpolate> m_curDelayInSec;
 		InterpolatedParameter<kLinInterpolate> m_curDelayWet;
 		InterpolatedParameter<kLinInterpolate> m_curDelayDrive;
@@ -106,12 +106,12 @@ namespace SFM
 		// Chorus
 		DelayLine m_chorusDL;
 		Phase m_chorusSweep, m_chorusSweepMod;
-		LowpassFilter m_chorusSweepLPF1, m_chorusSweepLPF2;
+		SinglePoleLPF m_chorusSweepLPF1, m_chorusSweepLPF2;
 
 		// Phaser
 		SvfLinearTrapOptimised2 m_allpassFilters[kNumPhaserStages];
 		Phase m_phaserSweep;
-		LowpassFilter m_phaserSweepLPF;
+		SinglePoleLPF m_phaserSweepLPF;
 
 		// Oversampling (JUCE, FIXME)
 		juce::dsp::Oversampling<float> m_oversampling4X;
@@ -141,7 +141,7 @@ namespace SFM
 		Compressor m_compressor;
 
 		// Exposed to be used, chiefly, as indicator
-		LowpassFilter12dB m_compressorBiteLPF;
+		CascadedSinglePoleLPF m_compressorBiteLPF;
 
 		// Misc.
 		InterpolatedParameter<kLinInterpolate> m_curEffectWet;

@@ -143,8 +143,8 @@ namespace SFM
 	constexpr float kMainCutoffAftertouchRange = 0.66f; // Limits aftertouch cutoff to avoid that low range of the cutoff that's not allowed (SVF, < 16.0), which may cause filter instability
 	constexpr float kDefMainFilterResonance    =   0.f; // Filter's default normalized resonance
 	
-	// Normalized resonance range is limited for a smoother "knob feel" for the main voice filter
-	constexpr float kDefMainFilterResonanceLimit = 0.6f;
+	// Normalized resonance range can be limited for "knob feel" of the main voice filter
+	constexpr float kDefMainFilterResonanceLimit = 1.f;
 
 	// Reverb default lowpass & highpass (normalized)
 	constexpr float kDefReverbFilter = 1.f;

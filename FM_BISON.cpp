@@ -1657,8 +1657,8 @@ namespace SFM
 			auto& filterEG      = voice.m_filterEnvelope;
 
 			// Second filter lags behind a little to add a bit of "gritty sparkle"
-			LowpassFilter secondCutoffLPS(5000.f/m_sampleRate);
-			secondCutoffLPS.Reset(curCutoff.Get());
+			SinglePoleLPF secondCutoffLPF(SVF_CutoffToHz(0.9f, m_Nyquist)/m_sampleRate);
+			secondCutoffLPF.Reset(curCutoff.Get());
 					
 			for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 			{
@@ -1700,10 +1700,12 @@ namespace SFM
 
 					if (true == context.secondFilterPass)
 					{
-						SFM_ASSERT(SvfLinearTrapOptimised2::NO_FLT_TYPE != context.filterType2);
+						// Currently we're only using this for the LPF, which allows for a minor optimization
+						SFM_ASSERT(SvfLinearTrapOptimised2::LOW_PASS_FILTER == context.filterType2);
 
 						const float secondQ = std::min<float>(kSVFMaxFilterQ, sampQ+context.secondQOffs);
-						voice.m_filterSVF2.updateCoefficients(cutoffHz, secondQ, context.filterType2, m_sampleRate);
+						voice.m_filterSVF2.updateLowpassCoeff(secondCutoffLPF.Apply(cutoffHz), secondQ, m_sampleRate);
+//						voice.m_filterSVF2.updateCoefficients(secondCutoffLPF.Apply(cutoffHz), secondQ, context.filterType2, m_sampleRate);
 						voice.m_filterSVF2.tick(filteredL, filteredR);
 					}
 
@@ -1836,10 +1838,10 @@ namespace SFM
 		const float resonance = m_resoPS.Apply(m_patch.resonance);
 
 		// Using smoothstepf() to add a little curvature, chiefly intended to appease basic MIDI controls
-		/* const */ float cutoff = SVF_CutoffToHz(smoothstepf(normCutoff), m_Nyquist);
-		/* const */ float Q = SVF_ResoToQ(smoothstepf(resonance*m_patch.resonanceLimit));
-		
+		const float cutoff = SVF_CutoffToHz(smoothstepf(normCutoff), m_Nyquist);
 		m_curCutoff.SetTarget(cutoff);
+
+		const float Q = SVF_ResoToQ(smoothstepf(resonance*m_patch.resonanceLimit));
 		m_curQ.SetTarget(Q);
 		
 		// Set filter type & parameters
