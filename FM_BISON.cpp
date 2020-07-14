@@ -616,12 +616,12 @@ namespace SFM
 
 		case PatchOperators::Operator::kLowpassFilter:
 			cutoffNorm = lerpf<float>(cutoffNormFrom, cutoffNormTo, tracking); // Keytrack
-			pFilters[0].updateCoefficients(SVF_CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
+			pFilters[0].updateLowpassCoeff(SVF_CutoffToHz(cutoffNorm, m_Nyquist), Q, m_sampleRate);
 			break;
 
 		case PatchOperators::Operator::kHighpassFilter:
 			cutoffNorm = lerpf<float>(cutoffNormFrom, 1.f-cutoffNormTo, tracking); // Keytrack
-			pFilters[0].updateCoefficients(SVF_CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
+			pFilters[0].updateHighpassCoeff(SVF_CutoffToHz(cutoffNorm, m_Nyquist), Q, m_sampleRate);
 			break;
 
 		case PatchOperators::Operator::kBandpassFilter:
@@ -651,6 +651,7 @@ namespace SFM
 			case Oscillator::kSine:
 			case Oscillator::kCosine:
 			case Oscillator::kPolyTriangle:
+			case Oscillator::kSupersaw: // Checked and it's not necessary (though at first I assumed the opposite)
 				modFilter.updateNone();
 				break;
 			

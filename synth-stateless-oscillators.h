@@ -33,8 +33,8 @@ namespace SFM
 	SFM_INLINE static float oscSaw(double phase)
 	{
 		SFM_ASSERT(phase >= 0.0 && phase <= 1.0);
-		phase += 0.5f;
-		return float(2.f*phase - 1.f);
+		phase += 0.5;
+		return float(2.0*phase - 1.0);
 	}
 
 	SFM_INLINE static float oscRamp(double phase)
@@ -172,6 +172,14 @@ namespace SFM
 
 		double saw = 2.0*P1 - 1.0;
 		saw -= Poly::BLEP(P1, pitch);
+
+		return float(saw);
+	}
+
+	SFM_INLINE static float oscPolySawFaster(double phase, double pitch)
+	{
+		double saw = 2.0*(phase+0.5) - 1.0;
+		saw -= Poly::BLEP_by_Tale(phase, pitch);
 
 		return float(saw);
 	}

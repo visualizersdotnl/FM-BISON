@@ -11,19 +11,18 @@
 
 namespace SFM
 {
-	constexpr unsigned kFastCosTabLog2Size = 10; // Equals size of 1024
-	constexpr unsigned kFastCosTabSize = 1 << kFastCosTabLog2Size;
-
-	alignas(16) static double s_fastCosTab[kFastCosTabSize+1];
+	alignas(16) double g_fastCosTab[kFastCosTabSize+1];
 
 	void InitializeFastCosine()
 	{
 		for (unsigned iExp = 0; iExp < kFastCosTabSize+1; ++iExp)
 		{
 			const double phase = double(iExp) * ((double(k2PI)/kFastCosTabSize));
-			s_fastCosTab[iExp] = cos(phase);
+			g_fastCosTab[iExp] = cos(phase);
 		}
 	}
+
+#if !defined(FAST_COSF_INLINE)
 
 	float fast_cosf(float x)
 	{
@@ -45,10 +44,12 @@ namespace SFM
 		const auto index    = significant >> fractBits;
 		const int  fraction = significant &  fractMask;
 
-		const auto left  = s_fastCosTab[index];
-		const auto right = s_fastCosTab[index+1];
+		const auto left  = g_fastCosTab[index];
+		const auto right = g_fastCosTab[index+1];
 
 		const auto fractMix = fraction * (1.0/fractScale);
 		return float(left + (right-left)*fractMix);
 	}
+
+#endif
 };

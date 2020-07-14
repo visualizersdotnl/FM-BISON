@@ -73,11 +73,10 @@ namespace SFM
 				m_phase -= 1.0;
 			}
 			
-			/* const */ double curPhase = m_phase;
+			const double curPhase = m_phase;
 			SFM_ASSERT(curPhase >= 0.0 && curPhase <= 1.0);
 
 			m_phase += m_pitch;
-			m_phase -= Poly::bitwiseOrZero(m_phase);
 			
 			return curPhase;
 		}
