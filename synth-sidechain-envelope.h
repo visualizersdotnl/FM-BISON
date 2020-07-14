@@ -53,7 +53,7 @@ namespace SFM
 	class FollowerEnvelope
 	{
 	public:
-		FollowerEnvelope() {}
+		FollowerEnvelope() { Reset(); }
 
 		FollowerEnvelope(unsigned sampleRate, float state, float attackMS = 10.f, float releaseMS = 100.f) :
 			m_attEnv(sampleRate, attackMS)

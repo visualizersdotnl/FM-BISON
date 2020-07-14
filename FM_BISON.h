@@ -183,7 +183,7 @@ namespace SFM
 		float GetOperatorPeak(unsigned iOp) const
 		{
 			SFM_ASSERT(iOp < kNumOperators);
-			return m_opPeaks[iOp].Get();
+			return m_opPeaks[iOp];
 		}
 
 	private:
@@ -428,7 +428,8 @@ namespace SFM
 		int m_keyToVoice[128];
 
 		// Per operator peaks
-		FollowerEnvelope m_opPeaks[kNumOperators];
+		SignalFollower m_opPeaksEnv[kNumOperators];
+		float m_opPeaks[kNumOperators];
 	};
 
 	#pragma warning (pop)

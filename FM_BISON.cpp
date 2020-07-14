@@ -239,14 +239,15 @@ namespace SFM
 		m_modulationPS.Reset(0.f);
 		m_aftertouchPS.Reset(0.f);
 
-		// Reset peak filters
-		for (auto &opPeak : m_opPeaks)
+		// Reset operator peak followers
+		for (auto &peakEnv : m_opPeaksEnv)
 		{
-			opPeak.Reset(0.f);
-			opPeak.SetSampleRate(sampleRate);
-			opPeak.SetAttack(0.1f);
-			opPeak.SetRelease(0.5f);
+			peakEnv.SetTimeCoeff(1.f); // 1MS
+			peakEnv.SetSampleRate(sampleRate/samplesPerBlock); // Updated once per Render() call
 		}
+
+		for (unsigned iPeak = 0; iPeak < kNumOperators; ++iPeak)
+			m_opPeaks[iPeak] = 0.f;
 	}
 
 	// Cleans up after OnSetSamplingProperties()
@@ -1981,38 +1982,43 @@ namespace SFM
 			}
 		}
 
-		/*
-			Calculate peak for each operator (for visualization only; remove or comment out if unnecessary)
-		*/
+		// Calculate peak for each operator (for visualization only, plus it's not very pretty)
+		if (numVoices > 0)
+		{
+			// Find max. gain for each operator
+			float maxGains[kNumOperators] = { 0.f };
 
-		// Calc. peaks (not the most sturdy way to do it but it suffices)
-		if (0 == m_voiceCount)
-		{
-			for (auto &opPeak : m_opPeaks)
-				opPeak.Apply(0.f);
-		}
-		else
-		{
 			for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
 			{
 				Voice &voice = m_voices[iVoice];
 
-				for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
+				if (false == voice.IsIdle())
 				{
-					Voice::Operator &voiceOp = voice.m_operators[iOp];
-
-					if (true == voiceOp.enabled)
+					for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
 					{
-						const float peakGain = m_opPeaks[iOp].Get();
-						const float curGain  = voiceOp.envGain.Get(); // Abs.
+						Voice::Operator &voiceOp = voice.m_operators[iOp];
 
-						if (curGain > peakGain)
-							m_opPeaks[iOp].Apply(curGain);
-						else if (curGain < peakGain)
-							m_opPeaks[iOp].Apply(0.f);
+						if (true == voiceOp.enabled)
+						{
+							const float curGain = voiceOp.envGain.Get();
+							
+							// New maximum?
+							if (curGain > maxGains[iOp])
+								maxGains[iOp] = curGain;
+						}
 					}
 				}
 			}
+
+			// Apply max. gains
+			for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
+				m_opPeaksEnv[iOp].Apply(maxGains[iOp], m_opPeaks[iOp]);
+		}
+		else if (0 == numVoices)
+		{
+			// Decay towards zero
+			for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
+				m_opPeaksEnv[iOp].Apply(0.f, m_opPeaks[iOp]);
 		}
 				
 		// Update voice logic (post)
@@ -2068,9 +2074,9 @@ namespace SFM
 			m_postWetPS.Apply(postWet),
 			m_tubeDistPS.Apply(m_patch.tubeDistort),
 			m_tubeDrivePS.Apply(m_patch.tubeDrive),
-			m_patch.tubeOffset,
+			m_patch.tubeOffset, // Does not crackle without ParameterSlew
 			/* AA */
-			m_patch.antiAliasing, // FIXME: filter, interpolate
+			m_patch.antiAliasing, // Set once per block, not interpolated, so no ParameterSlew
 			/* Reverb */
 			m_reverbWetPS.Apply(m_patch.reverbWet),
 			m_reverbRoomSizePS.Apply(m_patch.reverbRoomSize),

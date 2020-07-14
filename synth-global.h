@@ -170,8 +170,8 @@ namespace SFM
 	constexpr float kMinTubeDrive  =   0.f;
 	constexpr float kMaxTubeDrive  = 100.f;
 	constexpr float kDefTubeDrive  =  10.f;
-	constexpr float kMinTubeOffset = -0.3f;
-	constexpr float kMaxTubeOffset =  0.3f;
+	constexpr float kMinTubeOffset = -0.1f;
+	constexpr float kMaxTubeOffset =  0.1f;
 
 	// ----------------------------------------------------------------------------------------------
 	// Anti-aliasing (during oversampled stage, 0.f is host Nyquist, 1.f is host sample rate)

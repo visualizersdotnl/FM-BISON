@@ -62,8 +62,6 @@ namespace SFM
 					signal += m_HPF[6].process(saws[6]);
 				}
 
-
-
 				break;
 
 			/* Band-limited (DCO/LFO) */

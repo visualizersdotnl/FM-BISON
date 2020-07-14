@@ -310,16 +310,16 @@ namespace SFM
 		m_curTubeDrive.SetTarget(tubeDrive);
 		m_curTubeOffset.SetTarget(tubeOffset);
 
-		// Anti-aliasing filter: attenuates frequencies below the host sample rate (distortion)
+		// Anti-aliasing filter: half-band LPF for distortion
 		const double tubeCutFc = m_sampleRate / double(m_sampleRate4X);
 		m_tubeFilterAA_L.setBiquad(bq_type_lowpass, tubeCutFc, kDefGainAtCutoff, 0.0);
-		m_tubeFilterAA_L.setBiquad(bq_type_lowpass, tubeCutFc, kDefGainAtCutoff, 0.0);
+		m_tubeFilterAA_R.setBiquad(bq_type_lowpass, tubeCutFc, kDefGainAtCutoff, 0.0);
 
-		// Anti-aliasing filter: attenuates the top end
-		const double antiAliasingCutHz = lerpf<double>(m_sampleRate /* SR */, double(m_Nyquist) /* Nyquist 1X */, antiAliasing);
+		// Anti-aliasing filter: either cuts at half-band or falls off slowly towards it
+		const double antiAliasingCutHz = lerpf<double>(m_sampleRate, m_Nyquist*0.5, antiAliasing);
 		const double antiAliasingCutFc = antiAliasingCutHz / m_sampleRate4X;
-		m_finalFilterAA_L.setBiquad(bq_type_lowpass, antiAliasingCutFc, 0.3, 0.0);
-		m_finalFilterAA_R.setBiquad(bq_type_lowpass, antiAliasingCutFc, 0.3, 0.0);
+		m_finalFilterAA_L.setBiquad(bq_type_lowpass, antiAliasingCutFc, kDefGainAtCutoff*0.1, 0.0);
+		m_finalFilterAA_R.setBiquad(bq_type_lowpass, antiAliasingCutFc, kDefGainAtCutoff*0.1, 0.0);
 		
 		// Main buffers
 		float *inputBuffers[2] = { m_pBufL, m_pBufR };
@@ -338,7 +338,7 @@ namespace SFM
 			float sampleL = pOverL[iSample]; 
 			float sampleR = pOverR[iSample];
 
-			// Apply final AA filter
+			// Apply AA filter
 			sampleL = m_finalFilterAA_L.process(sampleL);
 			sampleR = m_finalFilterAA_R.process(sampleR);
 
@@ -370,8 +370,8 @@ namespace SFM
 			m_tubeDCBlocker.Apply(distortedL, distortedR);
 
 			// Apply distortion AA filter
-			m_tubeFilterAA_L.process(distortedL);
-			m_tubeFilterAA_R.process(distortedR);
+			distortedL = m_tubeFilterAA_L.process(distortedL);
+			distortedR = m_tubeFilterAA_R.process(distortedR);
 			
 			// Mix results
 			sampleL = lerpf<float>(postL, distortedL, amount);

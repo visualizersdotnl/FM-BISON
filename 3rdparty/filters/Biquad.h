@@ -13,6 +13,9 @@
 // - No external dependencies
 // - Added reset() function
 // - Misc. modifications, fixes & optimizations
+// - Useful: https://www.earlevel.com/main/2013/10/13/biquad-calculator-v2/
+//
+// FIXME: stereo support!
 //
 // I can't say I'm a big fan of how most DSP code is written but I'll try to keep it as-is.
 //

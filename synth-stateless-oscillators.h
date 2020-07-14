@@ -203,7 +203,7 @@ namespace SFM
 		float ramp = 1.f - 2.f*P1;
 		ramp += Poly::BLEP(P1, pitch);
 
-		return float(ramp);
+		return ramp;
 	}
 
 	SFM_INLINE static float oscPolyTriangle(float phase, float pitch)

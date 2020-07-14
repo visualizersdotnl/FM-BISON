@@ -144,10 +144,11 @@ namespace SFM
 				modFilter.updateNone();
 				modFilter.resetState();
 
-				// Reset gain envelope (fast (1MS) attack, slower 10MS release)
+				// Re(set) gain envelope
+				envGain.Reset();
 				envGain.SetSampleRate(sampleRate);
-				envGain.SetAttack(1.f);
-				envGain.SetRelease(10.f);
+				envGain.SetAttack(10.f);
+				envGain.SetRelease(100.f);
 			}
 
 		} m_operators[kNumOperators];
