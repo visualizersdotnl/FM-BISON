@@ -259,7 +259,7 @@ namespace SFM
 					break;
 
 				case SvfLinearTrapOptimised2::ALL_PASS_FILTER:
-					for (unsigned iAllpass = 0; iAllpass < kNumVoiceAllpasses; ++iAllpass)
+					for (unsigned iAllpass = 0; iAllpass < kNumOpFilterAllpasses; ++iAllpass)
 						voiceOp.filters[iAllpass].tickMono(sample);
 
 					break;

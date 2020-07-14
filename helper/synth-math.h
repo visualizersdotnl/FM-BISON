@@ -45,13 +45,15 @@ namespace SFM
 	SFM_INLINE static const T lerpf(const T &a, const T &b, float t)
 	{
 		// Discussion: https://stackoverflow.com/questions/4353525/floating-point-linear-interpolation
+//		SFM_ASSERT(t >= 0.f && t <= 1.f);
 		return a*(1.f-t) + b*t;
 //		return a + (b-a)*t;
 	}
 
 	template<typename T>
-	SFM_INLINE static const T lerpf(const T &a, const T &b, double t)
+	SFM_INLINE static const T lerp(const T &a, const T &b, double t)
 	{
+//		SFM_ASSERT(t >= 0.0 && t <= 1.0);
 		return a*(1.0-t) + b*t;
 	}
 	

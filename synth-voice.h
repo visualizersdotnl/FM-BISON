@@ -27,7 +27,7 @@
 namespace SFM
 {
 	// Number of cascaded filters of this type (keep it civil as it's a per operator filter)
-	constexpr unsigned kNumVoiceAllpasses = 4;
+	constexpr unsigned kNumOpFilterAllpasses = 4;
 
 	class Voice
 	{
@@ -94,7 +94,7 @@ namespace SFM
 			bool isCarrier;
 			
 			// Filters
-			SvfLinearTrapOptimised2 filters[kNumVoiceAllpasses];
+			SvfLinearTrapOptimised2 filters[kNumOpFilterAllpasses];
 			SvfLinearTrapOptimised2 modFilter; // Set to default by Reset()
 
 			// Gain envelope

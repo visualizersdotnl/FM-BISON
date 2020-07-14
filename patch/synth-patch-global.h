@@ -79,7 +79,7 @@ namespace SFM
 		// Pitch bend range
 		int pitchBendRange; // [0..kMaxPitchBendRange]
 
-		// LFO
+		// LFO (for FM tone generator)
 		Oscillator::Waveform LFOWaveform1; // Waveform A
 		Oscillator::Waveform LFOWaveform2; // Waveform B
 		Oscillator::Waveform LFOWaveform3; // Mod. waveform

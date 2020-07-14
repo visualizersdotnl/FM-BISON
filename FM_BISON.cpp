@@ -551,19 +551,24 @@ namespace SFM
 	{
 		SFM_ASSERT(key >= 0 && key <= 127);
 		const float normalizedKey = key/127.f;
+
+		SFM_ASSERT(patchOp.envKeyTrack >= 0.f && patchOp.envKeyTrack <= 1.f);
 		
 		return (false == patchOp.acousticEnvKeyTrack)
 			? 1.f - 0.9f*patchOp.envKeyTrack*normalizedKey
 			: AcousticTrackingCurve(normalizedKey, patchOp.envKeyTrack);
 	}
 
-	SFM_INLINE static float CalcCutoffTracking(unsigned key, const PatchOperators::Operator &patchOp)
+	// Returns [-1..1]
+	SFM_INLINE static float CalcOpCutoffKeyTracking(unsigned key, float cutoffKeyTrack)
 	{
 		SFM_ASSERT(key >= 0 && key <= 127);
 		const float normalizedKey = key/127.f;
-		
-		// Linear seems te most logical choice here
-		return patchOp.cutoffKeyTrack*normalizedKey;
+
+		/* const */ float tracking = cutoffKeyTrack;
+		SFM_ASSERT(tracking >= -1.f && tracking <= 1.f);
+
+		return tracking*normalizedKey;
 	}
 
 	SFM_INLINE static float CalcPanning(const PatchOperators::Operator &patchOp)
@@ -576,6 +581,7 @@ namespace SFM
 	void Bison::SetOperatorFilters(unsigned key, SvfLinearTrapOptimised2 *pFilters, SvfLinearTrapOptimised2 &modFilter, const PatchOperators::Operator &patchOp)
 	{
 		SFM_ASSERT(nullptr != pFilters);
+
 		pFilters[0].resetState();
 
 		// Calculate Q.
@@ -583,7 +589,15 @@ namespace SFM
 		const float Q = SVF_ResoToQ(normQ);
 		
 		// Update filter(s)
-		float cutoffNorm = -1.f;
+		const float cutoffKeyTrack = patchOp.cutoffKeyTrack;
+		/* const */ float tracking = CalcOpCutoffKeyTracking(key, cutoffKeyTrack);
+
+		const float cutoffNormFrom = patchOp.cutoff;
+		const float cutoffNormTo = (tracking >= 0.f) ? 1.f : 0.f;
+
+		tracking = fabsf(tracking);
+		
+		float cutoffNorm = -1.f; // Will cause assertion
 		switch (patchOp.filterType)
 		{
 		default:
@@ -594,29 +608,34 @@ namespace SFM
 			break;
 
 		case PatchOperators::Operator::kLowpassFilter:
-			cutoffNorm = lerpf<float>(patchOp.cutoff, 1.f, CalcCutoffTracking(key, patchOp)); // Track towards pass-through
+			cutoffNorm = lerpf<float>(cutoffNormFrom, cutoffNormTo, tracking);
 			pFilters[0].updateCoefficients(SVF_CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::LOW_PASS_FILTER, m_sampleRate);
 			break;
 
 		case PatchOperators::Operator::kHighpassFilter:
-			cutoffNorm = lerpf<float>(patchOp.cutoff, 0.f, CalcCutoffTracking(key, patchOp)); // Track towards pass-through
+			cutoffNorm = lerpf<float>(cutoffNormFrom, 1.f-cutoffNormTo, tracking);
 			pFilters[0].updateCoefficients(SVF_CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::HIGH_PASS_FILTER, m_sampleRate);
 			break;
 
 		case PatchOperators::Operator::kBandpassFilter:
-			cutoffNorm = lerpf<float>(patchOp.cutoff, 0.5f, CalcCutoffTracking(key, patchOp)); // Track towards middle freq.
+			cutoffNorm = lerpf<float>(patchOp.cutoff, 1.f-cutoffNormTo, tracking);
 			pFilters[0].updateCoefficients(SVF_CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
 			break;
 
 		case PatchOperators::Operator::kAllPassFilter:
 			{
-				// Track towards middle (FIXME: verify)
-				cutoffNorm = lerpf<float>(patchOp.cutoff, 0.5f, CalcCutoffTracking(key, patchOp));
+				// FIXME
+				cutoffNorm = lerpf<float>(patchOp.cutoff, cutoffNormTo, tracking);
 
-				for (unsigned iAllpass = 0; iAllpass < kNumVoiceAllpasses; ++iAllpass)
+				static_assert(kNumOpFilterAllpasses > 0);
+
+//				pFilters[0].resetState();
+				pFilters[0].updateCoefficients(SVF_CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::ALL_PASS_FILTER, m_sampleRate);
+
+				for (unsigned iAllpass = 1; iAllpass < kNumOpFilterAllpasses; ++iAllpass)
 				{
 					pFilters[iAllpass].resetState();
-					pFilters[iAllpass].updateCoefficients(SVF_CutoffToHz(cutoffNorm, m_Nyquist), Q, SvfLinearTrapOptimised2::ALL_PASS_FILTER, m_sampleRate);
+					pFilters[iAllpass].updateCopy(pFilters[0]);
 				}
 			}
 			

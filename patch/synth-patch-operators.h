@@ -4,10 +4,11 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	This is the FM operator patch: all operator settings.
+	This is the FM tone generator (operator) patch: all operator settings.
 
 	In case a parameter does not come with a comment it can be most likely be normalized ([0..1]) range,
 	though in some times it helps to look at synth-global.h; it *should* be documented here so it's a FIXME.
+	
 	For details see synth-global.h & synth-patch-global.h!
 */
 
@@ -67,8 +68,8 @@ namespace SFM
 			float cutoff;
 			float resonance;
 
-			// Cutoff keytracking (higher key(s) means higher cutoff frequency)
-			float cutoffKeyTrack;
+			// Cutoff keytracking (higher key(s) means higher or lower cutoff frequency)
+			float cutoffKeyTrack; // [-1..1]
 
 			// Sync. oscillator on key press
 			bool keySync;

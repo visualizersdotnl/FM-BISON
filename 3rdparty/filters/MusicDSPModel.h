@@ -82,6 +82,7 @@ private:
 
 	SFM_INLINE void Apply(float &sample, double *stage, double *delay)
 	{
+		// Without the soft clip it's prone to blow up in a path that doesn't necessarily adhere to [-1..1] at that point
 		double x = SFM::ultra_tanh(sample*m_drive - m_resonance*stage[3]);
 
 		// Four cascaded one-pole filters (bilinear transform)
