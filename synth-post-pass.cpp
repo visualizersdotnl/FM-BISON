@@ -318,8 +318,8 @@ namespace SFM
 		// Anti-aliasing filter: either cuts at half-band or falls off slowly towards it
 		const double antiAliasingCutHz = lerpf<double>(m_sampleRate, m_Nyquist*0.5, antiAliasing);
 		const double antiAliasingCutFc = antiAliasingCutHz / m_sampleRate4X;
-		m_finalFilterAA_L.setBiquad(bq_type_lowpass, antiAliasingCutFc, kDefGainAtCutoff*0.1, 0.0);
-		m_finalFilterAA_R.setBiquad(bq_type_lowpass, antiAliasingCutFc, kDefGainAtCutoff*0.1, 0.0);
+		m_finalFilterAA_L.setBiquad(bq_type_lowpass, antiAliasingCutFc, kDefGainAtCutoff, 0.0);
+		m_finalFilterAA_R.setBiquad(bq_type_lowpass, antiAliasingCutFc, kDefGainAtCutoff, 0.0);
 		
 		// Main buffers
 		float *inputBuffers[2] = { m_pBufL, m_pBufR };
@@ -339,8 +339,8 @@ namespace SFM
 			float sampleR = pOverR[iSample];
 
 			// Apply AA filter
-			sampleL = m_finalFilterAA_L.process(sampleL);
-			sampleR = m_finalFilterAA_R.process(sampleR);
+			sampleL = m_finalFilterAA_L.processf(sampleL);
+			sampleR = m_finalFilterAA_R.processf(sampleR);
 
 			// Apply 24dB post filter
 			const float curPostCutoff = m_curPostCutoff.Sample();
@@ -370,8 +370,8 @@ namespace SFM
 			m_tubeDCBlocker.Apply(distortedL, distortedR);
 
 			// Apply distortion AA filter
-			distortedL = m_tubeFilterAA_L.process(distortedL);
-			distortedR = m_tubeFilterAA_R.process(distortedR);
+			distortedL = m_tubeFilterAA_L.processf(distortedL);
+			distortedR = m_tubeFilterAA_R.processf(distortedR);
 			
 			// Mix results
 			sampleL = lerpf<float>(postL, distortedL, amount);

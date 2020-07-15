@@ -58,13 +58,6 @@ namespace SFM
 		return frequency/sampleRate;
 	}
 
-	// Frequency to angular pitch
-	template<typename FloatType>
-	SFM_INLINE static FloatType CalculateAngularPitch(FloatType frequency, unsigned sampleRate)
-	{
-		return CalculatePitch(frequency, sampleRate)*k2PI;
-	}
-
 	// Note to frequency
 	SFM_INLINE static float NoteToFreq(unsigned note)
 	{
@@ -228,7 +221,7 @@ namespace SFM
 //		const float postScale = 0.9f;
 		
 		const float linear = (value*1.448f + -1.23f);
-		const float squaredClipped = fast_tanhf(linear*linear);
+		const float squaredClipped = fast_tanhf(linear*linear); // Introduces non-linearity (FIXME: use Clamp()?)
 		
 		// This value is used as a multiplier, so we want the inverse (this curve
 		// only makes the envelope shorter)

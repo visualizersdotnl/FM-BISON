@@ -10,19 +10,42 @@
 
 namespace SFM
 {
+	void Oscillator::Initialize(Waveform form, float frequency, unsigned sampleRate, float phaseShift, float supersawDetune /* = 0.f */, float supersawMix /* = 0.f */)
+	{
+		switch (form)
+		{
+		case kPinkNoise:
+			m_pinkNoise = PinkNoise();
+			m_phase.Initialize(0.f, 1);
+			break;
+
+		case kSupersaw:
+			m_supersaw.Initialize(frequency, sampleRate, phaseShift, supersawDetune, supersawMix);
+			break;
+
+		case kSampleAndHold:
+			m_sampleAndHold = SampleAndHold(sampleRate);
+
+		default:
+			m_phase.Initialize(frequency, sampleRate, phaseShift);
+		}		
+
+		m_form = form;
+	}
+
 	float Oscillator::Sample(float phaseShift)
 	{
-		constexpr float defaultDuty = 0.25f;
-
-		const float phase = m_phases[0].Sample();
-		const float pitch = m_phases[0].GetPitch(); // For PolyBLEP
+		constexpr float defaultDuty = 0.25f; // FIXME: parameter?
 		
-		// Calling fmodf() certainly warrants a comparison and branch
-		const float modulated = (0.f == phaseShift)
+		// These calls are unnecessary for a few waveforms, but as far as they don't show up in a profiler I'll let them be
+		const float phase = m_phase.Sample();
+		const float pitch = m_phase.GetPitch(); // For PolyBLEP
+		
+		const float modulated = (0.f == phaseShift) // Not calling fmodf() certainly warrants a comparison and branch
 			? phase // Gauranteed to be [0..1]
 			: fmodf(phase+phaseShift, 1.f);
 		
-		// This switch statement has never shown up during profiling
+		// Calculate signal (switch statement has never shown up during profiling)
 		float signal = 0.f;
 		switch (m_form)
 		{
@@ -33,35 +56,7 @@ namespace SFM
 			/* Supersaw */
 
 			case kSupersaw:
-				{
-					// The supersaw consists of 7 oscillators; the third oscillator is the 'main' oscillator at the fundamental frequency
-					// I apply a HPF to each oscillator to eliminate 'fold back' aliasing beyond this frequency 
-					// There will still be some aliasing going on but that's "part of the charm", or so I'm told
-
-					// Get amplitudes
-					const float sideMix = m_supersaw.GetSideMix();
-					const float mainMix = m_supersaw.GetMainMix();
-
-					// Generate saws (band-limited)
-					float saws[kNumSupersawOscillators];
-					saws[0] = oscPolySawFaster(phase, pitch);                                 // * sideMix;
-					saws[1] = oscPolySawFaster(m_phases[1].Sample(), m_phases[1].GetPitch()); // * sideMix;
-					saws[2] = oscPolySawFaster(m_phases[2].Sample(), m_phases[2].GetPitch()); // * sideMix;
-					saws[3] = oscPolySawFaster(m_phases[3].Sample(), m_phases[3].GetPitch()); // * mainMix;
-					saws[4] = oscPolySawFaster(m_phases[4].Sample(), m_phases[4].GetPitch()); // * sideMix;
-					saws[5] = oscPolySawFaster(m_phases[5].Sample(), m_phases[5].GetPitch()); // * sideMix;
-					saws[6] = oscPolySawFaster(m_phases[6].Sample(), m_phases[6].GetPitch()); // * sideMix;
-
-					// Filter saws below osc. frequency and accumulate
-					signal += m_HPF[0].process(saws[0]) * sideMix;
-					signal += m_HPF[1].process(saws[1]) * sideMix;
-					signal += m_HPF[2].process(saws[2]) * sideMix;
-					signal += m_HPF[3].process(saws[3]) * mainMix;
-					signal += m_HPF[4].process(saws[4]) * sideMix;
-					signal += m_HPF[5].process(saws[5]) * sideMix;
-					signal += m_HPF[6].process(saws[6]) * sideMix;
-				}
-
+				signal = m_supersaw.Sample();
 				break;
 
 			/* Band-limited (DCO/LFO) */
@@ -103,7 +98,7 @@ namespace SFM
 				break;
 
 			/*
-				These 2 functions are a quick hack (FIXME) to approximate a ramp and a saw with a very gentle slope (LFO)
+				Approximate a ranmp and a saw with a *very* subtle slope (for LFO)
 			*/
 			
 			case kSoftRamp:

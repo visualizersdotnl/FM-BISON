@@ -12,6 +12,7 @@
 //
 // - No external dependencies
 // - Added reset() function
+// - Added support for double precision samples
 // - Misc. modifications, fixes & optimizations
 // - Useful: https://www.earlevel.com/main/2013/10/13/biquad-calculator-v2/
 //
@@ -81,7 +82,9 @@ public:
 	void setPeakGain(double peakGaindB);
 
 	void setBiquad(int type, double Fc, double Q, double peakGaindB);
-	float process(float in);
+
+	double process(double in);
+	float  processf(float in);
     
 protected:
 	void calcBiquad(void);
@@ -94,7 +97,14 @@ protected:
 	double z1, z2;
 };
 
-SFM_INLINE float Biquad::process(float in) {
+SFM_INLINE double Biquad::process(double in) {
+	double out = in * a0 + z1;
+	z1 = in * a1 + z2 - b1 * out;
+	z2 = in * a2 - b2 * out;
+	return out;
+}
+
+SFM_INLINE float Biquad::processf(float in) {
 	double out = in * a0 + z1;
 	z1 = in * a1 + z2 - b1 * out;
 	z2 = in * a2 - b2 * out;

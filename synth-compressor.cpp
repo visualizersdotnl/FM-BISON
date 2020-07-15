@@ -72,7 +72,7 @@ namespace SFM
 					xPoints[1] = kneeTopdB;
 					yPoints[0] = 0.f;
 					yPoints[1] = gaindB;
-					gaindB = LagrangeInterpolation(xPoints, yPoints, 2, deltadB);
+					gaindB = LagrangeInterpolatef(xPoints, yPoints, 2, deltadB);
 				}
 			}
 

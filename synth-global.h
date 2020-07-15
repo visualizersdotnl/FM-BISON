@@ -104,7 +104,7 @@ namespace SFM
 	//  continental Europe (such as Russia, Sweden and Spain) tune to A = 443 Hz." (Wikipedia)
 	// ----------------------------------------------------------------------------------------------
 
-	constexpr float kBaseHz = 444.f;
+	constexpr float kBaseHz = 440.f;
 
 	// ----------------------------------------------------------------------------------------------
 	// Pitch bend range

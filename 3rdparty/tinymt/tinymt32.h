@@ -57,7 +57,7 @@ inline static int tinymt32_get_mexp(
     return TINYMT32_MEXP;
 }
 #else
-inline static int tinymt32_get_mexp(tinymt32_t * random) {
+inline static int tinymt32_get_mexp(tinymt32_t *) {
     return TINYMT32_MEXP;
 }
 #endif

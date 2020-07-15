@@ -7,6 +7,7 @@
 	FIXME:
 		- These have *not* been optimized yet and are all geared to work with single prec.
 		- Output domain is [0..1] unless commented it ain't so (scroll down!)
+		- No input range assertions
 	
 	They rely on constant 'kPI' (single prec.) declared in /helper/synth-math.h
 */

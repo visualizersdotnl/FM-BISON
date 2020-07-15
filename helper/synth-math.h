@@ -27,15 +27,29 @@ namespace SFM
 		return t*t * (3.f - 2.f*t);
 	}
 
+	SFM_INLINE static double smoothstep(double t)
+	{
+		SFM_ASSERT(t >= 0.0 && t <= 1.0);
+		return t*t * (3.0 - 2.0*t);
+	}
+
 	// If case you wonder: plot it in Desmos' grapher
 	SFM_INLINE static float steepstepf(float t)
 	{
+		SFM_ASSERT(t >= 0.f && t <= 1.f);
 		return 1.f-expf(-t*4.f);
+	}
+
+	SFM_INLINE static double steepstep(double t)
+	{
+		SFM_ASSERT(t >= 0.0 && t <= 1.0);
+		return 1.0-exp(-t*4.0);
 	}
 
 	// Inverse square
 	SFM_INLINE static float invsqrf(float x)
 	{
+		SFM_ASSERT(x >= 0.f && x <= 1.f);
 		x = 1.f-x;
 		return 1.f - x*x;
 	}
@@ -94,8 +108,8 @@ namespace SFM
 		return 16.f * x * (kPI-x) / (5.f * kPI*kPI - 4.f * x * (kPI-x));
 	}
 
-	// Langrange interpolator; array sizes must match order; 'xPos' is the X value whose Y is calculated
-	SFM_INLINE static float LagrangeInterpolation(float *pX, float *pY, unsigned order, float xPos)
+	// Langrange interpolation; array sizes must match order; 'xPos' is the X value whose Y is calculated
+	SFM_INLINE static float LagrangeInterpolatef(float *pX, float *pY, unsigned order, float xPos)
 	{
 		SFM_ASSERT(nullptr != pX && nullptr != pY);
 		SFM_ASSERT(order > 0);

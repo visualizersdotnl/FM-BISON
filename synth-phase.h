@@ -5,6 +5,9 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	Phase period is [0..1]
+
+	- FloatType -> 'double' or 'float'
+	- I'm using single precision constants regardless FloatType
 */
 
 #pragma once
@@ -14,6 +17,7 @@
 
 namespace SFM
 {
+	
 	class Phase
 	{
 	private:

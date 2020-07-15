@@ -811,7 +811,7 @@ namespace SFM
 		// Initialize LFOs
 		float phaseShift = (true == m_patch.LFOKeySync)
 			? 0.f // Synchronized 
-			: m_globalLFO->Get(); // Adopt running phase
+			: m_globalLFO->Get(); // Prev. phase
 
 		phaseShift += CalcPhaseJitter(jitter);
 
@@ -821,6 +821,15 @@ namespace SFM
 		voice.m_LFO1.Initialize(m_patch.LFOWaveform1,   frequency,    m_sampleRate, phaseShift);
 		voice.m_LFO2.Initialize(m_patch.LFOWaveform2,   frequency,    m_sampleRate, phaseShift);
 		voice.m_modLFO.Initialize(m_patch.LFOWaveform3, modFrequency, m_sampleRate, phaseShift);
+	}
+
+	float Bison::CalcPhaseShift(const Voice::Operator &voiceOp, const PatchOperators::Operator &patchOp)
+	{
+		const float shift = (true == patchOp.keySync && Oscillator::Waveform::kSupersaw != patchOp.waveform)
+			? 0.f // Synchronized
+			: voiceOp.oscillator.GetPhase(); // No key sync.: use last known phase
+
+		return shift;
 	}
 	
 	// Initialize new voice
@@ -892,13 +901,8 @@ namespace SFM
 				const float frequency = CalcOpFreq(fundamentalFreq, voiceOp.detuneOffs, patchOp);
 				const float amplitude = CalcOpIndex(key, opVelocity, patchOp);
 
-				// Start oscillator
-				const float phaseShift = (true == patchOp.keySync)
-					? 0.f // Synchronized
-					: voiceOp.oscillator.GetPhase(); // Running (it's safe to feed an out of bounds value, see synth-oscillator.h)
-
 				voiceOp.oscillator.Initialize(
-					patchOp.waveform, frequency, m_sampleRate, phaseShift, patchOp.supersawDetune, patchOp.supersawMix);
+					patchOp.waveform, frequency, m_sampleRate, CalcPhaseShift(voiceOp, patchOp), patchOp.supersawDetune, patchOp.supersawMix);
 
 				// Set static amplitude
 				voiceOp.amplitude.SetRate(m_sampleRate, kDefParameterLatency);
@@ -1049,9 +1053,8 @@ namespace SFM
 
 				if (true == reset)
 				{
-					// Reset
 					voiceOp.oscillator.Initialize(
-						patchOp.waveform, frequency, m_sampleRate, 0.f, patchOp.supersawDetune, patchOp.supersawMix);
+						patchOp.waveform, frequency, m_sampleRate, CalcPhaseShift(voiceOp, patchOp), patchOp.supersawDetune, patchOp.supersawMix);
 	
 					voiceOp.amplitude.SetRate(m_sampleRate, voice.m_freqGlide);
 					voiceOp.amplitude.Set(amplitude);

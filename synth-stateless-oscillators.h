@@ -93,12 +93,7 @@ namespace SFM
 			return value*value;
 		}
 
-//		template<typename T> SFM_INLINE static int64_t bitwiseOrZero(const T &value) 
-//		{
-//			return static_cast<int64_t>(value) | 0;
-//		}
-
-		SFM_INLINE static int32_t bitwiseOrZero(const float &value) 
+		SFM_INLINE static int32_t bitwiseOrZero(float value) 
 		{
 			return static_cast<int32_t>(value) | 0;
 		}
@@ -117,7 +112,7 @@ namespace SFM
 				return 0.f;
 		}
 	
-		// By Tale (KVR): http://www.kvraudio.com/forum/viewtopic.php?t=375517
+		// By Tale: http://www.kvraudio.com/forum/viewtopic.php?t=375517
 		SFM_INLINE static float BLEP_by_Tale(float point, float dT) 
 		{
 			if (point < dT)
@@ -126,10 +121,10 @@ namespace SFM
 				point /= dT;
 				return point+point - point*point - 1.f;
 			}			
-			else if (point > 1.f - dT)
+			else if (point > 1.f-dT)
 			{
 				// Discontinuities between -1 & 0
-				point = (point - 1.f)/dT;
+				point = (point-1.f)/dT;
 				return point*point + point+point + 1.f;
 			}
 			else
@@ -177,21 +172,6 @@ namespace SFM
 
 		float saw = 2.f*P1 - 1.f;
 		saw -= Poly::BLEP(P1, pitch);
-
-		return saw;
-	}
-	
-	// FIXME: it uses a different PolyBLEP function, but it's not faster
-	SFM_INLINE static float oscPolySawFaster(float phase, float pitch)
-	{
-		SFM_ASSERT(phase >= 0.f && phase <= 1.f);
-		SFM_ASSERT(pitch > 0.f);
-
-		float P1 = phase + 0.5f;
-		P1 -= Poly::bitwiseOrZero(P1);
-
-		float saw = 2.f*P1 - 1.f;
-		saw -= Poly::BLEP_by_Tale(P1, pitch);
 
 		return saw;
 	}
