@@ -19,6 +19,7 @@
 
 #include "synth-global.h"
 #include "synth-stateless-oscillators.h"
+#include "synth-one-pole-filters.h"
 
 namespace SFM
 {
@@ -26,9 +27,10 @@ namespace SFM
 	constexpr unsigned kNumSupersawOscillators = 7;
 
 	// Relation between frequencies (slightly asymmetric)
+	// Centre oscillator moved from position 4 to 1
 	constexpr double kSupersawRelative[kNumSupersawOscillators] = 
 	{
-		// According to Adam Szabo (centre oscillator moved from position 4 to 1)
+		// According to Adam Szabo
 		 0.0, 
 		-0.11002313, 
 		-0.06288439, 
@@ -51,6 +53,29 @@ namespace SFM
 
 	class Supersaw
 	{
+	private:
+		class DCBlocker
+		{
+		public:
+			DCBlocker() {}
+			~DCBlocker() {}
+
+			SFM_INLINE double Apply(double sample)
+			{
+				constexpr double R = 0.995;
+				const double out = sample - m_prevSample + R*m_feedback;
+
+				m_prevSample = sample;
+				m_feedback = out;
+
+				return out;
+			}
+
+		private:
+			double m_prevSample = 0.0;
+			double m_feedback   = 0.0;
+		};
+
 	public:
 		Supersaw() : 
 			m_sampleRate(1) 
@@ -73,10 +98,10 @@ namespace SFM
 			m_HPF.reset();
 
 			// Set phases
-			for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
-				m_phase[iOsc] = mt_rand();
+			for (auto &phase : m_phase)
+				phase = mt_rand();
 
-			// Set frequency & filter
+			// Set frequency, pitch, phases & filter
 			m_frequency = 0.f; 
 			SetFrequency(frequency);
 		}
@@ -90,12 +115,12 @@ namespace SFM
 				
 				for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
 				{
-					// Calculate pitch
-					const double curFreq  = frequency;;
+					// Pitch
 					const double relative = kSupersawRelative[iOsc];
-					const double freqOffs = curFreq*(m_curDetune*kSupersawRelative[iOsc]);
-					const double detuned  = curFreq + freqOffs;
-					m_pitch[iOsc] = CalculatePitch<double>(detuned, m_sampleRate);
+					const double freqOffs = frequency*(m_curDetune*kSupersawRelative[iOsc]);
+					const double detuned  = frequency + freqOffs;
+					const double pitch    = CalculatePitch<double>(detuned, m_sampleRate);
+					m_pitch[iOsc] = pitch;
 				}
 
 				// Set HPF
@@ -119,7 +144,8 @@ namespace SFM
 			for (unsigned iOsc = 1; iOsc < kNumSupersawOscillators; ++iOsc)
 				sides += Oscillate(iOsc);
 
-			const double signal = m_HPF.process(main*m_mainMix + sides*m_sideMix);
+			double signal = m_HPF.process(main*m_mainMix + sides*m_sideMix);
+			signal = m_blocker.Apply(signal);
 
 			return float(signal);
 		}
@@ -147,6 +173,7 @@ namespace SFM
 		double m_phase[kNumSupersawOscillators] = { 0.0 };
 		double m_pitch[kNumSupersawOscillators] = { 0.0 };
 
+		DCBlocker m_blocker;
 		Biquad m_HPF;
 
 		void SetDetune(double detune /* [0..1] */);
