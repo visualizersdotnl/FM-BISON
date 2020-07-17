@@ -167,7 +167,7 @@ namespace SFM
 	// ----------------------------------------------------------------------------------------------
 
 	// Tube distortion drive & offset
-	constexpr float kMinTubeDrive  =   0.f;
+	constexpr float kMinTubeDrive  =   1.f;
 	constexpr float kMaxTubeDrive  = 100.f;
 	constexpr float kDefTubeDrive  =  10.f;
 	constexpr float kMinTubeOffset = -0.1f;
@@ -276,10 +276,10 @@ namespace SFM
 	constexpr float kDefCompGaindB      =    0.f;
 	constexpr float kMinCompAttack      = 0.001f; // 1MS
 	constexpr float kMaxCompAttack      =    1.f; // 1 sec.
-	constexpr float kDefCompAttack      =  0.10f; // 10MS
+	constexpr float kDefCompAttack      = 0.800f; // 800MS
 	constexpr float kMinCompRelease     = 0.001f; // 1MS
 	constexpr float kMaxCompRelease     =    1.f; // 1 sec.
-	constexpr float kDefCompRelease     = 0.100f; // 100MS
+	constexpr float kDefCompRelease     = 0.700f; // 100MS
 
 	// ----------------------------------------------------------------------------------------------
 	// Auto-wah range & defaults

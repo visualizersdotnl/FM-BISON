@@ -131,9 +131,8 @@ namespace SFM
 		Biquad m_tubeFilterAA_L, m_tubeFilterAA_R;
 		Biquad m_finalFilterAA_L, m_finalFilterAA_R;
 		
-		// Low & DC blocker
-		LowBlocker m_lowBlocker;
-		StereoDCBlocker m_DCBlocker;
+		// Blocker(s)
+		StereoLowCut m_postLowCut;
 				
 		// External effects
 		AutoWah m_wah;

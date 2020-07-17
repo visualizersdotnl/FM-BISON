@@ -6,6 +6,7 @@
 
 	FIXME:
 		- These have *not* been optimized yet and are all geared to work with single prec.
+		  *Some* functions are also available in double prec.
 		- Output domain is [0..1] unless commented it ain't so (scroll down!)
 		- No input range assertions
 	
@@ -111,6 +112,11 @@ namespace SFM
 				? 1.f
 				: (x < 0.5f) ? powf(2.f, 20.f*x - 10.f)*0.5f
 			: (2.f - powf(2.f, -20.f*x + 10.f))*0.5f;
+	}
+
+	SFM_INLINE static double easeInCirc(double x)
+	{
+		return 1.0 - sqrt(1.0 - pow(x, 2.0));
 	}
 
 	SFM_INLINE static float easeInCircf(float x)

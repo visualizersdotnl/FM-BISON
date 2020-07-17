@@ -77,8 +77,8 @@ namespace SFM
 ,		m_curTubeDrive(kDefTubeDrive, m_sampleRate4X, kDefParameterLatency)
 ,		m_curTubeOffset(0.f, m_sampleRate4X, kDefParameterLatency)
 
-		// Low blocker
-,		m_lowBlocker(kLowBlockerHz, sampleRate)
+		// Post blocker
+,		m_postLowCut(kLowBlockerHz, sampleRate)
 
 		// External effects
 ,		m_wah(sampleRate, Nyquist)
@@ -416,7 +416,7 @@ namespace SFM
 
 		/* ----------------------------------------------------------------------------------------------------
 
-			Final pass: blockers, master volume, safety clamp
+			Final pass: blocker(s), master volume, safety clamp
 
 		 ------------------------------------------------------------------------------------------------------ */
 
@@ -428,8 +428,7 @@ namespace SFM
 			float sampleL = m_pBufL[iSample];
 			float sampleR = m_pBufR[iSample];
 
-			m_lowBlocker.Apply(sampleL, sampleR);
-			m_DCBlocker.Apply(sampleL, sampleR);
+			m_postLowCut.Apply(sampleL, sampleR);
 
 			const float gain = dB2Lin(m_curMasterVoldB.Sample());
 			sampleL *= gain;

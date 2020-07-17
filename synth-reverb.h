@@ -77,7 +77,6 @@ namespace SFM
 	private:
 		size_t m_size;
 		float *m_buffer;
-
 		unsigned m_writeIdx;
 		
 		float m_dampening;

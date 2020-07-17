@@ -7,13 +7,11 @@
 	- LPF, HPF, cascaded LPF
 	- Low cut (stereo)
 	- DC blocker (stereo)
+	- 17/07/2020 - I've adopted established DSP filter nomenclature (like I promised)
 
 	There are more single pole filters in this codebase but they usually have a special purpose which
 	makes their implementation a tad different (for example see synth-reverb.h), so I chose not to
-	include those here but rather keep them alongside the code that uses them.
-
-	I also tend to differ a bit from the standard DSP nomenclature in regard to variable naming.
-	I'll try to refrain from doing this in the future (25/05/2020).
+	include those here but rather keep them alongside the code that uses them
 */
 
 #pragma once
@@ -22,93 +20,89 @@
 
 namespace SFM
 {
-	/* Lowpass */
+	/* LPF */
 
 	class SinglePoleLPF
 	{
 	public:
 		SinglePoleLPF(float Fc = 1.f) :
-			m_gain(1.f)
-,			m_cutoff(0.f)
-,			m_feedback(0.f)
+			m_a0(1.f)
+,			m_b1(0.f)
+,			m_z1(0.f)
 	{
 		SetCutoff(Fc);
 	}
 
 	void Reset(float value)
 	{
-		m_feedback = value;
+		m_z1 = value;
 	}
 
 	void SetCutoff(float Fc)
 	{
 		SFM_ASSERT(Fc >= 0.f && Fc <= 1.f);
-		m_cutoff = expf(-2.f*kPI*Fc);
-		m_gain = 1.f-m_cutoff;
+		m_b1 = expf(-2.f*kPI*Fc);
+		m_a0 = 1.f-m_b1;
 	}
 
 	SFM_INLINE float Apply(float input)
 	{
-		m_feedback = input*m_gain + m_feedback*m_cutoff;
-		return m_feedback;
+		return m_z1 = input*m_a0 + m_z1*m_b1;
 	}
 
 	SFM_INLINE float Get() const 
 	{
-		return m_feedback;
+		return m_z1;
 	}
 
-	protected:
-		float m_gain;
-		float m_cutoff;
-
-		float m_feedback;
+	private:
+		float m_a0;
+		float m_b1;
+		float m_z1;
 	};
 
-	/* Highpass */
+	/* HPF */
 
 	class SinglePoleHPF
 	{
 	public:
 		SinglePoleHPF(float Fc = 1.f) :
-			m_gain(1.f)
-,			m_cutoff(0.f)
-,			m_feedback(0.f)
+			m_a0(1.f)
+,			m_b1(0.f)
+,			m_z1(0.f)
 	{
 		SetCutoff(Fc);
 	}
 
 	void Reset(float value)
 	{
-		m_feedback = value;
+		m_z1 = value;
 	}
 
 	void SetCutoff(float Fc)
 	{
 		SFM_ASSERT(Fc >= 0.f && Fc <= 1.f);
-		m_cutoff = -expf(-2.f*kPI*(0.5f-Fc));
-		m_gain = 1.f+m_cutoff;
+		m_b1 = -expf(-2.f*kPI*(0.5f-Fc));
+		m_a0 = 1.f-m_b1;
 	}
 
 	SFM_INLINE float Apply(float input)
 	{
-		m_feedback = input*m_gain + m_feedback*m_cutoff;
-		return m_feedback;
+		return m_z1 = input*m_a0 + m_z1*m_b1;
 	}
 
 	SFM_INLINE float Get() const 
 	{
-		return m_feedback;
+		return m_z1;
 	}
 
-	protected:
-		float m_gain;
-		float m_cutoff;
-
-		float m_feedback;
+	private:
+		float m_a0;
+		float m_b1;
+		float m_z1;
 	};
 
-	/* Cascaded SinglePoleLPF */
+	/* Cascaded LPF */
 
 	class CascadedSinglePoleLPF
 	{
@@ -146,19 +140,19 @@ namespace SFM
 
 	/* Low cut (stereo) */
 
-	class LowBlocker 
+	class StereoLowCut 
 	{
 	public:
-		LowBlocker(float lowCutHz, unsigned sampleRate)
+		StereoLowCut(float Hz, unsigned sampleRate)
 		{
-			SFM_ASSERT(lowCutHz > 0.f && sampleRate > 0);
+			SFM_ASSERT(sampleRate > 0 && Hz < sampleRate);
 			
-			const float Fc = lowCutHz/sampleRate;
+			const float Fc = Hz/sampleRate;
 			m_filterL.SetCutoff(Fc);
 			m_filterR.SetCutoff(Fc);
 		}
 	
-		~LowBlocker() {}
+		~StereoLowCut() {}
 
 		SFM_INLINE void Reset()
 		{
@@ -168,7 +162,7 @@ namespace SFM
 	
 		SFM_INLINE void Apply(float& left, float& right)
 		{
-			left =  m_filterL.Apply(left);
+			left  = m_filterL.Apply(left);
 			right = m_filterR.Apply(right);
 		}
 
@@ -181,14 +175,11 @@ namespace SFM
 	class StereoDCBlocker
 	{
 	public:
-		StereoDCBlocker() {}
-		~StereoDCBlocker() {}
-
 		SFM_INLINE void Apply(float &sampleL, float &sampleR)
 		{
 			constexpr float R = 0.995f;
-			const float outL = sampleL - m_prevSample[0] + R*m_feedback[0];
-			const float outR = sampleR - m_prevSample[1] + R*m_feedback[1];
+			const float outL = sampleL-m_prevSample[0] + R*m_feedback[0];
+			const float outR = sampleR-m_prevSample[1] + R*m_feedback[1];
 
 			m_prevSample[0] = sampleL;
 			m_prevSample[1] = sampleR;
@@ -201,7 +192,7 @@ namespace SFM
 		}
 
 	private:
-		float m_prevSample[2] = { 0.f, 0.f };
-		float m_feedback[2]   = { 0.f, 0.f };
+		float m_prevSample[2] = { 0.f };
+		float m_feedback[2]   = { 0.f };
 	};
 }

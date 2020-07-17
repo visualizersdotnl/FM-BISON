@@ -30,8 +30,6 @@ namespace SFM
 		SFM_ASSERT(detune >= 0.0 && detune <= 1.0);
 
 		m_curDetune = SampleDetuneCurve(detune);
-		if (m_curDetune < 0.001)
-			m_curDetune = 0.0;
 
 		SFM_ASSERT(m_curDetune >= 0.0 && m_curDetune <= 1.0);
 	}

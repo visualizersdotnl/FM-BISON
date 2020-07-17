@@ -8,7 +8,7 @@
 	- Fully double precision
 	
 	FIXME:
-		- Fix beating
+		- Minimize beating
 		- Review filter
 		- Reconsider single precision
 */
@@ -23,23 +23,24 @@
 
 namespace SFM
 {
-	// 7 oscillators, so iOsc = [0..6]
+	// Number of oscillators
 	constexpr unsigned kNumSupersawOscillators = 7;
 
 	// Relation between frequencies (slightly asymmetric)
 	// Centre oscillator moved from position 4 to 1
 	constexpr double kSupersawRelative[kNumSupersawOscillators] = 
 	{
+/*
 		// According to Adam Szabo
 		 0.0, 
 		-0.11002313, 
 		-0.06288439, 
 		-0.01952356,
-		 0.10745242,
+		 0.01991221,
 		 0.06216538, 
-		 0.01991221 
+		 0.10745242
+*/
 
-/*
 		// According to Alex Shore
 		 0.0,
 		-0.11002313,
@@ -48,27 +49,19 @@ namespace SFM
 		 0.02953130,
 		 0.06216538,
 		 0.10745242
-*/
 	};
 
 	class Supersaw
 	{
-	private:
 		class DCBlocker
 		{
 		public:
-			DCBlocker() {}
-			~DCBlocker() {}
-
 			SFM_INLINE double Apply(double sample)
 			{
 				constexpr double R = 0.995;
-				const double out = sample - m_prevSample + R*m_feedback;
-
+				m_feedback = sample-m_prevSample + R*m_feedback;
 				m_prevSample = sample;
-				m_feedback = out;
-
-				return out;
+				return m_feedback;
 			}
 
 		private:
@@ -79,14 +72,22 @@ namespace SFM
 	public:
 		Supersaw() : 
 			m_sampleRate(1) 
-		{ 
-			// Yields a soft 'pop'
-			Initialize(0.f, 1, 0.0, 0.0, 0.0);
+		{
+//			for (auto &phase : m_phase)
+//				phase = mt_rand();
+			
+			// Prime numbers
+			static_assert(7 == kNumSupersawOscillators);
+			m_phase[0] =  0.0;
+			m_phase[1] =  0.2;
+			m_phase[2] =  0.5;
+			m_phase[3] = 0.11;
+			m_phase[4] = 0.17;
+			m_phase[5] = 0.19;
+			m_phase[6] = 0.23;
 		}
-		
-		~Supersaw() {}
 
-		void Initialize(float frequency, unsigned sampleRate, double, double detune, double mix)
+		void Initialize(float frequency, unsigned sampleRate, double phaseOffs, double detune, double mix)
 		{
 			m_sampleRate = sampleRate;
 			
@@ -97,9 +98,9 @@ namespace SFM
 			// Reset filter
 			m_HPF.reset();
 
-			// Set phases
+			// Shift phases
 			for (auto &phase : m_phase)
-				phase = mt_rand();
+				phase = fmod(phase+phaseOffs, 1.0);
 
 			// Set frequency, pitch, phases & filter
 			m_frequency = 0.f; 
@@ -124,7 +125,7 @@ namespace SFM
 				}
 
 				// Set HPF
-				constexpr double Q = kDefGainAtCutoff;
+				constexpr double Q = kDefGainAtCutoff*0.5;
 				m_HPF.setBiquad(bq_type_highpass, m_frequency/m_sampleRate, Q, 0.0);
 			}
 		}
@@ -173,8 +174,8 @@ namespace SFM
 		double m_phase[kNumSupersawOscillators] = { 0.0 };
 		double m_pitch[kNumSupersawOscillators] = { 0.0 };
 
-		DCBlocker m_blocker;
 		Biquad m_HPF;
+		DCBlocker m_blocker;
 
 		void SetDetune(double detune /* [0..1] */);
 		void SetMix(double mix /* [0..1] */);
@@ -222,7 +223,8 @@ namespace SFM
 
 		SFM_INLINE double Saw(double phase, double pitch)
 		{
-//			return oscSaw(float(phase));
+//			phase += 0.5;
+//			return 2.0*phase - 1.0;
 
 			double P1 = phase + 0.5;
 			P1 -= bitwiseOrZero(P1);
