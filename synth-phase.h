@@ -5,9 +5,6 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	Phase period is [0..1]
-
-	- FloatType -> 'double' or 'float'
-	- I'm using single precision constants regardless FloatType
 */
 
 #pragma once
@@ -82,6 +79,7 @@ namespace SFM
 			return curPhase;
 		}
 
+		// Can be used for free running phases
 		SFM_INLINE void Skip(unsigned count)
 		{
 			m_phase = fmodf(m_phase + m_pitch*count, 1.f);

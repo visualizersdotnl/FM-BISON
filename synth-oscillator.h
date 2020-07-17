@@ -123,10 +123,16 @@ namespace SFM
 				: m_supersaw.GetPhase();
 		} 
 		
-		// Only useful for S&H
+		// S&H
 		SFM_INLINE void SetSampleAndHoldSlewRate(float rate)
 		{
 			m_sampleAndHold.SetSlewRate(rate);
+		}
+
+		// Supersaw
+		SFM_INLINE Supersaw &GetSupersaw()
+		{
+			return m_supersaw;
 		}
 
 		float Sample(float phaseShift);

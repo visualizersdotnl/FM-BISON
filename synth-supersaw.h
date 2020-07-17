@@ -1,11 +1,12 @@
 
 /*
-	FM. BISON hybrid FM synthesis -- Self-contained JP-8000 supersaw oscillator.
+	FM. BISON hybrid FM synthesis -- Self-contained JP-8000 style supersaw oscillator.
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	- Information: https://pdfs.semanticscholar.org/1852/250068e864215dd7f12755cf00636868a251.pdf (copy in repository)
+	- Ref.: https://pdfs.semanticscholar.org/1852/250068e864215dd7f12755cf00636868a251.pdf (copy in repository)
 	- Fully double precision
+	- Free running: all phases are updated by Bison::Render() if the oscillator is not being used
 	
 	FIXME:
 		- Minimize beating
@@ -56,9 +57,15 @@ namespace SFM
 		class DCBlocker
 		{
 		public:
+			void Reset()
+			{
+				m_prevSample = 0.0;
+				m_feedback   = 0.0;
+			}
+
 			SFM_INLINE double Apply(double sample)
 			{
-				constexpr double R = 0.995;
+				constexpr double R = 0.9925; // What "everyone" uses in a leaky integrator is 0.995
 				m_feedback = sample-m_prevSample + R*m_feedback;
 				m_prevSample = sample;
 				return m_feedback;
@@ -73,21 +80,12 @@ namespace SFM
 		Supersaw() : 
 			m_sampleRate(1) 
 		{
-//			for (auto &phase : m_phase)
-//				phase = mt_rand();
-			
-			// Prime numbers
-			static_assert(7 == kNumSupersawOscillators);
-			m_phase[0] =  0.0;
-			m_phase[1] =  0.2;
-			m_phase[2] =  0.5;
-			m_phase[3] = 0.11;
-			m_phase[4] = 0.17;
-			m_phase[5] = 0.19;
-			m_phase[6] = 0.23;
+			// Initialize phases with random values between [0..1] and let's hope that at least a few of them are irrational
+			for (auto &phase : m_phase)
+				phase = mt_randf();
 		}
 
-		void Initialize(float frequency, unsigned sampleRate, double phaseOffs, double detune, double mix)
+		void Initialize(float frequency, unsigned sampleRate, double detune, double mix)
 		{
 			m_sampleRate = sampleRate;
 			
@@ -98,11 +96,10 @@ namespace SFM
 			// Reset filter
 			m_HPF.reset();
 
-			// Shift phases
-			for (auto &phase : m_phase)
-				phase = fmod(phase+phaseOffs, 1.0);
+			// Reset DC blocker
+			m_blocker.Reset();
 
-			// Set frequency, pitch, phases & filter
+			// Set frequency (pitch, filter)
 			m_frequency = 0.f; 
 			SetFrequency(frequency);
 		}
@@ -116,16 +113,16 @@ namespace SFM
 				
 				for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
 				{
-					// Pitch
-					const double relative = kSupersawRelative[iOsc];
-					const double freqOffs = frequency*(m_curDetune*kSupersawRelative[iOsc]);
+					// Calc. pitch
+					const double offset   = m_curDetune*kSupersawRelative[iOsc];
+					const double freqOffs = frequency * offset;
 					const double detuned  = frequency + freqOffs;
 					const double pitch    = CalculatePitch<double>(detuned, m_sampleRate);
 					m_pitch[iOsc] = pitch;
 				}
 
 				// Set HPF
-				constexpr double Q = kDefGainAtCutoff*0.5;
+				constexpr double Q = kDefGainAtCutoff*0.66;
 				m_HPF.setBiquad(bq_type_highpass, m_frequency/m_sampleRate, Q, 0.0);
 			}
 		}
@@ -149,6 +146,16 @@ namespace SFM
 			signal = m_blocker.Apply(signal);
 
 			return float(signal);
+		}
+		
+		// Advance phase by a number of samples (used by Bison::Render())
+		SFM_INLINE void Run(unsigned numSamples)
+		{
+			for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
+			{
+				double &phase = m_phase[iOsc];
+				phase = fmod(phase + numSamples*m_pitch[iOsc], 1.0);
+			}
 		}
 
 		float GetFrequency() const
@@ -180,21 +187,27 @@ namespace SFM
 		void SetDetune(double detune /* [0..1] */);
 		void SetMix(double mix /* [0..1] */);
 
-		SFM_INLINE double Oscillate(unsigned iOsc)
+		SFM_INLINE double Tick(unsigned iOsc)
 		{
 			SFM_ASSERT(iOsc < kNumSupersawOscillators);
 
 			double &phase = m_phase[iOsc];
 			double  pitch = m_pitch[iOsc];
 
+			const double oscPhase = phase;
+			SFM_ASSERT(oscPhase >= 0.0 && oscPhase <= 1.0);
+
 			phase += pitch;
 
 			if (phase > 1.0)
 				phase -= 1.0;
 
-			SFM_ASSERT(phase >= 0.0 && phase <= 1.0);
+			return oscPhase;
+		}
 
-			return Saw(phase, pitch);
+		SFM_INLINE double Oscillate(unsigned iOsc)
+		{
+			return Saw(Tick(iOsc), m_pitch[iOsc]);
 		}
 
 		// By Tale: http://www.kvraudio.com/forum/viewtopic.php?t=375517

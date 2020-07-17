@@ -1,6 +1,6 @@
 
 /*
-	FM. BISON hybrid FM synthesis -- Self-contained Roland-JP8000 supersaw oscillator.
+	FM. BISON hybrid FM synthesis -- Self-contained JP-8000 style supersaw oscillator.
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 */

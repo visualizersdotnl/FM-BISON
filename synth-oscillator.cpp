@@ -20,7 +20,7 @@ namespace SFM
 			break;
 
 		case kSupersaw:
-			m_supersaw.Initialize(frequency, sampleRate, phaseShift, supersawDetune, supersawMix);
+			m_supersaw.Initialize(frequency, sampleRate, supersawDetune, supersawMix);
 			break;
 
 		case kSampleAndHold:

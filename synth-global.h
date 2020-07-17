@@ -340,8 +340,8 @@ namespace SFM
 	// Default supersaw (JP-8000) parameters
 	// ----------------------------------------------------------------------------------------------
 
-	constexpr float kDefSupersawDetune = 0.25f;
-	constexpr float kDefSupersawMix    =  0.1f;
+	constexpr float kDefSupersawDetune = 0.333f;
+	constexpr float kDefSupersawMix    = 0.333f;
 
 	// ----------------------------------------------------------------------------------------------
 	// LowBlocker freq.

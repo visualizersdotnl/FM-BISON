@@ -825,9 +825,9 @@ namespace SFM
 
 	float Bison::CalcPhaseShift(const Voice::Operator &voiceOp, const PatchOperators::Operator &patchOp)
 	{
-		const float shift = (true == patchOp.keySync && Oscillator::Waveform::kSupersaw != patchOp.waveform)
-			? 0.f // Synchronized
-			: voiceOp.oscillator.GetPhase(); // No key sync.: use last known phase
+		const float shift = (true == patchOp.keySync || Oscillator::Waveform::kSupersaw == patchOp.waveform)
+			? 0.f // Synchronized or sync. unused
+			: voiceOp.oscillator.GetPhase(); // No key sync.: use last known phase (works well enough for 'normal' oscillators)
 
 		return shift;
 	}
@@ -1984,44 +1984,21 @@ namespace SFM
 				}
 			}
 		}
+		
+		// Keep *all* supersaw oscillators running
+		for (auto &voice : m_voices)
+		{	
+			const bool isIdle = voice.IsIdle();
 
-		// Calculate peak for each operator (for visualization only, plus it's not very pretty)
-		if (numVoices > 0)
-		{
-			// Find max. gain for each operator
-			float maxGains[kNumOperators] = { 0.f };
-
-			for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
+			for (auto &voiceOp : voice.m_operators)
 			{
-				Voice &voice = m_voices[iVoice];
-
-				if (false == voice.IsIdle())
+				// Only update if *not* in use
+				if (true == isIdle || false == voiceOp.enabled)
 				{
-					for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
-					{
-						Voice::Operator &voiceOp = voice.m_operators[iOp];
-
-						if (true == voiceOp.enabled)
-						{
-							const float curGain = voiceOp.envGain.Get();
-							
-							// New maximum?
-							if (curGain > maxGains[iOp])
-								maxGains[iOp] = curGain;
-						}
-					}
+					auto &saw = voiceOp.oscillator.GetSupersaw();
+					saw.Run(numSamples);
 				}
 			}
-
-			// Apply max. gains
-			for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
-				m_opPeaksEnv[iOp].Apply(maxGains[iOp], m_opPeaks[iOp]);
-		}
-		else if (0 == numVoices)
-		{
-			// Decay towards zero
-			for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
-				m_opPeaksEnv[iOp].Apply(0.f, m_opPeaks[iOp]);
 		}
 				
 		// Update voice logic (post)
@@ -2030,7 +2007,7 @@ namespace SFM
 		// Update sustain state
 		UpdateSustain();
 
-		// Advance global LFO phase
+		// Advance global LFO phase (free running)
 		m_globalLFO->Skip(numSamples);
 
 		// Calculate post-pass filter cutoff freq.
@@ -2116,6 +2093,45 @@ namespace SFM
 		// This has been done by now
 		m_resetVoices   = false;
 		m_resetPhaseBPM = false;
+
+		// Calculate peak for each operator (for visualization only, plus it's not very pretty)
+		if (numVoices > 0)
+		{
+			// Find max. gain for each operator
+			float maxGains[kNumOperators] = { 0.f };
+
+			for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
+			{
+				Voice &voice = m_voices[iVoice];
+
+				if (false == voice.IsIdle())
+				{
+					for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
+					{
+						Voice::Operator &voiceOp = voice.m_operators[iOp];
+
+						if (true == voiceOp.enabled)
+						{
+							const float curGain = voiceOp.envGain.Get();
+							
+							// New maximum?
+							if (curGain > maxGains[iOp])
+								maxGains[iOp] = curGain;
+						}
+					}
+				}
+			}
+
+			// Apply max. gains
+			for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
+				m_opPeaksEnv[iOp].Apply(maxGains[iOp], m_opPeaks[iOp]);
+		}
+		else if (0 == numVoices)
+		{
+			// Decay towards zero
+			for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
+				m_opPeaksEnv[iOp].Apply(0.f, m_opPeaks[iOp]);
+		}
 	}
 
 }; // namespace SFM
