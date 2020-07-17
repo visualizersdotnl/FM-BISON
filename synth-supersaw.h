@@ -111,9 +111,9 @@ namespace SFM
 			{
 				m_frequency = frequency;
 				
+				// Calc. pitch
 				for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
 				{
-					// Calc. pitch
 					const double offset   = m_curDetune*kSupersawRelative[iOsc];
 					const double freqOffs = frequency * offset;
 					const double detuned  = frequency + freqOffs;
@@ -122,14 +122,31 @@ namespace SFM
 				}
 
 				// Set HPF
-				constexpr double Q = kDefGainAtCutoff*0.66;
+				constexpr double Q = kDefGainAtCutoff*kPI*0.5;
 				m_HPF.setBiquad(bq_type_highpass, m_frequency/m_sampleRate, Q, 0.0);
 			}
 		}
 
 		SFM_INLINE void PitchBend(double bend)
 		{
-			// FIXME: implement
+			if (1.0 == bend)
+				return;
+
+			const double frequency = m_frequency*bend;
+
+			// Calc pitch.
+			for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
+			{
+				const double offset   = m_curDetune*kSupersawRelative[iOsc];
+				const double freqOffs = frequency * offset;
+				const double detuned  = frequency + freqOffs;
+				const double pitch    = CalculatePitch<double>(detuned, m_sampleRate);
+				m_pitch[iOsc] = pitch;
+			}
+
+			// Set HPF
+			constexpr double Q = kDefGainAtCutoff*kPI*0.5;
+			m_HPF.setBiquad(bq_type_highpass, frequency/m_sampleRate, Q, 0.0);
 		}
 
 		SFM_INLINE float Sample()

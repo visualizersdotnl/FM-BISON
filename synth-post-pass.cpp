@@ -265,7 +265,7 @@ namespace SFM
 			const float delayR = delayedR*invCrossBleedAmt + crossBleed*crossBleedAmt;
 
 			// Filter delay
-			const float curFc = (m_curDelayFeedbackCutoff.Sample() * m_Nyquist/8)/m_sampleRate; // Limited range (8th of Nyquist) gives a more pronounced effect
+			const float curFc = (m_curDelayFeedbackCutoff.Sample() * m_Nyquist/4)/m_sampleRate; // Limited range gives a more pronounced effect
 			m_delayFeedbackLPF_L.SetCutoff(curFc);
 			m_delayFeedbackLPF_R.SetCutoff(curFc);
 
