@@ -539,134 +539,15 @@ namespace SFM
 		}
 	}
 
+	
 	/* ----------------------------------------------------------------------------------------------------
 
-		Voice initialization.
-
-		There's a separate init. function for the monophonic voice; this means quite some code is 
-		duplicated in favour of keeping the core logic for polyphonic and monophonic separated.
-
-		Some of the helper functions on top can possibly be moved elsewhere? (FIXME)
+		Voice initialization helper functions
 
 	 ------------------------------------------------------------------------------------------------------ */
 
-	SFM_INLINE static float CalcKeyTracking(unsigned key, const PatchOperators::Operator &patchOp)
-	{
-		SFM_ASSERT(key >= 0 && key <= 127);
-		const float normalizedKey = key/127.f;
-
-		SFM_ASSERT(patchOp.envKeyTrack >= 0.f && patchOp.envKeyTrack <= 1.f);
-		
-		return (false == patchOp.acousticEnvKeyTrack)
-			? 1.f - 0.9f*patchOp.envKeyTrack*normalizedKey
-			: AcousticTrackingCurve(normalizedKey, patchOp.envKeyTrack);
-	}
-
-	// Returns [-1..1]
-	SFM_INLINE static float CalcOpCutoffKeyTracking(unsigned key, float cutoffKeyTrack)
-	{
-		SFM_ASSERT(key >= 0 && key <= 127);
-		const float normalizedKey = key/127.f;
-
-		/* const */ float tracking = cutoffKeyTrack;
-		SFM_ASSERT(tracking >= -1.f && tracking <= 1.f);
-
-		return tracking*normalizedKey;
-	}
-
-	SFM_INLINE static float CalcPanning(const PatchOperators::Operator &patchOp)
-	{
-		SFM_ASSERT(fabsf(patchOp.panning) <= 1.f);
-		return 0.5f*patchOp.panning + 0.5f;
-	}
-
-	// Set up (static) operator SVF filter
-	void Bison::SetOperatorFilters(unsigned key, SvfLinearTrapOptimised2 *pFilters, SvfLinearTrapOptimised2 &modFilter, const PatchOperators::Operator &patchOp)
-	{
-		SFM_ASSERT(nullptr != pFilters);
-
-		pFilters[0].resetState();
-
-		// Calculate Q.
-		const float normQ = patchOp.resonance;
-		const float Q = SVF_ResoToQ(normQ);
-		
-		// Calculate keytracking (only for LPF & HPF)
-		float tracking = -1.f, cutoffNormFrom = -1.f, cutoffNormTo = -1.f;
-		
-		if (PatchOperators::Operator::kLowpassFilter == patchOp.filterType || PatchOperators::Operator::kHighpassFilter == patchOp.filterType)
-		{
-			const float cutoffKeyTrack = patchOp.cutoffKeyTrack;
-			tracking = CalcOpCutoffKeyTracking(key, cutoffKeyTrack);
-
-			cutoffNormFrom = patchOp.cutoff;
-			cutoffNormTo = (tracking >= 0.f) ? 1.f : 0.f;
-		
-			tracking = fabsf(tracking);
-		}
-		
-		float cutoffNorm = -1.f; // Will cause assertion
-		switch (patchOp.filterType)
-		{
-		default:
-			SFM_ASSERT(false);
-
-		case PatchOperators::Operator::kNoFilter:
-			pFilters[0].updateNone();
-			break;
-
-		case PatchOperators::Operator::kLowpassFilter:
-			cutoffNorm = lerpf<float>(cutoffNormFrom, cutoffNormTo, tracking); // Keytrack
-			pFilters[0].updateLowpassCoeff(SVF_CutoffToHz(cutoffNorm, m_Nyquist), Q, m_sampleRate);
-			break;
-
-		case PatchOperators::Operator::kHighpassFilter:
-			cutoffNorm = lerpf<float>(cutoffNormFrom, 1.f-cutoffNormTo, tracking); // Keytrack
-			pFilters[0].updateHighpassCoeff(SVF_CutoffToHz(cutoffNorm, m_Nyquist), Q, m_sampleRate);
-			break;
-
-		case PatchOperators::Operator::kBandpassFilter:
-			pFilters[0].updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, m_Nyquist), Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, m_sampleRate);
-			break;
-
-		case PatchOperators::Operator::kAllPassFilter:
-			{
-				static_assert(kNumOpFilterAllpasses > 0);
-
-//				pFilters[0].resetState();
-				pFilters[0].updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, m_Nyquist), Q, SvfLinearTrapOptimised2::ALL_PASS_FILTER, m_sampleRate);
-
-				for (unsigned iAllpass = 1; iAllpass < kNumOpFilterAllpasses; ++iAllpass)
-				{
-					pFilters[iAllpass].resetState();
-					pFilters[iAllpass].updateCopy(pFilters[0]);
-				}
-			}
-			
-			break;
-		}
-		
-		switch (patchOp.waveform)
-		{
-			// These waveforms shall remain unaltered
-			case Oscillator::kSine:
-			case Oscillator::kCosine:
-			case Oscillator::kPolyTriangle:
-			case Oscillator::kSupersaw: // Checked and it's not necessary (though at first I assumed the opposite)
-				modFilter.updateNone();
-				break;
-			
-			// Filter the remaining waveforms a little to "take the top off"
-			default:
-				modFilter.updateLowpassCoeff(SVF_CutoffToHz(kModulatorLP, m_Nyquist), kSVFLowestFilterQ, m_sampleRate);
-				break;
-		}
-		
-		modFilter.resetState();
-	}
-
-	// Calculate operator frequency
-	float Bison::CalcOpFreq(float fundamentalFreq, float detuneOffs, const PatchOperators::Operator &patchOp)
+	// Calc. operator frequency
+	static float CalcOpFreq(float fundamentalFreq, float detuneOffs, const PatchOperators::Operator &patchOp)
 	{
 		float frequency;
 		if (true == patchOp.fixed)
@@ -689,8 +570,6 @@ namespace SFM
 			SFM_ASSERT(abs(fine) <= kFineRange);
 			SFM_ASSERT(abs(detune) <= kDetuneRange);
 			
-			// Sean Bolton's Hexter seems to detune the fundamental frequency *first*, see
-			// https://github.com/smbolton/hexter/blob/master/src/dx7_voice.c, line 788
 			frequency *= powf(2.f, (detune*0.01f)/12.f);
 
 			if (coarse < 0)
@@ -704,10 +583,10 @@ namespace SFM
 		return frequency;
 	}
 
-	// Calculate operator amplitude, also referred to in FM lingo as (modulation) "index"
-	float Bison::CalcOpIndex(unsigned key, float velocity, const PatchOperators::Operator &patchOp)
+	// Calc. operator amplitude or 'modulation index'
+	static float CalcOpIndex(unsigned key, float velocity, const PatchOperators::Operator &patchOp)
 	{ 
-		// Calculate output in linear domain
+		// In linear domain (FIXME?)
 		float output = patchOp.output;
 		SFM_ASSERT(output >= 0.f && output <= 1.f);
 
@@ -789,13 +668,144 @@ namespace SFM
 		return output;
 	}
 
+	// Simply scales [-1..1] to [0.5..0.5]
+	SFM_INLINE static float CalcPanning(const PatchOperators::Operator &patchOp)
+	{
+		SFM_ASSERT(fabsf(patchOp.panning) <= 1.f);
+		return 0.5f*patchOp.panning + 0.5f;
+	}
+
+
 	SFM_INLINE static float CalcPhaseJitter(float jitter)
 	{
 		SFM_ASSERT(jitter >= 0.f && jitter <= 1.f);
 		return jitter*mt_randf()*0.25f; // [0..90] deg.
 	}
+
+	SFM_INLINE static float CalcPhaseShift(const Voice::Operator &voiceOp, const PatchOperators::Operator &patchOp)
+	{
+		// For certain oscillators (supersaw, noise, ...) this is useseless but not worth checking for
+		const float shift = (true == patchOp.keySync)
+			? 0.f // Synchronized
+			: voiceOp.oscillator.GetPhase(); // No key sync.: use last known phase (works well enough for 'normal' oscillators, others run free)
+
+		return shift;
+	}
+
+	// Returns [-1..1]
+	SFM_INLINE static float CalcOpCutoffKeyTracking(unsigned key, float cutoffKeyTrack)
+	{
+		SFM_ASSERT(key >= 0 && key <= 127);
+		const float normalizedKey = key/127.f;
+
+		/* const */ float tracking = cutoffKeyTrack;
+		SFM_ASSERT(tracking >= -1.f && tracking <= 1.f);
+
+		return tracking*normalizedKey;
+	}
+
+	// Set up (static) operator SVF filter
+	static void SetOperatorFilters(unsigned key, unsigned sampleRate, SvfLinearTrapOptimised2 *pFilters, SvfLinearTrapOptimised2 &modFilter, const PatchOperators::Operator &patchOp)
+	{
+		SFM_ASSERT(sampleRate > 0);
+		SFM_ASSERT(nullptr != pFilters);
+
+		const unsigned Nyquist = sampleRate/2;
+
+		pFilters[0].resetState();
+
+		// Calculate Q
+		const float normQ = patchOp.resonance;
+		const float Q = SVF_ResoToQ(normQ);
+		
+		// Calculate keytracking (only for LPF & HPF)
+		float tracking = -1.f, cutoffNormFrom = -1.f, cutoffNormTo = -1.f;
+		
+		if (PatchOperators::Operator::kLowpassFilter == patchOp.filterType || PatchOperators::Operator::kHighpassFilter == patchOp.filterType)
+		{
+			const float cutoffKeyTrack = patchOp.cutoffKeyTrack;
+			tracking = CalcOpCutoffKeyTracking(key, cutoffKeyTrack);
+
+			cutoffNormFrom = patchOp.cutoff;
+			cutoffNormTo = (tracking >= 0.f) ? 1.f : 0.f;
+		
+			tracking = fabsf(tracking);
+		}
+		
+		float cutoffNorm = -1.f; // Causes assertion if not set
+		switch (patchOp.filterType)
+		{
+		default:
+			SFM_ASSERT(false);
+
+		case PatchOperators::Operator::kNoFilter:
+			pFilters[0].updateNone();
+			break;
+
+		case PatchOperators::Operator::kLowpassFilter:
+			cutoffNorm = lerpf<float>(cutoffNormFrom, cutoffNormTo, tracking); // Keytrack
+			pFilters[0].updateLowpassCoeff(SVF_CutoffToHz(cutoffNorm, Nyquist), Q, sampleRate);
+			break;
+
+		case PatchOperators::Operator::kHighpassFilter:
+			cutoffNorm = lerpf<float>(cutoffNormFrom, 1.f-cutoffNormTo, tracking); // Keytrack
+			pFilters[0].updateHighpassCoeff(SVF_CutoffToHz(cutoffNorm, Nyquist), Q, sampleRate);
+			break;
+
+		case PatchOperators::Operator::kBandpassFilter:
+			pFilters[0].updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, sampleRate);
+			break;
+
+		case PatchOperators::Operator::kAllPassFilter:
+			{
+				static_assert(kNumOpFilterAllpasses > 0);
+
+//				pFilters[0].resetState();
+				pFilters[0].updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), Q, SvfLinearTrapOptimised2::ALL_PASS_FILTER, sampleRate);
+
+				for (unsigned iAllpass = 1; iAllpass < kNumOpFilterAllpasses; ++iAllpass)
+				{
+					pFilters[iAllpass].resetState();
+					pFilters[iAllpass].updateCopy(pFilters[0]);
+				}
+			}
+			
+			break;
+		}
+		
+		switch (patchOp.waveform)
+		{
+			// These waveforms shall remain unaltered
+			case Oscillator::kSine:
+			case Oscillator::kCosine:
+			case Oscillator::kPolyTriangle:
+			case Oscillator::kSupersaw: // Checked and it's not necessary (though at first I assumed it would be)
+				modFilter.updateNone();
+				break;
+			
+			// Filter the remaining waveforms a little to "take the top off"
+			default:
+				modFilter.updateLowpassCoeff(SVF_CutoffToHz(kModulatorLP, Nyquist), kSVFLowestFilterQ, sampleRate);
+				break;
+		}
+		
+		modFilter.resetState();
+	}
 	
-	// Calculate LFO frequencies
+	// Calc. tracking (linear or 'acoustically curved')
+	SFM_INLINE static float CalcKeyTracking(unsigned key, const PatchOperators::Operator &patchOp)
+	{
+		SFM_ASSERT(key >= 0 && key <= 127);
+		const float normalizedKey = key/127.f;
+
+		SFM_ASSERT(patchOp.envKeyTrack >= 0.f && patchOp.envKeyTrack <= 1.f);
+		
+		return (false == patchOp.acousticEnvKeyTrack)
+			? 1.f - 0.9f*patchOp.envKeyTrack*normalizedKey
+			: AcousticTrackingCurve(normalizedKey, patchOp.envKeyTrack); // See impl. for details
+	}
+
+	// Calc. LFO frequencies
 	SFM_INLINE static void CalcLFOFreq(float &frequency /* Set to base freq. */, float &modFrequency, int speedAdj)
 	{
 		SFM_ASSERT(frequency > 0.f);
@@ -805,32 +815,32 @@ namespace SFM
 		modFrequency = frequency*freqSpeedAdj;
 	}
 
-	// LFO initialization
-	void Bison::InitializeLFO(Voice &voice, float jitter)
+	// Initializes LFOs (used on top of Voice::Sample())
+	void Bison::InitializeLFOs(Voice &voice, float jitter)
 	{
-		// Initialize LFOs
+		// Calc. shift
 		float phaseShift = (true == m_patch.LFOKeySync)
 			? 0.f // Synchronized 
-			: m_globalLFO->Get(); // Prev. phase
+			: m_globalLFO->Get(); // Free running
 
+		// Add jitter
 		phaseShift += CalcPhaseJitter(jitter);
-
+		
+		// Frequencies
 		float frequency = m_globalLFO->GetFrequency(), modFrequency;
 		CalcLFOFreq(frequency, modFrequency, m_patch.LFOModSpeed);
 
+		// Set up LFOs
 		voice.m_LFO1.Initialize(m_patch.LFOWaveform1,   frequency,    m_sampleRate, phaseShift);
 		voice.m_LFO2.Initialize(m_patch.LFOWaveform2,   frequency,    m_sampleRate, phaseShift);
 		voice.m_modLFO.Initialize(m_patch.LFOWaveform3, modFrequency, m_sampleRate, phaseShift);
 	}
 
-	float Bison::CalcPhaseShift(const Voice::Operator &voiceOp, const PatchOperators::Operator &patchOp)
-	{
-		const float shift = (true == patchOp.keySync || Oscillator::Waveform::kSupersaw == patchOp.waveform)
-			? 0.f // Synchronized or sync. unused
-			: voiceOp.oscillator.GetPhase(); // No key sync.: use last known phase (works well enough for 'normal' oscillators)
+	/* ----------------------------------------------------------------------------------------------------
 
-		return shift;
-	}
+		Voice initialization; there's a separate function for a monophonic voice
+
+	 ------------------------------------------------------------------------------------------------------ */
 	
 	// Initialize new voice
 	void Bison::InitializeVoice(const VoiceRequest &request, unsigned iVoice)
@@ -863,7 +873,7 @@ namespace SFM
 		voice.m_fundamentalFreq = fundamentalFreq;
 		
 		// Initialize LFO
-		InitializeLFO(voice, jitter);
+		InitializeLFOs(voice, jitter);
 
 		// Get dry FM patch		
 		PatchOperators &patchOps = m_patch.operators;
@@ -893,7 +903,7 @@ namespace SFM
 				const float opVelocity = (false == patchOp.velocityInvert) ? velocity : 1.f-velocity;
 
 				// (Re)set constant/static filters
-				SetOperatorFilters(key, voiceOp.filters, voiceOp.modFilter, patchOp);
+				SetOperatorFilters(key, m_sampleRate, voiceOp.filters, voiceOp.modFilter, patchOp);
 				
 				// Store detune jitter
 				voiceOp.detuneOffs = jitter*mt_randfc()*patchOp.detune*kMaxDetuneJitter;
@@ -964,7 +974,7 @@ namespace SFM
 	}
 
 	// Specialized function for monophonic voices
-	// Not ideal due to code, quite a bit of, duplication, but stashing this in one function would be much harder to follow
+	// Not ideal due to some code duplication, but easier to modify and follow
 	void Bison::InitializeMonoVoice(const VoiceRequest &request)
 	{
 		Voice &voice = m_voices[0];
@@ -1009,7 +1019,7 @@ namespace SFM
 		if (true == reset)
 		{
 			// Initialize LFO
-			InitializeLFO(voice, jitter);
+			InitializeLFOs(voice, jitter);
 		}
 
 		// See InitializeVoice()
@@ -1042,7 +1052,7 @@ namespace SFM
 				if (true == reset)
 				{
 					// (Re)set constant/static filters
-					SetOperatorFilters(key, voiceOp.filters, voiceOp.modFilter, patchOp);
+					SetOperatorFilters(key, m_sampleRate, voiceOp.filters, voiceOp.modFilter, patchOp);
 				}
 
 				// Store detune jitter
@@ -1985,7 +1995,8 @@ namespace SFM
 			}
 		}
 		
-		// Keep *all* supersaw oscillators running
+		// Keep *all* supersaw oscillators running; I could move this loop to RenderVoices(), but that would clutter up the function a bit,
+		// and here it's easy to follow and easy to extend
 		for (auto &voice : m_voices)
 		{	
 			const bool isIdle = voice.IsIdle();
@@ -2000,15 +2011,15 @@ namespace SFM
 				}
 			}
 		}
+
+		// Advance global LFO phase (free running)
+		m_globalLFO->Skip(numSamples);
 				
 		// Update voice logic (post)
 		UpdateVoicesPostRender();
 
 		// Update sustain state
 		UpdateSustain();
-
-		// Advance global LFO phase (free running)
-		m_globalLFO->Skip(numSamples);
 
 		// Calculate post-pass filter cutoff freq.
 		const float postNormCutoff = m_postCutoffPS.Apply(m_patch.postCutoff);
@@ -2094,7 +2105,7 @@ namespace SFM
 		m_resetVoices   = false;
 		m_resetPhaseBPM = false;
 
-		// Calculate peak for each operator (for visualization only, plus it's not very pretty)
+		// Calculate peak ([0..1]) for each operator (for visualization purposes, plus it's not very pretty)
 		if (numVoices > 0)
 		{
 			// Find max. gain for each operator
