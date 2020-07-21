@@ -4,13 +4,13 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	- Copy / First AA-filter
+	- Copy
 	- Auto-wah
 	- Delay
 	- Yamaha Reface CP-style chorus & phaser
 	- Post filter (24dB)          - 4X oversampling
 	- Tube distortion             - 4X oversampling
-	- Second anti-aliasing filter - 4X oversampling
+	- Anti-aliasing filter        - 4X oversampling
 	- Reverb
 	- Compressor
 	- Master volume, DC blocker & final clamp
