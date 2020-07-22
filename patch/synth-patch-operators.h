@@ -32,13 +32,13 @@ namespace SFM
 
 	const Oscillator::Waveform kOperatorWaveforms[7] =
 	{
-			Oscillator::Waveform::kSine,             // Sine
-			Oscillator::Waveform::kPolyTriangle,     // Triangle
-			Oscillator::Waveform::kPolySquare,	     // Square
-			Oscillator::Waveform::kPinkNoise,        // Pink noise
-			Oscillator::Waveform::kPolySaw,          // Saw
-			Oscillator::Waveform::kSupersaw,         // Supersaw
-			Oscillator::Waveform::kPolyRectifiedSine // Rectified sine
+		Oscillator::Waveform::kSine,             // Sine
+		Oscillator::Waveform::kPolyTriangle,     // Triangle
+		Oscillator::Waveform::kPolySquare,	     // Square
+		Oscillator::Waveform::kPinkNoise,        // Pink noise
+		Oscillator::Waveform::kPolySaw,          // Saw
+		Oscillator::Waveform::kSupersaw,         // Supersaw
+		Oscillator::Waveform::kPolyRectifiedSine // Rectified sine
 	};
 
 	struct PatchOperators
