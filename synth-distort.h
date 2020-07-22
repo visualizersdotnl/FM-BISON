@@ -32,15 +32,14 @@ namespace SFM
 	}
 
 	// Udo Zölzer's soft clip (https://github.com/johannesmenzel/SRPlugins/wiki/DSP-ALGORITHMS-Saturation)
-	// I'm more comfortable with double precision when using exp() et cetera
-	SFM_INLINE static float ZoelzerClip(double sample)
+	SFM_INLINE static float ZoelzerClip(float sample)
 	{
-		if (sample > 0.0)
-			sample =  1.0 - exp(-sample);
+		if (sample > 0.f)
+			sample =  1.f - expf(-sample);
 		else
-			sample = -1.0 + exp(sample);
+			sample = -1.f + expf(sample);
 
-		return float(sample);
+		return sample;
 	}
 
 	// Cubic distortion #1

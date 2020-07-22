@@ -12,6 +12,7 @@
 		- Minimize beating
 		- Review filter
 		- Reconsider single precision
+		- SSE implementation
 */
 
 #pragma once
@@ -258,6 +259,7 @@ namespace SFM
 
 			double P1 = phase + 0.5;
 			P1 -= bitwiseOrZero(P1);
+
 
 			double saw = 2.0*P1 - 1.0;
 			saw -= PolyBLEP(P1, pitch);
