@@ -6,10 +6,8 @@
 
 	This is the FM tone generator (operator) patch: all operator settings.
 
-	In case a parameter does not come with a comment it can be most likely be normalized ([0..1]) range,
-	though in some times it helps to look at synth-global.h; it *should* be documented here so it's a FIXME.
-	
-	For details see synth-global.h & synth-patch-global.h!
+	- In case a parameter does not come with a comment it's safe to assume that the range is [0..1]
+	- Interpolated parameters are commented with '(R)'
 */
 
 #pragma once
