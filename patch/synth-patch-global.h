@@ -43,16 +43,16 @@ namespace SFM
 
 	const Oscillator::Waveform kLFOWaveforms[kNumLFOWaveforms] =
 	{
-			Oscillator::Waveform::kNone,
-			Oscillator::Waveform::kSine, 
-			Oscillator::Waveform::kPolyTriangle,
-			Oscillator::Waveform::kBump,
-			Oscillator::Waveform::kSoftSaw,
-			Oscillator::Waveform::kSoftRamp,
-			Oscillator::Waveform::kPolySaw,
-			Oscillator::Waveform::kPolyRamp,
-			Oscillator::Waveform::kPolyRectangle,
-			Oscillator::Waveform::kSampleAndHold
+		Oscillator::Waveform::kNone,
+		Oscillator::Waveform::kSine, 
+		Oscillator::Waveform::kPolyTriangle,
+		Oscillator::Waveform::kBump,
+		Oscillator::Waveform::kSoftSaw,
+		Oscillator::Waveform::kSoftRamp,
+		Oscillator::Waveform::kPolySaw,
+		Oscillator::Waveform::kPolyRamp,
+		Oscillator::Waveform::kPolyRectangle,
+		Oscillator::Waveform::kSampleAndHold
 	};
 
 	struct Patch
