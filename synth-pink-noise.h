@@ -39,9 +39,7 @@ namespace SFM
 
 			m_pinkCoeffs[6] = whiteNoise * 0.115926f;
 			
-			// FIXME: overshoots [-1..1] every now and then
-			const float sample = float(pink);
-			return sample;
+			return pink;
 		}
 		
 	private:
