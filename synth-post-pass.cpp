@@ -142,7 +142,7 @@ namespace SFM
 		const bool useBPM = false == (rateBPM < 1.f/kMainDelayInSec);
 
 		// BPM sync. overrides
-		const bool overrideSyncAW    = overideFlagsRateBPM & kFlagOverideAW;
+		const bool overrideSyncAW    = overideFlagsRateBPM & kFlagOverrideAW;
 		const bool overrideSyncCP    = overideFlagsRateBPM & kFlagOverrideCP;
 		const bool overrideSyncDelay = overideFlagsRateBPM & kFlagOverrideDelay;
 //		const bool overrideLFO       = overideFlagsRateBPM & kFlagOverrideLFO;

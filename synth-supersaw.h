@@ -254,6 +254,8 @@ namespace SFM
 
 		SFM_INLINE double Saw(double phase, double pitch)
 		{
+//			return oscSquare(float(phase));
+
 //			phase += 0.5;
 //			return 2.0*phase - 1.0;
 

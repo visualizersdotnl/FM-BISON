@@ -252,21 +252,15 @@ namespace SFM
 				
 				// Apply filter
 				bool hasOpFilter = true;
-				switch (voiceOp.filters[0].getFilterType())
+				switch (voiceOp.filter.getFilterType())
 				{
 				case SvfLinearTrapOptimised2::NO_FLT_TYPE:
 					hasOpFilter = false;
 					break;
 
-				case SvfLinearTrapOptimised2::ALL_PASS_FILTER:
-					for (unsigned iAllpass = 0; iAllpass < kNumOpFilterAllpasses; ++iAllpass)
-						voiceOp.filters[iAllpass].tickMono(sample);
-
-					break;
-
 				default:
 					// I'm assuming the filter is set up properly
-					voiceOp.filters[0].tickMono(sample);
+					voiceOp.filter.tickMono(sample);
 				}
 
 				// Store (filtered) sample for modulation

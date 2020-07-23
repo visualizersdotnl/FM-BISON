@@ -59,7 +59,6 @@ namespace SFM
 				kLowpassFilter,
 				kHighpassFilter,
 				kBandpassFilter,
-				kAllPassFilter,
 				kNumFilters
 			} filterType;
 

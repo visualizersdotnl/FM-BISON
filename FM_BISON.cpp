@@ -705,14 +705,14 @@ namespace SFM
 	}
 
 	// Set up (static) operator SVF filter
-	static void SetOperatorFilters(unsigned key, unsigned sampleRate, SvfLinearTrapOptimised2 *pFilters, SvfLinearTrapOptimised2 &modFilter, const PatchOperators::Operator &patchOp)
+	static void SetOperatorFilters(unsigned key, unsigned sampleRate, SvfLinearTrapOptimised2 &filter, SvfLinearTrapOptimised2 &modFilter, const PatchOperators::Operator &patchOp)
 	{
 		SFM_ASSERT(sampleRate > 0);
-		SFM_ASSERT(nullptr != pFilters);
 
 		const unsigned Nyquist = sampleRate/2;
 
-		pFilters[0].resetState();
+		filter.resetState();
+		modFilter.resetState();
 
 		// Calculate Q
 		const float normQ = patchOp.resonance;
@@ -739,37 +739,21 @@ namespace SFM
 			SFM_ASSERT(false);
 
 		case PatchOperators::Operator::kNoFilter:
-			pFilters[0].updateNone();
+			filter.updateNone();
 			break;
 
 		case PatchOperators::Operator::kLowpassFilter:
 			cutoffNorm = lerpf<float>(cutoffNormFrom, cutoffNormTo, tracking); // Keytrack
-			pFilters[0].updateLowpassCoeff(SVF_CutoffToHz(cutoffNorm, Nyquist), Q, sampleRate);
+			filter.updateLowpassCoeff(SVF_CutoffToHz(cutoffNorm, Nyquist), Q, sampleRate);
 			break;
 
 		case PatchOperators::Operator::kHighpassFilter:
 			cutoffNorm = lerpf<float>(cutoffNormFrom, 1.f-cutoffNormTo, tracking); // Keytrack
-			pFilters[0].updateHighpassCoeff(SVF_CutoffToHz(cutoffNorm, Nyquist), Q, sampleRate);
+			filter.updateHighpassCoeff(SVF_CutoffToHz(cutoffNorm, Nyquist), Q, sampleRate);
 			break;
 
 		case PatchOperators::Operator::kBandpassFilter:
-			pFilters[0].updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, sampleRate);
-			break;
-
-		case PatchOperators::Operator::kAllPassFilter:
-			{
-				static_assert(kNumOpFilterAllpasses > 0);
-
-//				pFilters[0].resetState();
-				pFilters[0].updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), Q, SvfLinearTrapOptimised2::ALL_PASS_FILTER, sampleRate);
-
-				for (unsigned iAllpass = 1; iAllpass < kNumOpFilterAllpasses; ++iAllpass)
-				{
-					pFilters[iAllpass].resetState();
-					pFilters[iAllpass].updateCopy(pFilters[0]);
-				}
-			}
-			
+			filter.updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, sampleRate);
 			break;
 		}
 		
@@ -788,8 +772,6 @@ namespace SFM
 				modFilter.updateLowpassCoeff(SVF_CutoffToHz(kModulatorLP, Nyquist), kSVFLowestFilterQ, sampleRate);
 				break;
 		}
-		
-		modFilter.resetState();
 	}
 	
 	// Calc. tracking (linear or 'acoustically curved')
@@ -903,7 +885,7 @@ namespace SFM
 				const float opVelocity = (false == patchOp.velocityInvert) ? velocity : 1.f-velocity;
 
 				// (Re)set constant/static filters
-				SetOperatorFilters(key, m_sampleRate, voiceOp.filters, voiceOp.modFilter, patchOp);
+				SetOperatorFilters(key, m_sampleRate, voiceOp.filter, voiceOp.modFilter, patchOp);
 				
 				// Store detune jitter
 				voiceOp.detuneOffs = jitter*mt_randfc()*patchOp.detune*kMaxDetuneJitter;
@@ -1052,7 +1034,7 @@ namespace SFM
 				if (true == reset)
 				{
 					// (Re)set constant/static filters
-					SetOperatorFilters(key, m_sampleRate, voiceOp.filters, voiceOp.modFilter, patchOp);
+					SetOperatorFilters(key, m_sampleRate, voiceOp.filter, voiceOp.modFilter, patchOp);
 				}
 
 				// Store detune jitter

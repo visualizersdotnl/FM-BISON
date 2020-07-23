@@ -94,8 +94,8 @@ namespace SFM
 			bool isCarrier;
 			
 			// Filters
-			SvfLinearTrapOptimised2 filters[kNumOpFilterAllpasses];
-			SvfLinearTrapOptimised2 modFilter; // Set to default by Reset()
+			SvfLinearTrapOptimised2 filter;    // Operator filter
+			SvfLinearTrapOptimised2 modFilter; // Filter can be used to take the edge off an operator to be used as modulator (Set to default by Reset())
 
 			// Gain envelope
 			FollowerEnvelope envGain;
@@ -133,12 +133,9 @@ namespace SFM
 
 				isCarrier = false;
 				
-				// Reset operator filter(s)
-				for (auto &filter : filters)
-				{
-					filter.updateNone();
-					filter.resetState();
-				}
+				// Reset operator filter
+				filter.updateNone();
+				filter.resetState();
 
 				// Reset modulator filter
 				modFilter.updateNone();
@@ -147,8 +144,8 @@ namespace SFM
 				// Re(set) gain envelope
 				envGain.Reset();
 				envGain.SetSampleRate(sampleRate);
-				envGain.SetAttack(10.f);
-				envGain.SetRelease(100.f);
+				envGain.SetAttack(30.f);   //  30MS
+				envGain.SetRelease(120.f); // 120MS
 			}
 
 		} m_operators[kNumOperators];

@@ -56,7 +56,7 @@ namespace SFM
 	};
 
 	// BPM sync. (rate) override bits
-	constexpr unsigned kFlagOverideAW     = 1 << 0;
+	constexpr unsigned kFlagOverrideAW    = 1 << 0;
 	constexpr unsigned kFlagOverrideCP    = 1 << 1;
 	constexpr unsigned kFlagOverrideDelay = 1 << 2;
 	constexpr unsigned kFlagOverrideLFO   = 1 << 3;
