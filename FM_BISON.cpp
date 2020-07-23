@@ -1808,7 +1808,8 @@ namespace SFM
 		// Calculate LFO freq.
 		float freqLFO = 0.f;
 
-		if (false == m_patch.beatSync || m_freqBPM == 0.f)
+//		const bool overrideLFO = overideFlagsRateBPM & kFlagOverrideLFO;
+		if (false == m_patch.beatSync || m_freqBPM == 0.f || m_patch.syncOverride & kFlagOverrideLFO)
 		{
 			// Set LFO speed in (DX7) range
 			freqLFO = MIDI_To_DX7_LFO_Hz(m_patch.LFORate);
@@ -2033,7 +2034,7 @@ namespace SFM
 		// Apply post-processing (FIXME: pass structure?)
 		m_postPass->Apply(numSamples,
 			/* BPM sync. */
-			m_freqBPM,
+			m_freqBPM, m_patch.syncOverride,
 			/* Auto-wah (FIXME: use more ParameterSlew if necessary) */
 			m_patch.wahResonance,
 			m_patch.wahAttack,

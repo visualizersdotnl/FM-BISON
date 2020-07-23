@@ -41,7 +41,7 @@ namespace SFM
 
 		// FIXME: this parameter list is just too ridiculously long!
 		void Apply(unsigned numSamples,
-		           float rateBPM, /* See impl. for details! */
+		           float rateBPM, unsigned overideFlagsRateBPM, /* See impl. for details! */
 				   float wahResonance, float wahAttack, float wahHold, float wahRate, float wahDrivedB, float wahSpeak, float wahSpeakVowel, float wahSpeakVowelMod, float wahSpeakGhost, float wahSpeakCut, float wahSpeakReso, float wahCut, float wahWet,
 		           float cpRate, float cpWet, bool isChorus,
 		           float delayInSec, float delayWet, float delayDrivedB, float delayFeedback, float delayFeedbackCutoff,

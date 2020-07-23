@@ -25,6 +25,7 @@
 #include "synth-post-pass.h"
 #include "synth-stateless-oscillators.h"
 #include "synth-distort.h"
+#include "patch/synth-patch-global.h"
 
 namespace SFM
 {
@@ -105,7 +106,7 @@ namespace SFM
 	}
 
 	void PostPass::Apply(unsigned numSamples,
-	                     float rateBPM,
+	                     float rateBPM, unsigned overideFlagsRateBPM,
 	                     float wahResonance, float wahAttack, float wahHold, float wahRate, float wahDrivedB, float wahSpeak, float wahSpeakVowel, float wahSpeakVowelMod, float wahSpeakGhost, float wahSpeakCut, float wahSpeakReso, float wahCut, float wahWet,
 	                     float cpRate, float cpWet, bool isChorus,
 	                     float delayInSec, float delayWet, float delayDrivedB, float delayFeedback, float delayFeedbackCutoff,
@@ -140,6 +141,12 @@ namespace SFM
 		// Only adapt the BPM if it fits in the delay line (Ableton does this so why won't we?)
 		const bool useBPM = false == (rateBPM < 1.f/kMainDelayInSec);
 
+		// BPM sync. overrides
+		const bool overrideSyncAW    = overideFlagsRateBPM & kFlagOverideAW;
+		const bool overrideSyncCP    = overideFlagsRateBPM & kFlagOverrideCP;
+		const bool overrideSyncDelay = overideFlagsRateBPM & kFlagOverrideDelay;
+//		const bool overrideLFO       = overideFlagsRateBPM & kFlagOverrideLFO;
+
 		/* ----------------------------------------------------------------------------------------------------
 
 			Copy samples to local buffers
@@ -159,7 +166,7 @@ namespace SFM
 
 		 ------------------------------------------------------------------------------------------------------ */
 
-		if (true == useBPM)
+		if (true == useBPM && false == overrideSyncAW)
 			wahRate = rateBPM; // Tested, works fine!
 
 		m_wah.SetParameters(wahResonance, wahAttack, wahHold, wahRate, wahDrivedB, wahSpeak, wahSpeakVowel, wahSpeakVowelMod, wahSpeakGhost, wahSpeakCut, wahSpeakReso, wahCut, wahWet);
@@ -193,7 +200,7 @@ namespace SFM
 		}
 	
 		// Calculate delay & set delay mode
-		const float delay = (false == useBPM) ? delayInSec : 1.f/rateBPM;
+		const float delay = (false == useBPM || true == overrideSyncDelay) ? delayInSec : 1.f/rateBPM;
 		SFM_ASSERT(delay >= 0.f && delay <= kMainDelayInSec);
 
 		m_curDelayInSec.SetTarget(delay);
@@ -203,7 +210,7 @@ namespace SFM
 		m_curDelayFeedbackCutoff.SetTarget(delayFeedbackCutoff);
 		
 		// Set rate for both effects
-		if (false == useBPM) // Sync. to BPM?
+		if (false == useBPM || true == overrideSyncCP) // Sync. to BPM?
 		{
 			// No, use manual setting
 			SetChorusRate(cpRate, kMaxChorusRate);

@@ -55,6 +55,12 @@ namespace SFM
 		Oscillator::Waveform::kSampleAndHold
 	};
 
+	// BPM sync. (rate) override bits
+	constexpr unsigned kFlagOverideAW     = 1 << 0;
+	constexpr unsigned kFlagOverrideCP    = 1 << 1;
+	constexpr unsigned kFlagOverrideDelay = 1 << 2;
+	constexpr unsigned kFlagOverrideLFO   = 1 << 3;
+
 	struct Patch
 	{
 		// FM operators
@@ -212,6 +218,9 @@ namespace SFM
 		// Acoustic scaling (more velocity means longer decay phase; useful, mostly, for acoustic instruments)
 		float acousticScaling;
 
+		// BPM sync. override flags
+		unsigned syncOverride;
+
 		void ResetToEngineDefaults()
 		{
 			// Reset patch
@@ -355,6 +364,9 @@ namespace SFM
 
 			// No acoustic scaling
 			acousticScaling = 0.f;
+
+			// No BPM override
+			syncOverride = 0;
 		}
 	};
 }
