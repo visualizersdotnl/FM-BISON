@@ -176,13 +176,13 @@ namespace SFM
 			}
 		}
 
-		float GetFrequency() const
+		SFM_INLINE float GetFrequency() const
 		{	
 			// Fundamental freq.
 			return m_frequency;
 		}
 
-		float GetPhase() const
+		SFM_INLINE float GetPhase() const
 		{
 			// Return main oscillator's phase
 			return float(m_phase[0]);
