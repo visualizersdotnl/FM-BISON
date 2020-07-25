@@ -369,19 +369,21 @@ namespace SFM
 			const float offset = m_curTubeOffset.Sample();
 			
 			float distortedL = postL, distortedR = postR;
-
-//			distortedL = ClassicCubicClip((offset+distortedL)*drive);
-//			distortedR = ClassicCubicClip((offset+distortedR)*drive);
+			if (amount > 0.f) // Because I should optimize ZoelzerClip() (FIXME)
+			{
+//				distortedL = ClassicCubicClip((offset+distortedL)*drive);
+//				distortedR = ClassicCubicClip((offset+distortedR)*drive);
 			
-			distortedL = ZoelzerClip(offset+(distortedL*drive)); // Simply sounds good
-			distortedR = ZoelzerClip(offset+(distortedR*drive)); //
+				distortedL = ZoelzerClip(offset+(distortedL*drive)); // Simply sounds good
+				distortedR = ZoelzerClip(offset+(distortedR*drive)); //
 			
-			// Remove possible DC offset
-			m_tubeDCBlocker.Apply(distortedL, distortedR);
+				// Remove possible DC offset
+				m_tubeDCBlocker.Apply(distortedL, distortedR);
 
-			// Apply distortion AA filter
-			distortedL = m_tubeFilterAA_L.processf(distortedL);
-			distortedR = m_tubeFilterAA_R.processf(distortedR);
+				// Apply distortion AA filter
+				distortedL = m_tubeFilterAA_L.processf(distortedL);
+				distortedR = m_tubeFilterAA_R.processf(distortedR);
+			}
 			
 			// Mix results
 			sampleL = lerpf<float>(postL, distortedL, amount);
