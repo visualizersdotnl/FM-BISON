@@ -9,6 +9,7 @@ FM. BISON - A hybrid FM synthesis engine.
 - Currently there are 2 dependencies on JUCE 6.x (juce::dsp::Oversampling, juce::SmoothedValue)
 - Not a lot of optimization has been done; it is reasonably fast, but since we are in R&D flexibility is more important
 - All third-party code and resources (well, almost) we've used is credited on top of FM_BISON.h!
+- Our internal R&D plug-in (which is pretty sweet and feature-complete) is available on request
 
 # FOLDER GUIDE
 
