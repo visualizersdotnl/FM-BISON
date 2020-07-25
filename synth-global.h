@@ -294,8 +294,8 @@ namespace SFM
 	constexpr float kDefWahHold          =   0.4f; // 400MS
 
 	constexpr float kMinWahRate          =    0.f; // DX7 rate (synth-DX7-LFO-table.h)
-	constexpr float kMaxWahRate          =   15.f; // 
-	constexpr float kDefWahRate          =   7.5f; //
+	constexpr float kMaxWahRate          =  100.f; // 
+	constexpr float kDefWahRate          =    8.f; //
 
 	constexpr float kMinWahDrivedB       =  -12.f; 
 	constexpr float kMaxWahDrivedB       =   12.f;
@@ -307,7 +307,12 @@ namespace SFM
 	// Size of main delay effect's line in seconds & drive (dB) range
 	// ----------------------------------------------------------------------------------------------
 
-	constexpr float kMainDelayInSec = 4.f; // Min. 15BPM
+	constexpr float kMainDelayInSec = 8.f; // Min. 7.5BPM
+
+	// Defined here because kMainDelayInSec dictates it
+
+	// FIXME: use to check if rate is in bounds in FM_BISON.cpp!
+	constexpr float kMinBPM = 60.f/kMainDelayInSec;
 
 	constexpr float kMinDelayDrivedB = -12.f;
 	constexpr float kMaxDelayDrivedB =  12.f;

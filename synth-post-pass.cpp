@@ -137,15 +137,14 @@ namespace SFM
 		SFM_ASSERT(tubeDrive >= kMinTubeDrive && tubeDrive <= kMaxTubeDrive);
 		SFM_ASSERT(antiAliasing >= 0.f && antiAliasing <= 1.f);
 		SFM_ASSERT(tubeOffset >= kMinTubeOffset && tubeOffset <= kMaxTubeOffset);
-
-		// Only adapt the BPM if it fits in the delay line (Ableton does this so why won't we?)
-		const bool useBPM = false == (rateBPM < 1.f/kMainDelayInSec);
-
-		// BPM sync. overrides
+		
+		// Delay is automatically overridden to it's manual setting if it doesn't fit in it's delay line
+		const bool useBPM = 0.f != rateBPM;
+		
+		// BPM sync. overrides (LFO is handled in FM_BISON.cpp)
 		const bool overrideSyncAW    = overideFlagsRateBPM & kFlagOverrideAW;
 		const bool overrideSyncCP    = overideFlagsRateBPM & kFlagOverrideCP;
 		const bool overrideSyncDelay = overideFlagsRateBPM & kFlagOverrideDelay;
-//		const bool overrideLFO       = overideFlagsRateBPM & kFlagOverrideLFO;
 
 		/* ----------------------------------------------------------------------------------------------------
 
@@ -317,8 +316,8 @@ namespace SFM
 		m_curTubeDrive.SetTarget(tubeDrive);
 		m_curTubeOffset.SetTarget(tubeOffset);
 
-		// Anti-aliasing filter: half-band LPF for distortion
-		const double tubeCutFc = m_sampleRate / double(m_sampleRate4X);
+		// Anti-aliasing filter: LPF for distortion
+		const double tubeCutFc = m_sampleRate*0.5 /* Nyquist sounds better! */ / double(m_sampleRate4X);
 		m_tubeFilterAA_L.setBiquad(bq_type_lowpass, tubeCutFc, kDefGainAtCutoff, 0.0);
 		m_tubeFilterAA_R.setBiquad(bq_type_lowpass, tubeCutFc, kDefGainAtCutoff, 0.0);
 
@@ -364,14 +363,18 @@ namespace SFM
 			const float postL = lerpf<float>(sampleL, filteredL, curPostWet);
 			const float postR = lerpf<float>(sampleR, filteredR, curPostWet);
 			
-			// Apply (cubic) distortion
+			// Apply (non-linear) distortion
 			const float amount = m_curTubeDist.Sample();
 			const float drive  = m_curTubeDrive.Sample();
 			const float offset = m_curTubeOffset.Sample();
 			
 			float distortedL = postL, distortedR = postR;
-			distortedL = ClassicCubicClip((offset+distortedL)*drive);
-			distortedR = ClassicCubicClip((offset+distortedR)*drive);
+
+//			distortedL = ClassicCubicClip((offset+distortedL)*drive);
+//			distortedR = ClassicCubicClip((offset+distortedR)*drive);
+			
+			distortedL = ZoelzerClip(offset+(distortedL*drive)); // Simply sounds good
+			distortedR = ZoelzerClip(offset+(distortedR*drive)); //
 			
 			// Remove possible DC offset
 			m_tubeDCBlocker.Apply(distortedL, distortedR);

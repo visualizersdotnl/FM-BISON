@@ -49,7 +49,7 @@ namespace SFM
 
 		/*
 			IMPORTANT: call SetSamplingProperties() before Render()
-		*/	
+		*/
 	}
 
 	Bison::~Bison() 
@@ -1773,7 +1773,7 @@ namespace SFM
 		}
 
 		// Calculate current BPM freq.
-		// FIXME: move to SetBPM()
+		unsigned overrideDelayBit = 0;
 		if (true == m_patch.beatSync && 0.f != m_BPM)
 		{
 			const float ratio = m_patch.beatSyncRatio; // Note ratio
@@ -1782,6 +1782,10 @@ namespace SFM
 			const float BPM = float(m_BPM);
 			const float BPS = float(BPM)/60.f;    // Beats per sec.
 			m_freqBPM = BPS/ratio;                // Sync. freq.
+			
+			// If can't fit delay within it's line, revert to manual setting
+			if (false == (m_freqBPM < 1.f/kMainDelayInSec))
+				overrideDelayBit = kFlagOverrideDelay;
 		}
 		else
 			// None: interpret this as a cue to use user controlled rate(s)
@@ -1790,8 +1794,8 @@ namespace SFM
 		// Calculate LFO freq.
 		float freqLFO = 0.f;
 
-//		const bool overrideLFO = overideFlagsRateBPM & kFlagOverrideLFO;
-		if (false == m_patch.beatSync || m_freqBPM == 0.f || m_patch.syncOverride & kFlagOverrideLFO)
+		const bool overrideLFO = m_patch.syncOverride & kFlagOverrideLFO;
+		if (false == m_patch.beatSync || m_freqBPM == 0.f || true == overrideLFO)
 		{
 			// Set LFO speed in (DX7) range
 			freqLFO = MIDI_To_DX7_LFO_Hz(m_patch.LFORate);
@@ -2016,7 +2020,7 @@ namespace SFM
 		// Apply post-processing (FIXME: pass structure?)
 		m_postPass->Apply(numSamples,
 			/* BPM sync. */
-			m_freqBPM, m_patch.syncOverride,
+			m_freqBPM, m_patch.syncOverride | overrideDelayBit,
 			/* Auto-wah (FIXME: use more ParameterSlew if necessary) */
 			m_patch.wahResonance,
 			m_patch.wahAttack,
