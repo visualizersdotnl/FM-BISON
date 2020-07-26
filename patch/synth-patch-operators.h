@@ -59,11 +59,13 @@ namespace SFM
 				kLowpassFilter,
 				kHighpassFilter,
 				kBandpassFilter,
+				kPeakFilter,
 				kNumFilters
 			} filterType;
 
-			float cutoff;
-			float resonance;
+			float peakdB; // [kMinOpPeakdB..kMaxOpPeakdB]
+			float cutoff;    // Or 'frequency' (FIXME)
+			float resonance; // Or 'bandwidth' (FIXME)
 
 			// Cutoff keytracking (higher key(s) means higher or lower cutoff frequency)
 			float cutoffKeyTrack; // [-1..1]
@@ -141,6 +143,7 @@ namespace SFM
 				
 				// No filter
 				patchOp.filterType = Operator::kNoFilter;
+				patchOp.peakdB = kDefOpFilterPeakdB;
 				patchOp.cutoff = kDefMainFilterCutoff;
 				patchOp.resonance = kDefMainFilterResonance;
 				patchOp.cutoffKeyTrack = 0.f; // No filter key tracking (or 'TRACK', if you will)

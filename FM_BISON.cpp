@@ -755,6 +755,12 @@ namespace SFM
 		case PatchOperators::Operator::kBandpassFilter:
 			filter.updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, sampleRate);
 			break;
+
+		case PatchOperators::Operator::kPeakFilter:
+			SFM_ASSERT(patchOp.peakdB >= kMinOpFilterPeakdB && patchOp.peakdB <= kMaxOpFilterPeakdB);
+			filter.setGain(patchOp.peakdB);
+			filter.updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), Q, SvfLinearTrapOptimised2::BELL_FILTER, sampleRate);
+			break;
 		}
 		
 		switch (patchOp.waveform)

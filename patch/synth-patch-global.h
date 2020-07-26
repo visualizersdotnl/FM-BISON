@@ -167,8 +167,8 @@ namespace SFM
 			kNumFilters
 		} filterType;
 
-		float cutoff;
-		float resonance;
+		float cutoff;         // Or 'frequency' (FIXME)
+		float resonance;      // Or 'bandwidth' (FIXME)
 		float resonanceLimit;
 		
 		// PostPass 24dB MOOG-style ladder filter
