@@ -717,6 +717,7 @@ namespace SFM
 		// Calculate Q
 		const float normQ = patchOp.resonance;
 		const float Q = SVF_ResoToQ(normQ);
+		const float invQ = SVF_ResoToQ(1.f-normQ); // For bandwidth Q of zero is (usually) widest, so it makes sense to flip the control
 		
 		// Calculate keytracking (only for LPF & HPF)
 		float tracking = -1.f, cutoffNormFrom = -1.f, cutoffNormTo = -1.f;
@@ -753,13 +754,13 @@ namespace SFM
 			break;
 
 		case PatchOperators::Operator::kBandpassFilter:
-			filter.updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), Q, SvfLinearTrapOptimised2::BAND_PASS_FILTER, sampleRate);
+			filter.updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), invQ, SvfLinearTrapOptimised2::BAND_PASS_FILTER, sampleRate);
 			break;
 
 		case PatchOperators::Operator::kPeakFilter:
 			SFM_ASSERT(patchOp.peakdB >= kMinOpFilterPeakdB && patchOp.peakdB <= kMaxOpFilterPeakdB);
 			filter.setGain(patchOp.peakdB);
-			filter.updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), Q, SvfLinearTrapOptimised2::BELL_FILTER, sampleRate);
+			filter.updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), invQ, SvfLinearTrapOptimised2::BELL_FILTER, sampleRate);
 			break;
 		}
 		
@@ -1848,13 +1849,12 @@ namespace SFM
 		// Using smoothstepf() to add a little curvature, chiefly intended to appease basic MIDI controls
 		const float cutoff = SVF_CutoffToHz(smoothstepf(normCutoff), m_Nyquist);
 		m_curCutoff.SetTarget(cutoff);
-
-		const float Q = SVF_ResoToQ(smoothstepf(resonance*m_patch.resonanceLimit));
-		m_curQ.SetTarget(Q);
 		
 		// Set filter type & parameters
-		bool secondFilterPass = false;                           // Second pass
-		float secondQOffs = 0.f;                                 // Q offset for second stage
+		float normQ = resonance;
+
+		bool secondFilterPass  = false;                          // Second pass
+		float secondQOffs      = 0.f;                            // Q offset for second stage
 		const float fullCutoff = SVF_CutoffToHz(1.f, m_Nyquist); // Full cutoff used to apply DCF
 
 		switch (m_patch.filterType)
@@ -1877,9 +1877,14 @@ namespace SFM
 			break;
 
 		case Patch::kBandpassFilter:
+			normQ = 1.f-resonance; // Open is wider makes more sense (to me, at least)
 			filterType1 = SvfLinearTrapOptimised2::BAND_PASS_FILTER;
 			break;
 		}
+		
+		// Calc. correct Q
+		const float Q = SVF_ResoToQ(smoothstepf(normQ*m_patch.resonanceLimit));
+		m_curQ.SetTarget(Q);
 
 		// Switched filter type?
 		const bool resetFilter = m_curFilterType != filterType1;

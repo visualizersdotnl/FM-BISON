@@ -137,7 +137,7 @@ namespace SFM
 	// Helper function ResoToQ() scales to range automatically
 	constexpr float kSVFLowestFilterQ = 0.025f; // Use carefully, a Q has shown to cause instability (filter slowly 'blowing up')
 	constexpr float kSVFMinFilterQ    = 0.5f;   // See https://www.earlevel.com/main/2003/03/02/the-digital-state-variable-filter/
-	constexpr float kSVFMaxFilterQ    = 14.f;   // Actual max. is 40.f
+	constexpr float kSVFMaxFilterQ    = 40.f;   // Actual max. is 40.f
 	constexpr float kSVFFilterQRange  = kSVFMaxFilterQ-kSVFMinFilterQ;
 
 	constexpr float kMinFilterCutoff      =  0.f; // Normalized min. filter cutoff; range is simply [0..1] (use SVF_CutoffToHz())
@@ -148,7 +148,7 @@ namespace SFM
 	constexpr float kMainCutoffAftertouchRange = 0.66f; // Limits aftertouch cutoff to avoid that low range of the cutoff that's not allowed (SVF, < 16.0), which may cause filter instability
 	constexpr float kDefMainFilterResonance    =   0.f; // Filter's default normalized resonance
 	
-	// Normalized resonance range can be limited for "knob feel" of the main voice filter
+	// Normalized resonance range can be limited of the main voice filter
 	constexpr float kDefMainFilterResonanceLimit = 1.f;
 
 	// Reverb default lowpass & highpass (normalized)
