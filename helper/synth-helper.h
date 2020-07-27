@@ -181,13 +181,14 @@ namespace SFM
 	}
 
 	// Normalized resonance [0..1] to Q
-	SFM_INLINE static float SVF_ResoToQ(float resonance)
+	SFM_INLINE static float SVF_ResoToQ(float resonance, float minimum = kSVFMinFilterQ)
 	{
 		// Allowed: [0.025..40.0]
 		// Default: 0.5
 		SFM_ASSERT(resonance >= 0.f && resonance <= 1.f);
+		SFM_ASSERT(minimum >= 0.f);
 
-		const float Q = kSVFMinFilterQ + resonance*kSVFFilterQRange;
+		const float Q = minimum + resonance*(kSVFMaxFilterQ-minimum);
 		SFM_ASSERT(Q <= 40.f);
 		return Q;
 	}

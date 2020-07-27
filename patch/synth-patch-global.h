@@ -164,6 +164,7 @@ namespace SFM
 			kLowpassFilter,
 			kHighpassFilter,
 			kBandpassFilter,
+			kNotchFilter,
 			kNumFilters
 		} filterType;
 

@@ -129,9 +129,9 @@ namespace SFM
 	// ----------------------------------------------------------------------------------------------
 
 	// Per operator filter peak dB range
-	constexpr float kMinOpFilterPeakdB = -32.f;
-	constexpr float kMaxOpFilterPeakdB =  32.f;
-	constexpr float kDefOpFilterPeakdB =   0.f;
+	constexpr float kMinOpFilterPeakdB =  -96.f; // kMinVolumedB
+	constexpr float kMaxOpFilterPeakdB =   32.f;
+	constexpr float kDefOpFilterPeakdB =    6.f;
 
 	// Main (SVF) filter Q range (not to be confused with normalized resonance, max. must be <= 40.f, the impl. says)
 	// Helper function ResoToQ() scales to range automatically

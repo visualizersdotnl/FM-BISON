@@ -1857,11 +1857,13 @@ namespace SFM
 		float secondQOffs      = 0.f;                            // Q offset for second stage
 		const float fullCutoff = SVF_CutoffToHz(1.f, m_Nyquist); // Full cutoff used to apply DCF
 
+		float Q;
 		switch (m_patch.filterType)
 		{
 		default:
 		case Patch::kNoFilter:
 			filterType1 = SvfLinearTrapOptimised2::NO_FLT_TYPE;
+			Q = SVF_ResoToQ(normQ*m_patch.resonanceLimit);
 			break;
 
 		case Patch::kLowpassFilter:
@@ -1870,20 +1872,26 @@ namespace SFM
 			secondQOffs = 0.1f;
 			filterType1 = SvfLinearTrapOptimised2::LOW_PASS_FILTER;
 			filterType2 = SvfLinearTrapOptimised2::LOW_PASS_FILTER;
+			Q = SVF_ResoToQ(normQ*m_patch.resonanceLimit);
 			break;
 
 		case Patch::kHighpassFilter:
 			filterType1 = SvfLinearTrapOptimised2::HIGH_PASS_FILTER;
+			Q = SVF_ResoToQ(normQ*m_patch.resonanceLimit);
 			break;
 
 		case Patch::kBandpassFilter:
-			normQ = 1.f-resonance; // Open is wider makes more sense (to me, at least)
 			filterType1 = SvfLinearTrapOptimised2::BAND_PASS_FILTER;
+			Q = SVF_ResoToQ(normQ); // Lifts
+			break;
+
+		case Patch::kNotchFilter:
+			filterType1 = SvfLinearTrapOptimised2::NOTCH_FILTER;
+			Q = SVF_ResoToQ(1.f-normQ); // Dents
 			break;
 		}
 		
-		// Calc. correct Q
-		const float Q = SVF_ResoToQ(smoothstepf(normQ*m_patch.resonanceLimit));
+		// Set correct Q
 		m_curQ.SetTarget(Q);
 
 		// Switched filter type?
