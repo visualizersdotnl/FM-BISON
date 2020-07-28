@@ -435,60 +435,35 @@ namespace SFM
 		// Set master volume target
 		m_curMasterVol.SetTarget(dBToGain(masterVoldB));
 
-		// Since the EQs certainly won't be used all the time I'll opt for a cheaper loop if that's the case
-		if (0.f == bassTuning && 0.f == trebleTuning)
+		// Interpolating the tuning amounts can be a costly affair as I'd have to recalculate the Biquad's coefficients for each sample (FIXME?)
+		const float bassTuningdB = bassTuning*kTuningRangedB;
+		const float bassTuningFc = 250.f/m_sampleRate;
+		m_bassShelf.setBiquad(bq_type_lowshelf, bassTuningFc, 0.0, bassTuningdB);
+
+		const float trebleTuningdB = trebleTuning*kTuningRangedB; 
+		const float trebleTuningFc = 4000.f/m_sampleRate;
+		m_trebleShelf.setBiquad(bq_type_highshelf, trebleTuningFc, 0.0, trebleTuningdB);
+
+		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
-			for (unsigned iSample = 0; iSample < numSamples; ++iSample)
-			{
-				float sampleL = m_pBufL[iSample];
-				float sampleR = m_pBufR[iSample];
+			float sampleL = m_pBufL[iSample];
+			float sampleR = m_pBufR[iSample];
 
-				// - Low cut -
-				m_postLowCut.Apply(sampleL, sampleR);
+			// - Low cut -
+			m_postLowCut.Apply(sampleL, sampleR);
+
+			// - Tuning -
+			m_bassShelf.processfs(sampleL, sampleR);
+			m_trebleShelf.processfs(sampleL, sampleR);
 			
-				// - Master volume - 
-				const float gain = m_curMasterVol.Sample();
-				sampleL *= gain;
-				sampleR *= gain;
+			// - Master volume - 
+			const float gain = m_curMasterVol.Sample();
+			sampleL *= gain;
+			sampleR *= gain;
 			
-				// Clamp(): we won't assume anything about the host's take on output outside [-1..1]
-				pLeftOut[iSample]  = Clamp(sampleL);
-				pRightOut[iSample] = Clamp(sampleR);
-			}
-		}
-		else
-		{
-			// Interpolating the tuning amounts can be a costly affair as I'd have to recalculate the Biquad's coefficients for each sample (FIXME?)
-
-			const float bassTuningdB = bassTuning*kTuningRangedB;
-			const float bassTuningFc = 250.f/m_sampleRate;
-			m_bassShelf.setBiquad(bq_type_lowshelf, bassTuningFc, 0.0, bassTuningdB);
-
-			const float trebleTuningdB = trebleTuning*kTuningRangedB; 
-			const float trebleTuningFc = 4000.f/m_sampleRate;
-			m_trebleShelf.setBiquad(bq_type_highshelf, trebleTuningFc, 0.0, trebleTuningdB);
-
-			for (unsigned iSample = 0; iSample < numSamples; ++iSample)
-			{
-				float sampleL = m_pBufL[iSample];
-				float sampleR = m_pBufR[iSample];
-
-				// - Low cut -
-				m_postLowCut.Apply(sampleL, sampleR);
-
-				// - Tuning -
-				m_bassShelf.processfs(sampleL, sampleR);
-				m_trebleShelf.processfs(sampleL, sampleR);
-			
-				// - Master volume - 
-				const float gain = m_curMasterVol.Sample();
-				sampleL *= gain;
-				sampleR *= gain;
-			
-				// Clamp(): we won't assume anything about the host's take on output outside [-1..1]
-				pLeftOut[iSample]  = Clamp(sampleL);
-				pRightOut[iSample] = Clamp(sampleR);
-			}
+			// Clamp(): we won't assume anything about the host's take on output outside [-1..1]
+			pLeftOut[iSample]  = Clamp(sampleL);
+			pRightOut[iSample] = Clamp(sampleR);
 		}
 
 #if !defined(SFM_DISABLE_FX)

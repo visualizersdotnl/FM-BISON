@@ -73,6 +73,8 @@ namespace SFM
 		SFM_INLINE float Sample()
 		{
 			const float result = m_value.getNextValue();
+			
+			// FIXME: I once or twice (can't reproduce) encountered SmoothedValue overshooting
 //			const float target = m_value.getTargetValue();
 
 			return result;
