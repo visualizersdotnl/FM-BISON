@@ -89,7 +89,7 @@ namespace SFM
 		
 		// CP wetness & master volume
 ,		m_curEffectWet(0.f, sampleRate, kDefParameterLatency)
-,		m_curMasterVoldB(kDefVolumedB, sampleRate, kDefParameterLatency)
+,		m_curMasterVol(1.f, sampleRate, kDefParameterLatency)
 	{
 		// Allocate intermediate buffers
 		m_pBufL  = reinterpret_cast<float *>(mallocAligned(maxSamplesPerBlock*sizeof(float), 16));
@@ -433,7 +433,7 @@ namespace SFM
 		 ------------------------------------------------------------------------------------------------------ */
 
 		// Set master volume target
-		m_curMasterVoldB.SetTarget(masterVoldB);
+		m_curMasterVol.SetTarget(dBToGain(masterVoldB));
 
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
@@ -442,11 +442,12 @@ namespace SFM
 
 			m_postLowCut.Apply(sampleL, sampleR);
 
-			const float gain = dB2Lin(m_curMasterVoldB.Sample());
+			const float gain = m_curMasterVol.Sample();
 			sampleL *= gain;
 			sampleR *= gain;
-
+			
 			// Clamp(): we won't assume anything about the host's take on output outside [-1..1]
+			// I've done stuff like snapping to zero but that was because of a MIDI-related oddity I was seeing in Reaper
 			pLeftOut[iSample]  = Clamp(sampleL);
 			pRightOut[iSample] = Clamp(sampleR);
 		}

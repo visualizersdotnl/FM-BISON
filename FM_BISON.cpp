@@ -196,7 +196,7 @@ namespace SFM
 		m_reverbLP_PS           = { sampleRatePS };
 		m_reverbPreDelayPS      = { sampleRatePS, 100.f /* 100MS */ };
 		m_compLookaheadPS       = { sampleRatePS, 100.f /* 100MS */ };
-		m_masterVoldBPS         = { sampleRatePS, 100.f /* 100MS */ };
+		m_masterVoldBPS         = { sampleRatePS };
 
 		m_effectWetPS.Reset(m_patch.cpWet);
 		m_effectRatePS.Reset(m_patch.cpRate);

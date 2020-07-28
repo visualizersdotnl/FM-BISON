@@ -42,7 +42,7 @@
 #endif
 
 // Set to 1 to let FM. BISON handle denormals
-#define SFM_KILL_DENORMALS 0
+#define SFM_KILL_DENORMALS 1
 
 // Define to disable all FX (including per-voice filter)
 // #define SFM_DISABLE_FX
@@ -149,7 +149,7 @@ namespace SFM
 	constexpr float kDefMainFilterResonance    =   0.f; // Filter's default normalized resonance
 	
 	// Normalized resonance range can be limited of the main voice filter
-	constexpr float kDefMainFilterResonanceLimit = 1.f;
+	constexpr float kDefMainFilterResonanceLimit = 0.33f;
 
 	// Reverb default lowpass & highpass (normalized)
 	constexpr float kDefReverbFilter = 1.f;
