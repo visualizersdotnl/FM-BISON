@@ -56,8 +56,8 @@ namespace SFM
 			enum FilterType
 			{
 				kNoFilter,
-				kLowpassFilter,
-				kHighpassFilter,
+				kLowpassFilter,  // Keytracking
+				kHighpassFilter, //
 				kBandpassFilter,
 				kPeakFilter,
 				kNumFilters

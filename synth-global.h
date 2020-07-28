@@ -125,13 +125,20 @@ namespace SFM
 	constexpr float kMaxDetuneJitter = 1.f; // 100th of a note
 
 	// ----------------------------------------------------------------------------------------------
+	// Tuning range (no more no less; just to derive Hz and dB from)
+	// ----------------------------------------------------------------------------------------------
+
+	constexpr float kMinTuning = -10.f;
+	constexpr float kMaxTuning =  10.f;
+
+	// ----------------------------------------------------------------------------------------------
 	// Filter
 	// ----------------------------------------------------------------------------------------------
 
 	// Per operator filter peak dB range
-	constexpr float kMinOpFilterPeakdB =  -96.f; // kMinVolumedB
-	constexpr float kMaxOpFilterPeakdB =   32.f;
-	constexpr float kDefOpFilterPeakdB =    6.f;
+	constexpr float kMinOpFilterPeakdB =  -24.f;
+	constexpr float kMaxOpFilterPeakdB =   12.f;
+	constexpr float kDefOpFilterPeakdB =   -3.f;
 
 	// Main (SVF) filter Q range (not to be confused with normalized resonance, max. must be <= 40.f, the impl. says)
 	// Helper function ResoToQ() scales to range automatically
@@ -179,10 +186,10 @@ namespace SFM
 	constexpr float kMaxTubeOffset =  0.1f;
 
 	// ----------------------------------------------------------------------------------------------
-	// Anti-aliasing (during oversampled stage, 0.f is host Nyquist, 1.f is host sample rate)
+	// Anti-aliasing (basically just a modest LPF) (during oversampled stage)
 	// ----------------------------------------------------------------------------------------------
 
-	constexpr float kDefAntiAliasing = 0.161803398875f; // Golden ratio * 0.1
+	constexpr float kDefAntiAliasing = 0.f;
 
 	// ----------------------------------------------------------------------------------------------
 	// Envelope

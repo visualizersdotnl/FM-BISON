@@ -381,6 +381,7 @@ namespace SFM
 		ParameterSlew m_reverbPreDelayPS;
 		ParameterSlew m_compLookaheadPS;
 		ParameterSlew m_masterVoldBPS;
+		ParameterSlew m_bassTuningPS, m_trebleTuningPS;
 
 		// Per-sample interpolated global parameters
 		InterpolatedParameter<kLinInterpolate> m_curLFOBlend;

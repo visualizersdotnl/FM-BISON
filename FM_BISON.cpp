@@ -197,6 +197,8 @@ namespace SFM
 		m_reverbPreDelayPS      = { sampleRatePS, 100.f /* 100MS */ };
 		m_compLookaheadPS       = { sampleRatePS, 100.f /* 100MS */ };
 		m_masterVoldBPS         = { sampleRatePS };
+		m_bassTuningPS          = { sampleRatePS };
+		m_trebleTuningPS        = { sampleRatePS };
 
 		m_effectWetPS.Reset(m_patch.cpWet);
 		m_effectRatePS.Reset(m_patch.cpRate);
@@ -229,6 +231,8 @@ namespace SFM
 		m_reverbPreDelayPS.Reset(m_patch.reverbPreDelay);
 		m_compLookaheadPS.Reset(0.f);
 		m_masterVoldBPS.Reset(m_patch.masterVoldB);
+		m_bassTuningPS.Reset(m_patch.bassTuning);
+		m_trebleTuningPS.Reset(m_patch.trebleTuning);
 
 		// Local
 		m_bendWheelPS  = { sampleRatePS };
@@ -713,11 +717,8 @@ namespace SFM
 
 		filter.resetState();
 		modFilter.resetState();
-
-		// Calculate Q
+		
 		const float normQ = patchOp.resonance;
-		const float Q = SVF_ResoToQ(normQ);
-		const float invQ = SVF_ResoToQ(1.f-normQ); // For bandwidth Q of zero is (usually) widest, so it makes sense to flip the control
 		
 		// Calculate keytracking (only for LPF & HPF)
 		float tracking = -1.f, cutoffNormFrom = -1.f, cutoffNormTo = -1.f;
@@ -745,22 +746,22 @@ namespace SFM
 
 		case PatchOperators::Operator::kLowpassFilter:
 			cutoffNorm = lerpf<float>(cutoffNormFrom, cutoffNormTo, tracking); // Keytrack
-			filter.updateLowpassCoeff(SVF_CutoffToHz(cutoffNorm, Nyquist), Q, sampleRate);
+			filter.updateLowpassCoeff(SVF_CutoffToHz(cutoffNorm, Nyquist), SVF_ResoToQ(normQ), sampleRate);
 			break;
 
 		case PatchOperators::Operator::kHighpassFilter:
 			cutoffNorm = lerpf<float>(cutoffNormFrom, 1.f-cutoffNormTo, tracking); // Keytrack
-			filter.updateHighpassCoeff(SVF_CutoffToHz(cutoffNorm, Nyquist), Q, sampleRate);
+			filter.updateHighpassCoeff(SVF_CutoffToHz(cutoffNorm, Nyquist), SVF_ResoToQ(normQ), sampleRate);
 			break;
 
 		case PatchOperators::Operator::kBandpassFilter:
-			filter.updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), invQ, SvfLinearTrapOptimised2::BAND_PASS_FILTER, sampleRate);
+			filter.updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), SVF_ResoToQ(0.25f*normQ), SvfLinearTrapOptimised2::BAND_PASS_FILTER, sampleRate);
 			break;
 
 		case PatchOperators::Operator::kPeakFilter:
 			SFM_ASSERT(patchOp.peakdB >= kMinOpFilterPeakdB && patchOp.peakdB <= kMaxOpFilterPeakdB);
 			filter.setGain(patchOp.peakdB);
-			filter.updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), invQ, SvfLinearTrapOptimised2::BELL_FILTER, sampleRate);
+			filter.updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), SVF_ResoToQ(0.25f - 0.25f*normQ), SvfLinearTrapOptimised2::BELL_FILTER, sampleRate);
 			break;
 		}
 		
@@ -1882,12 +1883,12 @@ namespace SFM
 
 		case Patch::kBandpassFilter:
 			filterType1 = SvfLinearTrapOptimised2::BAND_PASS_FILTER;
-			Q = SVF_ResoToQ(normQ); // Lifts
+			Q = SVF_ResoToQ(0.25f*normQ); // Lifts
 			break;
 
 		case Patch::kNotchFilter:
 			filterType1 = SvfLinearTrapOptimised2::NOTCH_FILTER;
-			Q = SVF_ResoToQ(1.f-normQ); // Dents
+			Q = SVF_ResoToQ(0.25f - 0.25f*normQ); // Dents
 			break;
 		}
 		
@@ -2092,6 +2093,9 @@ namespace SFM
 			m_compLookaheadPS.Apply(m_patch.compLookahead),
 			m_patch.compAutoGain,
 			m_patch.compRMSToPeak,
+			/* Tuning */
+			m_bassTuningPS.Apply(m_patch.bassTuning),
+			m_trebleTuningPS.Apply(m_patch.trebleTuning),
 			/* Master volume */
 			m_masterVoldBPS.Apply(m_patch.masterVoldB),
 			/* Buffers */

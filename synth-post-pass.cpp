@@ -13,7 +13,7 @@
 	- Anti-aliasing filter        - 4X oversampling
 	- Reverb
 	- Compressor
-	- Master volume, DC blocker & final clamp
+	- Low cut, tuning, master volume & final clamp
 
 	This grew into a huge class; that was of course not the intention but so far it's functional and quite well
 	documented so right now (01/07/2020) I see no reason to chop it up
@@ -41,6 +41,9 @@ namespace SFM
 	
 	// The compressor's 'bite' is filtered so it can be used as a GUI indicator; the higher this value the brighter it comes up and quicker it fades
 	constexpr float kCompressorBiteCutHz = 480.f;
+
+	// Tuning range in tenth of dB
+	constexpr float kTuningRangedB = 0.9f; // 9dB
 
 	PostPass::PostPass(unsigned sampleRate, unsigned maxSamplesPerBlock, unsigned Nyquist) :
 		m_sampleRate(sampleRate), m_Nyquist(Nyquist), m_sampleRate4X(sampleRate*4)
@@ -115,7 +118,7 @@ namespace SFM
 						 float antiAliasing,
 	                     float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
 	                     float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead, bool compAutoGain, float compRMSToPeak,
-	                     float masterVoldB,
+	                     float bassTuning, float trebleTuning, float masterVoldB,
 	                     const float *pLeftIn, const float *pRightIn, float *pLeftOut, float *pRightOut)
 	{
 		// Other parameters should be checked in functions they're passed to; however, this list can be incomplete; when
@@ -161,7 +164,7 @@ namespace SFM
 
 		/* ----------------------------------------------------------------------------------------------------
 
-			Auto-wah
+			Auto-wah w/'Vox'
 
 		 ------------------------------------------------------------------------------------------------------ */
 
@@ -316,13 +319,13 @@ namespace SFM
 		m_curTubeDrive.SetTarget(tubeDrive);
 		m_curTubeOffset.SetTarget(tubeOffset);
 
-		// Anti-aliasing filter: LPF for distortion
-		const double tubeCutFc = m_sampleRate*0.5 /* Nyquist sounds better! */ / double(m_sampleRate4X);
+		// Anti-aliasing filter: LPF for distortion (takes the edge off)
+		const double tubeCutFc = m_Nyquist / double(m_sampleRate4X);
 		m_tubeFilterAA_L.setBiquad(bq_type_lowpass, tubeCutFc, kDefGainAtCutoff, 0.0);
 		m_tubeFilterAA_R.setBiquad(bq_type_lowpass, tubeCutFc, kDefGainAtCutoff, 0.0);
 
-		// Anti-aliasing filter: either cuts at half-band or falls off slowly towards it
-		const double antiAliasingCutHz = lerpf<double>(m_sampleRate, m_Nyquist*0.5, antiAliasing);
+		// Anti-aliasing filter: very slight to a bit steeper cut of frequencies around (host) Nyquist
+		const double antiAliasingCutHz = lerpf<double>(m_Nyquist, m_Nyquist*0.5, antiAliasing);
 		const double antiAliasingCutFc = antiAliasingCutHz / m_sampleRate4X;
 		m_finalFilterAA_L.setBiquad(bq_type_lowpass, antiAliasingCutFc, kDefGainAtCutoff, 0.0);
 		m_finalFilterAA_R.setBiquad(bq_type_lowpass, antiAliasingCutFc, kDefGainAtCutoff, 0.0);
@@ -428,9 +431,15 @@ namespace SFM
 
 		/* ----------------------------------------------------------------------------------------------------
 
-			Final pass: blocker(s), master volume, safety clamp
+			Final pass: Low cut, tuning, master volume, clamp
 
 		 ------------------------------------------------------------------------------------------------------ */
+		
+		// FIXME: use interpolation & implement treble!
+		const float bassTuningdB = bassTuning*kTuningRangedB;
+		const float bassTuningFc = 200.f/m_sampleRate;
+		m_bassShelf_L.setBiquad(bq_type_lowshelf, bassTuningFc, 0.0, bassTuningdB);
+		m_bassShelf_R.setBiquad(bq_type_lowshelf, bassTuningFc, 0.0, bassTuningdB);
 
 		// Set master volume target
 		m_curMasterVol.SetTarget(dBToGain(masterVoldB));
@@ -440,14 +449,19 @@ namespace SFM
 			float sampleL = m_pBufL[iSample];
 			float sampleR = m_pBufR[iSample];
 
+			// - Low cut -
 			m_postLowCut.Apply(sampleL, sampleR);
 
+			// - Tuning -
+			sampleL = m_bassShelf_L.processf(sampleL);
+			sampleR = m_bassShelf_R.processf(sampleR);
+			
+			// - Master volume - 
 			const float gain = m_curMasterVol.Sample();
 			sampleL *= gain;
 			sampleR *= gain;
 			
 			// Clamp(): we won't assume anything about the host's take on output outside [-1..1]
-			// I've done stuff like snapping to zero but that was because of a MIDI-related oddity I was seeing in Reaper
 			pLeftOut[iSample]  = Clamp(sampleL);
 			pRightOut[iSample] = Clamp(sampleR);
 		}

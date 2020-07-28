@@ -50,7 +50,7 @@ namespace SFM
 				   float antiAliasing,
 		           float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
 		           float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead, bool compAutoGain, float compRMSToPeak,
-		           float masterVol,
+				   float bassTuning, float trebleTuning, float masterVol,
 		           const float *pLeftIn, const float *pRightIn, float *pLeftOut, float *pRightOut);
 
 		// Intended for a graphical indicator
@@ -88,6 +88,12 @@ namespace SFM
 		// Intermediate buffers
 		float *m_pBufL = nullptr;
 		float *m_pBufR = nullptr;
+
+		// Booster(s)
+		Biquad m_bassShelf_L, m_bassShelf_R;
+//		Biquad m_trebleShelf_L, m_trebleShelf_R;
+//		InterpolatedParameter<kLinInterpolate> m_curBassTuning;
+//		InterpolatedParameter<kLinInterpolate> m_curTrebleTuning;
 
 		// Delay lines & delay's interpolated parameters
 		DelayLine m_delayLineL;

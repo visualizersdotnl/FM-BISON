@@ -222,6 +222,10 @@ namespace SFM
 		// BPM sync. override flags
 		unsigned syncOverride;
 
+		// BASS + TREBLE tuning
+		float bassTuning;   // [kMinTuning..kMaxTuning]
+		float trebleTuning; //
+
 		void ResetToEngineDefaults()
 		{
 			// Reset patch
@@ -368,6 +372,10 @@ namespace SFM
 
 			// No BPM override
 			syncOverride = 0;
+
+			// No tuning
+			bassTuning = 0.f;
+			trebleTuning = 0.f;
 		}
 	};
 }

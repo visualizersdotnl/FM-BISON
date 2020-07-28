@@ -16,7 +16,9 @@
 // - Misc. modifications, fixes & optimizations
 // - Useful: https://www.earlevel.com/main/2013/10/13/biquad-calculator-v2/
 //
-// FIXME: stereo support!
+// FIXME: 
+// - Stereo support
+// - Just convert to single precision?
 //
 // I can't say I'm a big fan of how most DSP code is written but I'll try to keep it as-is.
 //
@@ -83,12 +85,12 @@ public:
 
 	void setBiquad(int type, double Fc, double Q, double peakGaindB);
 
-	double process(double in);
-	float  processf(float in);
+	SFM_INLINE double process(double in);
+	SFM_INLINE float  processf(float in);
     
 protected:
-	void calcBiquad(void);
-	void calcBiquadHPF(void);
+	SFM_INLINE void calcBiquad(void);
+	SFM_INLINE void calcBiquadHPF(void);
 
 	int m_type;
 	double m_Fc, m_Q, m_peakGain, m_FcK, m_peakGainV;
@@ -126,6 +128,7 @@ SFM_INLINE void Biquad::setBiquad(int type, double Fc, double Q, double peakGain
 		calcBiquad();
 }
 
+// FIXME: this was once useful, move it back into Biquad.cpp?
 SFM_INLINE void Biquad::calcBiquadHPF()
 {
 	SFM_ASSERT(bq_type_highpass == m_type);
