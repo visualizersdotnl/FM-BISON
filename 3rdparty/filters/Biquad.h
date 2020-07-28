@@ -13,12 +13,11 @@
 // - No external dependencies
 // - Added reset() function
 // - Added support for double precision samples
-// - Misc. modifications, fixes & optimizations
+// - Misc. modifications, fixes & optimizations (including a horrendous single precision impl.)
+// - Stereo support (single prec. only)
 // - Useful: https://www.earlevel.com/main/2013/10/13/biquad-calculator-v2/
 //
-// FIXME: 
-// - Stereo support
-// - Just convert to single precision?
+// FIXME: just convert entire class to single precision already?
 //
 // I can't say I'm a big fan of how most DSP code is written but I'll try to keep it as-is.
 //
@@ -70,7 +69,10 @@ public:
 	Biquad(int type, double Fc, double Q, double peakGainDB)
 	{
 		setBiquad(type, Fc, Q, peakGainDB);
-		z1 = z2 = 0.0;
+
+		z1 = z2 = 0.0;     // Double prec.
+		z1f = z2f = 0.f;   // Single prec.
+		z1fs = z2fs = 0.f; // Single prec. stereo (R)
 	}
 
 	~Biquad() {}
@@ -85,9 +87,10 @@ public:
 
 	void setBiquad(int type, double Fc, double Q, double peakGaindB);
 
-	SFM_INLINE double process(double in);
-	SFM_INLINE float  processf(float in);
-    
+	SFM_INLINE double process(double in);                        // Mono, double prec.
+	SFM_INLINE float  processf(float in);                        // Mono, single prec.
+	SFM_INLINE void   processfs(float &sampleL, float &sampleR); // Stereo, single prec.
+
 protected:
 	SFM_INLINE void calcBiquad(void);
 	SFM_INLINE void calcBiquadHPF(void);
@@ -97,20 +100,42 @@ protected:
 
 	double a0, a1, a2, b1, b2;
 	double z1, z2;
+
+	// This is the quickest and dirtiest way to add 100% single precision processing (omitting costly scalar conversion instructions)
+	float a0f, a1f, a2f, b1f, b2f;
+	float z1f, z2f;
+	float z1fs, z2fs; // Stereo (R)
 };
 
+// Double prec. monaural
 SFM_INLINE double Biquad::process(double in) {
-	double out = in * a0 + z1;
+	const double out = in * a0 + z1;
 	z1 = in * a1 + z2 - b1 * out;
 	z2 = in * a2 - b2 * out;
 	return out;
 }
 
-SFM_INLINE float Biquad::processf(float in) {
-	double out = in * a0 + z1;
-	z1 = in * a1 + z2 - b1 * out;
-	z2 = in * a2 - b2 * out;
-	return float(out);
+// Single prec. monaural
+SFM_INLINE float Biquad::processf(float in) { 
+	const float out = in * a0f + z1f;
+	z1f = in * a1f + z2f - b1f * out;
+	z2f = in * a2f - b2f * out;
+	return out;
+}
+
+// Single prec. stereo
+SFM_INLINE void Biquad::processfs(float &sampleL, float &sampleR) { 
+	const float outL = sampleL * a0f + z1f;
+	z1f = sampleL * a1f + z2f - b1f * outL;
+	z2f = sampleL * a2f - b2f * outL;
+	
+	// I could go the fancy route and call processf() twice, but why bother?
+	const float outR = sampleR * a0f + z1fs;
+	z1fs = sampleR * a1f + z2fs - b1f * outR;
+	z2fs = sampleR * a2f - b2f * outR;
+
+	sampleL = outL;
+	sampleR = outR;
 }
 
 SFM_INLINE void Biquad::setBiquad(int type, double Fc, double Q, double peakGaindB)

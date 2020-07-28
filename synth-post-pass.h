@@ -89,9 +89,8 @@ namespace SFM
 		float *m_pBufL = nullptr;
 		float *m_pBufR = nullptr;
 
-		// Booster(s)
-		Biquad m_bassShelf_L, m_bassShelf_R;
-//		Biquad m_trebleShelf_L, m_trebleShelf_R;
+		// Tuning
+		Biquad m_bassShelf, m_trebleShelf;
 //		InterpolatedParameter<kLinInterpolate> m_curBassTuning;
 //		InterpolatedParameter<kLinInterpolate> m_curTrebleTuning;
 
@@ -134,8 +133,8 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curTubeDrive;
 		InterpolatedParameter<kLinInterpolate> m_curTubeOffset;
 		StereoDCBlocker m_tubeDCBlocker;	
-		Biquad m_tubeFilterAA_L, m_tubeFilterAA_R;
-		Biquad m_finalFilterAA_L, m_finalFilterAA_R;
+		Biquad m_tubeFilterAA;
+		Biquad m_finalFilterAA;
 		
 		// Blocker(s)
 		StereoLowCut m_postLowCut;

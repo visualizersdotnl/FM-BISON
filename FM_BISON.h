@@ -37,7 +37,7 @@
 	- ADSR & Biquad filter by Nigel Redmon (http://www.earlevel.com)
 	- SvfLinearTrapOptimised2.hpp by Fred Anton Corvest (https://github.com/FredAntonCorvest/Common-DSP)
 	- MOOG-style ladder filter: https://github.com/ddiakopoulos/MoogLadders/blob/master/src/
-	- Butterworth 24dB filter found @ http://www.musicdsp.org
+	- Butterworth 24dB filter found @ http://www.musicdsp.org (currently not in use)
 	- Reverb based on FreeVerb by Volker Böhm
 	- TinyMT Mersenne-Twister random generator by Makoto Matsumoto and Mutsuo Saito 
 	- Yamaha DX7 LFO rates (synth-DX7-LFO-table.h) taken from Sean Bolton's Hexter

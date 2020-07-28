@@ -321,14 +321,12 @@ namespace SFM
 
 		// Anti-aliasing filter: LPF for distortion (takes the edge off)
 		const double tubeCutFc = m_Nyquist / double(m_sampleRate4X);
-		m_tubeFilterAA_L.setBiquad(bq_type_lowpass, tubeCutFc, kDefGainAtCutoff, 0.0);
-		m_tubeFilterAA_R.setBiquad(bq_type_lowpass, tubeCutFc, kDefGainAtCutoff, 0.0);
+		m_tubeFilterAA.setBiquad(bq_type_lowpass, tubeCutFc, kDefGainAtCutoff, 0.0);
 
 		// Anti-aliasing filter: very slight to a bit steeper cut of frequencies around (host) Nyquist
 		const double antiAliasingCutHz = lerpf<double>(m_Nyquist, m_Nyquist*0.5, antiAliasing);
 		const double antiAliasingCutFc = antiAliasingCutHz / m_sampleRate4X;
-		m_finalFilterAA_L.setBiquad(bq_type_lowpass, antiAliasingCutFc, kDefGainAtCutoff, 0.0);
-		m_finalFilterAA_R.setBiquad(bq_type_lowpass, antiAliasingCutFc, kDefGainAtCutoff, 0.0);
+		m_finalFilterAA.setBiquad(bq_type_lowpass, antiAliasingCutFc, kDefGainAtCutoff, 0.0);
 		
 		// Main buffers
 		float *inputBuffers[2] = { m_pBufL, m_pBufR };
@@ -348,8 +346,7 @@ namespace SFM
 			float sampleR = pOverR[iSample];
 
 			// Apply AA filter
-			sampleL = m_finalFilterAA_L.processf(sampleL);
-			sampleR = m_finalFilterAA_R.processf(sampleR);
+			m_finalFilterAA.processfs(sampleL, sampleR);
 
 			// Apply 24dB post filter
 			const float curPostCutoff = m_curPostCutoff.Sample();
@@ -374,18 +371,14 @@ namespace SFM
 			float distortedL = postL, distortedR = postR;
 			if (amount > 0.f) // Because I should optimize ZoelzerClip() (FIXME)
 			{
-//				distortedL = ClassicCubicClip((offset+distortedL)*drive);
-//				distortedR = ClassicCubicClip((offset+distortedR)*drive);
-			
-				distortedL = ZoelzerClip(offset+(distortedL*drive)); // Simply sounds good
+				distortedL = ZoelzerClip(offset+(distortedL*drive)); // Simply sounds better than ClassicCubicClip() 99% of the time
 				distortedR = ZoelzerClip(offset+(distortedR*drive)); //
 			
 				// Remove possible DC offset
 				m_tubeDCBlocker.Apply(distortedL, distortedR);
 
 				// Apply distortion AA filter
-				distortedL = m_tubeFilterAA_L.processf(distortedL);
-				distortedR = m_tubeFilterAA_R.processf(distortedR);
+				m_tubeFilterAA.processfs(distortedL, distortedR);
 			}
 			
 			// Mix results
@@ -433,37 +426,69 @@ namespace SFM
 
 			Final pass: Low cut, tuning, master volume, clamp
 
+			" Bass and Treble is a two-band Equalizer. The Bass control is a low-shelf filter with the half 
+			  gain frequency at 250 Hz. The Treble control is a high-shelf filter with the half gain frequency 
+			  at 4000 Hz. " (source: Audacity manual)
+
 		 ------------------------------------------------------------------------------------------------------ */
 		
-		// FIXME: use interpolation & implement treble!
-		const float bassTuningdB = bassTuning*kTuningRangedB;
-		const float bassTuningFc = 200.f/m_sampleRate;
-		m_bassShelf_L.setBiquad(bq_type_lowshelf, bassTuningFc, 0.0, bassTuningdB);
-		m_bassShelf_R.setBiquad(bq_type_lowshelf, bassTuningFc, 0.0, bassTuningdB);
-
 		// Set master volume target
 		m_curMasterVol.SetTarget(dBToGain(masterVoldB));
 
-		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
+		// Since the EQs certainly won't be used all the time I'll opt for a cheaper loop if that's the case
+		if (0.f == bassTuning && 0.f == trebleTuning)
 		{
-			float sampleL = m_pBufL[iSample];
-			float sampleR = m_pBufR[iSample];
+			for (unsigned iSample = 0; iSample < numSamples; ++iSample)
+			{
+				float sampleL = m_pBufL[iSample];
+				float sampleR = m_pBufR[iSample];
 
-			// - Low cut -
-			m_postLowCut.Apply(sampleL, sampleR);
+				// - Low cut -
+				m_postLowCut.Apply(sampleL, sampleR);
+			
+				// - Master volume - 
+				const float gain = m_curMasterVol.Sample();
+				sampleL *= gain;
+				sampleR *= gain;
+			
+				// Clamp(): we won't assume anything about the host's take on output outside [-1..1]
+				pLeftOut[iSample]  = Clamp(sampleL);
+				pRightOut[iSample] = Clamp(sampleR);
+			}
+		}
+		else
+		{
+			// Interpolating the tuning amounts can be a costly affair as I'd have to recalculate the Biquad's coefficients for each sample (FIXME?)
 
-			// - Tuning -
-			sampleL = m_bassShelf_L.processf(sampleL);
-			sampleR = m_bassShelf_R.processf(sampleR);
+			const float bassTuningdB = bassTuning*kTuningRangedB;
+			const float bassTuningFc = 250.f/m_sampleRate;
+			m_bassShelf.setBiquad(bq_type_lowshelf, bassTuningFc, 0.0, bassTuningdB);
+
+			const float trebleTuningdB = trebleTuning*kTuningRangedB; 
+			const float trebleTuningFc = 4000.f/m_sampleRate;
+			m_trebleShelf.setBiquad(bq_type_highshelf, trebleTuningFc, 0.0, trebleTuningdB);
+
+			for (unsigned iSample = 0; iSample < numSamples; ++iSample)
+			{
+				float sampleL = m_pBufL[iSample];
+				float sampleR = m_pBufR[iSample];
+
+				// - Low cut -
+				m_postLowCut.Apply(sampleL, sampleR);
+
+				// - Tuning -
+				m_bassShelf.processfs(sampleL, sampleR);
+				m_trebleShelf.processfs(sampleL, sampleR);
 			
-			// - Master volume - 
-			const float gain = m_curMasterVol.Sample();
-			sampleL *= gain;
-			sampleR *= gain;
+				// - Master volume - 
+				const float gain = m_curMasterVol.Sample();
+				sampleL *= gain;
+				sampleR *= gain;
 			
-			// Clamp(): we won't assume anything about the host's take on output outside [-1..1]
-			pLeftOut[iSample]  = Clamp(sampleL);
-			pRightOut[iSample] = Clamp(sampleR);
+				// Clamp(): we won't assume anything about the host's take on output outside [-1..1]
+				pLeftOut[iSample]  = Clamp(sampleL);
+				pRightOut[iSample] = Clamp(sampleR);
+			}
 		}
 
 #if !defined(SFM_DISABLE_FX)

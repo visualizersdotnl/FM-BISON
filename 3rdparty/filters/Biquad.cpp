@@ -31,7 +31,10 @@ void Biquad::reset()
 	m_Q = 0.707;
 	m_peakGain = 0.0;
 	m_peakGainV = 1.0/20.0;
-	z1 = z2 = 0.0;
+	
+	z1 = z2 = 0.0;     // Double prec.
+	z1f = z2f = 0.f;   // Single prec.
+	z1fs = z2fs = 0.f; // Single prec. stereo
 }
 
 void Biquad::setType(int type) {
@@ -154,6 +157,10 @@ void Biquad::calcBiquad(void) {
 			}
 			break;
 	}
+
+	// Convert coefficients to single precision counterparts
+	a0f = float(a0); a1f = float(a1); a2f = float(a2);
+	b1f = float(b1); b2f = float(b2);
     
     return;
 }
