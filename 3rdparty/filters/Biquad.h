@@ -153,7 +153,6 @@ SFM_INLINE void Biquad::setBiquad(int type, double Fc, double Q, double peakGain
 		calcBiquad();
 }
 
-// FIXME: this was once useful, move it back into Biquad.cpp?
 SFM_INLINE void Biquad::calcBiquadHPF()
 {
 	SFM_ASSERT(bq_type_highpass == m_type);
