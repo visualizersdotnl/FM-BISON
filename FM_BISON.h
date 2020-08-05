@@ -37,7 +37,7 @@
 	- ADSR & Biquad filter by Nigel Redmon (http://www.earlevel.com)
 	- SvfLinearTrapOptimised2.hpp by Fred Anton Corvest (https://github.com/FredAntonCorvest/Common-DSP)
 	- MOOG-style ladder filter: https://github.com/ddiakopoulos/MoogLadders/blob/master/src/
-	- Butterworth 24dB filter found @ http://www.musicdsp.org (currently not in use)
+	- Butterworth 24dB filter found @ http://www.musicdsp.org (currently not in use, 05/08/2020)
 	- Reverb based on FreeVerb by Volker Böhm
 	- TinyMT Mersenne-Twister random generator by Makoto Matsumoto and Mutsuo Saito 
 	- Yamaha DX7 LFO rates (synth-DX7-LFO-table.h) taken from Sean Bolton's Hexter
@@ -123,6 +123,7 @@ namespace SFM
 			m_resetVoices = true;
 		}
 
+		// This function can be called at any point whilst rendering
 		void ResetPostPass()
 		{
 			if (nullptr != m_postPass)
@@ -179,7 +180,7 @@ namespace SFM
 			return m_postPass->GetCompressorBite();
 		}
 
-		// Value is operator normalized peak
+		// Value is operator normalized peak (not affected by amplitude (output level) if modulator only)
 		float GetOperatorPeak(unsigned iOp) const
 		{
 			SFM_ASSERT(iOp < kNumOperators);

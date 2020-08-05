@@ -8,7 +8,7 @@
 	features.
 
 	- In case a parameter does not come with a comment it's safe to assume that the range is [0..1]
-	- Nearly all of these parameters are interpolated per sample
+	- Nearly all of these parameters are interpolated per sample (in Bison::Render() and Voice::Sample() mostly)
 */
 
 #pragma once
