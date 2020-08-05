@@ -20,9 +20,9 @@ namespace SFM
 	{
 		SFM_ASSERT(curve >= 0.f && curve <= 1.f);
 		
-		// Tweaked version of the function in Nigel's own widget (https://www.earlevel.com/main/2013/06/23/envelope-generators-adsr-widget/)
+		// Tweaked version of function in Nigel's own widget (https://www.earlevel.com/main/2013/06/23/envelope-generators-adsr-widget/)
 		const double invX = 1.0 - curve;
-		return kEpsilon + 0.03 * (exp(4.0*invX) - 1.0);
+		return kEpsilon + 0.03 * (exp(3.6*invX) - 1.0);
 	}
 
 	void Envelope::Start(const Parameters &parameters, unsigned sampleRate, bool isCarrier, float keyTracking, float velScaling)
