@@ -11,7 +11,7 @@
 	FIXME:
 		- Minimize beating
 		- Review filter
-		- Reconsider single precision
+		- Reconsider single precision (except for the detune function in synth-supersaw.cpp!)
 		- SSE implementation
 */
 
@@ -163,7 +163,7 @@ namespace SFM
 			double signal = m_HPF.process(main*m_mainMix + sides*m_sideMix);
 			signal = m_blocker.Apply(signal);
 
-			return float(signal);
+			return float(signal); // This cast hurts (expensive instruction)
 		}
 		
 		// Advance phase by a number of samples (used by Bison::Render())
