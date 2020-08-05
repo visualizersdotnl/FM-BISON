@@ -37,7 +37,7 @@ namespace SFM
 
 	// Delay line size (main delay) & cross bleed amount
 	constexpr float kMainDelayLineSize = kMainDelayInSec;
-	constexpr float kDelayCrossbleeding = 0.3f;
+	constexpr float kDelayCrossbleeding = kGoldenRatio*0.1f; // Arbitrary
 	
 	// The compressor's 'bite' is filtered so it can be used as a GUI indicator; the higher this value the brighter it comes up and quicker it fades
 	constexpr float kCompressorBiteCutHz = 480.f;
@@ -281,7 +281,7 @@ namespace SFM
 			const float filteredL = m_delayFeedbackLPF_L.Apply(delayL);
 			const float filteredR = m_delayFeedbackLPF_R.Apply(delayR);
 
-			const float filteredM = 0.5f*(filteredL+filteredR);
+			const float filteredM = 0.5f*filteredL + 0.5f*filteredR;
 
 			// Feed back into delay line
 			const float curFeedback =  m_curDelayFeedback.Sample()*kMaxDelayFeedback;
@@ -289,10 +289,23 @@ namespace SFM
 			m_delayLineM.WriteFeedback(filteredM, curFeedback);
 			m_delayLineR.WriteFeedback(filteredR, curFeedback);
 
-			// Add (filtered, FIXME?) delay
+			// Add (unfiltered) delay
+
+//			const float wet = m_curDelayWet.Sample();
+//			m_pBufL[iSample] = left  + wet*delayL;
+//			m_pBufR[iSample] = right + wet*delayR;
+
+			// Stereo (width) effect (fixed)
+			// Nicked from synth-reverb.cpp
 			const float wet = m_curDelayWet.Sample();
-			m_pBufL[iSample] = left  + wet*filteredL;
-			m_pBufR[iSample] = right + wet*filteredR;
+			const float dry = 1.f-wet;
+
+			const float width = 1.33f; // FIXME: parameter?
+			const float wet1  = wet*(width/2.f + 0.5f);
+			const float wet2  = wet*((1.f-width)/2.f);
+
+			m_pBufL[iSample] = delayL*wet1 + delayR*wet2 + left;
+			m_pBufR[iSample] = delayR*wet1 + delayL*wet2 + right;
 		}
 
 		/* ----------------------------------------------------------------------------------------------------
