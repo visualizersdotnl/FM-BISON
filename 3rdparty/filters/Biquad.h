@@ -93,7 +93,6 @@ public:
 
 protected:
 	SFM_INLINE void calcBiquad(void);
-	SFM_INLINE void calcBiquadHPF(void);
 
 	int m_type;
 	double m_Fc, m_Q, m_peakGain, m_FcK, m_peakGainV;
@@ -147,25 +146,7 @@ SFM_INLINE void Biquad::setBiquad(int type, double Fc, double Q, double peakGain
 	m_peakGain = peakGaindB;
 	m_peakGainV = (0.0 != m_peakGain) ? pow(10.0, fabs(m_peakGain) / 20.0) : 1.0/20.0;
 	
-	if (bq_type_highpass == m_type)
-		calcBiquadHPF();
-	else
-		calcBiquad();
+	calcBiquad();
 }
-
-SFM_INLINE void Biquad::calcBiquadHPF()
-{
-	SFM_ASSERT(bq_type_highpass == m_type);
-
-	double norm;
-	double K = m_FcK; // tan(M_PI * m_Fc);
-
-	norm = 1 / (1 + K / m_Q + K * K);
-	a0 = 1 * norm;
-	a1 = -2 * a0;
-	a2 = a0;
-	b1 = 2 * (K * K - 1) * norm;
-	b2 = (1 - K / m_Q + K * K) * norm;
- }
 
 #endif // Biquad_h
