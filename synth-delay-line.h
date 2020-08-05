@@ -43,7 +43,7 @@ namespace SFM
 			memset(m_buffer, 0, m_size*sizeof(float));
 		}
 		
-		// FIXME: also allow buffer to grow
+		// FIXME: also allow buffer to grow, copy samples? (Github issue created, 06/08/2020)
 		void Resize(size_t numSamples)
 		{
 			Reset();
@@ -72,6 +72,7 @@ namespace SFM
 		}
 
 		// Delay is specified in (fractional) number of samples
+		// Many other interpolation methods are used and recommended other than linear (can cause high-frequency signal attenuation)
 		SFM_INLINE float Read(float delay) const
 		{
 			const size_t from = (m_writeIdx-1-int(delay)) % m_curSize;

@@ -66,13 +66,18 @@ namespace SFM
 				if (deltadB >= kneeBottomdB && deltadB < kneeTopdB)
 				{
 					// Apply soft knee (interpolate between zero compression and full compression)
-					// FIXME: eliminate LangrangeInterpolation(), just simplify the calculation in-place
-					float xPoints[2], yPoints[2];
-					xPoints[0] = kneeBottomdB;
-					xPoints[1] = kneeTopdB;
-					yPoints[0] = 0.f;
-					yPoints[1] = gaindB;
-					gaindB = LagrangeInterpolatef(xPoints, yPoints, 2, deltadB);
+
+//					float xPoints[2], yPoints[2];
+//					xPoints[0] = kneeBottomdB;
+//					xPoints[1] = kneeTopdB;
+//					yPoints[0] = 0.f;
+//					yPoints[1] = gaindB;
+//					gaindB = LagrangeInterpolatef(xPoints, yPoints, 2, deltadB);
+
+					float interpGaindB = 0.f;
+					interpGaindB += (deltadB - kneeTopdB)/(kneeBottomdB-kneeTopdB);
+					interpGaindB += (deltadB - kneeBottomdB)/(kneeTopdB-kneeBottomdB) * gaindB;
+					gaindB = interpGaindB;
 				}
 			}
 
