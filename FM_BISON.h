@@ -45,6 +45,7 @@
 	- There are 2 dependencies on JUCE (currently these have little priority as we use JUCE for our product line)
 	- 'PolyBLEP'-based oscillators were lifted from https://github.com/martinfinke/PolyBLEP; by various authors (I keep a copy in /3rdparty/PolyBLEP (ref.))
 	- I've ported a lot of interpolation functions from http://easings.net to single prec.
+	- *Big* thank you Adam Szabo for his thesis on the JP-8000 supersaw: https://pdfs.semanticscholar.org/1852/250068e864215dd7f12755cf00636868a251.pdf 
 	- A few bits and bytes left and right; these are all credited in or close to the implementation
 
 	Most of these were modified and optimized by us

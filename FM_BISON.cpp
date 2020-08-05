@@ -1699,8 +1699,8 @@ namespace SFM
 					float filteredR = right;
 							
 					// Cutoff & Q, finally, for *this* sample
-					const float normCutoff = curCutoff.Sample()*(1.f - cutAfter*kMainCutoffAftertouchRange);
-					const float cutoffHz = lerpf<float>(context.fullCutoff, normCutoff, filterEnv);
+					const float nonEnvCutoffHz = curCutoff.Sample()*(1.f - cutAfter*kMainCutoffAftertouchRange);
+					const float cutoffHz = lerpf<float>(context.fullCutoff, nonEnvCutoffHz, filterEnv);
 					const float sampQ = curQ.Sample();
 
 					if (true == context.secondFilterPass)

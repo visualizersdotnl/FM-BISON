@@ -112,6 +112,7 @@ namespace SFM
 //				else break;
 				break;
 			case env_sustain:
+				output = sustainLevel;
 				break;
 			case env_piano_attack:
 				output = attackBase + output * attackCoef;
