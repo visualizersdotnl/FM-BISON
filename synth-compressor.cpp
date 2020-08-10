@@ -74,6 +74,7 @@ namespace SFM
 //					yPoints[1] = gaindB;
 //					gaindB = LagrangeInterpolatef(xPoints, yPoints, 2, deltadB);
 
+					// Lagrange (second order) in-place
 					float interpGaindB = 0.f;
 					interpGaindB += (deltadB - kneeTopdB)/(kneeBottomdB-kneeTopdB);
 					interpGaindB += (deltadB - kneeBottomdB)/(kneeTopdB-kneeBottomdB) * gaindB;
