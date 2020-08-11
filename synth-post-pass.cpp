@@ -205,13 +205,14 @@ namespace SFM
 		const float delay = (false == useBPM || true == overrideSyncDelay) ? delayInSec : 1.f/rateBPM;
 		SFM_ASSERT(delay >= 0.f && delay <= kMainDelayInSec);
 
+		// Set delay param. targets
 		m_curDelayInSec.SetTarget(delay);
 		m_curDelayWet.SetTarget(delayWet);
 		m_curDelayDrive.SetTarget(dB2Lin(delayDrivedB));
 		m_curDelayFeedback.SetTarget(delayFeedback);
 		m_curDelayFeedbackCutoff.SetTarget(delayFeedbackCutoff);
 		
-		// Set rate for both effects
+		// Set rate for both chorus & phaser
 		if (false == useBPM || true == overrideSyncCP) // Sync. to BPM?
 		{
 			// No, use manual setting
@@ -448,14 +449,11 @@ namespace SFM
 		// Set master volume target
 		m_curMasterVol.SetTarget(dBToGain(masterVoldB));
 
-		// Interpolating the tuning amounts can be a costly affair as I'd have to recalculate the Biquad's coefficients for each sample (FIXME?)
-		const float bassTuningdB = bassTuning*kTuningRangedB;
+		// Set tuning (EQ) filters (interpolation seems unnecessary)
 		const float bassTuningFc = 250.f/m_sampleRate;
-		m_bassShelf.setBiquad(bq_type_lowshelf, bassTuningFc, 0.0, bassTuningdB);
-
-		const float trebleTuningdB = trebleTuning*kTuningRangedB; 
 		const float trebleTuningFc = 4000.f/m_sampleRate;
-		m_trebleShelf.setBiquad(bq_type_highshelf, trebleTuningFc, 0.0, trebleTuningdB);
+		m_bassShelf.setBiquad(bq_type_lowshelf, bassTuningFc, 0.0, bassTuning*kTuningRangedB);
+		m_trebleShelf.setBiquad(bq_type_lowshelf, trebleTuningFc, 0.0, trebleTuning*kTuningRangedB);
 
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
@@ -465,7 +463,7 @@ namespace SFM
 			// - Low cut -
 			m_postLowCut.Apply(sampleL, sampleR);
 
-			// - Tuning -
+			// - Tuning (EQ) -
 			m_bassShelf.processfs(sampleL, sampleR);
 			m_trebleShelf.processfs(sampleL, sampleR);
 			

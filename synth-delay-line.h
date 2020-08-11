@@ -9,6 +9,7 @@
 	- Read() and ReadNearest() will wrap around
 	- ReadNormalized() reads up to the line's size (i.e. the very last written sample)
 	- Currently Resize() does not allow buffer to grow (FIXME)
+	- Catmull-Rom interpolation? https://www.kvraudio.com/forum/viewtopic.php?p=7852862#p7852862
 */
 
 #pragma once

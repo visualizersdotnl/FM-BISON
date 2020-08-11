@@ -17,7 +17,9 @@
 // - Stereo support (single prec. only)
 // - Useful: https://www.earlevel.com/main/2013/10/13/biquad-calculator-v2/
 //
-// FIXME: just convert entire class to single precision already?
+// FIXME: 
+//  - Just convert entire class to single precision already!
+//	- setLowShelf() and setHighShelf() are currently not really necessary to have as specific cases
 //
 // I can't say I'm a big fan of how most DSP code is written but I'll try to keep it as-is.
 //
@@ -87,6 +89,10 @@ public:
 
 	void setBiquad(int type, double Fc, double Q, double peakGaindB);
 
+	// For PostPass
+	SFM_INLINE void setLowShelf();
+	SFM_INLINE void setHighShelf();
+
 	SFM_INLINE double process(double in);                        // Mono, double prec.
 	SFM_INLINE float  processf(float in);                        // Mono, single prec.
 	SFM_INLINE void   processfs(float &sampleL, float &sampleR); // Stereo, single prec.
@@ -146,7 +152,75 @@ SFM_INLINE void Biquad::setBiquad(int type, double Fc, double Q, double peakGain
 	m_peakGain = peakGaindB;
 	m_peakGainV = (0.0 != m_peakGain) ? pow(10.0, fabs(m_peakGain) / 20.0) : 1.0/20.0;
 	
-	calcBiquad();
+	switch (type)
+	{
+	case bq_type_lowshelf:
+		setLowShelf();
+		break;
+
+	case bq_type_highshelf:
+		setHighShelf();
+		break;
+
+	default:
+		calcBiquad();
+	};
+}
+
+SFM_INLINE void Biquad::setLowShelf()
+{
+	double norm;
+	double V = m_peakGainV; // pow(10.0, fabs(m_peakGain) / 20.0);
+	double K = m_FcK;       // tan(M_PI * m_Fc);
+
+	if (m_peakGain >= 0.0) {    // boost
+		norm = 1 / (1 + sqrt(2) * K + K * K);
+		a0 = (1 + sqrt(2*V) * K + V * K * K) * norm;
+		a1 = 2 * (V * K * K - 1) * norm;
+		a2 = (1 - sqrt(2*V) * K + V * K * K) * norm;
+		b1 = 2 * (K * K - 1) * norm;
+		b2 = (1 - sqrt(2) * K + K * K) * norm;
+	}
+	else {    // cut
+		norm = 1 / (1 + sqrt(2*V) * K + V * K * K);
+		a0 = (1 + sqrt(2) * K + K * K) * norm;
+		a1 = 2 * (K * K - 1) * norm;
+		a2 = (1 - sqrt(2) * K + K * K) * norm;
+		b1 = 2 * (V * K * K - 1) * norm;
+		b2 = (1 - sqrt(2*V) * K + V * K * K) * norm;
+	}
+
+	// Convert coefficients to single precision counterparts
+	a0f = float(a0); a1f = float(a1); a2f = float(a2);
+	b1f = float(b1); b2f = float(b2);
+}
+
+SFM_INLINE void Biquad::setHighShelf()
+{
+	double norm;
+	double V = m_peakGainV; // pow(10.0, fabs(m_peakGain) / 20.0);
+	double K = m_FcK;       // tan(M_PI * m_Fc);
+
+	if (m_peakGain >= 0.0) {    // boost
+		norm = 1 / (1 + sqrt(2) * K + K * K);
+		a0 = (V + sqrt(2*V) * K + K * K) * norm;
+		a1 = 2 * (K * K - V) * norm;
+		a2 = (V - sqrt(2*V) * K + K * K) * norm;
+		b1 = 2 * (K * K - 1) * norm;
+		b2 = (1 - sqrt(2) * K + K * K) * norm;
+	}
+	else {    // cut
+		norm = 1 / (V + sqrt(2*V) * K + K * K);
+		a0 = (1 + sqrt(2) * K + K * K) * norm;
+		a1 = 2 * (K * K - 1) * norm;
+		a2 = (1 - sqrt(2) * K + K * K) * norm;
+		b1 = 2 * (K * K - V) * norm;
+		b2 = (V - sqrt(2*V) * K + K * K) * norm;
+	}
+
+	// Convert coefficients to single precision counterparts
+	a0f = float(a0); a1f = float(a1); a2f = float(a2);
+	b1f = float(b1); b2f = float(b2);
 }
 
 #endif // Biquad_h

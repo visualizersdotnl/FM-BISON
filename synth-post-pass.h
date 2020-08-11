@@ -89,10 +89,8 @@ namespace SFM
 		float *m_pBufL = nullptr;
 		float *m_pBufR = nullptr;
 
-		// Tuning
+		// Tuning (EQ)
 		Biquad m_bassShelf, m_trebleShelf;
-//		InterpolatedParameter<kLinInterpolate> m_curBassTuning;
-//		InterpolatedParameter<kLinInterpolate> m_curTrebleTuning;
 
 		// Delay lines & delay's interpolated parameters
 		DelayLine m_delayLineL;
@@ -149,6 +147,6 @@ namespace SFM
 
 		// Misc.
 		InterpolatedParameter<kLinInterpolate> m_curEffectWet;
-		InterpolatedParameter<kLinInterpolate> m_curMasterVol; // Just linear..
+		InterpolatedParameter<kLinInterpolate> m_curMasterVol;
 	};
 }

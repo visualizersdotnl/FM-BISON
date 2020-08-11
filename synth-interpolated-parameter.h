@@ -8,6 +8,8 @@
 	will always reproduce the same effect regardless of the number of samples processed per block or the sample rate.
 	Alternatively a fixed number of samples can be set.
 
+	When using kMulInterpolate the target value may never be zero!
+
 	Do *always* call Set() and SetTarget() after calling SetRate() during interpolation to restore the current value
 	and set the new target. This is a small design flaw in juce::SmoothedValue I feel.
 	
@@ -39,7 +41,7 @@
 namespace SFM
 {
 	typedef ValueSmoothingTypes::Linear kLinInterpolate;
-	typedef ValueSmoothingTypes::Multiplicative kMulInterpolate;
+	typedef ValueSmoothingTypes::Multiplicative kMulInterpolate; // Target value may *never* be zero!
 
 	template <typename T> class InterpolatedParameter
 	{
