@@ -48,6 +48,10 @@ namespace SFM
 	PostPass::PostPass(unsigned sampleRate, unsigned maxSamplesPerBlock, unsigned Nyquist) :
 		m_sampleRate(sampleRate), m_Nyquist(Nyquist), m_sampleRate4X(sampleRate*4)
 
+		// Tuning (EQ)
+,		m_curBassdB(0.f, m_sampleRate, kDefParameterLatency)
+,		m_curTrebledB(0.f, m_sampleRate, kDefParameterLatency)
+
 		// Delay
 ,		m_delayLineL(unsigned(sampleRate*kMainDelayLineSize))
 ,		m_delayLineM(unsigned(sampleRate*kMainDelayLineSize))
@@ -449,11 +453,18 @@ namespace SFM
 		// Set master volume target
 		m_curMasterVol.SetTarget(dBToGain(masterVoldB));
 
-		// Set tuning (EQ) filters (interpolation seems unnecessary)
+		// Set tuning (EQ) filters
+		bassTuning += kEpsilon;    // Avoid "jump" artifact by avoid zero (FIXME: figure out why, this is *ugly*)
+		trebleTuning += kEpsilon;  //
+
 		const float bassTuningFc = 250.f/m_sampleRate;
 		const float trebleTuningFc = 4000.f/m_sampleRate;
-		m_bassShelf.setBiquad(bq_type_lowshelf, bassTuningFc, 0.0, bassTuning*kTuningRangedB);
-		m_trebleShelf.setBiquad(bq_type_highshelf, trebleTuningFc, 0.0, trebleTuning*kTuningRangedB);
+
+		m_curBassdB.SetTarget(bassTuning*kTuningRangedB);
+		m_curTrebledB.SetTarget(trebleTuning*kTuningRangedB);
+
+//		m_bassShelf.setBiquad(bq_type_lowshelf, bassTuningFc, 0.0, bassTuning*kTuningRangedB);
+//		m_trebleShelf.setBiquad(bq_type_highshelf, trebleTuningFc, 0.0, trebleTuning*kTuningRangedB);
 
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
@@ -464,7 +475,10 @@ namespace SFM
 			m_postLowCut.Apply(sampleL, sampleR);
 
 			// - Tuning (EQ) -
+			m_bassShelf.setBiquad(bq_type_lowshelf, bassTuningFc, 0.0, m_curBassdB.Sample());
 			m_bassShelf.processfs(sampleL, sampleR);
+
+			m_trebleShelf.setBiquad(bq_type_highshelf, trebleTuningFc, 0.0, m_curTrebledB.Sample());
 			m_trebleShelf.processfs(sampleL, sampleR);
 			
 			// - Master volume - 

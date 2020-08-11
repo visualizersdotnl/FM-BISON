@@ -91,6 +91,8 @@ namespace SFM
 
 		// Tuning (EQ)
 		Biquad m_bassShelf, m_trebleShelf;
+		InterpolatedParameter<kLinInterpolate> m_curBassdB;
+		InterpolatedParameter<kLinInterpolate> m_curTrebledB;
 
 		// Delay lines & delay's interpolated parameters
 		DelayLine m_delayLineL;

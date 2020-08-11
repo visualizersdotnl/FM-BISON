@@ -128,8 +128,8 @@ namespace SFM
 	// Tuning range (no more no less; just to derive Hz and dB from)
 	// ----------------------------------------------------------------------------------------------
 
-	constexpr float kMinTuning = -10.f;
-	constexpr float kMaxTuning =  10.f;
+	constexpr float kMinTuning = -12.f;
+	constexpr float kMaxTuning =  12.f;
 
 	// ----------------------------------------------------------------------------------------------
 	// Filter

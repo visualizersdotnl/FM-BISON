@@ -12,7 +12,7 @@
 		- Compare double and single precision version in analyzers
 		- Minimize beating (especially at lower frequencies)
 		- Review filter
-		- SSE implementation (will give a boost that eliminates the need for single prec.)
+		- SSE implementation
 
 	For now I'm picking the single precision version since I can't hear the f*cking difference ;)
 */

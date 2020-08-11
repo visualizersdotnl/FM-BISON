@@ -19,7 +19,6 @@
 //
 // FIXME: 
 //  - Just convert entire class to single precision already!
-//	- setLowShelf() and setHighShelf() are currently not really necessary to have as specific cases
 //
 // I can't say I'm a big fan of how most DSP code is written but I'll try to keep it as-is.
 //
