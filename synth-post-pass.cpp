@@ -453,7 +453,7 @@ namespace SFM
 		const float bassTuningFc = 250.f/m_sampleRate;
 		const float trebleTuningFc = 4000.f/m_sampleRate;
 		m_bassShelf.setBiquad(bq_type_lowshelf, bassTuningFc, 0.0, bassTuning*kTuningRangedB);
-		m_trebleShelf.setBiquad(bq_type_lowshelf, trebleTuningFc, 0.0, trebleTuning*kTuningRangedB);
+		m_trebleShelf.setBiquad(bq_type_highshelf, trebleTuningFc, 0.0, trebleTuning*kTuningRangedB);
 
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
