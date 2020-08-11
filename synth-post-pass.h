@@ -6,7 +6,7 @@
 
 	FIXME:
 		- Almost the entire path is implemented in Apply(), chop this up into smaller pieces?
-		- Write own (or adapt public domain) up- and downsampling routines
+		- Write own (or adapt public domain) up- and downsampling routines (currently using JUCE's)
 		- The list of parameters is rather huge, pass through a structure?
 */
 
@@ -60,7 +60,7 @@ namespace SFM
 		}
 
 	private:
-		SFM_INLINE void SetChorusRate(float rate, float scale) // [0..1]
+		SFM_INLINE void SetChorusRate(float rate /* [0..1] */, float scale)
 		{
 			rate *= scale;
 
@@ -95,6 +95,8 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curTrebledB;
 
 		// Delay lines & delay's interpolated parameters
+		Phase m_tapeDelayLFO;
+		SinglePoleLPF m_tapeDelayLPF;
 		DelayLine m_delayLineL;
 		DelayLine m_delayLineM;
 		DelayLine m_delayLineR;

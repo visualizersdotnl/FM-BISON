@@ -1787,12 +1787,12 @@ namespace SFM
 			const float ratio = m_patch.beatSyncRatio; // Note ratio
 			SFM_ASSERT(ratio >= 0);
 
-			const float BPM = float(m_BPM);
-			const float BPS = float(BPM)/60.f;    // Beats per sec.
-			m_freqBPM = BPS/ratio;                // Sync. freq.
+			const float BPM = m_BPM;
+			const float BPS = BPM/60.f;    // Beats per sec.
+			m_freqBPM = BPS/ratio;         // Sync. freq.
 			
 			// If can't fit delay within it's line, revert to manual setting
-			if (false == (m_freqBPM < 1.f/kMainDelayInSec))
+			if (m_freqBPM/kMainDelayInSec >= 1.f)
 				overrideDelayBit = kFlagOverrideDelay;
 		}
 		else

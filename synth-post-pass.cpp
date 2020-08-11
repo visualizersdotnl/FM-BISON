@@ -45,14 +45,20 @@ namespace SFM
 	// Tuning range in tenth of dB
 	constexpr float kTuningRangedB = 0.9f; // 9dB
 
+	// Tape delay constants
+	constexpr float kTapeDelayHz = kGoldenRatio*0.00066f; // Totally arbitrary (TM)
+	constexpr float kTapeDelaySpread = 0.015f;            // 150MS max.
+
 	PostPass::PostPass(unsigned sampleRate, unsigned maxSamplesPerBlock, unsigned Nyquist) :
 		m_sampleRate(sampleRate), m_Nyquist(Nyquist), m_sampleRate4X(sampleRate*4)
 
 		// Tuning (EQ)
-,		m_curBassdB(0.f, m_sampleRate, kDefParameterLatency)
-,		m_curTrebledB(0.f, m_sampleRate, kDefParameterLatency)
+,		m_curBassdB(0.f, sampleRate, kDefParameterLatency)
+,		m_curTrebledB(0.f, sampleRate, kDefParameterLatency)
 
 		// Delay
+,		m_tapeDelayLFO(sampleRate)
+,		m_tapeDelayLPF(kSweepCutoffHz /* Borrowed, FIXME */ / sampleRate)
 ,		m_delayLineL(unsigned(sampleRate*kMainDelayLineSize))
 ,		m_delayLineM(unsigned(sampleRate*kMainDelayLineSize))
 ,		m_delayLineR(unsigned(sampleRate*kMainDelayLineSize))
@@ -104,6 +110,9 @@ namespace SFM
 
 		// Initialize JUCE oversampling object (FIXME)
 		m_oversampling4X.initProcessing(maxSamplesPerBlock);
+
+		// Set tape delay mod. frequency
+		m_tapeDelayLFO.Initialize(kTapeDelayHz, m_sampleRate);
 	}
 
 	PostPass::~PostPass()
@@ -267,9 +276,10 @@ namespace SFM
 			
 			// Sample delay line
 			const float curDelay = curDelayInSec/kMainDelayInSec;
-			const float delayedL = m_delayLineL.ReadNormalized(curDelay);
-			const float delayedM = m_delayLineM.ReadNormalized(curDelay);
-			const float delayedR = m_delayLineR.ReadNormalized(curDelay);
+			const float tapeMod  = curDelay + (curDelay*curDelay)*kTapeDelaySpread*m_tapeDelayLPF.Apply(fast_cosf(m_tapeDelayLFO.Sample()));
+			const float delayedL = m_delayLineL.ReadNormalized(tapeMod);
+			const float delayedM = m_delayLineM.ReadNormalized(tapeMod);
+			const float delayedR = m_delayLineR.ReadNormalized(tapeMod);
 			
 			// Bleed delay samples a bit
 			constexpr float crossBleedAmt = kDelayCrossbleeding;
@@ -294,7 +304,7 @@ namespace SFM
 			m_delayLineM.WriteFeedback(filteredM, curFeedback);
 			m_delayLineR.WriteFeedback(filteredR, curFeedback);
 
-			// Add (unfiltered) delay
+			// Add delay
 
 //			const float wet = m_curDelayWet.Sample();
 //			m_pBufL[iSample] = left  + wet*delayL;
@@ -308,7 +318,8 @@ namespace SFM
 			const float width = 1.33f; // FIXME: parameter?
 			const float wet1  = wet*(width/2.f + 0.5f);
 			const float wet2  = wet*((1.f-width)/2.f);
-
+			
+			// Unfiltered
 			m_pBufL[iSample] = delayL*wet1 + delayR*wet2 + left;
 			m_pBufR[iSample] = delayR*wet1 + delayL*wet2 + right;
 		}
@@ -525,9 +536,9 @@ namespace SFM
 		const float sweepMod = fast_cosf(m_chorusSweepMod.Sample());
 		
 		// Sweep LFOs
-		const float phase = float(m_chorusSweep.Sample());
+		const float phase = m_chorusSweep.Sample();
 		
-		// This violates my [0..1] phase rule but Kusma's function handles it just fine
+		// This violates my [0..1] phase rule but Kusma's cosine approximation function handles it just fine
 		const float sweepL = 0.5f*fast_sinf(phase+sweepMod);
 		const float sweepR = 0.5f*fast_sinf((1.f-phase)+sweepMod);
 		
