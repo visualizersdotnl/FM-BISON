@@ -1792,7 +1792,7 @@ namespace SFM
 			m_freqBPM = BPS/ratio;         // Sync. freq.
 			
 			// If can't fit delay within it's line, revert to manual setting
-			if (m_freqBPM/kMainDelayInSec >= 1.f)
+			if (1.f/m_freqBPM >= kMainDelayInSec)
 				overrideDelayBit = kFlagOverrideDelay;
 		}
 		else

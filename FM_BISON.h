@@ -177,8 +177,10 @@ namespace SFM
 		// Value can be used to visually represent compressor "bite" (when RMS falls below threshold dB)
 		float GetCompressorBite() const
 		{
-			SFM_ASSERT(nullptr != m_postPass);
-			return m_postPass->GetCompressorBite();
+			if (nullptr != m_postPass)
+				return m_postPass->GetCompressorBite();
+			else
+				return 0.f;
 		}
 
 		// Value is operator normalized peak (not affected by amplitude (output level) if modulator only)
