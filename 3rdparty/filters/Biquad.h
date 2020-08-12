@@ -81,7 +81,6 @@ public:
 	~Biquad() {}
 
 	void reset();
-
 	void setBiquad(int type, float Fc, float Q, float peakGaindB);
 
 	// For PostPass
@@ -92,7 +91,7 @@ public:
 	SFM_INLINE float processMono(float sample);
 
 protected:
-	SFM_INLINE void calcBiquad(void);
+	void calcBiquad(void);
 
 	int m_type;
 	float m_Fc, m_Q, m_peakGain, m_FcK, m_peakGainV;
