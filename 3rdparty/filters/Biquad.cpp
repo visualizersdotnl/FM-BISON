@@ -24,45 +24,22 @@
 void Biquad::reset()
 {
 	m_type = bq_type_lowpass;
-	a0 = 1.0;
-	a1 = a2 = b1 = b2 = 0.0;
-	m_Fc = 0.50;
-	m_FcK = tan(M_PI*m_Fc);
-	m_Q = 0.707;
-	m_peakGain = 0.0;
-	m_peakGainV = 1.0/20.0;
+	a0 = 1.f;
+	a1 = a2 = b1 = b2 = 0.f;
+	m_Fc = 0.5f;
+	m_FcK = tanf(SFM::kPI*m_Fc);
+	m_Q = 0.707f;
+	m_peakGain = 0.f;
+	m_peakGainV = 1.f/20.f;
 	
-	z1 = z2 = 0.0;     // Double prec.
-	z1f = z2f = 0.f;   // Single prec.
-	z1fs = z2fs = 0.f; // Single prec. stereo
-}
-
-void Biquad::setType(int type) {
-	m_type = type;
-	calcBiquad();
-}
-
-void Biquad::setQ(double Q) {
-	m_Q = Q;
-	calcBiquad();
-}
-
-void Biquad::setFc(double Fc) {
-	m_Fc = Fc;
-	m_FcK = tan(M_PI*m_Fc);
-	calcBiquad();
-}
-
-void Biquad::setPeakGain(double peakGaindB) {
-	m_peakGain = peakGaindB;
-	m_peakGainV = (0.0 != m_peakGain) ? pow(10.0, fabs(m_peakGain) / 20.0) : 1.0/20.0;
-	calcBiquad();
+	z1l = z2l = 0.f;
+	z1r = z2r = 0.f;
 }
  
 void Biquad::calcBiquad(void) {
-	double norm;
-	double V = m_peakGainV; // pow(10.0, fabs(m_peakGain) / 20.0);
-	double K = m_FcK;       // tan(M_PI * m_Fc);
+	float norm;
+	float V = m_peakGainV; // powf(10.f, fabsf(m_peakGain) / 20.f);
+	float K = m_FcK;       // tanf(M_PI * m_Fc);
 	switch (m_type) {
 		case bq_type_lowpass:
 			norm = 1 / (1 + K / m_Q + K * K);
@@ -120,47 +97,41 @@ void Biquad::calcBiquad(void) {
 			break;
 
 		case bq_type_lowshelf:
-			if (m_peakGain >= 0.0) {    // boost
-				norm = 1 / (1 + sqrt(2) * K + K * K);
-				a0 = (1 + sqrt(2*V) * K + V * K * K) * norm;
+			if (m_peakGain >= 0.f) {    // boost
+				norm = 1 / (1 + sqrtf(2) * K + K * K);
+				a0 = (1 + sqrtf(2*V) * K + V * K * K) * norm;
 				a1 = 2 * (V * K * K - 1) * norm;
-				a2 = (1 - sqrt(2*V) * K + V * K * K) * norm;
+				a2 = (1 - sqrtf(2*V) * K + V * K * K) * norm;
 				b1 = 2 * (K * K - 1) * norm;
-				b2 = (1 - sqrt(2) * K + K * K) * norm;
+				b2 = (1 - sqrtf(2) * K + K * K) * norm;
 			}
 			else {    // cut
 				norm = 1 / (1 + sqrt(2*V) * K + V * K * K);
-				a0 = (1 + sqrt(2) * K + K * K) * norm;
+				a0 = (1 + sqrtf(2) * K + K * K) * norm;
 				a1 = 2 * (K * K - 1) * norm;
-				a2 = (1 - sqrt(2) * K + K * K) * norm;
+				a2 = (1 - sqrtf(2) * K + K * K) * norm;
 				b1 = 2 * (V * K * K - 1) * norm;
-				b2 = (1 - sqrt(2*V) * K + V * K * K) * norm;
+				b2 = (1 - sqrtf(2*V) * K + V * K * K) * norm;
 			}
 			break;
 
 		case bq_type_highshelf:
-			if (m_peakGain >= 0.0) {    // boost
-				norm = 1 / (1 + sqrt(2) * K + K * K);
-				a0 = (V + sqrt(2*V) * K + K * K) * norm;
+			if (m_peakGain >= 0.f) {    // boost
+				norm = 1 / (1 + sqrtf(2) * K + K * K);
+				a0 = (V + sqrtf(2*V) * K + K * K) * norm;
 				a1 = 2 * (K * K - V) * norm;
-				a2 = (V - sqrt(2*V) * K + K * K) * norm;
+				a2 = (V - sqrtf(2*V) * K + K * K) * norm;
 				b1 = 2 * (K * K - 1) * norm;
-				b2 = (1 - sqrt(2) * K + K * K) * norm;
+				b2 = (1 - sqrtf(2) * K + K * K) * norm;
 			}
 			else {    // cut
-				norm = 1 / (V + sqrt(2*V) * K + K * K);
-				a0 = (1 + sqrt(2) * K + K * K) * norm;
+				norm = 1 / (V + sqrtf(2*V) * K + K * K);
+				a0 = (1 + sqrtf(2) * K + K * K) * norm;
 				a1 = 2 * (K * K - 1) * norm;
-				a2 = (1 - sqrt(2) * K + K * K) * norm;
+				a2 = (1 - sqrtf(2) * K + K * K) * norm;
 				b1 = 2 * (K * K - V) * norm;
-				b2 = (V - sqrt(2*V) * K + K * K) * norm;
+				b2 = (V - sqrtf(2*V) * K + K * K) * norm;
 			}
 			break;
 	}
-
-	// Convert coefficients to single precision counterparts
-	a0f = float(a0); a1f = float(a1); a2f = float(a2);
-	b1f = float(b1); b2f = float(b2);
-    
-    return;
 }

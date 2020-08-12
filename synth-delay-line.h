@@ -8,7 +8,6 @@
 	- Always write first, then read and write feedback
 	- Read() and ReadNearest() will wrap around
 	- ReadNormalized() reads up to the line's size (i.e. the very last written sample)
-	- Currently Resize() does not allow buffer to grow (FIXME)
 	- Catmull-Rom interpolation? https://www.kvraudio.com/forum/viewtopic.php?p=7852862#p7852862
 */
 
@@ -42,18 +41,6 @@ namespace SFM
 		void Reset()
 		{
 			memset(m_buffer, 0, m_size*sizeof(float));
-		}
-		
-		// FIXME: also allow buffer to grow, copy samples? (Github issue created, 06/08/2020)
-		void Resize(size_t numSamples)
-		{
-			Reset();
-			
-			SFM_ASSERT(numSamples > 0 && numSamples <= m_size);
-			m_curSize = numSamples;
-
-			// If it's a larger buffer things stay as they are, otherwise it may wrap around
-			m_writeIdx = m_writeIdx % m_curSize;
 		}
 
 		SFM_INLINE void Write(float sample)

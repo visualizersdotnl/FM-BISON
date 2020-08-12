@@ -25,29 +25,6 @@ static double SampleDetuneCurve(double detune)
 
 namespace SFM
 {
-
-#if defined(SS_DOUBLE_PREC) // Double prec.
-
-	void Supersaw::SetDetune(double detune /* [0..1] */)
-	{
-		SFM_ASSERT(detune >= 0.0 && detune <= 1.0);
-
-		m_curDetune = SampleDetuneCurve(detune);
-
-		SFM_ASSERT(m_curDetune >= 0.0 && m_curDetune <= 1.0);
-	}
-	
-	void Supersaw::SetMix(double mix /* [0..1] */)
-	{
-		SFM_ASSERT(mix >= 0.0 && mix <= 1.0);
-		m_mainMix = -0.55366*mix + 0.99785;
-		m_sideMix = -0.73764*pow(mix, 2.0) + 1.2841*mix + 0.044372;
-	}
-
-#else
-
-	// Single prec.
-
 	void Supersaw::SetDetune(float detune /* [0..1] */)
 	{
 		SFM_ASSERT(detune >= 0.f && detune <= 1.f);
@@ -63,8 +40,5 @@ namespace SFM
 		m_mainMix = -0.55366f*mix + 0.99785f;
 		m_sideMix = -0.73764f*powf(mix, 2.f) + 1.2841f*mix + 0.044372f;
 	}
-
-#endif
-
 }
 

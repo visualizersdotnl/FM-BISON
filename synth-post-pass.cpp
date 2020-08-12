@@ -349,13 +349,13 @@ namespace SFM
 		m_curTubeOffset.SetTarget(tubeOffset);
 
 		// Anti-aliasing filter: LPF for distortion (takes the edge off)
-		const double tubeCutFc = m_Nyquist / double(m_sampleRate4X);
-		m_tubeFilterAA.setBiquad(bq_type_lowpass, tubeCutFc, kDefGainAtCutoff, 0.0);
+		const float tubeCutFc = m_Nyquist / float(m_sampleRate4X);
+		m_tubeFilterAA.setBiquad(bq_type_lowpass, tubeCutFc, kDefGainAtCutoff, 0.f);
 
 		// Anti-aliasing filter: very slight to a bit steeper cut of frequencies around (host) Nyquist
-		const double antiAliasingCutHz = lerpf<double>(m_Nyquist, m_Nyquist*0.5, antiAliasing);
-		const double antiAliasingCutFc = antiAliasingCutHz / m_sampleRate4X;
-		m_finalFilterAA.setBiquad(bq_type_lowpass, antiAliasingCutFc, kDefGainAtCutoff, 0.0);
+		const float antiAliasingCutHz = lerpf<float>(float(m_Nyquist), m_Nyquist*0.5f, antiAliasing);
+		const float antiAliasingCutFc = antiAliasingCutHz / m_sampleRate4X;
+		m_finalFilterAA.setBiquad(bq_type_lowpass, antiAliasingCutFc, kDefGainAtCutoff, 0.f);
 		
 		// Main buffers
 		float *inputBuffers[2] = { m_pBufL, m_pBufR };
@@ -375,7 +375,7 @@ namespace SFM
 			float sampleR = pOverR[iSample];
 
 			// Apply AA filter
-			m_finalFilterAA.processfs(sampleL, sampleR);
+			m_finalFilterAA.process(sampleL, sampleR);
 
 			// Apply 24dB post filter
 			const float curPostCutoff = m_curPostCutoff.Sample();
@@ -407,7 +407,7 @@ namespace SFM
 				m_tubeDCBlocker.Apply(distortedL, distortedR);
 
 				// Apply distortion AA filter
-				m_tubeFilterAA.processfs(distortedL, distortedR);
+				m_tubeFilterAA.process(distortedL, distortedR);
 			}
 			
 			// Mix results
@@ -474,8 +474,8 @@ namespace SFM
 		m_curBassdB.SetTarget(bassTuning*kTuningRangedB);
 		m_curTrebledB.SetTarget(trebleTuning*kTuningRangedB);
 
-//		m_bassShelf.setBiquad(bq_type_lowshelf, bassTuningFc, 0.0, bassTuning*kTuningRangedB);
-//		m_trebleShelf.setBiquad(bq_type_highshelf, trebleTuningFc, 0.0, trebleTuning*kTuningRangedB);
+//		m_bassShelf.setBiquad(bq_type_lowshelf, bassTuningFc, 0.f, bassTuning*kTuningRangedB);
+//		m_trebleShelf.setBiquad(bq_type_highshelf, trebleTuningFc, 0.f, trebleTuning*kTuningRangedB);
 
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
@@ -486,11 +486,11 @@ namespace SFM
 			m_postLowCut.Apply(sampleL, sampleR);
 
 			// - Tuning (EQ) -
-			m_bassShelf.setBiquad(bq_type_lowshelf, bassTuningFc, 0.0, m_curBassdB.Sample());
-			m_bassShelf.processfs(sampleL, sampleR);
+			m_bassShelf.setBiquad(bq_type_lowshelf, bassTuningFc, 0.f, m_curBassdB.Sample());
+			m_bassShelf.process(sampleL, sampleR);
 
-			m_trebleShelf.setBiquad(bq_type_highshelf, trebleTuningFc, 0.0, m_curTrebledB.Sample());
-			m_trebleShelf.processfs(sampleL, sampleR);
+			m_trebleShelf.setBiquad(bq_type_highshelf, trebleTuningFc, 0.f, m_curTrebledB.Sample());
+			m_trebleShelf.process(sampleL, sampleR);
 			
 			// - Master volume - 
 			const float gain = m_curMasterVol.Sample();

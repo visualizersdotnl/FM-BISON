@@ -10,19 +10,22 @@
 // ** Refrain from setting parameters one by one as they all call calcBiquad(), just use setBiquad()
 //    to set up the filter as needed **
 //
+// ** Default process() call is now stereo, use processMono() for monaural, but do *not* mix and
+//    match **
+//
 // - No external dependencies
 // - Added reset() function
-// - Added support for double precision samples
-// - Misc. modifications, fixes & optimizations (including a horrendous single precision impl.)
-// - Stereo support (single prec. only)
-// - Useful: https://www.earlevel.com/main/2013/10/13/biquad-calculator-v2/
+// - Ported to single precision
+// - Added stereo support
+// - Removed useless functions (like setQ() et cetera)
 //
-// FIXME: 
-//  - Just convert entire class to single precision already!
+// Useful (graphical) design tool @ https://www.earlevel.com/main/2013/10/13/biquad-calculator-v2/
 //
 // I can't say I'm a big fan of how most DSP code is written but I'll try to keep it as-is.
 //
 // ----------------------------------------------------------------------------------------------------
+
+#include "../../helper/synth-helper.h" // For SFM::kPI
 
 //
 //  Biquad.h
@@ -67,89 +70,66 @@ public:
 		reset();
 	}
 
-	Biquad(int type, double Fc, double Q, double peakGainDB)
+	Biquad(int type, float Fc, float Q, float peakGainDB)
 	{
 		setBiquad(type, Fc, Q, peakGainDB);
 
-		z1 = z2 = 0.0;     // Double prec.
-		z1f = z2f = 0.f;   // Single prec.
-		z1fs = z2fs = 0.f; // Single prec. stereo (R)
+		z1l = z2l = 0.f; // Stereo (L)
+		z1r = z2r = 0.f; // (R)
 	}
 
 	~Biquad() {}
 
 	void reset();
 
-	// Avoid calling these separately (encouraged by *not* inlining them)
-	void setType(int type);
-	void setQ(double Q);
-	void setFc(double Fc);
-	void setPeakGain(double peakGaindB);
-
-	void setBiquad(int type, double Fc, double Q, double peakGaindB);
+	void setBiquad(int type, float Fc, float Q, float peakGaindB);
 
 	// For PostPass
 	SFM_INLINE void setLowShelf();
 	SFM_INLINE void setHighShelf();
 
-	SFM_INLINE double process(double in);                        // Mono, double prec.
-	SFM_INLINE float  processf(float in);                        // Mono, single prec.
-	SFM_INLINE void   processfs(float &sampleL, float &sampleR); // Stereo, single prec.
+	SFM_INLINE void  process(float &sampleL, float &sampleR); 
+	SFM_INLINE float processMono(float sample);
 
 protected:
 	SFM_INLINE void calcBiquad(void);
 
 	int m_type;
-	double m_Fc, m_Q, m_peakGain, m_FcK, m_peakGainV;
+	float m_Fc, m_Q, m_peakGain, m_FcK, m_peakGainV;
 
-	double a0, a1, a2, b1, b2;
-	double z1, z2;
-
-	// This is the quickest and dirtiest way to add 100% single precision processing (omitting costly scalar conversion instructions)
-	float a0f, a1f, a2f, b1f, b2f;
-	float z1f, z2f;
-	float z1fs, z2fs; // Stereo (R)
+	float a0, a1, a2, b1, b2;
+	float z1l, z2l, z1r, z2r;
 };
 
-// Double prec. monaural
-SFM_INLINE double Biquad::process(double in) {
-	const double out = in * a0 + z1;
-	z1 = in * a1 + z2 - b1 * out;
-	z2 = in * a2 - b2 * out;
-	return out;
-}
-
-// Single prec. monaural
-SFM_INLINE float Biquad::processf(float in) { 
-	const float out = in * a0f + z1f;
-	z1f = in * a1f + z2f - b1f * out;
-	z2f = in * a2f - b2f * out;
-	return out;
-}
-
-// Single prec. stereo
-SFM_INLINE void Biquad::processfs(float &sampleL, float &sampleR) { 
-	const float outL = sampleL * a0f + z1f;
-	z1f = sampleL * a1f + z2f - b1f * outL;
-	z2f = sampleL * a2f - b2f * outL;
+SFM_INLINE void Biquad::process(float &sampleL, float &sampleR) { 
+	const float outL = sampleL * a0 + z1l;
+	z1l = sampleL * a1 + z2l - b1 * outL;
+	z2l = sampleL * a2 - b2 * outL;
 	
-	// I could go the fancy route and call processf() twice, but why bother?
-	const float outR = sampleR * a0f + z1fs;
-	z1fs = sampleR * a1f + z2fs - b1f * outR;
-	z2fs = sampleR * a2f - b2f * outR;
+	const float outR = sampleR * a0 + z1r;
+	z1r = sampleR * a1 + z2r - b1 * outR;
+	z2r = sampleR * a2 - b2 * outR;
 
 	sampleL = outL;
 	sampleR = outR;
 }
 
-SFM_INLINE void Biquad::setBiquad(int type, double Fc, double Q, double peakGaindB)
+SFM_INLINE float Biquad::processMono(float sample) {
+	const float out = sample * a0 + z1l; // Just use left Zs
+	z1l = sample * a1 + z2l - b1 * out;  //
+	z2l = sample * a2 - b2 * out;        //
+
+	return out;
+}
+
+SFM_INLINE void Biquad::setBiquad(int type, float Fc, float Q, float peakGaindB)
 {
 	m_type = type;
 	m_Q = Q;
 	m_Fc = Fc;
-	m_FcK = tan(M_PI*m_Fc);
+	m_FcK = tanf(SFM::kPI*m_Fc);
 	m_peakGain = peakGaindB;
-	m_peakGainV = (0.0 != m_peakGain) ? pow(10.0, fabs(m_peakGain) / 20.0) : 1.0/20.0;
+	m_peakGainV = (0.f != m_peakGain) ? powf(10.f, fabsf(m_peakGain) / 20.f) : 1.f/20.f;
 	
 	switch (type)
 	{
@@ -168,58 +148,50 @@ SFM_INLINE void Biquad::setBiquad(int type, double Fc, double Q, double peakGain
 
 SFM_INLINE void Biquad::setLowShelf()
 {
-	double norm;
-	double V = m_peakGainV; // pow(10.0, fabs(m_peakGain) / 20.0);
-	double K = m_FcK;       // tan(M_PI * m_Fc);
+	float norm;
+	float V = m_peakGainV; // powf(10.f, fabsf(m_peakGain) / 20.f);
+	float K = m_FcK;       // tanf(M_PI * m_Fc);
 
 	if (m_peakGain >= 0.0) {    // boost
-		norm = 1 / (1 + sqrt(2) * K + K * K);
-		a0 = (1 + sqrt(2*V) * K + V * K * K) * norm;
+		norm = 1 / (1 + sqrtf(2) * K + K * K);
+		a0 = (1 + sqrtf(2*V) * K + V * K * K) * norm;
 		a1 = 2 * (V * K * K - 1) * norm;
-		a2 = (1 - sqrt(2*V) * K + V * K * K) * norm;
+		a2 = (1 - sqrtf(2*V) * K + V * K * K) * norm;
 		b1 = 2 * (K * K - 1) * norm;
-		b2 = (1 - sqrt(2) * K + K * K) * norm;
+		b2 = (1 - sqrtf(2) * K + K * K) * norm;
 	}
 	else {    // cut
-		norm = 1 / (1 + sqrt(2*V) * K + V * K * K);
-		a0 = (1 + sqrt(2) * K + K * K) * norm;
+		norm = 1 / (1 + sqrtf(2*V) * K + V * K * K);
+		a0 = (1 + sqrtf(2) * K + K * K) * norm;
 		a1 = 2 * (K * K - 1) * norm;
-		a2 = (1 - sqrt(2) * K + K * K) * norm;
+		a2 = (1 - sqrtf(2) * K + K * K) * norm;
 		b1 = 2 * (V * K * K - 1) * norm;
-		b2 = (1 - sqrt(2*V) * K + V * K * K) * norm;
+		b2 = (1 - sqrtf(2*V) * K + V * K * K) * norm;
 	}
-
-	// Convert coefficients to single precision counterparts
-	a0f = float(a0); a1f = float(a1); a2f = float(a2);
-	b1f = float(b1); b2f = float(b2);
 }
 
 SFM_INLINE void Biquad::setHighShelf()
 {
-	double norm;
-	double V = m_peakGainV; // pow(10.0, fabs(m_peakGain) / 20.0);
-	double K = m_FcK;       // tan(M_PI * m_Fc);
+	float norm;
+	float V = m_peakGainV; // powf(10.f, fabsf(m_peakGain) / 20.f);
+	float K = m_FcK;       // tanf(M_PI * m_Fc);
 
 	if (m_peakGain >= 0.0) {    // boost
-		norm = 1 / (1 + sqrt(2) * K + K * K);
-		a0 = (V + sqrt(2*V) * K + K * K) * norm;
+		norm = 1 / (1 + sqrtf(2) * K + K * K);
+		a0 = (V + sqrtf(2*V) * K + K * K) * norm;
 		a1 = 2 * (K * K - V) * norm;
-		a2 = (V - sqrt(2*V) * K + K * K) * norm;
+		a2 = (V - sqrtf(2*V) * K + K * K) * norm;
 		b1 = 2 * (K * K - 1) * norm;
-		b2 = (1 - sqrt(2) * K + K * K) * norm;
+		b2 = (1 - sqrtf(2) * K + K * K) * norm;
 	}
 	else {    // cut
-		norm = 1 / (V + sqrt(2*V) * K + K * K);
-		a0 = (1 + sqrt(2) * K + K * K) * norm;
+		norm = 1 / (V + sqrtf(2*V) * K + K * K);
+		a0 = (1 + sqrtf(2) * K + K * K) * norm;
 		a1 = 2 * (K * K - 1) * norm;
-		a2 = (1 - sqrt(2) * K + K * K) * norm;
+		a2 = (1 - sqrtf(2) * K + K * K) * norm;
 		b1 = 2 * (K * K - V) * norm;
-		b2 = (V - sqrt(2*V) * K + K * K) * norm;
+		b2 = (V - sqrtf(2*V) * K + K * K) * norm;
 	}
-
-	// Convert coefficients to single precision counterparts
-	a0f = float(a0); a1f = float(a1); a2f = float(a2);
-	b1f = float(b1); b2f = float(b2);
 }
 
 #endif // Biquad_h
