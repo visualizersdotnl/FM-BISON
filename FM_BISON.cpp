@@ -178,27 +178,27 @@ namespace SFM
 		m_postDrivePS           = { sampleRatePS };
 		m_postWetPS             = { sampleRatePS };
 		
-		m_wahRatePS             = { sampleRatePS };
-		m_wahDrivePS            = { sampleRatePS };
-		m_wahSpeakPS            = { sampleRatePS };
-		m_wahSpeakVowelPS       = { sampleRatePS, 10.f /* 10MS */ };
-		m_wahSpeakVowelModPS    = { sampleRatePS };
-		m_wahSpeakGhostPS       = { sampleRatePS };
-		m_wahSpeakCutPS         = { sampleRatePS, 100.f /* 100MS */ };
-		m_wahSpeakResoPS        = { sampleRatePS, 10.f  /*  10MS */ };
-		m_wahCutPS              = { sampleRatePS };
-		m_wahWetPS              = { sampleRatePS };
-		m_reverbWetPS           = { sampleRatePS };
-		m_reverbRoomSizePS      = { sampleRatePS };
-		m_reverbDampeningPS     = { sampleRatePS };
-		m_reverbWidthPS         = { sampleRatePS };
-		m_reverbHP_PS           = { sampleRatePS };
-		m_reverbLP_PS           = { sampleRatePS };
-		m_reverbPreDelayPS      = { sampleRatePS, 100.f /* 100MS */ };
-		m_compLookaheadPS       = { sampleRatePS, 100.f /* 100MS */ };
-		m_masterVoldBPS         = { sampleRatePS };
-		m_bassTuningPS          = { sampleRatePS };
-		m_trebleTuningPS        = { sampleRatePS };
+		m_wahRatePS              = { sampleRatePS };
+		m_wahDrivePS             = { sampleRatePS };
+		m_wahSpeakPS             = { sampleRatePS };
+		m_wahSpeakVowelPS        = { sampleRatePS, 10.f /* 10MS */ };
+		m_wahSpeakVowelModPS     = { sampleRatePS };
+		m_wahSpeakGhostPS        = { sampleRatePS };
+		m_wahSpeakCutPS          = { sampleRatePS, 100.f /* 100MS */ };
+		m_wahSpeakResoPS         = { sampleRatePS, 10.f  /*  10MS */ };
+		m_wahCutPS               = { sampleRatePS };
+		m_wahWetPS               = { sampleRatePS };
+		m_reverbWetPS            = { sampleRatePS };
+		m_reverbRoomSizePS       = { sampleRatePS };
+		m_reverbDampeningPS      = { sampleRatePS };
+		m_reverbWidthPS          = { sampleRatePS };
+		m_reverbBassTuningdBPS   = { sampleRatePS };
+		m_reverbTrebleTuningdBPS = { sampleRatePS };
+		m_reverbPreDelayPS       = { sampleRatePS, 100.f /* 100MS */ };
+		m_compLookaheadPS        = { sampleRatePS, 100.f /* 100MS */ };
+		m_masterVoldBPS          = { sampleRatePS };
+		m_bassTuningdBPS         = { sampleRatePS };
+		m_trebleTuningdBPS       = { sampleRatePS };
 
 		m_effectWetPS.Reset(m_patch.cpWet);
 		m_effectRatePS.Reset(m_patch.cpRate);
@@ -226,13 +226,13 @@ namespace SFM
 		m_reverbRoomSizePS.Reset(m_patch.reverbRoomSize);
 		m_reverbDampeningPS.Reset(m_patch.reverbDampening);
 		m_reverbWidthPS.Reset(m_patch.reverbWidth);
-		m_reverbHP_PS.Reset(m_patch.reverbHP);
-		m_reverbLP_PS.Reset(m_patch.reverbLP);
+		m_reverbBassTuningdBPS.Reset(m_patch.reverbBassTuningdB);
+		m_reverbTrebleTuningdBPS.Reset(m_patch.reverbTrebleTuningdB);
 		m_reverbPreDelayPS.Reset(m_patch.reverbPreDelay);
 		m_compLookaheadPS.Reset(0.f);
 		m_masterVoldBPS.Reset(m_patch.masterVoldB);
-		m_bassTuningPS.Reset(m_patch.bassTuning);
-		m_trebleTuningPS.Reset(m_patch.trebleTuning);
+		m_bassTuningdBPS.Reset(m_patch.bassTuningdB);
+		m_trebleTuningdBPS.Reset(m_patch.trebleTuningdB);
 
 		// Local
 		m_bendWheelPS  = { sampleRatePS };
@@ -2080,8 +2080,8 @@ namespace SFM
 			m_reverbRoomSizePS.Apply(m_patch.reverbRoomSize),
 			m_reverbDampeningPS.Apply(m_patch.reverbDampening),
 			m_reverbWidthPS.Apply(m_patch.reverbWidth),
-			m_reverbLP_PS.Apply(m_patch.reverbLP),
-			m_reverbHP_PS.Apply(m_patch.reverbHP),
+			m_reverbBassTuningdBPS.Apply(m_patch.reverbBassTuningdB),
+			m_reverbTrebleTuningdBPS.Apply(m_patch.reverbTrebleTuningdB),
 			m_reverbPreDelayPS.Apply(m_patch.reverbPreDelay),
 			/* Compressor (FIXME: use more ParameterSlew if necessary) */
 			m_patch.compThresholddB,
@@ -2093,9 +2093,9 @@ namespace SFM
 			m_compLookaheadPS.Apply(m_patch.compLookahead),
 			m_patch.compAutoGain,
 			m_patch.compRMSToPeak,
-			/* Tuning */
-			m_bassTuningPS.Apply(m_patch.bassTuning),
-			m_trebleTuningPS.Apply(m_patch.trebleTuning),
+			/* Tuning (post-EQ) */
+			m_bassTuningdBPS.Apply(m_patch.bassTuningdB),
+			m_trebleTuningdBPS.Apply(m_patch.trebleTuningdB),
 			/* Master volume */
 			m_masterVoldBPS.Apply(m_patch.masterVoldB),
 			/* Buffers */

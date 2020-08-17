@@ -63,8 +63,8 @@ namespace SFM
 ,		m_curRoomSize(0.f, sampleRate, kDefParameterLatency)
 ,		m_curDampening(0.f, sampleRate, kDefParameterLatency)
 ,		m_curPreDelay(0.f, sampleRate, kDefParameterLatency * 4.f /* Longer */)
-,		m_curPreLPF_Fc(LowpassToFc(kDefReverbFilter), sampleRate, kDefParameterLatency)
-,		m_curPreHPF_Fc(HighpassToFc(kDefReverbFilter), sampleRate, kDefParameterLatency)
+,		m_curBassdB(0.f, sampleRate, kDefParameterLatency)
+,		m_curTrebledB(0.f, sampleRate, kDefParameterLatency)
 	{
 		// Semi-fixed
 		static_assert(8 == kReverbNumCombs);
@@ -118,12 +118,12 @@ namespace SFM
 
 	constexpr float kFixedGain = 0.015f; // Taken from ref. implementation 
 
-	void Reverb::Apply(float *pLeft, float *pRight, unsigned numSamples, float wet, float lowpass, float highpass)
+	void Reverb::Apply(float *pLeft, float *pRight, unsigned numSamples, float wet, float bassTuningdB, float trebleTuningdB)
 	{
 		SFM_ASSERT(nullptr != pLeft && nullptr != pRight);
 		SFM_ASSERT(wet >= 0.f && wet <= 1.f);
-		SFM_ASSERT(lowpass >= 0.f && lowpass <= 1.f);
-		SFM_ASSERT(highpass >= 0.f && highpass <= 1.f);
+		SFM_ASSERT(bassTuningdB >= kMinReverbTuningdB && bassTuningdB <= kMaxReverbTuningdB);
+		SFM_ASSERT(trebleTuningdB >= kMinReverbTuningdB && trebleTuningdB <= kMaxReverbTuningdB);
 
 		// Set parameter targets
 		m_curWet.SetTarget(wet);
@@ -132,8 +132,15 @@ namespace SFM
 		m_curDampening.SetTarget(m_dampening);
 		m_curPreDelay.SetTarget(m_preDelay);
 
-		m_curPreLPF_Fc.SetTarget(LowpassToFc(lowpass));
-		m_curPreHPF_Fc.SetTarget(HighpassToFc(highpass));
+		bassTuningdB += kEpsilon;   // Avoid "jump" artifact by avoid zero (FIXME: figure out why, this is *ugly*; in synth-post-pass.cpp as well)
+		trebleTuningdB += kEpsilon; //
+
+		m_curBassdB.SetTarget(bassTuningdB);
+		m_curTrebledB.SetTarget(trebleTuningdB);
+
+		// FIXME: also present in synth-post-pass.cpp, move to synth-globals.h?
+		const float bassTuningFc = 250.f/m_sampleRate;
+		const float trebleTuningFc = 4000.f/m_sampleRate;
 
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
@@ -152,15 +159,14 @@ namespace SFM
 			float outL = 0.f;
 			float outR = 0.f;
 
-			// Mix to monaural & filter
-			/* const */ float monaural = 0.5f*(inL+inR);
+			// Mix to monaural & filter (EQ)
+			/* const */ float monaural = 0.5f*inR + 0.5f*inL;
 
-			m_preLPF.SetCutoff(m_curPreLPF_Fc.Sample());
-			m_preHPF.SetCutoff(m_curPreHPF_Fc.Sample());
-			const float mixLPF = m_preLPF.Apply(monaural);
-			const float mixHPF = m_preHPF.Apply(monaural);
+			m_preLowShelf.setBiquad(bq_type_lowshelf, bassTuningFc, 0.0, m_curBassdB.Sample());
+			monaural = m_preLowShelf.processMono(monaural);
 
-			monaural = 0.5f*(mixLPF+mixHPF);
+			m_preHighShelf.setBiquad(bq_type_highshelf, trebleTuningFc, 0.0, m_curTrebledB.Sample());
+			monaural = m_preHighShelf.processMono(monaural);
 
 			// Apply pre-delay			
 			m_preDelayLine.Write(monaural);

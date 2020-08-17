@@ -42,9 +42,6 @@ namespace SFM
 	// The compressor's 'bite' is filtered so it can be used as a GUI indicator; the higher this value the brighter it comes up and quicker it fades
 	constexpr float kCompressorBiteCutHz = 480.f;
 
-	// Tuning range in tenth of dB
-	constexpr float kTuningRangedB = 0.9f; // 9dB
-
 	// Tape delay constants
 	constexpr float kTapeDelayHz = kGoldenRatio*0.00066f; // Totally arbitrary (TM)
 	constexpr float kTapeDelaySpread = 0.015f;            // 150MS max.
@@ -131,7 +128,7 @@ namespace SFM
 						 float antiAliasing,
 	                     float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
 	                     float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead, bool compAutoGain, float compRMSToPeak,
-	                     float bassTuning, float trebleTuning, float masterVoldB,
+	                     float bassTuningdB, float trebleTuningdB, float masterVoldB,
 	                     const float *pLeftIn, const float *pRightIn, float *pLeftOut, float *pRightOut)
 	{
 		// Other parameters should be checked in functions they're passed to; however, this list can be incomplete; when
@@ -153,6 +150,8 @@ namespace SFM
 		SFM_ASSERT(tubeDrive >= kMinTubeDrive && tubeDrive <= kMaxTubeDrive);
 		SFM_ASSERT(antiAliasing >= 0.f && antiAliasing <= 1.f);
 		SFM_ASSERT(tubeOffset >= kMinTubeOffset && tubeOffset <= kMaxTubeOffset);
+		SFM_ASSERT(bassTuningdB >= kMinTuningdB && bassTuningdB <= kMaxTuningdB);
+		SFM_ASSERT(trebleTuningdB >= kMinTuningdB && trebleTuningdB <= kMaxTuningdB);
 		
 		// Delay is automatically overridden to it's manual setting if it doesn't fit in it's delay line
 		const bool useBPM = 0.f != rateBPM;
@@ -465,17 +464,14 @@ namespace SFM
 		m_curMasterVol.SetTarget(dBToGain(masterVoldB));
 
 		// Set tuning (EQ) filters
-		bassTuning += kEpsilon;    // Avoid "jump" artifact by avoid zero (FIXME: figure out why, this is *ugly*)
-		trebleTuning += kEpsilon;  //
+		bassTuningdB += kEpsilon;    // Avoid "jump" artifact by avoid zero (FIXME: figure out why, this is *ugly*)
+		trebleTuningdB += kEpsilon;  //
 
 		const float bassTuningFc = 250.f/m_sampleRate;
 		const float trebleTuningFc = 4000.f/m_sampleRate;
 
-		m_curBassdB.SetTarget(bassTuning*kTuningRangedB);
-		m_curTrebledB.SetTarget(trebleTuning*kTuningRangedB);
-
-//		m_bassShelf.setBiquad(bq_type_lowshelf, bassTuningFc, 0.f, bassTuning*kTuningRangedB);
-//		m_trebleShelf.setBiquad(bq_type_highshelf, trebleTuningFc, 0.f, trebleTuning*kTuningRangedB);
+		m_curBassdB.SetTarget(bassTuningdB);
+		m_curTrebledB.SetTarget(trebleTuningdB);
 
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{

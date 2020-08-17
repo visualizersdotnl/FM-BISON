@@ -125,11 +125,11 @@ namespace SFM
 	constexpr float kMaxDetuneJitter = 1.f; // 100th of a note
 
 	// ----------------------------------------------------------------------------------------------
-	// Tuning range (no more no less; just to derive Hz and dB from)
+	// Final stage tuning range (dB), default is 0dB
 	// ----------------------------------------------------------------------------------------------
 
-	constexpr float kMinTuning = -12.f;
-	constexpr float kMaxTuning =  12.f;
+	constexpr float kMinTuningdB = -12.f;
+	constexpr float kMaxTuningdB =  12.f;
 
 	// ----------------------------------------------------------------------------------------------
 	// Filter
@@ -158,9 +158,6 @@ namespace SFM
 	// Normalized resonance range can be limited of the main voice filter
 	constexpr float kDefMainFilterResonanceLimit = 0.33f;
 
-	// Reverb default lowpass & highpass (normalized)
-	constexpr float kDefReverbFilter = 1.f;
-
 	// Default post-pass filter drive range & default (dB)	
 	constexpr float kMinPostFilterDrivedB = -3.f;
 	constexpr float kMaxPostFilterDrivedB =  9.f;
@@ -171,7 +168,7 @@ namespace SFM
 	constexpr float kMaxPostFilterCutoffHz = 20000.f;
 	constexpr float kPostFilterCutoffRange = kMaxPostFilterCutoffHz-kMinPostFilterCutoffHz;
 
-	// Usual magnitude (gain) response at cutoff point (it's 1.0/sqrt(2.0))
+	// Usual magnitude (gain) response at cutoff point (it's 1.0/sqrt(2.0)) (Biquad)
 	constexpr float kDefGainAtCutoff = 0.707106769f;
 
 	// ----------------------------------------------------------------------------------------------
@@ -226,12 +223,6 @@ namespace SFM
 	constexpr float kMaxPhaserRate = 8.f;
 
 	// ----------------------------------------------------------------------------------------------
-	// Reverb effect sounds best until mixed to max. 50-60 percent (wetness)
-	// ----------------------------------------------------------------------------------------------
-
-	constexpr float kMaxReverbWet = 0.55f;
-
-	// ----------------------------------------------------------------------------------------------
 	// Master output volume range & default in dB + our definition of -INF
 	// ----------------------------------------------------------------------------------------------
 
@@ -264,6 +255,13 @@ namespace SFM
 	// ----------------------------------------------------------------------------------------------
 	// Reverb
 	// ----------------------------------------------------------------------------------------------
+
+	// Reverb effect sounds best until mixed to max. 50-60 percent (wetness)
+	constexpr float kMaxReverbWet = 0.55f;
+
+	// Reverb EQ tuning range (dB), default is 0dB
+	constexpr float kMinReverbTuningdB = -12.f;
+	constexpr float kMaxReverbTuningdB =  12.f;
 
 	// Reverb width range & default
 	constexpr float kMinReverbWidth = 0.f;

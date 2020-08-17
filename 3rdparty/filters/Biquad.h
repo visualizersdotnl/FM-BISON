@@ -83,15 +83,15 @@ public:
 	void reset();
 	void setBiquad(int type, float Fc, float Q, float peakGaindB);
 
-	// For PostPass
-	SFM_INLINE void setLowShelf();
-	SFM_INLINE void setHighShelf();
-
 	SFM_INLINE void  process(float &sampleL, float &sampleR); 
 	SFM_INLINE float processMono(float sample);
 
 protected:
 	void calcBiquad(void);
+
+	// For BASS/TREBLE EQ
+	SFM_INLINE void setLowShelf();
+	SFM_INLINE void setHighShelf();
 
 	int m_type;
 	float m_Fc, m_Q, m_peakGain, m_FcK, m_peakGainV;

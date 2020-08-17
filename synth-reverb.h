@@ -6,16 +6,16 @@
 
 	FIXME:
 		- Supply all parameters at once using a single SetParameters() function
-		- Better LPF+HPF filter mix
 */
 
 #pragma once
+
+#include "3rdparty/filters/Biquad.h"
 
 #include "synth-global.h"
 #include "synth-oscillator.h"
 #include "synth-interpolated-parameter.h"
 #include "synth-delay-line.h"
-#include "synth-one-pole-filters.h"
 
 namespace SFM
 {
@@ -151,19 +151,6 @@ namespace SFM
 		{
 			freeAligned(m_buffer);
 		}
-
-	private:
-		SFM_INLINE float LowpassToFc(float lowpass) const
-		{
-			SFM_ASSERT(lowpass >= 0.f && lowpass <= 1.f);
-			return (lowpass*m_Nyquist)/m_sampleRate;
-		}
-
-		SFM_INLINE float HighpassToFc(float highpass) const
-		{
-			SFM_ASSERT(highpass >= 0.f && highpass <= 1.f);
-			return ((1.f-highpass)*m_Nyquist)/m_sampleRate;
- 		}
 	
 	public:
 		SFM_INLINE void SetWidth(float width)
@@ -198,7 +185,7 @@ namespace SFM
 		}
 
 		// Samples are read & written sequentially so one buffer per channel suffices
-		void Apply(float *pLeft, float *pRight, unsigned numSamples, float wet, float lowpass, float highpass /* for LPF & HPF paramaters, 1.f means pass all freq. */);
+		void Apply(float *pLeft, float *pRight, unsigned numSamples, float wet, float bassTuning, float trebleTuning);
 
 	private:
 		const unsigned m_sampleRate;
@@ -207,8 +194,8 @@ namespace SFM
 
 		DelayLine m_preDelayLine;
 
-		SinglePoleLPF m_preLPF;
-		SinglePoleHPF m_preHPF;
+		Biquad m_preLowShelf;  // Pre-EQ
+		Biquad m_preHighShelf; //
 
 		ReverbComb m_combsL[kReverbNumCombs], m_combsR[kReverbNumCombs];
 		ReverbAllPass m_allPassesL[kReverbNumAllPasses], m_allPassesR[kReverbNumAllPasses];
@@ -225,7 +212,7 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curRoomSize;
 		InterpolatedParameter<kLinInterpolate> m_curDampening;
 		InterpolatedParameter<kLinInterpolate> m_curPreDelay;
-		InterpolatedParameter<kLinInterpolate> m_curPreLPF_Fc, m_curPreHPF_Fc;
+		InterpolatedParameter<kLinInterpolate> m_curBassdB, m_curTrebledB;
 
 		// Single buffer is used for all passes, this likely favors cache (FIXME: check)
 		size_t m_totalBufSize;

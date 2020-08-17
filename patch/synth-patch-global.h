@@ -146,8 +146,8 @@ namespace SFM
 		float reverbWidth;
 		float reverbPreDelay; // ** Increment or decrement real-time in *small* steps! **
 
-		float reverbLP; // Reverb LP and HP must be 1 for complete pass-through
-		float reverbHP; //
+		float reverbBassTuningdB;   // Mini pre-EQ ([kMinReverbTuningdB..kMaxReverbTuningdB])
+		float reverbTrebleTuningdB; //
 
 		// Compressor settings (see synth-global.h & synth-compressor.h for non-normalized parameters)
 		float compThresholddB;
@@ -226,8 +226,8 @@ namespace SFM
 		unsigned syncOverride;
 
 		// BASS + TREBLE tuning
-		float bassTuning;   // [kMinTuning..kMaxTuning]
-		float trebleTuning; //
+		float bassTuningdB;   // [kMinTuningdB..kMaxTuningdB]
+		float trebleTuningdB; //
 
 		void ResetToEngineDefaults()
 		{
@@ -304,9 +304,10 @@ namespace SFM
 			reverbRoomSize = 0.f;
 			reverbDampening = 0.f;
 			reverbWidth = kDefReverbWidth;
-			reverbLP = 1.f;
-			reverbHP = 1.f;
 			reverbPreDelay = 0.f;
+
+			reverbBassTuningdB = 0.f;   // Flat EQ
+			reverbTrebleTuningdB = 0.f; //
 
 			// Default compression
 			compThresholddB = kDefCompThresholddB;
@@ -376,9 +377,9 @@ namespace SFM
 			// No BPM override
 			syncOverride = 0;
 
-			// No tuning
-			bassTuning = 0.f;
-			trebleTuning = 0.f;
+			// Flat post-EQ (0dB)
+			bassTuningdB = 0.f;
+			trebleTuningdB = 0.f;
 		}
 	};
 }
