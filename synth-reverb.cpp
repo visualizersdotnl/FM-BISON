@@ -62,7 +62,7 @@ namespace SFM
 ,		m_curWidth(kMinReverbWidth, sampleRate, kDefParameterLatency)
 ,		m_curRoomSize(0.f, sampleRate, kDefParameterLatency)
 ,		m_curDampening(0.f, sampleRate, kDefParameterLatency)
-,		m_curPreDelay(0.f, sampleRate, kDefParameterLatency*3.f)
+,		m_curPreDelay(0.f, sampleRate, kDefParameterLatency * 4.f /* Longer */)
 ,		m_curPreLPF_Fc(LowpassToFc(kDefReverbFilter), sampleRate, kDefParameterLatency)
 ,		m_curPreHPF_Fc(HighpassToFc(kDefReverbFilter), sampleRate, kDefParameterLatency)
 	{

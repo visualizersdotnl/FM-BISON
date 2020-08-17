@@ -39,6 +39,7 @@ namespace SFM
 			kPolySquare,
 			kPolySaw,
 			kPolyRamp,
+			kPolyUniRamp, // For "fake" hard sync. & PWM
 			kPolyRectifiedSine,
 			kPolyRectangle,
 			kBump,

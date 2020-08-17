@@ -7,6 +7,8 @@
 	This is the parent patch, which contains a set of our FM operators and all parameters for global
 	features.
 
+	Please this header *carefully* before sending FM. BISON (animated) patches, synth-patch-operators.h alike!
+
 	- In case a parameter does not come with a comment it's safe to assume that the range is [0..1]
 	- Nearly all of these parameters are interpolated per sample (in Bison::Render() and Voice::Sample() mostly)
 */
@@ -110,7 +112,7 @@ namespace SFM
 		float cpRate;
 
 		// Delay
-		float delayInSec;
+		float delayInSec; // ** Increment or decrement real-time in *small* steps! **
 		float delayWet;
 		float delayDrivedB; // [kMinDelayDrivedB..kMaxDelayDrivedB]
 		float delayFeedback;
@@ -142,7 +144,8 @@ namespace SFM
 		float reverbRoomSize;
 		float reverbDampening;
 		float reverbWidth;
-		float reverbPreDelay;
+		float reverbPreDelay; // ** Increment or decrement real-time in *small* steps! **
+
 		float reverbLP; // Reverb LP and HP must be 1 for complete pass-through
 		float reverbHP; //
 

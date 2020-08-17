@@ -85,6 +85,11 @@ namespace SFM
 				signal = oscPolyRamp(modulated, pitch);
 				break;
 
+			case kPolyUniRamp:
+				signal = oscPolyRamp(modulated, pitch);
+				signal = 0.5f + signal*0.5f;
+				break;
+
 			case kPolyRectifiedSine:
 				signal = oscPolyRectifiedSine(modulated, pitch);
 				break;

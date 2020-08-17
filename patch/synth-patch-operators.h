@@ -26,17 +26,18 @@ namespace SFM
 	constexpr int kFineRange     = 24;    // Semitones
 	constexpr float kDetuneRange = 100.f; // Cents
 
-	constexpr unsigned kNumOperatorWaveforms = 7;
+	constexpr unsigned kNumOperatorWaveforms = 8;
 
-	const Oscillator::Waveform kOperatorWaveforms[7] =
+	const Oscillator::Waveform kOperatorWaveforms[8] =
 	{
-		Oscillator::Waveform::kSine,             // Sine
-		Oscillator::Waveform::kPolyTriangle,     // Triangle
-		Oscillator::Waveform::kPolySquare,	     // Square
-		Oscillator::Waveform::kPinkNoise,        // Pink noise
-		Oscillator::Waveform::kPolySaw,          // Saw
-		Oscillator::Waveform::kSupersaw,         // Supersaw
-		Oscillator::Waveform::kPolyRectifiedSine // Rectified sine
+		Oscillator::Waveform::kSine,              // Sine
+		Oscillator::Waveform::kPolyTriangle,      // Triangle
+		Oscillator::Waveform::kPolySquare,	      // Square
+		Oscillator::Waveform::kPinkNoise,         // Pink noise
+		Oscillator::Waveform::kPolySaw,           // Saw
+		Oscillator::Waveform::kSupersaw,          // Supersaw
+		Oscillator::Waveform::kPolyRectifiedSine, // Rectified sine
+		Oscillator::Waveform::kPolyUniRamp        // Uni-Ramp (for fake hard-sync. & PWM)
 	};
 
 	struct PatchOperators
