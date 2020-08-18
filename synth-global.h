@@ -107,12 +107,14 @@ namespace SFM
 	constexpr float kBaseHz = 440.f;
 
 	// ----------------------------------------------------------------------------------------------
-	// Pitch bend range
+	// Pitch bend & amplitude "bend" range
 	// ----------------------------------------------------------------------------------------------
 
 	// Max. pitch bend range (in semitones)
 	constexpr unsigned kMaxPitchBendRange = 48; // +/- 4 octaves
 	constexpr unsigned kDefPitchBendRange = 12; // +/- 1 octave
+
+	constexpr float kAmpBendRange = 6.f; // -6dB to 6dB
 
 	// ----------------------------------------------------------------------------------------------
 	// Jitter

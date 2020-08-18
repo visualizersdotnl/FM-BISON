@@ -400,7 +400,7 @@ namespace SFM
 
 		// Not in patch but supplied as parameters:
 		InterpolatedParameter<kLinInterpolate> m_curPitchBend;
-		InterpolatedParameter<kLinInterpolate> m_curAmpBend;
+		InterpolatedParameter<kLinInterpolate> m_curAmpBend; // Gain
 		InterpolatedParameter<kLinInterpolate> m_curModulation;
 		InterpolatedParameter<kLinInterpolate> m_curAftertouch;
 	

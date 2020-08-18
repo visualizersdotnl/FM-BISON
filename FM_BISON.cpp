@@ -127,7 +127,7 @@ namespace SFM
 		m_curCutoff      = { SVF_CutoffToHz(m_patch.cutoff, m_Nyquist), m_samplesPerBlock, kDefParameterLatency * 2.f /* Longer */ };
 		m_curQ           = { SVF_ResoToQ(m_patch.resonance), m_sampleRate, kDefParameterLatency };
 		m_curPitchBend   = { 0.f, m_samplesPerBlock, kDefParameterLatency };
-		m_curAmpBend     = { 0.f, m_samplesPerBlock, kDefParameterLatency };
+		m_curAmpBend     = { 1.f /* 0dB */, m_samplesPerBlock, kDefParameterLatency };
 		m_curModulation  = { 0.f, m_samplesPerBlock, kDefParameterLatency * 1.5f /* Longer */ };
 		m_curAftertouch  = { 0.f, m_samplesPerBlock, kDefParameterLatency * 3.f  /* Longer */ };
 
@@ -1676,7 +1676,7 @@ namespace SFM
 				voice.Sample(
 					left, right, 
 					curPitchBend.Sample(),
-					curAmpBend.Sample()+1.f, // [0.0..2.0]
+					curAmpBend.Sample(),
 					sampMod,
 					curLFOBlend.Sample(), 
 					curLFOModDepth.Sample());
@@ -1905,12 +1905,12 @@ namespace SFM
 		{
 			// Wheel modulates pitch
 			m_curPitchBend.SetTarget(bendWheelFiltered);
-			m_curAmpBend.SetTarget(0.f);
+			m_curAmpBend.SetTarget(1.f /* 0dB */);
 		}
 		else
 		{
 			// Wheel modulates amplitude
-			m_curAmpBend.SetTarget(bendWheelFiltered);
+			m_curAmpBend.SetTarget(dB2Lin(bendWheelFiltered*kAmpBendRange));
 			m_curPitchBend.SetTarget(0.f);
 		}
 

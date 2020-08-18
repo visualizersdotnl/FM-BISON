@@ -136,10 +136,8 @@ namespace SFM
 			return;
 		}
 		
-		// FIXME: why is this out of range whilst 'ampBend' isn't?
-//		SFM_ASSERT(pitchBend >= 0.f && pitchBend <= 1.f);
-
-		SFM_ASSERT(ampBend >= 0.f && ampBend <= 2.f);
+		// FIXME (?): ampBend should just be a linear gain correctly calculated in FM_BISON.cpp (see synth-global.h for range)
+		SFM_ASSERT(pitchBend >= -1.f && pitchBend <= 1.f);
 		SFM_ASSERT(modulation >= 0.f && modulation <= 1.f);
 		SFM_ASSERT(LFOBlend >= 0.f && LFOBlend <= 1.f);
 		SFM_ASSERT(LFOModDepth >= 0.f);
