@@ -10,6 +10,7 @@ FM. BISON - A hybrid FM synthesis engine.
 - Not a lot of optimization has been done; it is reasonably fast, but since we are in R&D flexibility is more important
 - All third-party code and resources (well, almost) we've used is credited on top of FM_BISON.h!
 - Our internal R&D plug-in (which is pretty sweet and feature-complete) is available on request
+- A clean-up pass will be done in the near future as a lot of things have been added "here and there" as of late
 
 # FOLDER GUIDE
 
