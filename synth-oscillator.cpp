@@ -129,15 +129,17 @@ namespace SFM
 				signal = m_pinkNoise.Sample();
 				break;
 
+			/* See synth-oscillator.h */
+
+			case kCutRamp:
+				signal = oscPolyRamp(modulated, pitch);
+				signal = 0.5f + signal*0.5f;
+				break;
+
 			/* LFO */
 
 			case kRamp:
 				signal = oscRamp(modulated);
-				break;
-
-			case kCutRamp:
-				signal = oscRamp(modulated);
-				signal = 0.5f + signal*0.5f;
 				break;
 
 			case kSaw:
