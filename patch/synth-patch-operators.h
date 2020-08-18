@@ -37,7 +37,7 @@ namespace SFM
 		Oscillator::Waveform::kPolySaw,           // Saw
 		Oscillator::Waveform::kSupersaw,          // Supersaw
 		Oscillator::Waveform::kPolyRectifiedSine, // Rectified sine
-		Oscillator::Waveform::kPolyUniRamp        // Uni-Ramp (for fake hard-sync. & PWM)
+		Oscillator::Waveform::kCutRamp            // Naive uni-polar rapm (for fake hard-sync. & PWM)
 	};
 
 	struct PatchOperators

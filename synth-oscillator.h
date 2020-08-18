@@ -39,7 +39,6 @@ namespace SFM
 			kPolySquare,
 			kPolySaw,
 			kPolyRamp,
-			kPolyUniRamp, // For "fake" hard sync. & PWM
 			kPolyRectifiedSine,
 			kPolyRectangle,
 			kBump,
@@ -53,6 +52,7 @@ namespace SFM
 
 			// Raw/LFO
 			kRamp,
+			kCutRamp, // Uni-polar ramp (or "fake" hard sync. & PWM)
 			kSaw,
 			kSquare,
 			kTriangle,

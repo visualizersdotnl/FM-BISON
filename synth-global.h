@@ -222,7 +222,7 @@ namespace SFM
 
 	constexpr int kMinVolumedB   =   -96;
 	constexpr int kMaxVolumedB   =     3;
-	constexpr int kDefVolumedB   =   -12;
+	constexpr int kDefVolumedB   =    -9;
 	constexpr int kVolumeRangedB = kMaxVolumedB-kMinVolumedB;
 
 	// Nicked from juce::Decibels
