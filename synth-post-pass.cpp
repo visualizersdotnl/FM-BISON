@@ -39,7 +39,7 @@ namespace SFM
 	constexpr float kMainDelayLineSize = kMainDelayInSec;
 	constexpr float kDelayCrossbleeding = kGoldenRatio*0.1f; // Arbitrary
 	
-	// The compressor's 'bite' is filtered so it can be used as a GUI indicator; the higher this value the brighter it comes up and quicker it fades
+	// The compressor's 'bite' is filtered so it can be used as a GUI indicator; higher value means brighter and quicker
 	constexpr float kCompressorBiteCutHz = 480.f;
 
 	// Tape delay constants
@@ -48,10 +48,6 @@ namespace SFM
 
 	PostPass::PostPass(unsigned sampleRate, unsigned maxSamplesPerBlock, unsigned Nyquist) :
 		m_sampleRate(sampleRate), m_Nyquist(Nyquist), m_sampleRate4X(sampleRate*4)
-
-		// Tuning (EQ)
-,		m_curBassdB(0.f, sampleRate, kDefParameterLatency)
-,		m_curTrebledB(0.f, sampleRate, kDefParameterLatency)
 
 		// Delay
 ,		m_tapeDelayLFO(sampleRate)
@@ -88,8 +84,9 @@ namespace SFM
 ,		m_curTubeDrive(kDefTubeDrive, m_sampleRate4X, kDefParameterLatency)
 ,		m_curTubeOffset(0.f, m_sampleRate4X, kDefParameterLatency)
 
-		// Post blocker
+		// Post (blocker & EQ)
 ,		m_postLowCut(kLowBlockerHz, sampleRate)
+,		m_postEQ(sampleRate)
 
 		// External effects
 ,		m_wah(sampleRate, Nyquist)
@@ -452,48 +449,34 @@ namespace SFM
 
 		/* ----------------------------------------------------------------------------------------------------
 
-			Final pass: Low cut, tuning, master volume, clamp
-
-			" Bass and Treble is a two-band Equalizer. The Bass control is a low-shelf filter with the half 
-			  gain frequency at 250 Hz. The Treble control is a high-shelf filter with the half gain frequency 
-			  at 4000 Hz. " (source: Audacity manual)
+			Final pass: Low cut, EQ, master volume, clamp
 
 		 ------------------------------------------------------------------------------------------------------ */
 		
 		// Set master volume target
 		m_curMasterVol.SetTarget(dBToGain(masterVoldB));
 
-		// Set tuning (EQ) filters
-		bassTuningdB += kEpsilon;    // Avoid "jump" artifact by avoid zero (FIXME: figure out why, this is *ugly*)
-		trebleTuningdB += kEpsilon;  //
-
-		const float bassTuningFc = 250.f/m_sampleRate;
-		const float trebleTuningFc = 4000.f/m_sampleRate;
-
-		m_curBassdB.SetTarget(bassTuningdB);
-		m_curTrebledB.SetTarget(trebleTuningdB);
+		// Set EQ target
+		m_postEQ.SetTargetdBs(bassTuningdB, trebleTuningdB);
 
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
 			float sampleL = m_pBufL[iSample];
 			float sampleR = m_pBufR[iSample];
-
-			// - Low cut -
+			
+			// Cut low(est) end
 			m_postLowCut.Apply(sampleL, sampleR);
 
-			// - Tuning (EQ) -
-			m_bassShelf.setBiquad(bq_type_lowshelf, bassTuningFc, 0.f, m_curBassdB.Sample());
-			m_bassShelf.process(sampleL, sampleR);
-
-			m_trebleShelf.setBiquad(bq_type_highshelf, trebleTuningFc, 0.f, m_curTrebledB.Sample());
-			m_trebleShelf.process(sampleL, sampleR);
+			// EQ
+			m_postEQ.Apply(sampleL, sampleR);
 			
-			// - Master volume - 
+			// Apply gain (master volume)
 			const float gain = m_curMasterVol.Sample();
 			sampleL *= gain;
 			sampleR *= gain;
 			
-			// Clamp(): we won't assume anything about the host's take on output outside [-1..1]
+			// Clamp(): we won't assume anything about the host's reaction to output outside [-1..1],
+			//          plus it prevents DAWs from completely flipping out if something goes haywire
 			pLeftOut[iSample]  = Clamp(sampleL);
 			pRightOut[iSample] = Clamp(sampleR);
 		}

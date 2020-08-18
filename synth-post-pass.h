@@ -14,7 +14,6 @@
 
 #include "3rdparty/filters/SvfLinearTrapOptimised2.hpp"
 #include "3rdparty/filters/MusicDSPModel.h"
-// #include "3rdparty/filters/Butterworth24dB.h"
 #include "3rdparty/filters/Biquad.h"
 
 // Include JUCE (for juce::dsp::Oversampling)
@@ -28,6 +27,7 @@
 #include "synth-reverb.h"
 #include "synth-compressor.h"
 #include "synth-auto-wah.h"
+#include "synth-mini-EQ.h"
 
 namespace SFM
 {
@@ -89,11 +89,6 @@ namespace SFM
 		float *m_pBufL = nullptr;
 		float *m_pBufR = nullptr;
 
-		// Tuning (EQ)
-		Biquad m_bassShelf, m_trebleShelf;
-		InterpolatedParameter<kLinInterpolate> m_curBassdB;
-		InterpolatedParameter<kLinInterpolate> m_curTrebledB;
-
 		// Delay lines & delay's interpolated parameters
 		Phase m_tapeDelayLFO;
 		SinglePoleLPF m_tapeDelayLPF;
@@ -138,8 +133,9 @@ namespace SFM
 		Biquad m_tubeFilterAA;
 		Biquad m_finalFilterAA;
 		
-		// Blocker(s)
+		// Post (blocker & EQ)
 		StereoLowCut m_postLowCut;
+		MiniEQ m_postEQ;
 				
 		// External effects
 		AutoWah m_wah;

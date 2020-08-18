@@ -54,6 +54,7 @@ namespace SFM
 
 	Reverb::Reverb(unsigned sampleRate, unsigned Nyquist) :
 		m_sampleRate(sampleRate), m_Nyquist(Nyquist)
+,		m_preEQ(sampleRate)
 ,		m_preDelayLine(sampleRate, kReverbPreDelayLen)
 ,		m_width(kDefaultWidth)
 ,		m_roomSize(kDefaultRoomSize)
@@ -132,15 +133,7 @@ namespace SFM
 		m_curDampening.SetTarget(m_dampening);
 		m_curPreDelay.SetTarget(m_preDelay);
 
-		bassTuningdB += kEpsilon;   // Avoid "jump" artifact by avoid zero (FIXME: figure out why, this is *ugly*; in synth-post-pass.cpp as well)
-		trebleTuningdB += kEpsilon; //
-
-		m_curBassdB.SetTarget(bassTuningdB);
-		m_curTrebledB.SetTarget(trebleTuningdB);
-
-		// FIXME: also present in synth-post-pass.cpp, move to synth-globals.h?
-		const float bassTuningFc = 250.f/m_sampleRate;
-		const float trebleTuningFc = 4000.f/m_sampleRate;
+		m_preEQ.SetTargetdBs(bassTuningdB, trebleTuningdB);
 
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
@@ -159,14 +152,9 @@ namespace SFM
 			float outL = 0.f;
 			float outR = 0.f;
 
-			// Mix to monaural & filter (EQ)
+			// Mix to monaural & apply EQ
 			/* const */ float monaural = 0.5f*inR + 0.5f*inL;
-
-			m_preLowShelf.setBiquad(bq_type_lowshelf, bassTuningFc, 0.0, m_curBassdB.Sample());
-			monaural = m_preLowShelf.processMono(monaural);
-
-			m_preHighShelf.setBiquad(bq_type_highshelf, trebleTuningFc, 0.0, m_curTrebledB.Sample());
-			monaural = m_preHighShelf.processMono(monaural);
+			monaural = m_preEQ.ApplyMono(monaural);
 
 			// Apply pre-delay			
 			m_preDelayLine.Write(monaural);

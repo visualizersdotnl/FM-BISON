@@ -10,12 +10,11 @@
 
 #pragma once
 
-#include "3rdparty/filters/Biquad.h"
-
 #include "synth-global.h"
 #include "synth-oscillator.h"
 #include "synth-interpolated-parameter.h"
 #include "synth-delay-line.h"
+#include "synth-mini-EQ.h"
 
 namespace SFM
 {
@@ -192,10 +191,8 @@ namespace SFM
 		const unsigned m_Nyquist;
 		const unsigned m_NyquistAt44100 = 44100/2;
 
+		MiniEQ m_preEQ;
 		DelayLine m_preDelayLine;
-
-		Biquad m_preLowShelf;  // Pre-EQ
-		Biquad m_preHighShelf; //
 
 		ReverbComb m_combsL[kReverbNumCombs], m_combsR[kReverbNumCombs];
 		ReverbAllPass m_allPassesL[kReverbNumAllPasses], m_allPassesR[kReverbNumAllPasses];
