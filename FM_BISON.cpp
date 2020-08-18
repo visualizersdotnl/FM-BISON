@@ -2073,8 +2073,6 @@ namespace SFM
 			m_tubeDistPS.Apply(m_patch.tubeDistort),
 			m_tubeDrivePS.Apply(m_patch.tubeDrive),
 			m_patch.tubeOffset, // Does not crackle without ParameterSlew
-			/* AA */
-			m_patch.antiAliasing, // Set once per block, not interpolated, so no ParameterSlew
 			/* Reverb */
 			m_reverbWetPS.Apply(m_patch.reverbWet),
 			m_reverbRoomSizePS.Apply(m_patch.reverbRoomSize),

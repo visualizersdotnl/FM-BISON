@@ -8,9 +8,8 @@
 	- Auto-wah
 	- Delay
 	- Yamaha Reface CP-style chorus & phaser
-	- Post filter (24dB)          - 4X oversampling
-	- Tube distortion             - 4X oversampling
-	- Anti-aliasing filter        - 4X oversampling
+	- Post filter (24dB) (4X oversampling)
+	- Tube distortion    (4X oversampling)
 	- Reverb
 	- Compressor
 	- Low cut, tuning, master volume & final clamp
@@ -122,14 +121,13 @@ namespace SFM
 	                     float delayInSec, float delayWet, float delayDrivedB, float delayFeedback, float delayFeedbackCutoff,
 	                     float postCutoff, float postReso, float postDrivedB, float postWet,
 						 float tubeDistort, float tubeDrive, float tubeOffset,
-						 float antiAliasing,
 	                     float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
 	                     float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead, bool compAutoGain, float compRMSToPeak,
 	                     float bassTuningdB, float trebleTuningdB, float masterVoldB,
 	                     const float *pLeftIn, const float *pRightIn, float *pLeftOut, float *pRightOut)
 	{
-		// Other parameters should be checked in functions they're passed to; however, this list can be incomplete; when
-		// running into such a situation promptly fix it!
+		// Other parameters should be checked in functions they're passed to; however, this list can be incomplete;
+		// when running into such a situation promptly fix it!
 		SFM_ASSERT(nullptr != pLeftIn  && nullptr != pRightIn);
 		SFM_ASSERT(nullptr != pLeftOut && nullptr != pRightOut);
 		SFM_ASSERT(numSamples > 0);
@@ -141,11 +139,10 @@ namespace SFM
 		SFM_ASSERT(delayDrivedB >= kMinDelayDrivedB && delayDrivedB <= kMaxDelayDrivedB);
 		SFM_ASSERT(delayFeedback >= 0.f && delayFeedback <= 1.f);
 		SFM_ASSERT(postCutoff >= 0.f && postCutoff <= 1.f);
-//		SFM_ASSERT(postReso >= 0.f && postReso <= 1.f);
+//		SFM_ASSERT(postReso >= 0.f && postReso <= 1.f); // FIXME: ?
 		SFM_ASSERT(masterVoldB >= kMinVolumedB && masterVoldB <= kMaxVolumedB);
 		SFM_ASSERT(tubeDistort >= 0.f && tubeDistort <= 1.f);
 		SFM_ASSERT(tubeDrive >= kMinTubeDrive && tubeDrive <= kMaxTubeDrive);
-		SFM_ASSERT(antiAliasing >= 0.f && antiAliasing <= 1.f);
 		SFM_ASSERT(tubeOffset >= kMinTubeOffset && tubeOffset <= kMaxTubeOffset);
 		SFM_ASSERT(bassTuningdB >= kMinTuningdB && bassTuningdB <= kMaxTuningdB);
 		SFM_ASSERT(trebleTuningdB >= kMinTuningdB && trebleTuningdB <= kMaxTuningdB);
@@ -322,7 +319,7 @@ namespace SFM
 
 		/* ----------------------------------------------------------------------------------------------------
 
-			Oversampled: 24dB ladder filter, tube distortion & AA (4X)
+			Oversampled: 24dB ladder filter & tube distortion (4X)
 
 			JUCE says:
 			" Choose between FIR or IIR filtering depending on your needs in term of latency and phase 
@@ -347,11 +344,6 @@ namespace SFM
 		// Anti-aliasing filter: LPF for distortion (takes the edge off)
 		const float tubeCutFc = m_Nyquist / float(m_sampleRate4X);
 		m_tubeFilterAA.setBiquad(bq_type_lowpass, tubeCutFc, kDefGainAtCutoff, 0.f);
-
-		// Anti-aliasing filter: very slight to a bit steeper cut of frequencies around (host) Nyquist
-		const float antiAliasingCutHz = lerpf<float>(float(m_Nyquist), m_Nyquist*0.5f, antiAliasing);
-		const float antiAliasingCutFc = antiAliasingCutHz / m_sampleRate4X;
-		m_finalFilterAA.setBiquad(bq_type_lowpass, antiAliasingCutFc, kDefGainAtCutoff, 0.f);
 		
 		// Main buffers
 		float *inputBuffers[2] = { m_pBufL, m_pBufR };
@@ -369,9 +361,6 @@ namespace SFM
 		{
 			float sampleL = pOverL[iSample]; 
 			float sampleR = pOverR[iSample];
-
-			// Apply AA filter
-			m_finalFilterAA.process(sampleL, sampleR);
 
 			// Apply 24dB post filter
 			const float curPostCutoff = m_curPostCutoff.Sample();

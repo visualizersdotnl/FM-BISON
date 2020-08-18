@@ -181,9 +181,6 @@ namespace SFM
 		float postDrivedB;
 		float postWet;
 
-		// PostPass AA filter intensity (Nyquist -> Sample rate)
-		float antiAliasing;
-
 		// Filter envelope
 		Envelope::Parameters filterEnvParams;
 		bool filterEnvInvert;
@@ -331,9 +328,6 @@ namespace SFM
 			postResonance = 0.f;
 			postDrivedB = kDefPostFilterDrivedB;
 			postWet = 0.f;
-
-			// Moderate anti-aliasing
-			antiAliasing = kDefAntiAliasing;
 
 			// Main filter envelope: infinite sustain
 			filterEnvParams.preAttack = 0.f;

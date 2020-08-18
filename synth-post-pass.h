@@ -47,7 +47,6 @@ namespace SFM
 		           float delayInSec, float delayWet, float delayDrivedB, float delayFeedback, float delayFeedbackCutoff,
 		           float postCutoff, float postReso, float postDrivedB, float postWet,
 		           float tubeDistort, float tubeDrive, float tubeOffset,
-				   float antiAliasing,
 		           float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
 		           float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead, bool compAutoGain, float compRMSToPeak,
 				   float bassTuning, float trebleTuning, float masterVol,
@@ -131,7 +130,6 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curTubeOffset;
 		StereoDCBlocker m_tubeDCBlocker;	
 		Biquad m_tubeFilterAA;
-		Biquad m_finalFilterAA;
 		
 		// Post (blocker & EQ)
 		StereoLowCut m_postLowCut;

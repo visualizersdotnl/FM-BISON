@@ -31,7 +31,7 @@ namespace SFM
 
 		~MiniEQ() {}
 
-		void SetTargetdBs(float bassdB, float trebledB)
+		SFM_INLINE void SetTargetdBs(float bassdB, float trebledB)
 		{
 			SFM_ASSERT(bassdB > kInfdB);
 			SFM_ASSERT(trebledB > kInfdB);
