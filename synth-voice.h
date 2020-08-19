@@ -7,12 +7,11 @@
 	Important:
 		- An operator can only be modulated by an operator above it (as in index value)
 		- Feedback can be taken from any level
-		- Interface is incomplete and most voice management is implemented in FM_BISON.cpp,
-		  this class needs to be initialized manually (potential FIXME)
+		- This used to be (surprise, surprise) a POD structure and most logic is implemented in FM_BISON.cpp
+		  and the Sample() function, cleaning this up is a potential FIXME
 */
 
 #pragma once
-
 
 #include "3rdparty/filters/SvfLinearTrapOptimised2.hpp"
 
@@ -20,7 +19,6 @@
 #include "synth-oscillator.h"
 #include "patch/synth-patch-global.h"
 #include "synth-envelope.h"
-#include "synth-interpolated-parameter.h"
 #include "synth-one-pole-filters.h"
 #include "synth-sidechain-envelope.h"
 
