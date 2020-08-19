@@ -843,6 +843,10 @@ namespace SFM
 		// Voice not sustained
 		voice.m_sustained = false;
 
+		// Offset in samples (to be within a single Render() pass)
+		SFM_ASSERT(request.timeStamp < m_samplesPerBlock);
+		voice.m_sampleOffs = request.timeStamp;
+
 		const unsigned key = request.key;        // Key
 		const float jitter = m_patch.jitter;     // Jitter
 		const float velocity = request.velocity; // Velocity
@@ -1132,7 +1136,7 @@ namespace SFM
 	 ------------------------------------------------------------------------------------------------------ */
 
 	// Prepare voices for Render() pass
-	void Bison::UpdateVoicesPreRender(unsigned numSamples)
+	void Bison::UpdateVoicesPreRender()
 	{
 		m_modeSwitch = m_curVoiceMode != m_patch.voiceMode;
 		const bool monophonic = Patch::VoiceMode::kMono == m_curVoiceMode;
@@ -1292,7 +1296,7 @@ namespace SFM
 
 			// Sort list by time stamp
 			// The front of the deque will be the first (smallest) time stamp; we'll honour requests in that order
-			std::sort(m_voiceReq.begin(), m_voiceReq.end(), [](const auto &left, const auto &right ) -> bool { return left.timeStamp < right.timeStamp; } );
+			std::sort(m_voiceReq.begin(), m_voiceReq.end(), [](const auto &left, const auto &right) -> bool { return left.timeStamp < right.timeStamp; } );
 			
 			// Allocate voices (simple first-fit)
 			while (m_voiceReq.size() > 0 && m_voiceCount < m_curPolyphony)
@@ -1368,10 +1372,9 @@ namespace SFM
 				}
 			}
 
-			// Offset remaining voice request's time stamps by number of samples processed 
-			// this frame; they will now be first in line to be allocated next frame
+			// Now first in line to be allocated next frame
 			for (auto &request : m_voiceReq)
-				request.timeStamp += numSamples;
+				request.timeStamp = 0;
 		}
 		else
 		{
@@ -1714,7 +1717,7 @@ namespace SFM
 						voice.m_filterSVF2.tick(filteredL, filteredR);
 					}
 
-					// Ref: https://github.com/FredAntonCorvest/Common-DSP/blob/master/Filter/SvfLinearTrapOptimised2Demo.cpp
+					// Ref.: https://github.com/FredAntonCorvest/Common-DSP/blob/master/Filter/SvfLinearTrapOptimised2Demo.cpp
 					voice.m_filterSVF1.updateCoefficients(cutoffHz, sampQ, context.filterType1, m_sampleRate);
 					voice.m_filterSVF1.tick(filteredL, filteredR);
 							
@@ -1835,7 +1838,7 @@ namespace SFM
 		m_SandHSlewRatePS.Apply(m_patch.SandHSlewRate); // Does not need per-sample interpolation
 
 		// Update voice logic (pre)
-		UpdateVoicesPreRender(numSamples);
+		UpdateVoicesPreRender();
 
 		// Update filter type & state
 		// This is where the magic happens ;)

@@ -266,7 +266,7 @@ namespace SFM
 		}
 
 		// Called by Render()
-		void UpdateVoicesPreRender(unsigned numSamples);
+		void UpdateVoicesPreRender();
 		void UpdateVoicesPostRender();
 		void UpdateSustain();
 

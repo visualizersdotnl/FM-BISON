@@ -24,9 +24,10 @@ namespace SFM
 	{
 		ResetOperators(sampleRate);
 
-		// Not bound, zero frequency, zero velocity
+		// Not bound, zero velocity, zero offset
 		m_key = -1;
 		m_velocity = 0.f;
+		m_sampleOffs = 0;
 
 		// Disable
 		m_state = kIdle;
@@ -127,11 +128,15 @@ namespace SFM
 
 	void Voice::Sample(float &left, float &right, float pitchBend, float ampBend, float modulation, float LFOBlend, float LFOModDepth)
 	{
-		if (kIdle == m_state)
+		if (kIdle == m_state || m_sampleOffs > 0)
 		{
-			SFM_ASSERT(false);
+			SFM_ASSERT(kIdle != m_state); // Idle voices shouldn't be sampled
+			
+			// Wait for it...
+			--m_sampleOffs;
 
-			left = right = 0.f;
+			left  = 0.f;
+			right = 0.f;
 
 			return;
 		}
@@ -287,7 +292,7 @@ namespace SFM
 				const float feedbackAmt = kFeedbackScale*voiceOp.feedbackAmt.Sample();
 				voiceOp.feedback = 0.25f*(voiceOp.feedback*0.995f + absModSample*feedbackAmt);
 				
-				// Calculate panning (FIXME: revert back to cosine law panning)
+				// Calculate panning
 				float panning = voiceOp.panning.Sample();
 				const float panMod = voiceOp.panMod;
 				if (0.f != panMod && modulation > 0.f)
@@ -310,7 +315,7 @@ namespace SFM
 
 				if (true == voiceOp.isCarrier)
 				{
-					// FIXME: see above
+					// Square root panning retains equal power, though it is obviously more expensive than (co)sine law panning
 					mixL += sample*sqrtf(1.f-panning);
 					mixR += sample*sqrtf(panning);
 				}

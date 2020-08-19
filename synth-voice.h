@@ -35,6 +35,9 @@ namespace SFM
 		// Key slot (-1 means it's a rogue key)
 		int m_key;
 
+		// Offset in samples until actually triggered (must happen within a single Render() cycle)
+		unsigned m_sampleOffs;
+
 		// Velocity
 		float m_velocity;
 
@@ -164,7 +167,7 @@ namespace SFM
 		int m_pitchBendRange; // Applied to LFO, envelope & modulation
 		PitchEnvelope m_pitchEnvelope;
 
-		// Freq. glide
+		// Freq. glide (monophonic)
 		float m_freqGlide;
 
 	private:
