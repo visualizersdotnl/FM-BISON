@@ -231,6 +231,10 @@ namespace SFM
 				// Apply amplitude (or 'index')
 				const float amplitude = voiceOp.amplitude.Sample();
 				sample *= amplitude;
+				
+				// If carrier, apply amplitude bend
+				if (true == voiceOp.isCarrier)
+					sample *= ampBend;
 
 				// LFO tremolo
 				const float tremolo = 1.f - fabsf(LFO*voiceOp.ampMod);
@@ -283,7 +287,7 @@ namespace SFM
 				const float feedbackAmt = kFeedbackScale*voiceOp.feedbackAmt.Sample();
 				voiceOp.feedback = 0.25f*(voiceOp.feedback*0.995f + absModSample*feedbackAmt);
 				
-				// Calculate panning
+				// Calculate panning (FIXME: revert back to cosine law panning)
 				float panning = voiceOp.panning.Sample();
 				const float panMod = voiceOp.panMod;
 				if (0.f != panMod && modulation > 0.f)
@@ -304,11 +308,12 @@ namespace SFM
 					panning = modPanning;
 				}
 
-				// If carrier, mix (chose not to branch on purpose, though it'll probably won't matter or just a little)
-				sample *= voiceOp.isCarrier;
-				const float monaural = sample*ampBend;
-				mixL += monaural*sqrtf(1.f-panning);
-				mixR += monaural*sqrtf(panning);
+				if (true == voiceOp.isCarrier)
+				{
+					// FIXME: see above
+					mixL += sample*sqrtf(1.f-panning);
+					mixR += sample*sqrtf(panning);
+				}
 			}
 		} 
 

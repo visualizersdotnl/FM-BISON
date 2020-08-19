@@ -14,9 +14,13 @@ namespace SFM
 	{
 		switch (form)
 		{
+		case kWhiteNoise:
+			m_phase.Initialize(1.f, sampleRate);
+			break;
+
 		case kPinkNoise:
 			m_pinkNoise = PinkNoise();
-			m_phase.Initialize(0.f, 1);
+			m_phase.Initialize(1.f, sampleRate);
 			break;
 
 		case kSupersaw:
