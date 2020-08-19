@@ -1291,8 +1291,8 @@ namespace SFM
 			/* Polyphonic */
 
 			// Sort list by time stamp
-			// The front of the deque will be the latest (largest) time stamp; we'll honour requests in that order
-			std::sort(m_voiceReq.begin(), m_voiceReq.end(), [](const auto &left, const auto &right ) -> bool { return left.timeStamp > right.timeStamp; } );
+			// The front of the deque will be the first (smallest) time stamp; we'll honour requests in that order
+			std::sort(m_voiceReq.begin(), m_voiceReq.end(), [](const auto &left, const auto &right ) -> bool { return left.timeStamp < right.timeStamp; } );
 			
 			// Allocate voices (simple first-fit)
 			while (m_voiceReq.size() > 0 && m_voiceCount < m_curPolyphony)
