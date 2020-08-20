@@ -170,7 +170,7 @@ namespace SFM
 
 		SFM_INLINE float Interpolate(float from, float to, unsigned numSamples)
 		{
-			const float delta = (to-from);
+			const float delta = to-from;
 
 			float step = 1.f/numSamples;
 			step *= m_iSample;

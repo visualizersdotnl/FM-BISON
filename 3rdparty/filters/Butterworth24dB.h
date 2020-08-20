@@ -8,7 +8,10 @@
 // - No external dependencies
 // - Misc. minor modifications 
 // - Stereo support
-// - FIXME: needs optimization
+//
+// FIXME: 
+// - Do I use this at all?
+// - Single prec. please
 //
 // I can't say I'm a big fan of how most DSP code is written but I'll try to keep it as-is.
 //
@@ -28,12 +31,12 @@ static constexpr float BUDDA_Q_SCALE = 6.0;
 class Butterworth24dB
 {
 public:
-    Butterworth24dB()
+	Butterworth24dB()
 	{
 		Reset();
 	}
 
-    ~Butterworth24dB() {}
+	~Butterworth24dB() {}
 
 	void Reset()
 	{
@@ -41,7 +44,7 @@ public:
 		memset(m_historyR, 0, 4*sizeof(double));
 	}
 
-    void SetSampleRate(unsigned fs)
+	void SetSampleRate(unsigned fs)
 	{
 		const double pi = M_PI;
 
@@ -54,7 +57,7 @@ public:
 		m_max_cutoff = fs * 0.45; // 0.45;
 	}
 
-    void SetCutoffAndQ(double cutoff, double q)
+	void SetCutoffAndQ(double cutoff, double q)
 	{
 		if (cutoff < m_min_cutoff)
 			cutoff = m_min_cutoff;
@@ -108,7 +111,7 @@ public:
 	}
 
 private:
-    float Run(float input, double *history)
+	float Run(float input, double *history)
 	{
 		double output = input*m_gain;
 		double new_hist;
@@ -131,14 +134,14 @@ private:
 		history[3] = history[2];
 		history[2] = new_hist;
 
-		return (float) output;
+		return (float) output; // FIXME: expensive cast
 	}
 
 	double m_historyL[4];
 	double m_historyR[4];
 
-    double m_t0, m_t1, m_t2, m_t3;
-    double m_coef0, m_coef1, m_coef2, m_coef3;
-    double m_gain;
-    double m_min_cutoff, m_max_cutoff;
+	double m_t0, m_t1, m_t2, m_t3;
+	double m_coef0, m_coef1, m_coef2, m_coef3;
+	double m_gain;
+	double m_min_cutoff, m_max_cutoff;
 };
