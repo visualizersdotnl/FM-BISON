@@ -24,9 +24,6 @@
 
 namespace SFM
 {
-	// Number of cascaded filters of this type (keep it civil as it's a per operator filter)
-	constexpr unsigned kNumOpFilterAllpasses = 4;
-
 	class Voice
 	{
 	public:
