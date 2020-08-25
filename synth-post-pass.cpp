@@ -50,7 +50,7 @@ namespace SFM
 
 		// Delay
 ,		m_tapeDelayLFO(sampleRate)
-,		m_tapeDelayLPF(kSweepCutoffHz*3.f /* Borrowed, FIXME */ / sampleRate)
+,		m_tapeDelayLPF(kSweepCutoffHz /* Borrowed, FIXME */ / sampleRate)
 ,		m_delayLineL(unsigned(sampleRate*kMainDelayLineSize))
 ,		m_delayLineM(unsigned(sampleRate*kMainDelayLineSize))
 ,		m_delayLineR(unsigned(sampleRate*kMainDelayLineSize))
