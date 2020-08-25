@@ -41,9 +41,9 @@ namespace SFM
 	// The compressor's 'bite' is filtered so it can be used as a GUI indicator; higher value means brighter and quicker
 	constexpr float kCompressorBiteCutHz = 480.f;
 
-	// "Tape delay" constants
+	// "Tape delay" constants (for 'wow' effect)
 	constexpr float kTapeDelayHz = kGoldenRatio;
-	constexpr float kTapeDelaySpread = 0.0175f;
+	constexpr float kTapeDelaySpread = 0.02f;
 
 	PostPass::PostPass(unsigned sampleRate, unsigned maxSamplesPerBlock, unsigned Nyquist) :
 		m_sampleRate(sampleRate), m_Nyquist(Nyquist), m_sampleRate4X(sampleRate*4)
@@ -59,6 +59,7 @@ namespace SFM
 ,		m_curDelayDrive(1.f /* 0dB */, sampleRate, kDefParameterLatency)
 ,		m_curDelayFeedback(0.f, sampleRate, kDefParameterLatency)
 ,		m_curDelayFeedbackCutoff(1.f, sampleRate, kDefParameterLatency)
+,		m_curDelayTapeWow(0.f, sampleRate, kDefParameterLatency)
 		
 		// CP
 ,		m_chorusOrPhaser(-1)
@@ -118,7 +119,7 @@ namespace SFM
 	                     float rateBPM, unsigned overideFlagsRateBPM,
 	                     float wahResonance, float wahAttack, float wahHold, float wahRate, float wahDrivedB, float wahSpeak, float wahSpeakVowel, float wahSpeakVowelMod, float wahSpeakGhost, float wahSpeakCut, float wahSpeakReso, float wahCut, float wahWet,
 	                     float cpRate, float cpWet, bool isChorus,
-	                     float delayInSec, float delayWet, float delayDrivedB, float delayFeedback, float delayFeedbackCutoff,
+	                     float delayInSec, float delayWet, float delayDrivedB, float delayFeedback, float delayFeedbackCutoff, float delayTapeWow,
 	                     float postCutoff, float postReso, float postDrivedB, float postWet,
 						 float tubeDistort, float tubeDrive, float tubeOffset,
 	                     float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
@@ -138,6 +139,7 @@ namespace SFM
 		SFM_ASSERT(delayWet >= 0.f && delayWet <= 1.f);
 		SFM_ASSERT(delayDrivedB >= kMinDelayDrivedB && delayDrivedB <= kMaxDelayDrivedB);
 		SFM_ASSERT(delayFeedback >= 0.f && delayFeedback <= 1.f);
+		SFM_ASSERT_NORM(delayTapeWow);
 		SFM_ASSERT(postCutoff >= 0.f && postCutoff <= 1.f);
 //		SFM_ASSERT(postReso >= 0.f && postReso <= 1.f); // FIXME: ?
 		SFM_ASSERT(masterVoldB >= kMinVolumedB && masterVoldB <= kMaxVolumedB);
@@ -217,6 +219,7 @@ namespace SFM
 		m_curDelayDrive.SetTarget(dB2Lin(delayDrivedB));
 		m_curDelayFeedback.SetTarget(delayFeedback);
 		m_curDelayFeedbackCutoff.SetTarget(delayFeedbackCutoff);
+		m_curDelayTapeWow.SetTarget(delayTapeWow);
 		
 		// Set rate for both chorus & phaser
 		if (false == useBPM || true == overrideSyncCP) // Sync. to BPM?
@@ -268,11 +271,12 @@ namespace SFM
 			m_delayLineR.Write(right    * drive);
 			
 			// Sample delay line
-			const float curDelay = curDelayInSec/kMainDelayInSec;
-			const float tapeMod  = curDelay + (curDelay*curDelay)*kTapeDelaySpread*m_tapeDelayLPF.Apply(fast_cosf(m_tapeDelayLFO.Sample()));
-			const float delayedL = m_delayLineL.ReadNormalized(tapeMod);
-			const float delayedM = m_delayLineM.ReadNormalized(tapeMod);
-			const float delayedR = m_delayLineR.ReadNormalized(tapeMod);
+			const float curDelay   = curDelayInSec/kMainDelayInSec;
+			const float curTapeWow = m_curDelayTapeWow.Sample();
+			const float normDelay  = curDelay + curTapeWow*(curDelay*curDelay)*kTapeDelaySpread*m_tapeDelayLPF.Apply(fast_cosf(m_tapeDelayLFO.Sample()));
+			const float delayedL   = m_delayLineL.ReadNormalized(normDelay);
+			const float delayedM   = m_delayLineM.ReadNormalized(normDelay);
+			const float delayedR   = m_delayLineR.ReadNormalized(normDelay);
 			
 			// Bleed delay samples a bit
 			constexpr float crossBleedAmt = kDelayCrossbleeding;

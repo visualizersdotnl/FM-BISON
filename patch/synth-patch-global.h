@@ -117,6 +117,7 @@ namespace SFM
 		float delayDrivedB; // [kMinDelayDrivedB..kMaxDelayDrivedB]
 		float delayFeedback;
 		float delayFeedbackCutoff;
+		float delayTapeWow;
 
 		// If the pitch wheel should modulate amplitude instead
 		bool pitchIsAmpMod;
@@ -274,6 +275,7 @@ namespace SFM
 			delayDrivedB = kDefDelayDrivedB;
 			delayFeedback = 0.f;
 			delayFeedbackCutoff = 1.f;
+			delayTapeWow = 0.f;
 
 			// Pitch wheel affects pitch, not amplitude
 			pitchIsAmpMod = false;

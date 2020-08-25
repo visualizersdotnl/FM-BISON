@@ -44,7 +44,7 @@ namespace SFM
 		           float rateBPM, unsigned overideFlagsRateBPM, /* See impl. for details! */
 				   float wahResonance, float wahAttack, float wahHold, float wahRate, float wahDrivedB, float wahSpeak, float wahSpeakVowel, float wahSpeakVowelMod, float wahSpeakGhost, float wahSpeakCut, float wahSpeakReso, float wahCut, float wahWet,
 		           float cpRate, float cpWet, bool isChorus,
-		           float delayInSec, float delayWet, float delayDrivedB, float delayFeedback, float delayFeedbackCutoff,
+		           float delayInSec, float delayWet, float delayDrivedB, float delayFeedback, float delayFeedbackCutoff, float delayTapeWow,
 		           float postCutoff, float postReso, float postDrivedB, float postWet,
 		           float tubeDistort, float tubeDrive, float tubeOffset,
 		           float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
@@ -100,6 +100,7 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curDelayDrive;
 		InterpolatedParameter<kLinInterpolate> m_curDelayFeedback;
 		InterpolatedParameter<kLinInterpolate> m_curDelayFeedbackCutoff;
+		InterpolatedParameter<kLinInterpolate> m_curDelayTapeWow;
 		
 		// FIXME: enum. type
 		int m_chorusOrPhaser;

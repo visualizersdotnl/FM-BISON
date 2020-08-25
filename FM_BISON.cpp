@@ -145,6 +145,7 @@ namespace SFM
 		*/
 
 		// Their sample rate is the amount of Render() calls it takes to render a second of audio
+		// FIXME: this could be a class member so it doesn't need to be passed on to ParameterSlew!
 		const unsigned sampleRatePS = m_sampleRate/m_samplesPerBlock;
 
 		// Global
@@ -169,6 +170,7 @@ namespace SFM
 		m_delayWetPS            = { sampleRatePS };
 		m_delayFeedbackPS       = { sampleRatePS };
 		m_delayFeedbackCutoffPS = { sampleRatePS };
+		m_delayTapeWowPS        = { sampleRatePS };
 		
 		// These apply to effects operating on oversampled data, but that's not relevant to ParameterSlew
 		m_tubeDistPS            = { sampleRatePS };
@@ -199,13 +201,15 @@ namespace SFM
 		m_masterVoldBPS          = { sampleRatePS };
 		m_bassTuningdBPS         = { sampleRatePS };
 		m_trebleTuningdBPS       = { sampleRatePS };
-
+		
+		// FIXME: move to constructors above
 		m_effectWetPS.Reset(m_patch.cpWet);
 		m_effectRatePS.Reset(m_patch.cpRate);
 		m_delayPS.Reset(m_patch.delayInSec);
 		m_delayWetPS.Reset(m_patch.delayWet);
 		m_delayFeedbackPS.Reset(m_patch.delayFeedback);
 		m_delayFeedbackCutoffPS.Reset(m_patch.delayFeedbackCutoff);
+		m_delayTapeWowPS.Reset(m_patch.delayTapeWow);
 		m_postCutoffPS.Reset(m_patch.postCutoff);
 		m_postResoPS.Reset(m_patch.postResonance);
 		m_postDrivePS.Reset(m_patch.postDrivedB);
@@ -238,10 +242,6 @@ namespace SFM
 		m_bendWheelPS  = { sampleRatePS };
 		m_modulationPS = { sampleRatePS };
 		m_aftertouchPS = { sampleRatePS };
-
-		m_bendWheelPS.Reset(0.f);
-		m_modulationPS.Reset(0.f);
-		m_aftertouchPS.Reset(0.f);
 
 		// Reset operator peak followers
 		for (auto &peakEnv : m_opPeaksEnv)
@@ -2068,6 +2068,7 @@ namespace SFM
 			m_delayDrivePS.Apply(m_patch.delayDrivedB),
 			m_delayFeedbackPS.Apply(m_patch.delayFeedback),
 			m_delayFeedbackCutoffPS.Apply(m_patch.delayFeedbackCutoff),
+			m_delayTapeWowPS.Apply(m_patch.delayTapeWow),
 			/* MOOG-style 24dB filter + Tube distort */
 			m_postCutoffPS.Apply(m_patch.postCutoff),
 			m_postResoPS.Apply(m_patch.postResonance),

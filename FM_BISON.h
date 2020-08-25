@@ -341,8 +341,9 @@ namespace SFM
 		public:
 			ParameterSlew() {}
 
-			ParameterSlew(unsigned sampleRate, float MS = kDefParameterSlewMS) :
+			ParameterSlew(unsigned sampleRate, float state = 0.f, float MS = kDefParameterSlewMS) :
 				m_sigEnv(sampleRate, MS)
+,				m_state(state)
 			{
 			}
 
@@ -363,7 +364,7 @@ namespace SFM
 
 		private:
 			SignalFollower m_sigEnv;
-			float m_state = 0.f;
+			float m_state;
 		};
 
 		ParameterSlew m_LFORatePS;
@@ -372,7 +373,7 @@ namespace SFM
 		ParameterSlew m_SandHSlewRatePS;
 		ParameterSlew m_cutoffPS, m_resoPS;
 		ParameterSlew m_effectWetPS, m_effectRatePS;
-		ParameterSlew m_delayPS, m_delayWetPS, m_delayDrivePS, m_delayFeedbackPS, m_delayFeedbackCutoffPS;
+		ParameterSlew m_delayPS, m_delayWetPS, m_delayDrivePS, m_delayFeedbackPS, m_delayFeedbackCutoffPS, m_delayTapeWowPS;
 		ParameterSlew m_postCutoffPS, m_postResoPS, m_postDrivePS, m_postWetPS;
 		ParameterSlew m_tubeDistPS, m_tubeDrivePS;
 		ParameterSlew m_wahRatePS, m_wahDrivePS, m_wahSpeakPS, m_wahSpeakVowelPS, m_wahSpeakVowelModPS, m_wahSpeakGhostPS, m_wahSpeakCutPS, m_wahSpeakResoPS, m_wahCutPS, m_wahWetPS;
