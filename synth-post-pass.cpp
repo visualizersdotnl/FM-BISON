@@ -41,16 +41,16 @@ namespace SFM
 	// The compressor's 'bite' is filtered so it can be used as a GUI indicator; higher value means brighter and quicker
 	constexpr float kCompressorBiteCutHz = 480.f;
 
-	// Tape delay constants
-	constexpr float kTapeDelayHz = kGoldenRatio*0.00066f; // Totally arbitrary (TM)
-	constexpr float kTapeDelaySpread = 0.015f;            // 150MS max.
+	// "Tape delay" constants
+	constexpr float kTapeDelayHz = kGoldenRatio;
+	constexpr float kTapeDelaySpread = 0.0175f;
 
 	PostPass::PostPass(unsigned sampleRate, unsigned maxSamplesPerBlock, unsigned Nyquist) :
 		m_sampleRate(sampleRate), m_Nyquist(Nyquist), m_sampleRate4X(sampleRate*4)
 
 		// Delay
 ,		m_tapeDelayLFO(sampleRate)
-,		m_tapeDelayLPF(kSweepCutoffHz /* Borrowed, FIXME */ / sampleRate)
+,		m_tapeDelayLPF(kSweepCutoffHz*3.f /* Borrowed, FIXME */ / sampleRate)
 ,		m_delayLineL(unsigned(sampleRate*kMainDelayLineSize))
 ,		m_delayLineM(unsigned(sampleRate*kMainDelayLineSize))
 ,		m_delayLineR(unsigned(sampleRate*kMainDelayLineSize))
