@@ -7,7 +7,7 @@
 	This is the FM tone generator (operator) patch: all operator settings.
 
 	- In case a parameter does not come with a comment it's safe to assume that the range is [0..1]
-	- Interpolated parameters are commented with '(R)'
+	- Interpolated parameters are commented with '(R)' (FIXME: probably incomplete as most parameters are interpolated by now, 25/08/2020)
 */
 
 #pragma once
