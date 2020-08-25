@@ -76,7 +76,7 @@ namespace SFM
 			// Sync. oscillator on key press
 			bool keySync;
 			
-			// Indices: -1 means none; modulators must be higher up
+			// Indices: -1 means none; modulators must be higher up (see impl. in synth-voice.cpp)
 			unsigned modulators[3], feedback;
 
 			// Frequency settings
@@ -108,7 +108,7 @@ namespace SFM
 			// LFO influence (on the DX7 this is global)
 			float ampMod;
 			float pitchMod;
-			float panMod;
+			float panMod; // If set (non-zero) this overrides manual panning!
 
 			// Drive (square) distortion (R)
 			float drive;

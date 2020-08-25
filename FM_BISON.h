@@ -53,9 +53,9 @@
 	** Depends on JUCE 6.01 or compatible! **
 	
 	Core goals:
-		- Yamaha DX7 style core FM with extensions
-		- Subtractive synthesis on top
-		- Low CPU footprint in DAWs, possibly embedded targets in the future
+		- Yamaha DX7 style core FM tone generator with a plethora of extra features
+		- Subtractive synthesis (filters & effects) on top
+		- Goal: low CPU footprint in DAWs, possibly embedded targets in the future
 
 	VST/JUCE related:
 		- See PluginProcessor.cpp

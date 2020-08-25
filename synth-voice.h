@@ -27,7 +27,7 @@ namespace SFM
 	class Voice
 	{
 	public:
-		// Key slot (-1 means it's a rogue key)
+		// Key slot (-1 means it's a rogue voice)
 		int m_key;
 
 		// Offset in samples until actually triggered (must happen within a single Render() cycle)

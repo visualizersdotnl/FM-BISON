@@ -112,11 +112,9 @@ namespace SFM
 	
 	/* ----------------------------------------------------------------------------------------------------
 
-		Voice render loop, this is the most essential part of the FM engine.
+		Voice render loop, this is the most essential part of the FM engine
 		
-		FIXME:
-			- Rewrite so all operators can modulate each other
-			- And make it *faster*
+		FIXME: optimize!
 			
 	 ------------------------------------------------------------------------------------------------------ */
 
@@ -168,7 +166,7 @@ namespace SFM
 		pitchBend = powf(2.f, pitchBend*pitchRangeOct);
 
 		// Process all operators top-down
-		// It's quite verbose and algorithmically not as flexible as could be (FIXME?)
+		// This imposes the limitation that an operator can only be modulated by one below it
 
 		alignas(16) float modSamples[kNumOperators] = { 0.f }; // Samples for modulation
 		float mixL = 0.f, mixR = 0.f; // Carrier mix
@@ -180,17 +178,15 @@ namespace SFM
 
 			if (true == voiceOp.enabled)
 			{
-				// First step towards autonomous operator calc.:
-//				const float curFreq = voiceOp.curFreq.Sample();
-//				const float curAmplitude = voiceOp.amplitude.Sample();
-//				const float curEG = voiceOp.envelope.Sample();
-//				const float curSquarepusher = voiceOp.drive.Sample();
-//				const float feedbackAmt = voiceOp.feedbackAmt.Sample();
-//				const float curPanning = voiceOp.panning.Sample();
+				const float curFreq = voiceOp.curFreq.Sample();
+				const float curAmplitude = voiceOp.amplitude.Sample();
+				const float curEG = voiceOp.envelope.Sample();
+				const float curSquarepusher = voiceOp.drive.Sample();
+				const float curFeedbackAmt = voiceOp.feedbackAmt.Sample() * kFeedbackScale;
+				const float curPanning = voiceOp.panning.Sample();
 				
 				// Set base freq.
 				auto &oscillator = voiceOp.oscillator;
-				const float curFreq = voiceOp.curFreq.Sample();
 				oscillator.SetFrequency(curFreq);
 
 				// Get modulation from max. 3 sources
@@ -233,9 +229,8 @@ namespace SFM
 				// Calculate sample
 				float sample = oscillator.Sample(phaseShift+feedback);
 
-				// Apply amplitude (or 'index')
-				const float amplitude = voiceOp.amplitude.Sample();
-				sample *= amplitude;
+				// Apply linear amplitude (or 'index')
+				sample *= curAmplitude;
 				
 				// If carrier, apply amplitude bend
 				if (true == voiceOp.isCarrier)
@@ -246,15 +241,13 @@ namespace SFM
 				sample = lerpf<float>(sample, sample*tremolo, modulation);
 
 				// Apply envelope
-				const float envelope = voiceOp.envelope.Sample();
-				sample *= envelope;
+				sample *= curEG;
 
 				// Apply "Squarepusher" distortion
-				const float driveAmt = voiceOp.drive.Sample();
-				if (0.f != driveAmt)
+				if (0.f != curSquarepusher)
 				{
-					const float squared = Squarepusher(sample, driveAmt);
-					sample = lerpf<float>(sample, squared, driveAmt);
+					const float squared = Squarepusher(sample, curSquarepusher);
+					sample = lerpf<float>(sample, squared, curSquarepusher);
 				}
 				
 				// Apply filter
@@ -275,47 +268,32 @@ namespace SFM
 				
 				if (false == hasOpFilter && SvfLinearTrapOptimised2::NO_FLT_TYPE != voiceOp.modFilter.getFilterType())
 				{
-					// Only apply if no operator filter applied and modulator filter set
+					// Only apply if no operator filter applied and modulator filter set (only applied to a few waveforms)
 					voiceOp.modFilter.tickMono(modSample);
 				}
 
+				// Store sample for modulation
 				modSamples[iOp] = modSample;
 
 				// Add sample to gain envelope (for VU meter)
 				const float absModSample = fabsf(modSample);
 				const float gainSample = (voiceOp.isCarrier)
 					? absModSample
-					: absModSample/amplitude;
+					: absModSample/(kEpsilon+curAmplitude); // Hack to avoid checking for zero (extra branch)
 				voiceOp.envGain.Apply(gainSample);
 
 				// Update feedback
-				const float feedbackAmt = kFeedbackScale*voiceOp.feedbackAmt.Sample();
-				voiceOp.feedback = 0.25f*(voiceOp.feedback*0.995f + absModSample*feedbackAmt);
+				voiceOp.feedback = 0.25f*(voiceOp.feedback*0.995f + absModSample*curFeedbackAmt);
 				
-				// Calculate panning
-				float panning = voiceOp.panning.Sample();
+				// Calc. panning
 				const float panMod = voiceOp.panMod;
-				if (0.f != panMod && modulation > 0.f)
-				{
-					float modPanning = LFO*panMod*modulation*0.5f + 0.5f;
-
-					if (panning < 0.5f)		
-					{
-						// Left bias
-						modPanning = std::max<float>(0.f, modPanning - (0.5f-panning));
-					}
-					else if (panning > 0.5f)
-					{
-						// Right bias
-						modPanning = std::min<float>(1.f, modPanning + (panning-0.5f)); 
-					}
-
-					panning = modPanning;
-				}
-
+				const float panning = (0.f == panMod)
+					? curPanning
+					: LFO*panMod*modulation*0.5f + 0.5f; // If panning modulation is set it overrides manual panning
+				
 				if (true == voiceOp.isCarrier)
 				{
-					// Square root panning retains equal power, though it is obviously more expensive than (co)sine law panning
+					// Apply panning & mix (square law panning retains equal power)
 					mixL += sample*sqrtf(1.f-panning);
 					mixR += sample*sqrtf(panning);
 				}
