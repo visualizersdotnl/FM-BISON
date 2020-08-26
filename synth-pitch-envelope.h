@@ -177,7 +177,7 @@ namespace SFM
 
 			// I don't really feel like curving this in a *too* pronounced fashion
 			// I should do some research into what the curvature (if any) of the DX7 envelope(s) is (FIXME)
-			return from + easeInQuadf(step)*delta;
+			return from + easeOutQuadf(step)*delta;
 		}
 	};
 }
