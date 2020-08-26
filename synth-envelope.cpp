@@ -91,7 +91,7 @@ namespace SFM
 		case ADSR::env_decay:
 		case ADSR::env_sustain:
 			{
-				// Set curvature (also effects length) of sustain phase
+				// Set curvature (also affects length) of sustain phase
 				m_ADSR.pianoSustain(sampleRate, CalcRatio(0.5f + 0.5f*falloff /* Lower range isn't useful nor realistic */));
 
 				// Equal to longer release rate

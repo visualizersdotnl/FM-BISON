@@ -6,7 +6,7 @@
 // - Separate target ratios for A/D/R
 // - Made a few functions 'const'
 // - Converted to double precision to avoid an attack "bug" (rounding artifact), as per Nigel Redmon's
-//   advice
+//   advice (FIXME: only perform where necessary!)
 // - Access to current release rate for SFM::Envelope::OnPianoSustain()
 // - Extra state to finish attack prior to entering piano sustain phase (extra state so we don't need 
 //   a boolean, not that it really matters though)
@@ -64,7 +64,6 @@ namespace SFM
 			env_attack,
 			env_decay,
 			env_sustain,
-			env_piano_attack,  // Used to let the attack finished prior to entering the state below
 			env_piano_sustain, // Piano sustain, a sustain mode with (optional) falloff
 			env_release,
 		};
@@ -114,13 +113,6 @@ namespace SFM
 			case env_sustain:
 				output = sustainLevel;
 				break;
-			case env_piano_attack:
-				output = attackBase + output * attackCoef;
-				if (output >= 1.0) {
-					output = 1.0;
-					state = env_piano_sustain;
-				}
-				break;
 			case env_piano_sustain:
 				if (output > 0.0)
 					output = output * pianoSustainCoef;
@@ -133,6 +125,8 @@ namespace SFM
 				}
 				break;
 		}
+
+		// FIXME!
 		return float(output);
 	}
 

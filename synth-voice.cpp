@@ -130,7 +130,7 @@ namespace SFM
 		{
 			SFM_ASSERT(kIdle != m_state); // Idle voices shouldn't be sampled
 			
-			// Wait for it...
+			// MIDI sync.
 			--m_sampleOffs;
 
 			left  = 0.f;

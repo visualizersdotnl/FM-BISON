@@ -73,6 +73,9 @@ namespace SFM
 			{
 				// Wait for it..
 				--m_preAttackSamples;
+
+				SFM_ASSERT(0.f == m_ADSR.getOutput());
+
 				return 0.f;
 			}
 			else
