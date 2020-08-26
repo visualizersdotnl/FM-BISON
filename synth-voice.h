@@ -179,7 +179,7 @@ namespace SFM
 		int m_pitchBendRange; // Applied to LFO, envelope & modulation
 		PitchEnvelope m_pitchEnvelope;
 
-		// Freq. glide (monophonic)
+		// Freq. glide
 		float m_freqGlide;
 
 	private:
