@@ -7,8 +7,8 @@
 	Important:
 		- An operator can only be modulated by an operator above it (as in index value)
 		- Feedback can be taken from any level
-		- This used to be (surprise, surprise) a POD structure and most logic is implemented in FM_BISON.cpp
-		  and the Sample() function, cleaning this up is a potential FIXME
+		- This used to be a POD structure and it's not quite a C++ class (potential FIXME), initialization and manipulation of
+		  members, for a large part, happens in FM_BISON.cpp and the Sample() function
 */
 
 #pragma once
@@ -101,34 +101,51 @@ namespace SFM
 			// This function is called by Voice::Reset()
 			void Reset(unsigned sampleRate)
 			{
+				// Disabled
 				enabled = false;
 				
+				// Near-zero frequency
 				curFreq = { kEpsilon, sampleRate, kDefParameterLatency };
 
+				// No detune jitter
 				detuneOffs = 0.f;
 
+				// No key tracking
 				keyTracking = 0.f;
 
+				// Silent
 				amplitude  = { 0.f, sampleRate, kDefParameterLatency };
+
+				// Void oscillator
 				oscillator = Oscillator(sampleRate);
+
+				// Idle envelope
 				envelope.Reset();
 
+				// No modulators
 				modulators[0] = -1;
 				modulators[1] = -1;
 				modulators[2] = -1;
 
-				iFeedback   = -1;
+				// No feedback input
+				iFeedback = -1;
+
+				// No feedback
 				feedbackAmt = { 0.f, sampleRate, kDefParameterLatency };
 				feedback = 0.f;
-
+				
+				// No modulation
 				ampMod   = 0.f;
 				pitchMod = 0.f;
 				panMod   = 0.f;
 
+				// No soft distortion
 				drive = { 0.f, sampleRate, kDefParameterLatency };
 				
+				// No (manual) panning
 				panning = { 0.f, sampleRate, kDefParameterLatency };
 
+				// Not a carrier
 				isCarrier = false;
 				
 				// Reset operator filter
@@ -148,7 +165,7 @@ namespace SFM
 
 		} m_operators[kNumOperators];
 
-		// LFO
+		// LFO oscillators
 		Oscillator m_LFO1, m_LFO2;
 		Oscillator m_modLFO;
 
