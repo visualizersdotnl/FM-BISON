@@ -33,7 +33,7 @@ namespace SFM
 	{
 		Oscillator::Waveform::kSine,              // Sine
 		Oscillator::Waveform::kPolyTriangle,      // Triangle
-		Oscillator::Waveform::kPolySquare,	      // Square
+		Oscillator::Waveform::kPolySquare,        // Square
 		Oscillator::Waveform::kPinkNoise,         // Pink noise
 		Oscillator::Waveform::kPolySaw,           // Saw
 		Oscillator::Waveform::kSupersaw,          // Supersaw
@@ -66,7 +66,7 @@ namespace SFM
 				kNumFilters
 			} filterType;
 
-			float peakdB; // [kMinOpPeakdB..kMaxOpPeakdB]
+			float peakdB;    // [kMinOpPeakdB..kMaxOpPeakdB]
 			float cutoff;    // Or 'frequency' (FIXME)
 			float resonance; // Or 'bandwidth' (FIXME)
 

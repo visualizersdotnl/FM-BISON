@@ -150,7 +150,7 @@ namespace SFM
 
 		auto modulate = [](float input, float modulation, float depth)
 		{
-			float sample = input*modulation;
+			const float sample = input*modulation;
 			return lerpf<float>(input, sample, depth);
 		};
 
