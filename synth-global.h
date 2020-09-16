@@ -35,7 +35,7 @@
 #endif
 
 // Try to use this one for all normalized ([0..1]) variables (25/08/2020)
-#define SFM_ASSERT_NORM(variable)   SFM_ASSERT(variable >= 0.f  && variable <= 1.f)
+#define SFM_ASSERT_NORM(variable)   SFM_ASSERT(variable >=  0.f && variable <= 1.f)
 #define SFM_ASSERT_BINORM(variable) SFM_ASSERT(variable >= -1.f && variable <= 1.f)
 
 // Set to 1 to kill all SFM log output

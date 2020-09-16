@@ -154,7 +154,7 @@ namespace SFM
 			return lerpf<float>(input, sample, depth);
 		};
 
-		const float LFO1 = modulate(m_LFO1.Sample(0.f), modLFO, LFOModDepth);
+		const float LFO1 = modulate(m_LFO1.Sample(0.f /* Do something funky here? */), modLFO, LFOModDepth);
 		const float LFO2 = modulate(m_LFO2.Sample(0.f), modLFO, LFOModDepth);
 		const float blend = lerpf<float>(LFO1, LFO2, LFOBlend);
 

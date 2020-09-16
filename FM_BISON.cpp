@@ -1235,11 +1235,12 @@ namespace SFM
 					if (false == voice.IsDone() && false == voice.IsStolen())
 					{
 						// Still bound to a key?
+						// FIXME: I could do this for all voices that satisfy the condition above (and just retain the last known amplitude, issue created 16/09/2020)
 						if (-1 != voice.m_key)
 						{
 							// Update active voice:
 							// - Each (active) operator has a set of parameters that need per-sample interpolation 
-							// - Some of these are updated in this loop
+							// - Most of these are updated in this loop
 							// - The set of parameters (also outside of this object) isn't conclusive and may vary depending on the use of FM. BISON (currently: VST plug-in)
 
 							for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)

@@ -1,6 +1,6 @@
 
 /*
-	FM. BISON hybrid FM synthesis -- Flexible ADSR envelope.
+	FM. BISON hybrid FM synthesis -- Flexible analog style ADSR envelope.
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
@@ -11,6 +11,8 @@
 
 namespace SFM
 {
+#if !defined(ADSR_SINGLE_PREC)
+
 	SFM_INLINE static double CalcRate(double rateMul, float rate, unsigned sampleRate)
 	{
 		return rateMul*rate*sampleRate;
@@ -24,6 +26,24 @@ namespace SFM
 		const double invX = 1.0 - curve;
 		return kEpsilon + 0.03 * (exp(3.6*invX) - 1.0);
 	}
+
+#else
+
+	SFM_INLINE static float CalcRate(float rateMul, float rate, unsigned sampleRate)
+	{
+		return rateMul*rate*sampleRate;
+	}
+
+	SFM_INLINE static float CalcRatio(float curve)
+	{
+		SFM_ASSERT(curve >= 0.f && curve <= 1.f);
+		
+		// Tweaked version of function in Nigel's own widget (https://www.earlevel.com/main/2013/06/23/envelope-generators-adsr-widget/)
+		const float invX = 1.f - curve;
+		return kEpsilon + 0.03f * float( exp(3.6*invX) - 1.0 );
+	}
+
+#endif
 
 	void Envelope::Start(const Parameters &parameters, unsigned sampleRate, bool isCarrier, float keyTracking, float velScaling)
 	{
@@ -40,9 +60,15 @@ namespace SFM
 		m_ADSR.reset();
 
 		// Set ratios
+#if !defined(ADSR_SINGLE_PREC)
 		const double ratioA = CalcRatio(parameters.attackCurve);
 		const double ratioD = CalcRatio(parameters.decayCurve);
 		const double ratioR = CalcRatio(parameters.releaseCurve);
+#else
+		const float ratioA = CalcRatio(parameters.attackCurve);
+		const float ratioD = CalcRatio(parameters.decayCurve);
+		const float ratioR = CalcRatio(parameters.releaseCurve);
+#endif
 
 		m_ADSR.setTargetRatioA(ratioA);
 		m_ADSR.setTargetRatioD(ratioD);
@@ -53,17 +79,24 @@ namespace SFM
 		m_ADSR.setSustainLevel(parameters.sustain);
 
 		// Set rates
-		const double rateMul = parameters.rateMul*keyTracking;
-		 
+#if !defined(ADSR_SINGLE_PREC)
+		const double rateMul  = parameters.rateMul*keyTracking;
 		const double attack   = CalcRate(rateMul,            parameters.attack,  sampleRate);
 		const double decay    = CalcRate(rateMul*velScaling, parameters.decay,   sampleRate); // Velocity scaling can lengthen the decay phase
 		const double release  = CalcRate(rateMul,            parameters.release, sampleRate);
+#else
+		const float rateMul  = parameters.rateMul*keyTracking;
+		const float attack   = CalcRate(rateMul,            parameters.attack,  sampleRate);
+		const float decay    = CalcRate(rateMul*velScaling, parameters.decay,   sampleRate); // Velocity scaling can lengthen the decay phase
+		const float release  = CalcRate(rateMul,            parameters.release, sampleRate);
+#endif
 
 		m_ADSR.setAttackRate(attack);
 		m_ADSR.setDecayRate(decay);
 		m_ADSR.setReleaseRate(release);
-	
-		m_ADSR.gate(true, 0.0);
+		
+		// Go!
+		m_ADSR.gate(true, 0.f);
 
 		// Maarten van Strien advised this due to his experience with FM8
 		// It means the envelope will never go past it's sustain phase
@@ -95,11 +128,17 @@ namespace SFM
 				m_ADSR.pianoSustain(sampleRate, CalcRatio(0.5f + 0.5f*falloff /* Lower range isn't useful nor realistic */));
 
 				// Equal to longer release rate
+#if !defined(ADSR_SINGLE_PREC)
 				const double releaseRate = m_ADSR.getReleaseRate();
+#else
+				const float releaseRate = m_ADSR.getReleaseRate();
+#endif
+
 				m_ADSR.setReleaseRate(releaseRate*releaseRateMul);
 				
 				// At this point I wanted to adjust the release ratio to a fully linear curve, but I later realized it's 
-				// up to the patch to decide how the release of the instrument should behave
+				// up to the patch to decide how the release of the instrument should behave, so should I offer the option
+				// above at all?
 			}
 
 			break;
