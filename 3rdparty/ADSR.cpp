@@ -27,8 +27,6 @@
 #include <cmath>
 #include <math.h>
 
-#if !defined(ADSR_SINGLE_PREC)
-
 namespace SFM 
 {
 	ADSR::ADSR(void) {
@@ -98,78 +96,3 @@ namespace SFM
 	}
 
 } // SFM
-
-#else
-
-namespace SFM 
-{
-	ADSR::ADSR(void) {
-		reset();
-		setAttackRate(0.f);
-		setDecayRate(0.f);
-		setReleaseRate(0.f);
-		setSustainLevel(1.f);
-		setTargetRatioA(0.3f);
-		setTargetRatioD(0.0001f);
-		setTargetRatioR(0.0001f);
-	}
-
-	ADSR::~ADSR(void) {
-	}
-
-	void ADSR::setAttackRate(float rate) {
-		attackRate = rate;
-		attackCoef = calcCoef(rate, targetRatioA);
-		attackBase = (1.f + targetRatioA) * (1.f - attackCoef);
-	}
-
-	void ADSR::setDecayRate(float rate) {
-		decayRate = rate;
-		decayCoef = calcCoef(rate, targetRatioD);
-		decayBase = (sustainLevel-targetRatioD) * (1.f - decayCoef);
-	}
-
-	void ADSR::setReleaseRate(float rate) {
-		releaseRate = rate;
-		releaseCoef = calcCoef(rate, targetRatioR);
-		releaseBase = -targetRatioR * (1.f - releaseCoef);
-	}
-
-	float ADSR::calcCoef(float rate, float targetRatio) 
-	{
-		// Calls exp() in double precision, as per Nigel Redmon's advice
-		return (rate <= 0.f) ? 0.f : float( exp(-log((1.0 + targetRatio) / targetRatio) / rate) );
-	}
-
-	void ADSR::setSustainLevel(float level) {
-		sustainLevel = level;
-		decayBase = (sustainLevel-targetRatioD) * (1.f - decayCoef);
-	}
-
-	void ADSR::setTargetRatioA(float targetRatio) {
-		if (targetRatio < 0.000000001f)
-			targetRatio = 0.000000001f;  // -180 dB
-		targetRatioA = targetRatio;
-		attackCoef = calcCoef(attackRate, targetRatioA);
-		attackBase = (1.f + targetRatioA) * (1.f - attackCoef);
-	}
-
-	void ADSR::setTargetRatioD(float targetRatio) {
-		if (targetRatio < 0.000000001f)
-			targetRatio = 0.000000001f;  // -180 dB
-		targetRatioD = targetRatio;
-		decayCoef = calcCoef(decayRate, targetRatioD);
-		decayBase = (sustainLevel-targetRatioD) * (1.f - decayCoef);
-	}
-
-	void ADSR::setTargetRatioR(float targetRatio) {
-		if (targetRatio < 0.000000001f)
-			targetRatio = 0.000000001f;  // -180 dB
-		targetRatioR = targetRatio;
-		releaseCoef = calcCoef(releaseRate, targetRatioR);
-		releaseBase = -targetRatioR * (1.f - releaseCoef);
-	}
-
-} // SFM
-
-#endif // ADSR_SINGLE_PREC

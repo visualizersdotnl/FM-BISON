@@ -11,8 +11,6 @@
 
 namespace SFM
 {
-#if !defined(ADSR_SINGLE_PREC)
-
 	SFM_INLINE static double CalcRate(double rateMul, float rate, unsigned sampleRate)
 	{
 		return rateMul*rate*sampleRate;
@@ -26,24 +24,6 @@ namespace SFM
 		const double invX = 1.0 - curve;
 		return kEpsilon + 0.03 * (exp(3.6*invX) - 1.0);
 	}
-
-#else
-
-	SFM_INLINE static float CalcRate(float rateMul, float rate, unsigned sampleRate)
-	{
-		return rateMul*rate*sampleRate;
-	}
-
-	SFM_INLINE static float CalcRatio(float curve)
-	{
-		SFM_ASSERT(curve >= 0.f && curve <= 1.f);
-		
-		// Tweaked version of function in Nigel's own widget (https://www.earlevel.com/main/2013/06/23/envelope-generators-adsr-widget/)
-		const float invX = 1.f - curve;
-		return kEpsilon + 0.03f * float( exp(3.6*invX) - 1.0 );
-	}
-
-#endif
 
 	void Envelope::Start(const Parameters &parameters, unsigned sampleRate, bool isCarrier, float keyTracking, float velScaling)
 	{
@@ -60,15 +40,9 @@ namespace SFM
 		m_ADSR.reset();
 
 		// Set ratios
-#if !defined(ADSR_SINGLE_PREC)
 		const double ratioA = CalcRatio(parameters.attackCurve);
 		const double ratioD = CalcRatio(parameters.decayCurve);
 		const double ratioR = CalcRatio(parameters.releaseCurve);
-#else
-		const float ratioA = CalcRatio(parameters.attackCurve);
-		const float ratioD = CalcRatio(parameters.decayCurve);
-		const float ratioR = CalcRatio(parameters.releaseCurve);
-#endif
 
 		m_ADSR.setTargetRatioA(ratioA);
 		m_ADSR.setTargetRatioD(ratioD);
@@ -79,17 +53,10 @@ namespace SFM
 		m_ADSR.setSustainLevel(parameters.sustain);
 
 		// Set rates
-#if !defined(ADSR_SINGLE_PREC)
 		const double rateMul  = parameters.rateMul*keyTracking;
 		const double attack   = CalcRate(rateMul,            parameters.attack,  sampleRate);
 		const double decay    = CalcRate(rateMul*velScaling, parameters.decay,   sampleRate); // Velocity scaling can lengthen the decay phase
 		const double release  = CalcRate(rateMul,            parameters.release, sampleRate);
-#else
-		const float rateMul  = parameters.rateMul*keyTracking;
-		const float attack   = CalcRate(rateMul,            parameters.attack,  sampleRate);
-		const float decay    = CalcRate(rateMul*velScaling, parameters.decay,   sampleRate); // Velocity scaling can lengthen the decay phase
-		const float release  = CalcRate(rateMul,            parameters.release, sampleRate);
-#endif
 
 		m_ADSR.setAttackRate(attack);
 		m_ADSR.setDecayRate(decay);
@@ -128,11 +95,7 @@ namespace SFM
 				m_ADSR.pianoSustain(sampleRate, CalcRatio(0.5f + 0.5f*falloff /* Lower range isn't useful nor realistic */));
 
 				// Equal to longer release rate
-#if !defined(ADSR_SINGLE_PREC)
 				const double releaseRate = m_ADSR.getReleaseRate();
-#else
-				const float releaseRate = m_ADSR.getReleaseRate();
-#endif
 
 				m_ADSR.setReleaseRate(releaseRate*releaseRateMul);
 				
