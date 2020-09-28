@@ -132,14 +132,17 @@ SFM_INLINE void Biquad::setBiquad(int type, float Fc, float Q, float peakGaindB)
 	
 	switch (type)
 	{
+	// Inlined
 	case bq_type_lowshelf:
 		setLowShelf();
 		break;
 
+	// Inlined
 	case bq_type_highshelf:
 		setHighShelf();
 		break;
 
+	// Catch-all setup function
 	default:
 		calcBiquad();
 	};

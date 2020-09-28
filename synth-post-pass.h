@@ -26,7 +26,7 @@
 #include "synth-interpolated-parameter.h"
 #include "synth-reverb.h"
 #include "synth-compressor.h"
-#include "synth-auto-wah.h"
+#include "synth-auto-wah-vox.h"
 #include "synth-mini-EQ.h"
 
 namespace SFM

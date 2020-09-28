@@ -844,7 +844,7 @@ namespace SFM
 		voice.m_sustained = false;
 
 		// Offset in samples (to be within a single Render() pass)
-		SFM_ASSERT(request.timeStamp < m_samplesPerBlock);
+		SFM_ASSERT(request.timeStamp <= m_samplesPerBlock);
 		voice.m_sampleOffs = request.timeStamp;
 
 		const unsigned key = request.key;        // Key

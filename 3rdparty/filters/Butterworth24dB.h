@@ -3,6 +3,8 @@
 //
 // Modified for FM. BISON
 //
+// FIXME: modify to single precision
+//
 // This is an ideal filter for steep cutoffs without ripple
 //
 // - No external dependencies
@@ -134,7 +136,7 @@ private:
 		history[3] = history[2];
 		history[2] = new_hist;
 
-		return (float) output; // FIXME: expensive cast
+		return (float) output; // FIXME: cast generates expensive instruction
 	}
 
 	double m_historyL[4];

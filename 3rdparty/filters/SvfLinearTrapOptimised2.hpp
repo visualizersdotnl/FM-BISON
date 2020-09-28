@@ -7,6 +7,7 @@
 // - Stereo support (monaural remains, see tickMono())
 // - Added specific setup functions
 // - Added getFilterType()
+// - Ported to single precision (comments not modified)
 // 
 // - Stable Q range of [0.025..40] is gauranteed, but for stability using the default Q of 0.5
 //   seems to be the safe bet, certainly without oversampling; I've had situations where this
@@ -64,8 +65,8 @@ public:
 	enum FLT_TYPE {LOW_PASS_FILTER, BAND_PASS_FILTER, HIGH_PASS_FILTER, NOTCH_FILTER, PEAK_FILTER, ALL_PASS_FILTER, BELL_FILTER, LOW_SHELF_FILTER, HIGH_SHELF_FILTER, NO_FLT_TYPE};
 	
 	SvfLinearTrapOptimised2() {
-		_ic1eq_left = _ic2eq_left = _v1_left = _v2_left = _v3_left = 0.0;
-		_ic1eq_right = _ic2eq_right = _v1_right = _v2_right = _v3_right = 0.0;
+		_ic1eq_left = _ic2eq_left = _v1_left = _v2_left = _v3_left = 0.f;
+		_ic1eq_right = _ic2eq_right = _v1_right = _v2_right = _v3_right = 0.f;
 	}
 	
 	/*!
@@ -73,7 +74,7 @@ public:
 	 @param gainDb
 		Gain in dB to boost or cut the cutoff point of the shelf & bell filters
 	 */
-	void setGain(double gainDb) {
+	void setGain(float gainDb) {
 		_coef.setGain(gainDb);
 	}
 	
@@ -87,20 +88,20 @@ public:
 	 @param sampleRate
 		Sample rate. Default value is 44100hz. Do not forget to call resetState before changing the sample rate
 	 */
-	SFM_INLINE void updateCoefficients(double cutoff, double q = 0.5, FLT_TYPE type = LOW_PASS_FILTER, double sampleRate = 44100) {
+	SFM_INLINE void updateCoefficients(float cutoff, float q = 0.5f, FLT_TYPE type = LOW_PASS_FILTER, unsigned sampleRate = 44100) {
 		_coef.update(cutoff, q, type, sampleRate);
 	}
 
 	// A few shorthand update functions
-	SFM_INLINE void updateAllpassCoeff(double cutoff, double q, double sampleRate) {
+	SFM_INLINE void updateAllpassCoeff(float cutoff, float q, unsigned sampleRate) {
 		_coef.updateAllpass(cutoff, q, sampleRate);
 	}
 
-	SFM_INLINE void updateLowpassCoeff(double cutoff, double q, double sampleRate) {
+	SFM_INLINE void updateLowpassCoeff(float cutoff, float q, unsigned sampleRate) {
 		_coef.updateLowpass(cutoff, q, sampleRate);
 	}
 
-	SFM_INLINE void updateHighpassCoeff(double cutoff, double q, double sampleRate) {
+	SFM_INLINE void updateHighpassCoeff(float cutoff, float q, unsigned sampleRate) {
 		_coef.updateHighpass(cutoff, q, sampleRate);
 	}
 
@@ -126,14 +127,14 @@ public:
 private:
 	/*!
 	 @class FacAbstractFilter
-	 @brief Tick method (apply the filter on the provided sample & state (return single prec. floating point))
+	 @brief Tick method (apply the filter on the provided sample & state)
 	 */
-	SFM_INLINE double tickImpl(float v0, double &_v1, double &_v2, double &_v3, double &_ic1eq, double &_ic2eq) {
+	SFM_INLINE float tickImpl(float v0, float &_v1, float &_v2, float &_v3, float &_ic1eq, float &_ic2eq) {
 		_v3 = v0 - _ic2eq;
 		_v1 = _coef._a1*_ic1eq + _coef._a2*_v3;
 		_v2 = _ic2eq + _coef._a2*_ic1eq + _coef._a3*_v3;
-		_ic1eq = 2.*_v1 - _ic1eq;
-		_ic2eq = 2.*_v2 - _ic2eq;
+		_ic1eq = 2.f*_v1 - _ic1eq;
+		_ic2eq = 2.f*_v2 - _ic2eq;
 		
 		return _coef._m0*v0 + _coef._m1*_v1 + _coef._m2*_v2;
 	}
@@ -141,19 +142,19 @@ private:
 public:    
 	/*!
 	 @class FacAbstractFilter
-	 @brief Tick method (apply the filter on the provided stereo material (single prec. floating point))
+	 @brief Tick method (apply the filter on the provided stereo material)
 	 */
 	SFM_INLINE void tick(float &left, float &right) {
-		const double v0_left  = tickImpl(left,  _v1_left,  _v2_left,  _v3_left,  _ic1eq_left,  _ic2eq_left);
-		const double v0_right = tickImpl(right, _v1_right, _v2_right, _v3_right, _ic1eq_right, _ic2eq_right);
-		left  = float(v0_left);
-		right = float(v0_right);
+		const float v0_left  = tickImpl(left,  _v1_left,  _v2_left,  _v3_left,  _ic1eq_left,  _ic2eq_left);
+		const float v0_right = tickImpl(right, _v1_right, _v2_right, _v3_right, _ic1eq_right, _ic2eq_right);
+		left  = v0_left;
+		right = v0_right;
 	}
 	
 	// Do *not* mix with stereo tick() call without first calling resetState()
 	SFM_INLINE void tickMono(float &sample) {
-		const double filtered = tickImpl(sample, _v1_left,  _v2_left,  _v3_left,  _ic1eq_left,  _ic2eq_left);
-		sample = float(filtered);
+		const float filtered = tickImpl(sample, _v1_left,  _v2_left,  _v3_left,  _ic1eq_left,  _ic2eq_left);
+		sample = filtered;
 	}
 
 	// Returns (latest) filter type
@@ -169,10 +170,10 @@ private:
 			_A = _ASqrt = 1;
 		}
 
-		SFM_INLINE void updateAllpass(double cutoff, double q, double sampleRate)
+		SFM_INLINE void updateAllpass(float cutoff, float q, unsigned sampleRate)
 		{
-			double g = tan((cutoff / sampleRate) * M_PI);
-			const double k = computeK(q, false);
+			const float g = tanf((cutoff / sampleRate) * SFM::kPI);
+			const float k = computeK(q, false);
 
 			computeA(g, k);
 			_m0 = 1;
@@ -182,10 +183,10 @@ private:
 			_type = SvfLinearTrapOptimised2::ALL_PASS_FILTER;
 		}
 
-		SFM_INLINE void updateLowpass(double cutoff, double q, double sampleRate)
+		SFM_INLINE void updateLowpass(float cutoff, float q, unsigned sampleRate)
 		{
-			double g = tan((cutoff / sampleRate) * M_PI);
-			const double k = computeK(q, false);
+			float g = tanf((cutoff / sampleRate) * SFM::kPI);
+			const float k = computeK(q, false);
 
 			computeA(g, k);
 			_m0 = 0;
@@ -195,10 +196,10 @@ private:
 			_type = SvfLinearTrapOptimised2::LOW_PASS_FILTER;
 		}
 
-		SFM_INLINE void updateHighpass(double cutoff, double q, double sampleRate)
+		SFM_INLINE void updateHighpass(float cutoff, float q, unsigned sampleRate)
 		{
-			const double g = tan((cutoff / sampleRate) * M_PI);
-			const double k = computeK(q, false);
+			const float g = tan((cutoff / sampleRate) * SFM::kPI);
+			const float k = computeK(q, false);
 
 			computeA(g, k);
 			_m0 = 1;
@@ -213,11 +214,11 @@ private:
 			_type = SvfLinearTrapOptimised2::NO_FLT_TYPE;
 		}
 		
-		SFM_INLINE void update(double cutoff, double q = 0.5, SvfLinearTrapOptimised2::FLT_TYPE type = LOW_PASS_FILTER, double sampleRate = 44100) {
+		SFM_INLINE void update(float cutoff, float q = 0.5f, SvfLinearTrapOptimised2::FLT_TYPE type = LOW_PASS_FILTER, unsigned sampleRate = 44100) {
 			if (type != NO_FLT_TYPE)
 			{
-				double g = tan((cutoff / sampleRate) * M_PI);
-				const double k = computeK(q, type == BELL_FILTER /* Use gain for bell (peak) filter only */);
+				float g = tan((cutoff / sampleRate) * SFM::kPI);
+				const float k = computeK(q, type == BELL_FILTER /* Use gain for bell (peak) filter only */);
 			
 				switch (type) {
 					case LOW_PASS_FILTER:
@@ -284,39 +285,39 @@ private:
 			_type = type;
 		}
 		
-		void setGain(double gainDb) {
-			_A = pow(10.0, gainDb / 40.0);
-			_ASqrt = sqrt(_A);
+		void setGain(float gainDb) {
+			_A = powf(10.f, gainDb / 40.f);
+			_ASqrt = sqrtf(_A);
 		}
 		
-		SFM_INLINE double computeK(double q, bool useGain=false) {
+		SFM_INLINE float computeK(float q, bool useGain=false) {
 			return 1.f / (useGain ? (q*_A) : q);
 		}
 		
-		SFM_INLINE void computeA(double g, double k) {
+		SFM_INLINE void computeA(float g, float k) {
 			_a1 = 1/(1 + g*(g + k));
 			_a2 = g*_a1;
 			_a3 = g*_a2;
 		}
 
-		double _g;
+		float _g;
 		
-		double _a1, _a2, _a3;
-		double _m0, _m1, _m2;
+		float _a1, _a2, _a3;
+		float _m0, _m1, _m2;
 		
-		double _A;
-		double _ASqrt;
+		float _A;
+		float _ASqrt;
 		
 		FLT_TYPE _type = NO_FLT_TYPE;
 	} _coef;
 	
-	double _ic1eq_left;
-	double _ic2eq_left;
-	double _v1_left, _v2_left, _v3_left;
+	float _ic1eq_left;
+	float _ic2eq_left;
+	float _v1_left, _v2_left, _v3_left;
 
-	double _ic1eq_right;
-	double _ic2eq_right;
-	double _v1_right, _v2_right, _v3_right;
+	float _ic1eq_right;
+	float _ic2eq_right;
+	float _v1_right, _v2_right, _v3_right;
 };
 
 #endif /* SvfLinearTrapOptimised2_hpp */

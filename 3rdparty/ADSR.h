@@ -126,7 +126,7 @@ namespace SFM
 				break;
 		}
 
-		// FIXME: this generates a quasi-expensive conversion function
+		// FIXME: this generates a quasi-expensive conversion instruction
 		return float(output);
 	}
 

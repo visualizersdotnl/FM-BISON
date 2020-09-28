@@ -1,3 +1,6 @@
+
+// Modified to fit FM. BISON (see Biquad.h)
+
 //
 //  Biquad.cpp
 //

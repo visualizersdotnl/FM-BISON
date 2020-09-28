@@ -1,18 +1,18 @@
 
 /*
-	FM. BISON hybrid FM synthesis -- 'Auto-wah' implementation (WIP).
+	FM. BISON hybrid FM synthesis -- 'Auto-wah' with "vox" implementation (WIP).
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 */
 
-#include "synth-auto-wah.h"
+#include "synth-auto-wah-vox.h"
 #include "synth-DX7-LFO-table.h"
 // #include "synth-distort.h"
 
 namespace SFM
 {
 	// Local constant parameters (I've got enough paramaters as it is!)
-	constexpr double kPreLowCutQ    = kSVFMinFilterQ; // Q (SVF range)
+	constexpr float  kPreLowCutQ    = kSVFMinFilterQ; // Q (SVF range)
 	constexpr float  kLPResoMin     = 0.01f;          // Q (normalized)
 	constexpr float  kLPResoMax     =  0.6f;          //
 	constexpr float  kLPCutLFORange = 0.99f;          // LFO cutoff range (normalized)
@@ -52,7 +52,7 @@ namespace SFM
 			m_gainEnvdB.SetAttack(curAttack*100.f); // FIXME: why does this *sound* right at one tenth of what it should be?
 			m_gainEnvdB.SetRelease(curHold*100.f);  // 
 
-			// BMP sync. or manual?
+			// BPM sync. or manual?
 			const float adjRate = (true == manualRate)
 				? MIDI_To_DX7_LFO_Hz(curRate) // Fetch rate in Hz from DX7 LFO table
 				: 2.f/curRate;                // This ratio works, tested with a metronome and delay effect with feedback enabled
@@ -123,8 +123,7 @@ namespace SFM
 				Vowelize
 
 				FIXME: until VowelizerV1 is replaced, everything is calculated as usual *except* that VowelizerV1 is sampled at it's
-				       own sample rate as it's coefficients were generated for it specifically; otherwise the pitch changes drastically
-					   as the main sample rate goes up
+				       own sample rate as it's coefficients were generated for it specifically; otherwise the pitch changes drastically as the main sample rate goes up
 			*/
 
 			// Calc. vox. LFO A (sample) and B (amplitude)
