@@ -238,6 +238,10 @@ namespace SFM
 		m_bassTuningdBPS.Reset(m_patch.bassTuningdB);
 		m_trebleTuningdBPS.Reset(m_patch.trebleTuningdB);
 
+		// Auto-wah
+		m_autoWahPedalPS = { sampleRatePS, kDefParameterSlewMS*0.5f /* A bit faster */ };
+		m_autoWahPedalPS.Reset(1.f);
+
 		// Local
 		m_bendWheelPS  = { sampleRatePS };
 		m_modulationPS = { sampleRatePS };
@@ -2033,12 +2037,14 @@ namespace SFM
 		UpdateSustain();
 
 		// Handle auto-wah ("sustain") pedal case
-		float wahWetMul = 1.f;
 		if (Patch::kWahPedal == m_patch.sustainType)
 		{
-			// FIXME: gradual attack & falloff?
-			wahWetMul = (true == m_sustain) ? 1.f : 0.f;
+			// Apply slew
+			m_autoWahPedalPS.Apply( (true == m_sustain) ? 1.f : 0.f );
 		}
+		else
+			// Full effect
+			m_autoWahPedalPS.Apply(1.f);
 
 		if (Patch::kNoPedal == m_patch.sustainType || Patch::kWahPedal == m_patch.sustainType)
 
@@ -2068,7 +2074,7 @@ namespace SFM
 			m_wahSpeakCutPS.Apply(m_patch.wahSpeakCut),
 			m_wahSpeakResoPS.Apply(m_patch.wahSpeakResonance),
 			m_wahCutPS.Apply(m_patch.wahCut),
-			m_wahWetPS.Apply(m_patch.wahWet*wahWetMul),
+			m_wahWetPS.Apply(m_patch.wahWet*m_autoWahPedalPS.Get()),
 			/* Chorus/Phaser */
 			m_effectRatePS.Apply(m_patch.cpRate),
 			m_effectWetPS.Apply(m_patch.cpWet),

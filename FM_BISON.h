@@ -357,7 +357,7 @@ namespace SFM
 				return m_sigEnv.Apply(sample, m_state);
 			}
 
-			float Get() const 
+			SFM_INLINE float Get() const 
 			{
 				return m_state;
 			}
@@ -387,6 +387,9 @@ namespace SFM
 		ParameterSlew m_compLookaheadPS;
 		ParameterSlew m_masterVoldBPS;
 		ParameterSlew m_bassTuningdBPS, m_trebleTuningdBPS;
+
+		// Slew for auto-wah pedal mode (so it doesn't sound that harsh, I know this is unusual for auto-wah, but a lot of things about FM. BISON are unusual)
+		ParameterSlew m_autoWahPedalPS;
 
 		// Per-sample interpolated global parameters
 		InterpolatedParameter<kLinInterpolate> m_curLFOBlend;
