@@ -82,6 +82,10 @@ namespace SFM
 		// - Release phase duration (rate) can be elongated by a parameter
 		//
 
+		// FIXME:
+		//   The result is that notes will continue to ring after keys are released- i.e. they sustain. A side effect of this on an acoustic piano is that the strings of other, 
+		//   un-played notes will also resonate gently, adding richer harmonics to the overall sound. This is known as sympathetic resonance, and many digital pianos now replicate this effect.
+
 		switch (m_ADSR.getState())
 		{
 		case ADSR::env_idle:

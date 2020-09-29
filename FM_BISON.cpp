@@ -1479,7 +1479,7 @@ namespace SFM
 	// Update sustain state
 	void Bison::UpdateSustain()
 	{
-		if (Patch::kNoPedal == m_patch.sustainType)
+		if (Patch::kNoPedal == m_patch.sustainType || Patch::kWahPedal == m_patch.sustainType)
 			return;
 
 		// Sustain of pitch envelope is taken care of in synth-voice.cpp!
@@ -2032,6 +2032,16 @@ namespace SFM
 		// Update sustain state
 		UpdateSustain();
 
+		// Handle auto-wah ("sustain") pedal case
+		float wahWetMul = 1.f;
+		if (Patch::kWahPedal == m_patch.sustainType)
+		{
+			// FIXME: gradual attack & falloff?
+			wahWetMul = (true == m_sustain) ? 1.f : 0.f;
+		}
+
+		if (Patch::kNoPedal == m_patch.sustainType || Patch::kWahPedal == m_patch.sustainType)
+
 		// Calculate post-pass filter cutoff freq.
 		const float postNormCutoff = m_postCutoffPS.Apply(m_patch.postCutoff);
 		SFM_ASSERT(postNormCutoff >= 0.f && postNormCutoff <= 1.f);
@@ -2058,7 +2068,7 @@ namespace SFM
 			m_wahSpeakCutPS.Apply(m_patch.wahSpeakCut),
 			m_wahSpeakResoPS.Apply(m_patch.wahSpeakResonance),
 			m_wahCutPS.Apply(m_patch.wahCut),
-			m_wahWetPS.Apply(m_patch.wahWet),
+			m_wahWetPS.Apply(m_patch.wahWet*wahWetMul),
 			/* Chorus/Phaser */
 			m_effectRatePS.Apply(m_patch.cpRate),
 			m_effectWetPS.Apply(m_patch.cpWet),

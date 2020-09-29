@@ -195,6 +195,7 @@ namespace SFM
 			kSynthPedal, // Like the Yamaha DX7
 			kPianoPedal, // Like the Yamaha Reface CP
 			kNoPedal,    // No sustain
+			kWahPedal,   // Auto-wah pedal (binary)
 			kNumPedalModes
 		} sustainType;
 
