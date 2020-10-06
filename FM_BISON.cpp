@@ -1707,7 +1707,7 @@ namespace SFM
 					float filteredR = right;
 							
 					// Cutoff & Q, finally, for *this* sample
-					const float nonEnvCutoffHz = curCutoff.Sample()*(1.f - cutAfter*kMainCutoffAftertouchRange);
+					const float nonEnvCutoffHz = curCutoff.Sample()*(1.f - cutAfter*kMainCutoffAftertouchRange); // More pressure -> lower cutoff freq.
 					const float cutoffHz = lerpf<float>(context.fullCutoff, nonEnvCutoffHz, filterEnv);
 					const float sampQ = curQ.Sample();
 
@@ -2046,8 +2046,6 @@ namespace SFM
 			// Full effect
 			m_autoWahPedalPS.Apply(1.f);
 
-		if (Patch::kNoPedal == m_patch.sustainType || Patch::kWahPedal == m_patch.sustainType)
-
 		// Calculate post-pass filter cutoff freq.
 		const float postNormCutoff = m_postCutoffPS.Apply(m_patch.postCutoff);
 		SFM_ASSERT(postNormCutoff >= 0.f && postNormCutoff <= 1.f);
@@ -2055,7 +2053,7 @@ namespace SFM
 		// Calc. post filter wetness
 		float postWet = m_patch.postWet;
 		if (Patch::kPostFilter == m_patch.aftertouchMod)
-			postWet = std::min<float>(1.f, postWet+aftertouchFiltered);
+			postWet = std::min<float>(1.f, postWet+aftertouchFiltered); // More pressure -> more wetness
 
 		// Apply post-processing (FIXME: pass structure?)
 		m_postPass->Apply(numSamples,
