@@ -332,6 +332,8 @@ namespace SFM
 
 			Currently we use the IIR version for minimal latency.
 
+			FIXME: skip oversampling entirely if both effects are 100% dry (no hurry, JUCE's code is fast enough)
+
 		 ------------------------------------------------------------------------------------------------------ */
 
 		// Set post filter parameters
@@ -372,21 +374,27 @@ namespace SFM
 			const float curPostDrive  = m_curPostDrive.Sample();
 			const float curPostWet    = m_curPostWet.Sample();
 
-			float filteredL = sampleL, filteredR = sampleR;
+			float postFilteredL = sampleL, postFilteredR = sampleR;
 
-			m_postFilter.SetParameters(kMinPostFilterCutoffHz + curPostCutoff*kPostFilterCutoffRange, curPostReso /* [0..1] */, curPostDrive);
-			m_postFilter.Apply(filteredL, filteredR);
+			if (curPostWet > 0.f) // Skip if not wet, saves a good deal of cycles
+			{				
+				// Apply filter
+				float filteredL = sampleL, filteredR = sampleR;
+				m_postFilter.SetParameters(kMinPostFilterCutoffHz + curPostCutoff*kPostFilterCutoffRange, curPostReso /* [0..1] */, curPostDrive);
+				m_postFilter.Apply(filteredL, filteredR);
 
-			// Mix
-			const float postL = lerpf<float>(sampleL, filteredL, curPostWet);
-			const float postR = lerpf<float>(sampleR, filteredR, curPostWet);
-			
+				// Blend
+				postFilteredL = lerpf<float>(sampleL, filteredL, curPostWet);
+				postFilteredR = lerpf<float>(sampleR, filteredR, curPostWet);
+			}
+								
 			// Apply (non-linear) distortion
 			const float amount = m_curTubeDist.Sample();
 			const float drive  = m_curTubeDrive.Sample();
 			const float offset = m_curTubeOffset.Sample();
-			
-			float distortedL = postL, distortedR = postR;
+
+			float distortedL = postFilteredL, distortedR = postFilteredR;
+
 			if (amount > 0.f) // Because I should optimize ZoelzerClip() (FIXME)
 			{
 				distortedL = ZoelzerClip(offset+(distortedL*drive)); // Simply sounds better than ClassicCubicClip() 99% of the time
@@ -399,9 +407,9 @@ namespace SFM
 				m_tubeFilterAA.process(distortedL, distortedR);
 			}
 			
-			// Mix results
-			sampleL = lerpf<float>(postL, distortedL, amount);
-			sampleR = lerpf<float>(postR, distortedR, amount);
+			// Mix results (FIXME: I'll keep this intact for now, 20/10/2020, but how exactly is this what I want?)
+			sampleL = lerpf<float>(postFilteredL, distortedL, amount);
+			sampleR = lerpf<float>(postFilteredR, distortedR, amount);
 
 			// Write
 			pOverL[iSample] = sampleL;

@@ -84,13 +84,13 @@ namespace SFM
 
 			float envdB = m_gainEnvdB.ApplyReverse(gaindB);
 
-			// Automatic gain (level) adjustment (nicked from: https://github.com/ptrv/auto_compressor/blob/master/Source/PluginProcessor.cpp)
-			const float estimatedB = thresholddB * -slope/2.f;
-			const float autodB = m_autoGainEnvdB.Apply(envdB - estimatedB, m_autoGaindB);
-//			const float autodB = m_autoGainEnvdB.Apply(envdB - estimatedB);
-
 			if (true == autoGain)
 			{
+				// Automatic gain (level) adjustment (nicked from: https://github.com/ptrv/auto_compressor/blob/master/Source/PluginProcessor.cpp)
+				const float estimatedB = thresholddB * -slope/2.f;
+				const float autodB = m_autoGainEnvdB.Apply(envdB - estimatedB, m_autoGaindB);
+//				const float autodB = m_autoGainEnvdB.Apply(envdB - estimatedB);
+
 				// Adjust gain (see above); post gain *not* applied
 				envdB -= autodB + estimatedB;
 			}

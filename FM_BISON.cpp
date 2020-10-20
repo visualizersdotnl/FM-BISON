@@ -310,6 +310,8 @@ namespace SFM
 	// Free voice & key slot immediately
 	void Bison::FreeVoice(int index)
 	{
+		
+		
 		SFM_ASSERT(index >= 0 && index < kMaxVoices);
 
 		Voice &voice = m_voices[index];
@@ -471,8 +473,6 @@ namespace SFM
 
 		const bool monophonic = Patch::VoiceMode::kMono == m_patch.voiceMode;
 
-		bool releaseIssued = false;
-
 		const int index = GetVoice(key);
 		if (index >= 0)
 		{
@@ -486,10 +486,9 @@ namespace SFM
 				// Monophonic: issue only 1 (the last) request
 				m_voiceReleaseReq.clear();
 				m_voiceReleaseReq.push_back(key);
-			}
 
-			// It's not relevant if this NOTE_OFF is blocked by sustain or not
-			releaseIssued = true;
+				Log("Release issued for monophonic key: " + std::to_string(key));
+			}
 		}
 		
 		// It might be that a deferred request matches this NOTE_OFF, in which case we get rid of the request
@@ -522,9 +521,9 @@ namespace SFM
 					break;
 				}
 			}
-
-			// Released and no new request yet?
-			if (true == releaseIssued && true == m_voiceReq.empty() && false == m_monoReq.empty())
+			
+			// Request in deque?
+			if (true == m_voiceReq.empty() && false == m_monoReq.empty())
 			{
 				/* const */ auto &voice = m_voices[0];
 
@@ -534,7 +533,7 @@ namespace SFM
 
 				const bool isSilent = output == 0.f;
 
-				if (false == isSilent)
+				if (false == isSilent) // If silent, wait for player to start a new sequence
 				{
 					// Retrigger frontmost note in sequence
 					const auto &request = m_monoReq.front();
@@ -547,7 +546,6 @@ namespace SFM
 		}
 	}
 
-	
 	/* ----------------------------------------------------------------------------------------------------
 
 		Voice initialization helper functions
