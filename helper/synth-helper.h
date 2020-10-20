@@ -175,7 +175,7 @@ namespace SFM
 	SFM_INLINE static float SVF_CutoffToHz(float cutoff, unsigned Nyquist, float minCutoff = kSVFMinFilterCutoffHz)
 	{
 		// Allowed according to SVF impl.: [16.0..Nyquist]
-		const unsigned maxCutoff = Nyquist;
+		const float maxCutoff = (Nyquist < kSVFMaxFilterCutoffHz) ? Nyquist : kSVFMaxFilterCutoffHz;
 		SFM_ASSERT(cutoff >= 0.f && cutoff <= 1.f);
 		return minCutoff + cutoff*(maxCutoff-minCutoff);
 	}

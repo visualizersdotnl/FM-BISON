@@ -153,8 +153,9 @@ namespace SFM
 	constexpr float kSVFMaxFilterQ    = 40.f;   // Actual max. is 40.f
 	constexpr float kSVFFilterQRange  = kSVFMaxFilterQ-kSVFMinFilterQ;
 
-	constexpr float kMinFilterCutoff      =  0.f; // Normalized min. filter cutoff; range is simply [0..1] (use SVF_CutoffToHz())
-	constexpr float kSVFMinFilterCutoffHz = 20.f; // Min 16.f (See impl.)
+	constexpr float kMinFilterCutoff      =  0.f;    // Normalized min. filter cutoff; range is simply [0..1] (use SVF_CutoffToHz())
+	constexpr float kSVFMinFilterCutoffHz = 20.f;    // Min 16.f (See impl.)
+	constexpr float kSVFMaxFilterCutoffHz = 22050.f; // Nyquist @ 44.1KHz (FIXME: is this wise?)
 
 	// Default main (SVF) filter settings
 	constexpr float kDefMainFilterCutoff       =   1.f; // Normalized; no (or minimal) filtering (when acting as LPF at least)
@@ -171,7 +172,7 @@ namespace SFM
 
 	// Post-pass filter cutoff range
 	constexpr float kMinPostFilterCutoffHz = 40.f;
-	constexpr float kMaxPostFilterCutoffHz = 20000.f;
+	constexpr float kMaxPostFilterCutoffHz = 22050.f;
 	constexpr float kPostFilterCutoffRange = kMaxPostFilterCutoffHz-kMinPostFilterCutoffHz;
 
 	// Usual magnitude (gain) response at cutoff point (it's 1.0/sqrt(2.0)) (Biquad)

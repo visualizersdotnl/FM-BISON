@@ -101,7 +101,7 @@ private:
 		delay[2] = stage[1];
 		delay[3] = stage[2];
 
-		sample = float(stage[3]);
+		sample = float(stage[3]); // FIXME!
 
 		// Filter still in working order?
 		SFM::FloatAssert(sample);

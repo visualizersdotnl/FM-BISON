@@ -251,9 +251,11 @@ namespace SFM
 					const float squared = Squarepusher(sample, curSquarepusher);
 					sample = lerpf<float>(sample, squared, curSquarepusher);
 				}
-				
+
+#if !defined(SFM_DISABLE_FX)
 				// Apply filter
 				bool hasOpFilter = true;
+
 				switch (voiceOp.filter.getFilterType())
 				{
 				case SvfLinearTrapOptimised2::NO_FLT_TYPE:
@@ -264,6 +266,9 @@ namespace SFM
 					// I'm assuming the filter is set up properly
 					voiceOp.filter.tickMono(sample);
 				}
+#else
+			bool hasOpFilter = false;
+#endif
 
 				// Store (filtered) sample for modulation
 				float modSample = sample;

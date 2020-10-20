@@ -1320,7 +1320,7 @@ namespace SFM
 				}
 			}
 			
-			// If we still have requests, try to steal (releasing) voices in order to 
+			// If we still have requests, try to steal (releasing or sustaining) voices in order to 
 			// free up slots that can be used to spawn these voices the next frame (no gaurantee though!)
 
 			size_t remainingRequests = m_voiceReq.size();
@@ -1364,7 +1364,7 @@ namespace SFM
 					// Steal voice
 					const unsigned iVoice = voiceRef.iVoice;
 					StealVoice(iVoice);
-					Log("Voice stolen (index): "  + std::to_string(iVoice));
+					Log("Voice stolen (index): " + std::to_string(iVoice));
 					
 					if (--remainingRequests == 0)
 						break;

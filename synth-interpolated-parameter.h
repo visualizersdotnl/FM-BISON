@@ -22,7 +22,7 @@
 		interpolator.SetTarget(targetValue);
 	'
 
-	I'm not fixing this as long was use juce::SmoothedValue.
+	I'm not fixing this as long as we use juce::SmoothedValue.
 	
 	FIXME: 
 		- Replace JUCE implementation (also in other places where juce::SmoothedValue is used)
