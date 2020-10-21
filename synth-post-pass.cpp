@@ -347,78 +347,99 @@ namespace SFM
 		m_curTubeDrive.SetTarget(tubeDrive);
 		m_curTubeOffset.SetTarget(tubeOffset);
 
-		// Anti-aliasing filter: LPF for distortion (takes the edge off)
-		const float tubeCutFc = m_Nyquist / float(m_sampleRate4X);
-		m_tubeFilterAA.setBiquad(bq_type_lowpass, tubeCutFc, kDefGainAtCutoff, 0.f);
-		
-		// Main buffers
-		float *inputBuffers[2] = { m_pBufL, m_pBufR };
-		juce::dsp::AudioBlock<float> inputBlock(inputBuffers, 2, numSamples);
+		const bool postFilterDry = 0.f == postWet     && 0.f == m_curPostWet.Get();
+		const bool tubeDry       = 0.f == tubeDistort && 0.f == m_curTubeDist.Get();
 
-		// Oversample 4X
-		auto outBlock = m_oversampling4X.processSamplesUp(inputBlock);
-		const size_t numOversamples = outBlock.getNumSamples();
-		SFM_ASSERT(numOversamples == numSamples*4);
-
-		float *pOverL = outBlock.getChannelPointer(0);
-		float *pOverR = outBlock.getChannelPointer(1);
-
-		for (unsigned iSample = 0; iSample < numOversamples; ++iSample)
+		if (true == postFilterDry && true == tubeDry)
 		{
-			float sampleL = pOverL[iSample]; 
-			float sampleR = pOverR[iSample];
+			// Just "skip" relevant parameters and mosey on
+			const unsigned numOversamples = numSamples*4;
 
-			// Apply 24dB post filter
-			const float curPostCutoff = m_curPostCutoff.Sample();
-			const float curPostReso   = m_curPostReso.Sample();
-			const float curPostDrive  = m_curPostDrive.Sample();
-			const float curPostWet    = m_curPostWet.Sample();
+			m_curPostCutoff.Skip(numOversamples);
+			m_curPostReso.Skip(numOversamples);
+			m_curPostDrive.Skip(numOversamples);
 
-			float postFilteredL = sampleL, postFilteredR = sampleR;
-
-			if (curPostWet > 0.f) // Skip if not wet, saves a good deal of cycles
-			{				
-				// Apply filter
-				float filteredL = sampleL, filteredR = sampleR;
-				m_postFilter.SetParameters(kMinPostFilterCutoffHz + curPostCutoff*kPostFilterCutoffRange, curPostReso /* [0..1] */, curPostDrive);
-				m_postFilter.Apply(filteredL, filteredR);
-
-				// Blend
-				postFilteredL = lerpf<float>(sampleL, filteredL, curPostWet);
-				postFilteredR = lerpf<float>(sampleR, filteredR, curPostWet);
-			}
-								
-			// Apply (non-linear) distortion
-			const float amount = m_curTubeDist.Sample();
-			const float drive  = m_curTubeDrive.Sample();
-			const float offset = m_curTubeOffset.Sample();
-
-			float distortedL = postFilteredL, distortedR = postFilteredR;
-
-			if (amount > 0.f) // Because I should optimize ZoelzerClip() (FIXME)
-			{
-				distortedL = ZoelzerClip(offset+(distortedL*drive)); // Simply sounds better than ClassicCubicClip() 99% of the time
-				distortedR = ZoelzerClip(offset+(distortedR*drive)); //
+			m_curTubeDrive.Skip(numOversamples);
+			m_curTubeOffset.Skip(numOversamples);
 			
-				// Remove possible DC offset
-				m_tubeDCBlocker.Apply(distortedL, distortedR);
-
-				// Apply distortion AA filter
-				m_tubeFilterAA.process(distortedL, distortedR);
-			}
-			
-			// Mix results (FIXME: I'll keep this intact for now, 20/10/2020, but how exactly is this what I want?)
-			sampleL = lerpf<float>(postFilteredL, distortedL, amount);
-			sampleR = lerpf<float>(postFilteredR, distortedR, amount);
-
-			// Write
-			pOverL[iSample] = sampleL;
-			pOverR[iSample] = sampleR;
+			// Both remain zero, no skip required, but hey, why not!
+			m_curPostWet.Skip(numOversamples);
+			m_curTubeDist.Skip(numOversamples);
 		}
-	
-		// Downsample result
-		m_oversampling4X.processSamplesDown(inputBlock);
+		else
+		{
+			// Anti-aliasing filter: LPF for distortion (takes the edge off)
+			const float tubeCutFc = m_Nyquist / float(m_sampleRate4X);
+			m_tubeFilterAA.setBiquad(bq_type_lowpass, tubeCutFc, kDefGainAtCutoff, 0.f);
+		
+			// Main buffers
+			float *inputBuffers[2] = { m_pBufL, m_pBufR };
+			juce::dsp::AudioBlock<float> inputBlock(inputBuffers, 2, numSamples);
 
+			// Oversample 4X
+			auto outBlock = m_oversampling4X.processSamplesUp(inputBlock);
+			const size_t numOversamples = outBlock.getNumSamples();
+			SFM_ASSERT(numOversamples == numSamples*4);
+
+			float *pOverL = outBlock.getChannelPointer(0);
+			float *pOverR = outBlock.getChannelPointer(1);
+
+			for (unsigned iSample = 0; iSample < numOversamples; ++iSample)
+			{
+				float sampleL = pOverL[iSample]; 
+				float sampleR = pOverR[iSample];
+
+				// Apply 24dB post filter
+				const float curPostCutoff = m_curPostCutoff.Sample();
+				const float curPostReso   = m_curPostReso.Sample();
+				const float curPostDrive  = m_curPostDrive.Sample();
+				const float curPostWet    = m_curPostWet.Sample();
+
+				float postFilteredL = sampleL, postFilteredR = sampleR;
+
+				if (curPostWet > 0.f) // Skip if not wet, saves a good deal of cycles
+				{				
+					// Apply filter
+					float filteredL = sampleL, filteredR = sampleR;
+					m_postFilter.SetParameters(kMinPostFilterCutoffHz + curPostCutoff*kPostFilterCutoffRange, curPostReso /* [0..1] */, curPostDrive);
+					m_postFilter.Apply(filteredL, filteredR);
+
+					// Blend
+					postFilteredL = lerpf<float>(sampleL, filteredL, curPostWet);
+					postFilteredR = lerpf<float>(sampleR, filteredR, curPostWet);
+				}
+								
+				// Apply (non-linear) distortion
+				const float amount = m_curTubeDist.Sample();
+				const float drive  = m_curTubeDrive.Sample();
+				const float offset = m_curTubeOffset.Sample();
+
+				float distortedL = postFilteredL, distortedR = postFilteredR;
+
+				if (amount > 0.f) // Because I should optimize ZoelzerClip() (FIXME)
+				{
+					distortedL = ZoelzerClip(offset+(distortedL*drive)); // Simply sounds better than ClassicCubicClip() 99% of the time
+					distortedR = ZoelzerClip(offset+(distortedR*drive)); //
+			
+					// Remove possible DC offset
+					m_tubeDCBlocker.Apply(distortedL, distortedR);
+
+					// Apply distortion AA filter
+					m_tubeFilterAA.process(distortedL, distortedR);
+				}
+			
+				// Mix results (FIXME: I'll keep this intact for now, 20/10/2020, but how exactly is this what I want?)
+				sampleL = lerpf<float>(postFilteredL, distortedL, amount);
+				sampleR = lerpf<float>(postFilteredR, distortedR, amount);
+
+				// Write
+				pOverL[iSample] = sampleL;
+				pOverR[iSample] = sampleR;
+			}
+	
+			// Downsample result
+			m_oversampling4X.processSamplesDown(inputBlock);
+		}
 
 		/* ----------------------------------------------------------------------------------------------------
 

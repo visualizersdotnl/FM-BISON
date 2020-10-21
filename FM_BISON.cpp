@@ -542,6 +542,13 @@ namespace SFM
 
 					Log("Mono NOTE_ON for prev. key " +  std::to_string(request.key));
 				}
+				else
+				{
+					// If we fell silent, clear the deque as we'll be starting a new sequence
+					m_monoReq.clear();
+
+					Log("Mono seq. fell silent, erasing request(s)");
+				}
 			}
 		}
 	}
