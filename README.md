@@ -20,6 +20,7 @@ FM. BISON - A hybrid FM synthesis engine.
 - /patch: FM. BISON's patch headers, laying out the entire structure an instance uses to render an instrument
 - /promotion: Promotional material (graphics, audio renders et cetera)
 - /literature: PDFs et cetera
+- /amigaklang: top secret
 
 # TRAILER (30/04/2020)
 
