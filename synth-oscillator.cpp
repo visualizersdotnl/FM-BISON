@@ -135,7 +135,7 @@ namespace SFM
 
 			/* See synth-oscillator.h */
 
-			case kCutRamp:
+			case kUniRamp:
 				signal = oscPolyRamp(modulated, pitch);
 				signal = 0.5f + signal*0.5f;
 				break;

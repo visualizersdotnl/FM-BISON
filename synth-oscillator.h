@@ -50,8 +50,8 @@ namespace SFM
 			// Supersaw
 			kSupersaw,
 
-			// Uni-polar ramp (or "fake" hard sync. & PWM)
-			kCutRamp, 
+			// Uni-polar [0..1] ramp (for fake hard-sync. & PWM)
+			kUniRamp, 
 
 			// Raw/LFO
 			kRamp,

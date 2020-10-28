@@ -38,7 +38,7 @@ namespace SFM
 		Oscillator::Waveform::kPolySaw,           // Saw
 		Oscillator::Waveform::kSupersaw,          // Supersaw
 		Oscillator::Waveform::kPolyRectifiedSine, // Rectified sine
-		Oscillator::Waveform::kCutRamp,           // Naive uni-polar rapm (for fake hard-sync. & PWM)
+		Oscillator::Waveform::kUniRamp,           // Uni-polar [0..1] ramp (for fake hard-sync. & PWM)
 		Oscillator::Waveform::kWhiteNoise         // White noise
 	};
 
