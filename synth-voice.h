@@ -159,8 +159,8 @@ namespace SFM
 				// Re(set) gain envelope
 				envGain.Reset();
 				envGain.SetSampleRate(sampleRate);
-				envGain.SetAttack(30.f);   //  30MS
-				envGain.SetRelease(120.f); // 120MS
+				envGain.SetAttack(12.f);   // In MS
+				envGain.SetRelease(240.f); //
 			}
 
 		} m_operators[kNumOperators];
