@@ -231,13 +231,6 @@ namespace SFM
 				// Calculate sample
 				float sample = oscillator.Sample(phaseShift+feedback);
 
-				// Apply linear amplitude (or 'index')
-				sample *= curAmplitude;
-				
-				// If carrier, apply amplitude bend
-				if (true == voiceOp.isCarrier)
-					sample *= ampBend;
-
 				// LFO tremolo
 				const float tremolo = 1.f - fabsf(LFO*voiceOp.ampMod);
 				sample = lerpf<float>(sample, sample*tremolo, modulation);
@@ -253,6 +246,7 @@ namespace SFM
 				}
 
 #if !defined(SFM_DISABLE_FX)
+
 				// Apply filter
 				bool hasOpFilter = true;
 
@@ -266,12 +260,15 @@ namespace SFM
 					// I'm assuming the filter is set up properly
 					voiceOp.filter.tickMono(sample);
 				}
+
 #else
-			bool hasOpFilter = false;
+
+				bool hasOpFilter = false;
+
 #endif
 
-				// Store (filtered) sample for modulation
-				float modSample = sample;
+				// Store (filtered) sample for modulation, with modulation index applied
+				float modSample = sample*curAmplitude; /* sample*curModIndex */
 				
 				if (false == hasOpFilter && SvfLinearTrapOptimised2::NO_FLT_TYPE != voiceOp.modFilter.getFilterType())
 				{
@@ -279,18 +276,20 @@ namespace SFM
 					voiceOp.modFilter.tickMono(modSample);
 				}
 
-				// Store sample for modulation
 				modSamples[iOp] = modSample;
 
+				// Apply (linear) amplitude to sample (including possible 'bend')
+				sample *= curAmplitude*ampBend;
+
 				// Add sample to gain envelope (for VU meter)
-				const float absModSample = fabsf(modSample);
-				const float gainSample = (voiceOp.isCarrier)
-					? absModSample
-					: absModSample/(kEpsilon+curAmplitude); // Hack to avoid checking for zero (extra branch)
+				const float absModSample = fabsf(modSample);                     
+				const float gainSample = (voiceOp.isCarrier)                     // Carrier prioritized if both (FIXME?)
+					? sample                                                     // Adj. for actual volume
+					: absModSample/(kEpsilon+curAmplitude /* curModIndex*/);     // Normalized (with a little hack that prevents a branch to check for zero, which in turn *might* push the value a teensy bit (kEpsilon) out of range)
 				voiceOp.envGain.Apply(gainSample);
 
 				// Update feedback
-				voiceOp.feedback = 0.25f*(voiceOp.feedback*0.995f + absModSample*curFeedbackAmt);
+				voiceOp.feedback = 0.25f*(voiceOp.feedback*0.995f + fabsf(sample)*curFeedbackAmt);
 				
 				// Calc. panning
 				const float panMod = voiceOp.panMod;
