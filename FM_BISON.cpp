@@ -2027,7 +2027,7 @@ namespace SFM
 				if (true == isIdle || false == voiceOp.enabled)
 				{
 					auto &saw = voiceOp.oscillator.GetSupersaw();
-					saw.Run(numSamples);
+					saw.Skip(numSamples);
 				}
 			}
 		}
@@ -2050,10 +2050,6 @@ namespace SFM
 		else
 			// Full effect
 			m_autoWahPedalPS.Apply(1.f);
-
-		// Calculate post-pass filter cutoff freq.
-		const float postNormCutoff = m_postCutoffPS.Apply(m_patch.postCutoff);
-		SFM_ASSERT(postNormCutoff >= 0.f && postNormCutoff <= 1.f);
 
 		// Calc. post filter wetness
 		float postWet = m_patch.postWet;
@@ -2137,7 +2133,7 @@ namespace SFM
 		m_resetVoices   = false;
 		m_resetPhaseBPM = false;
 
-		// Calculate peak ([0..1]) for each operator (for visualization purposes, plus it's not very pretty)
+		// Calculate peak ([0..1]) for each operator (for visualization purposes, plus it's not very pretty, FIXME)
 		if (numVoices > 0)
 		{
 			// Find max. gain for each operator

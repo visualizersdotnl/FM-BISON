@@ -3,9 +3,6 @@
 	FM. BISON hybrid FM synthesis -- Peak & RMS detection.
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
-
-	FIXME:
-		- Evaluate crest detection (should be easy given we have RMS and Peak)
 */
 
 #pragma once

@@ -175,7 +175,7 @@ namespace SFM
 		// Filter (amplitude) envelope
 		Envelope m_filterEnvelope;
 
-		// Pitch (envelope)
+		// Pitch (range & envelope)
 		int m_pitchBendRange; // Applied to LFO, envelope & modulation
 		PitchEnvelope m_pitchEnvelope;
 
@@ -204,6 +204,6 @@ namespace SFM
 		float GetSummedOutput(); /* const */
 
 		// Render "dry" FM voice (see impl. for param. ranges)
-		void Sample(float &left, float &right, float pitchBend, float ampBend, float modulation, float LFOBias, float LFOModDepth);
+		void Sample(float &left, float &right, float pitchBend, float ampBend /* Linear gain */, float modulation, float LFOBias, float LFOModDepth);
 	};
 }

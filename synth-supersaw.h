@@ -9,8 +9,9 @@
 	
 	FIXME:
 		- Minimize beating (especially at lower frequencies)
-		- Review filter & DC blocker
+		- Review filter
 		- SSE implementation
+ 		- DC blocker commented out (is it even necessary, compare output in Audacity!)
 
 	For now I'm picking the single precision version since I can't hear the f*cking difference ;)
 */
@@ -55,6 +56,7 @@ namespace SFM
 
 	class Supersaw
 	{
+/*
 		class DCBlocker
 		{
 		public:
@@ -76,7 +78,8 @@ namespace SFM
 			float m_prevSample = 0.f;
 			float m_feedback   = 0.f;
 		};
-
+*/
+		
 	public:
 		Supersaw() : 
 			m_sampleRate(1) 
@@ -98,7 +101,7 @@ namespace SFM
 			m_HPF.reset();
 
 			// Reset DC blocker
-			m_blocker.Reset();
+//			m_blocker.Reset();
 
 			// Set frequency (pitch, filter)
 			m_frequency = 0.f; 
@@ -123,7 +126,7 @@ namespace SFM
 				}
 
 				// Set HPF
-				constexpr float Q = kDefGainAtCutoff*kPI*0.5f;
+				constexpr float Q = kDefGainAtCutoff*kPI*0.5f; // FIXME: what the f*ck kind of value is *this* then?
 				m_HPF.setBiquad(bq_type_highpass, m_frequency/m_sampleRate, Q, 0.f);
 			}
 		}
@@ -161,13 +164,13 @@ namespace SFM
 				sides += Oscillate(iOsc);
 
 			float signal = m_HPF.processMono(main*m_mainMix + sides*m_sideMix);
-			signal = m_blocker.Apply(signal);
+//			signal = m_blocker.Apply(signal);
 
 			return signal;
 		}
 		
-		// Advance phase by a number of samples (used by Bison::Render())
-		SFM_INLINE void Run(unsigned numSamples)
+		// Advance phase by a number of samples (used by Bison::Render() for true 'free running')
+		SFM_INLINE void Skip(unsigned numSamples)
 		{
 			for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
 			{
@@ -200,7 +203,7 @@ namespace SFM
 		float m_pitch[kNumSupersawOscillators] = { 0.f };
 
 		Biquad m_HPF;
-		DCBlocker m_blocker;
+//		DCBlocker m_blocker;
 
 		void SetDetune(float detune /* [0..1] */);
 		void SetMix(float mix /* [0..1] */);

@@ -132,8 +132,8 @@ namespace SFM
 		StereoDCBlocker m_tubeDCBlocker;	
 		Biquad m_tubeFilterAA;
 		
-		// Post (blocker & EQ)
-		StereoLowCut m_postLowCut;
+		// Post (low cut (shelf) filter & EQ)
+		Biquad m_postLowShelf;
 		MiniEQ m_postEQ;
 				
 		// External effects
