@@ -18,7 +18,8 @@
 	documented so right now (01/07/2020) I see no reason to chop it up
 
 	However, the amount of processing done every Render() cycle is significant, so I should look into disabling
-	certain effects when they do not contribute to the patch (at that particular moment)
+	certain effects when they do not contribute to the patch (at that particular moment); I've implemented this
+	for the oversampled loop!
 */
 
 #include "synth-post-pass.h"
@@ -84,8 +85,7 @@ namespace SFM
 ,		m_curTubeDrive(kDefTubeDrive, m_sampleRate4X, kDefParameterLatency)
 ,		m_curTubeOffset(0.f, m_sampleRate4X, kDefParameterLatency)
 
-		// Post (blocker & EQ)
-,		m_postLowCut(kLowBlockerHz, sampleRate)
+		// Post (EQ)
 ,		m_postEQ(sampleRate)
 
 		// External effects
@@ -107,6 +107,10 @@ namespace SFM
 
 		// Set tape delay mod. frequency
 		m_tapeDelayLFO.Initialize(kTapeDelayHz, m_sampleRate);
+		
+		// Set (final pass) low cut filter
+		m_postLowShelf.reset();
+		m_postLowShelf.setBiquad(bq_type_lowshelf, kLowCutHz/sampleRate, 0.f, kLowCutdB);
 	}
 
 	PostPass::~PostPass()
@@ -127,8 +131,8 @@ namespace SFM
 	                     float bassTuningdB, float trebleTuningdB, float masterVoldB,
 	                     const float *pLeftIn, const float *pRightIn, float *pLeftOut, float *pRightOut)
 	{
-		// Other parameters should be checked in functions they're passed to; however, this list can be incomplete;
-		// when running into such a situation promptly fix it!
+		// Shitload of assertions; some values are asserted in functions they're passed to plus this might not
+		// be 100% complete (FIXME)
 		SFM_ASSERT(nullptr != pLeftIn  && nullptr != pRightIn);
 		SFM_ASSERT(nullptr != pLeftOut && nullptr != pRightOut);
 		SFM_ASSERT(numSamples > 0);
@@ -312,13 +316,13 @@ namespace SFM
 			const float wet = m_curDelayWet.Sample();
 			const float dry = 1.f-wet;
 
-			const float width = 1.33f; // FIXME: parameter?
-			const float wet1  = wet*(width/2.f + 0.5f);
-			const float wet2  = wet*((1.f-width)/2.f);
+			const float width = kGoldenRatio; // FIXME: parameter?
+			const float wet1  = wet*(width*0.5f + 0.5f);
+			const float wet2  = wet*((1.f-width)*0.5f);
 			
 			// Unfiltered
-			m_pBufL[iSample] = delayL*wet1 + delayR*wet2 + left;
-			m_pBufR[iSample] = delayR*wet1 + delayL*wet2 + right;
+			m_pBufL[iSample] = delayL*wet1 + delayR*wet2 + left*dry;
+			m_pBufR[iSample] = delayR*wet1 + delayL*wet2 + right*dry;
 		}
 
 		/* ----------------------------------------------------------------------------------------------------
@@ -330,9 +334,7 @@ namespace SFM
 			  distortion. With FIR filters, the phase is linear but the latency is maximised. With IIR 
 			  filtering, the phase is compromised around the Nyquist frequency but the latency is minimised. "
 
-			Currently we use the IIR version for minimal latency.
-
-			FIXME: skip oversampling entirely if both effects are 100% dry (no hurry, JUCE's code is fast enough)
+			Currently we use the IIR version for minimal latency
 
 		 ------------------------------------------------------------------------------------------------------ */
 
@@ -460,7 +462,8 @@ namespace SFM
 
 			Compressor
 
-			Causes latency when 'compLookahead' is larger than zero.
+			- Causes latency when 'compLookahead' is larger than zero
+			- Returns 'bite', which practically means if compression has taken place
 
 		 ------------------------------------------------------------------------------------------------------ */
 
@@ -486,8 +489,8 @@ namespace SFM
 			float sampleL = m_pBufL[iSample];
 			float sampleR = m_pBufR[iSample];
 			
-			// Cut low(est) end
-			m_postLowCut.Apply(sampleL, sampleR);
+			// Minimize low(est) end
+			m_postLowShelf.process(sampleL, sampleR);
 
 			// EQ
 			m_postEQ.Apply(sampleL, sampleR);

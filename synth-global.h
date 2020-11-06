@@ -131,7 +131,7 @@ namespace SFM
 	constexpr float kMaxDetuneJitter = 1.f; // 100th of a note
 
 	// ----------------------------------------------------------------------------------------------
-	// Final stage tuning range (dB), default is 0dB
+	// Post EQ tuning range (dB), default is 0dB
 	// ----------------------------------------------------------------------------------------------
 
 	constexpr float kMinTuningdB = -12.f;
@@ -360,10 +360,11 @@ namespace SFM
 	constexpr float kDefSupersawMix    = 0.f; //
 
 	// ----------------------------------------------------------------------------------------------
-	// LowBlocker freq.
+	// Post low cut freq. & dB
 	// ----------------------------------------------------------------------------------------------
 
-	constexpr float kLowBlockerHz = 40.f;
+	constexpr float kLowCutHz = 40.f;
+	constexpr float kLowCutdB = -9.f;
 };
 
 // All helper functionality is at your disposal by default

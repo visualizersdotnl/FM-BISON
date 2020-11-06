@@ -7,18 +7,17 @@
 
 #include "synth-auto-wah-vox.h"
 #include "synth-DX7-LFO-table.h"
-// #include "synth-distort.h"
 
 namespace SFM
 {
 	// Local constant parameters (I've got enough paramaters as it is!)
-	constexpr float  kPreLowCutQ    = kSVFMinFilterQ; // Q (SVF range)
-	constexpr float  kLPResoMin     = 0.01f;          // Q (normalized)
-	constexpr float  kLPResoMax     =  0.6f;          //
-	constexpr float  kLPCutLFORange = 0.99f;          // LFO cutoff range (normalized)
+	constexpr float kPreLowCutQ    = kSVFMinFilterQ; // Q (SVF range)
+	constexpr float kLPResoMin     = 0.01f;          // Q (normalized)
+	constexpr float kLPResoMax     =  0.6f;          //
+	constexpr float kLPCutLFORange = 0.99f;          // LFO cutoff range (normalized)
 
-	constexpr float  kVoxRateScale  =   2.f; // Rate ratio: vox. S&H
-	constexpr float  kCutRateScale  = 0.25f; // Rate ratio: cutoff modulation
+	constexpr float kVoxRateScale  =   2.f; // Rate ratio: vox. S&H
+	constexpr float kCutRateScale  = 0.25f; // Rate ratio: cutoff modulation
 	
 	void AutoWah::Apply(float *pLeft, float *pRight, unsigned numSamples, bool manualRate)
 	{
@@ -33,7 +32,7 @@ namespace SFM
 
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
-			// Get parameters
+			// Sample parameters
 			const float resonance  = m_curResonance.Sample();
 			const float curAttack  = m_curAttack.Sample();
 			const float curHold    = m_curHold.Sample();
@@ -156,9 +155,6 @@ namespace SFM
 			{
 				// Apply filter (introduces a few harmonics in the top end)
 				m_vowelizerV1.Apply(vowelL, vowelR, vowel);
-
-//				vowelL = ZoelzerClip(vowelL);
-//				vowelR = ZoelzerClip(vowelR);
 			
 				// Hold values until next tick
 				vowelHoldL = vowelL;

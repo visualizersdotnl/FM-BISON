@@ -52,6 +52,8 @@ namespace SFM
 		}
 
 		// For feedback path (call after Write())
+		// As we've got enough headroom this approach works (adding), for an integer version
+		// you'd need decent fixed point precision (24:8 or 16:16?)
 		SFM_INLINE void WriteFeedback(float sample, float feedback)
 		{
 			SFM_ASSERT(feedback >= 0.f && feedback <= 1.f);

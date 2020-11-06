@@ -74,7 +74,7 @@ namespace SFM
 		// Adjusted stereo spread
 		const size_t stereoSpread = ScaleNumSamples(sampleRate, kStereoSpread);
 		
-		// Allocate buffer
+		// Allocate single sequential buffer
 		size_t totalBufSize = 0;
 		
 		for (auto size : kCombSizes)

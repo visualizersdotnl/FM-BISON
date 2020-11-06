@@ -7,9 +7,6 @@
 // of the frequency, so much like the Butterworth 24dB it's mostly suited for specific tasks; that
 // said, this filter is rather versatile (well suited for an EQ for example)
 //
-// ** Refrain from setting parameters one by one as they all call calcBiquad(), just use setBiquad()
-//    to set up the filter as needed **
-//
 // ** Default process() call is now stereo, use processMono() for monaural, but do *not* mix and
 //    match **
 //
@@ -89,7 +86,7 @@ public:
 protected:
 	void calcBiquad(void);
 
-	// For BASS/TREBLE EQ
+	// For MiniEQ
 	SFM_INLINE void setLowShelf();
 	SFM_INLINE void setHighShelf();
 

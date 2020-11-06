@@ -126,6 +126,10 @@ namespace SFM
 
 	void Voice::Sample(float &left, float &right, float pitchBend, float ampBend, float modulation, float LFOBlend, float LFOModDepth)
 	{
+	    //
+	    // Render?
+	    //
+	    
 		if (kIdle == m_state || m_sampleOffs > 0)
 		{
 			SFM_ASSERT(kIdle != m_state); // Idle voices shouldn't be sampled
@@ -139,13 +143,20 @@ namespace SFM
 			return;
 		}
 		
-		// FIXME (?): ampBend should just be a linear gain correctly calculated in FM_BISON.cpp (see synth-global.h for range)
+		//
+		// Parameter assertions
+		//
+
+        SFM_ASSERT(ampBend >= dB2Lin(-kAmpBendRange) && ampBend <= dB2Lin(kAmpBendRange)); // Linear gain
 		SFM_ASSERT(pitchBend >= -1.f && pitchBend <= 1.f);
 		SFM_ASSERT(modulation >= 0.f && modulation <= 1.f);
 		SFM_ASSERT(LFOBlend >= 0.f && LFOBlend <= 1.f);
 		SFM_ASSERT(LFOModDepth >= 0.f);
 		
+		//
 		// Calculate LFO value
+		//
+		
 		const float modLFO = m_modLFO.Sample(0.f);
 
 		auto modulate = [](float input, float modulation, float depth)
@@ -161,15 +172,20 @@ namespace SFM
 		const float LFO = blend;
 
 		SFM_ASSERT_BINORM(LFO);
-
+        
+		//
 		// Calc. pitch envelope & bend multipliers
+		//
+		
 		const float pitchRangeOct = m_pitchBendRange/12.f;
 		const float pitchEnv = powf(2.f, m_pitchEnvelope.Sample(false)*pitchRangeOct); // Sample pitch envelope (does not sustain!)
 		pitchBend = powf(2.f, pitchBend*pitchRangeOct);
 
+	    //
 		// Process all operators top-down
 		// This imposes the limitation that an operator can only be modulated by one below it
-
+        //
+        
 		alignas(16) float modSamples[kNumOperators] = { 0.f }; // Samples for modulation
 		float mixL = 0.f, mixR = 0.f; // Carrier mix
 
@@ -253,6 +269,7 @@ namespace SFM
 				}
 
 #if !defined(SFM_DISABLE_FX)
+
 				// Apply filter
 				bool hasOpFilter = true;
 
@@ -266,8 +283,11 @@ namespace SFM
 					// I'm assuming the filter is set up properly
 					voiceOp.filter.tickMono(sample);
 				}
+
 #else
-			bool hasOpFilter = false;
+
+                const bool hasOpFilter = false;
+
 #endif
 
 				// Store (filtered) sample for modulation
