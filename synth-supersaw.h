@@ -56,7 +56,6 @@ namespace SFM
 
 	class Supersaw
 	{
-/*
 		class DCBlocker
 		{
 		public:
@@ -78,7 +77,6 @@ namespace SFM
 			float m_prevSample = 0.f;
 			float m_feedback   = 0.f;
 		};
-*/
 		
 	public:
 		Supersaw() : 
@@ -203,7 +201,7 @@ namespace SFM
 		float m_pitch[kNumSupersawOscillators] = { 0.f };
 
 		Biquad m_HPF;
-//		DCBlocker m_blocker;
+		DCBlocker m_blocker;
 
 		void SetDetune(float detune /* [0..1] */);
 		void SetMix(float mix /* [0..1] */);
