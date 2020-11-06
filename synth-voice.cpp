@@ -198,6 +198,7 @@ namespace SFM
 			{
 				const float curFreq = voiceOp.curFreq.Sample();
 				const float curAmplitude = voiceOp.amplitude.Sample();
+				const float curIndex = voiceOp.index.Sample();
 				const float curEG = voiceOp.envelope.Sample();
 				const float curSquarepusher = voiceOp.drive.Sample();
 				const float curFeedbackAmt = voiceOp.feedbackAmt.Sample() * kFeedbackScale;
@@ -284,7 +285,7 @@ namespace SFM
 #endif
 
 				// Store (filtered) sample for modulation, with modulation index applied
-				float modSample = sample*curAmplitude; /* sample*curModIndex */
+				float modSample = sample*curIndex;
 				
 				if (false == hasOpFilter && SvfLinearTrapOptimised2::NO_FLT_TYPE != voiceOp.modFilter.getFilterType())
 				{
@@ -301,7 +302,7 @@ namespace SFM
 				const float absModSample = fabsf(modSample);                     
 				const float gainSample = (voiceOp.isCarrier)                     // Carrier prioritized if both (FIXME?)
 					? sample                                                     // Adj. for actual volume
-					: absModSample/(kEpsilon+curAmplitude /* curModIndex*/);     // Normalized (with a little hack that prevents a branch to check for zero, which in turn *might* push the value a teensy bit (kEpsilon) out of range)
+					: absModSample/(kEpsilon+curIndex);                          // Normalized (with a little hack that prevents a branch to check for zero, which in turn *might* push the value a teensy bit (kEpsilon) out of range)
 				voiceOp.envGain.Apply(gainSample);
 
 				// Update feedback

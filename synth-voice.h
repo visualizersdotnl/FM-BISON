@@ -66,6 +66,7 @@ namespace SFM
 
 			// Oscillator, amplitude & envelope
 			InterpolatedParameter<kLinInterpolate> amplitude; // (R)
+			InterpolatedParameter<kLinInterpolate> index;     // (R)
 			Oscillator oscillator;
 			Envelope envelope;
 
@@ -114,7 +115,8 @@ namespace SFM
 				keyTracking = 0.f;
 
 				// Silent
-				amplitude  = { 0.f, sampleRate, kDefParameterLatency };
+				amplitude = { 0.f, sampleRate, kDefParameterLatency };
+				index     = { 0.f, sampleRate, kDefParameterLatency };
 
 				// Void oscillator
 				oscillator = Oscillator(sampleRate);

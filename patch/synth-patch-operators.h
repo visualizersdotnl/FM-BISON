@@ -88,8 +88,8 @@ namespace SFM
 			// Fixed frequency (use coarse value only)
 			bool fixed;
 
-			// Output level (normalized) (R)
-			float output;
+			float output; // Output level (normalized) (R)
+			float index;  // Modulation index (normalized) (R)
 
 			// Envelopes
 			Envelope::Parameters envParams;
@@ -167,6 +167,7 @@ namespace SFM
 
 				// Output level
 				patchOp.output = 1.f;
+				patchOp.index = 1.f;
 
 				// Envelope: full sustain only, linear curvature
 				patchOp.envParams.preAttack = 0.f;

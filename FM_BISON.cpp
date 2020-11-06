@@ -596,16 +596,14 @@ namespace SFM
 		return frequency;
 	}
 
-	// Calc. operator amplitude or 'modulation index'
-	static float CalcOpIndex(unsigned key, float velocity, const PatchOperators::Operator &patchOp)
-	{ 
-		// In linear domain (FIXME?)
-		float output = patchOp.output;
-		SFM_ASSERT(output >= 0.f && output <= 1.f);
+	// Calc. multiplier for operator amplitude or modulation index
+	static float CalcOpLevel(unsigned key, float velocity, const PatchOperators::Operator &patchOp)
+	{
+		float multiplier = 1.f;
 
 		// Factor in velocity
 		const float velPow = velocity*velocity;
-		output = lerpf<float>(output, output*velPow, patchOp.velSens);
+		multiplier = lerpf<float>(multiplier, multiplier*velPow, patchOp.velSens);
 		
 		// Apply L/R breakpoint cut & level scaling (subtractive/additive & linear/exponential, like the DX7)
 		const unsigned breakpoint = patchOp.levelScaleBP;
@@ -622,14 +620,14 @@ namespace SFM
 			const unsigned right = left+breakpoint;
 			
 			if (key < left || key > right)
-				output = 0.f;
+				multiplier = 0.f;
 		}
 		else if (true == patchOp.cutLeftOfLSBP && key < breakpoint)
 			// Cut left
-			output = 0.f;
+			multiplier = 0.f;
 		else if (true == patchOp.cutRightOfLSBP && key > breakpoint)
 			// Cut right
-			output = 0.f;
+			multiplier = 0.f;
 		else
 		{
 			// Apply level scaling
@@ -664,21 +662,21 @@ namespace SFM
 				const float factor = false == isExponential ? linear : powf(linear, 1.f-linear) /* -EXP/+EXP */;
 
 				if (amount < 0.f)
-					// Fade out by gradually interpolating towards lower output level
-					output = lerpf<float>(output, output*(1.f-fabsf(amount)), factor);
+					// Fade out by gradually interpolating towards lower level
+					multiplier = lerpf<float>(multiplier, multiplier*(1.f-fabsf(amount)), factor);
 				else if (amount > 0.f)
-					// Fade in by adding to set output level
-					output = lerpf<float>(output, std::min<float>(1.f, output+fabsf(amount)), factor);
+					// Fade in by adding to set level
+					multiplier = lerpf<float>(multiplier, std::min<float>(1.f, multiplier+fabsf(amount)), factor);
 
 				// Subtractive as well as additive scaling leave the output on the other side
 				// of the breakpoint intact; this makes it intuitive to use this feature (I think)
 			}
 		}
 
-		SFM_ASSERT(output >= 0.f && output <= 1.f);
+		SFM_ASSERT(multiplier >= 0.f && multiplier <= 1.f);
 		
-		// Returning linear output
-		return output;
+		// Return level multiplier!
+		return multiplier;
 	}
 
 	// Simply scales [-1..1] to [0.5..0.5]
@@ -860,7 +858,7 @@ namespace SFM
 		const float jitter = m_patch.jitter;     // Jitter
 		const float velocity = request.velocity; // Velocity
 
-		// Store key & velocity immediately (used by CalcOpIndex())
+		// Store key & velocity immediately (used by CalcOpLevel())
 		voice.m_key = key;
 		voice.m_velocity = velocity;
 
@@ -912,14 +910,21 @@ namespace SFM
 				voiceOp.detuneOffs = jitter*mt_randfc()*patchOp.detune*kMaxDetuneJitter;
 	
 				const float frequency = CalcOpFreq(fundamentalFreq, voiceOp.detuneOffs, patchOp);
-				const float amplitude = CalcOpIndex(key, opVelocity, patchOp);
+				
+				// Get amplitude & index
+				const float level = CalcOpLevel(key, opVelocity, patchOp);
+				const float amplitude = patchOp.output*level, index = patchOp.output*level; /* FIXME: patchOp.index*level; */
 
 				voiceOp.oscillator.Initialize(
 					patchOp.waveform, frequency, m_sampleRate, CalcPhaseShift(voiceOp, patchOp), patchOp.supersawDetune, patchOp.supersawMix);
 
-				// Set static amplitude
+				// Set (static) amplitude
 				voiceOp.amplitude.SetRate(m_sampleRate, kDefParameterLatency);
 				voiceOp.amplitude.Set(amplitude);
+
+				// Set (static) index
+				voiceOp.index.SetRate(m_sampleRate, kDefParameterLatency);
+				voiceOp.index.Set(index);
 					
 				// No interpolation
 				voiceOp.curFreq.SetRate(m_sampleRate, kDefPolyFreqGlide);
@@ -1004,7 +1009,7 @@ namespace SFM
 
 		const float velocity = request.velocity;
 
-		// Store key & velocity immediately (used by CalcOpIndex())
+		// Store key & velocity immediately (used by CalcOpLevel())
 		voice.m_key = key;
 		voice.m_velocity = velocity;
 
@@ -1062,16 +1067,25 @@ namespace SFM
 				voiceOp.detuneOffs = jitter*mt_randfc()*patchOp.detune*kMaxDetuneJitter;
 				
 				const float frequency = CalcOpFreq(fundamentalFreq, voiceOp.detuneOffs, patchOp);
-				const float amplitude = CalcOpIndex(key, opVelocity, patchOp);
+
+				// Get amplitude & index
+				const float level = CalcOpLevel(key, opVelocity, patchOp);
+				const float amplitude = patchOp.output*level, index = patchOp.output*level; /* FIXME: patchOp.index*level; */
 
 				if (true == reset)
 				{
 					voiceOp.oscillator.Initialize(
 						patchOp.waveform, frequency, m_sampleRate, CalcPhaseShift(voiceOp, patchOp), patchOp.supersawDetune, patchOp.supersawMix);
-	
-					voiceOp.amplitude.SetRate(m_sampleRate, voice.m_freqGlide);
+
+					// Set amplitude
+					voiceOp.amplitude.SetRate(m_sampleRate, kDefParameterLatency);
 					voiceOp.amplitude.Set(amplitude);
 
+					// Set index
+					voiceOp.index.SetRate(m_sampleRate, kDefParameterLatency);
+					voiceOp.index.Set(index);
+
+					// Set freq.
 					voiceOp.curFreq.SetRate(m_sampleRate, voice.m_freqGlide);
 					voiceOp.curFreq.Set(frequency);
 
@@ -1082,6 +1096,7 @@ namespace SFM
 				{
 					// Glide
 					voiceOp.amplitude.SetTarget(amplitude);
+					voiceOp.index.SetTarget(index);
 					
 					const float curFreq = voiceOp.curFreq.Get();
 					voiceOp.curFreq.SetRate(m_sampleRate, voice.m_freqGlide);
@@ -1262,21 +1277,24 @@ namespace SFM
 									const float fundamentalFreq = voice.m_fundamentalFreq;
 									const PatchOperators::Operator &patchOp = m_patch.operators.operators[iOp];
 
-									// Operator velocity
+									// Get velocity & frequency
 									const float opVelocity = (false == patchOp.velocityInvert) ? voice.m_velocity : 1.f-voice.m_velocity;
-
 									const float frequency = CalcOpFreq(fundamentalFreq, voiceOp.detuneOffs, patchOp);
-									const float amplitude = CalcOpIndex(voice.m_key, opVelocity, patchOp);
+
+									// Get amplitude & index
+									const float level = CalcOpLevel(voice.m_key, opVelocity, patchOp);
+									const float amplitude = patchOp.output*level, index = patchOp.output*level; /* FIXME: patchOp.index*level; */
 								
-									// Interpolate if necessary
+									// Interpolate freq. if necessary
 									if (frequency != voiceOp.setFrequency)
 									{
 										voiceOp.curFreq.SetTarget(frequency);
 										voiceOp.setFrequency = frequency;
 									}
 
-									// Amplitude (output level or "index")
+									// Set amplitude & index
 									voiceOp.amplitude.SetTarget(amplitude);
+									voiceOp.index.SetTarget(index);
 
 									// Square(pusher) (or "drive")
 									const float drive = lerpf<float>(patchOp.drive, patchOp.drive*opVelocity, patchOp.velSens);

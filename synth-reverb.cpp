@@ -142,8 +142,8 @@ namespace SFM
 
 			// Stereo (width) effect
 			const float width = m_curWidth.Sample();
-			const float wet1  = curWet*(width/2.f + 0.5f);
-			const float wet2  = curWet*((1.f-width)/2.f);
+			const float wet1  = curWet*(width*0.5f + 0.5f);
+			const float wet2  = curWet*((1.f-width)*0.5f);
 			
 			// In & out
 			const float inL = *pLeft;
