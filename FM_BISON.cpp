@@ -1466,6 +1466,9 @@ namespace SFM
 					}
 				}
 			}
+
+			// Rationale: second voice may only be used to quickly cut the previous voice
+			SFM_ASSERT(true == m_voices[1].IsIdle() || true == m_voices[1].IsStolen());
 		}
 	}
 
@@ -1500,7 +1503,7 @@ namespace SFM
 		
 		// Voice request should be honoured immediately in monophonic mode
 		const bool monophonic = Patch::VoiceMode::kMono == m_curVoiceMode;
-		SFM_ASSERT(false ==  monophonic || true == m_voiceReq.empty());
+		SFM_ASSERT(false == monophonic || true == m_voiceReq.empty());
 	}
 
 	// Update sustain state
