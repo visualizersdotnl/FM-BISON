@@ -11,7 +11,6 @@
 		- Minimize beating (especially at lower frequencies)
 		- Review filter
 		- SSE implementation
- 		- DC blocker commented out (is it even necessary, compare output in Audacity!)
 
 	For now I'm picking the single precision version since I can't hear the f*cking difference ;)
 */
