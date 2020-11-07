@@ -99,7 +99,7 @@ namespace SFM
 			m_HPF.reset();
 
 			// Reset DC blocker
-//			m_blocker.Reset();
+			m_blocker.Reset();
 
 			// Set frequency (pitch, filter)
 			m_frequency = 0.f; 
@@ -162,7 +162,7 @@ namespace SFM
 				sides += Oscillate(iOsc);
 
 			float signal = m_HPF.processMono(main*m_mainMix + sides*m_sideMix);
-//			signal = m_blocker.Apply(signal);
+			signal = m_blocker.Apply(signal);
 
 			return signal;
 		}

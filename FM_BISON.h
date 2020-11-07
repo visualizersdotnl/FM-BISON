@@ -102,7 +102,7 @@ namespace SFM
 	{
 	public:
 		//
-		// API
+		// -- API --
 		//
 		
 		// Handles global initialization & release
@@ -195,7 +195,7 @@ namespace SFM
 		}
 		
 		//
-		// API
+		// -- END OF API --
 		//
 
 	private:
@@ -375,7 +375,7 @@ namespace SFM
 			float m_state;
 		};
 
-		// FIXME: perhaps it would be nice to stash these in a map or a structure at least
+		// FIXME: perhaps it would be nice to stash these in a map or a structure (at the very least)
 		ParameterSlew m_LFORatePS;
 		ParameterSlew m_LFOBlendPS;
 		ParameterSlew m_LFOModDepthPS;
