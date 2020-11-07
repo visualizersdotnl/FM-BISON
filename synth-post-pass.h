@@ -55,7 +55,10 @@ namespace SFM
 		// Intended for a graphical indicator
 		float GetCompressorBite() const
 		{
-			return m_compressorBiteLPF.Get();
+			const float bite = m_compressorBiteLPF.Get();
+			SFM_ASSERT_NORM(bite);
+
+			return bite;
 		}
 
 	private:

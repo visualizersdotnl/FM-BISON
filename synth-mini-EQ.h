@@ -36,7 +36,7 @@ namespace SFM
 			SFM_ASSERT(bassdB > kInfdB);
 			SFM_ASSERT(trebledB > kInfdB);
 
-			// FIXME: there's a weird artifact when crossing 0dB; research!
+			// FIXME: there's an artifact when crossing 0dB; research!
 			bassdB   += kEpsilon;
 			trebledB += kEpsilon;
 

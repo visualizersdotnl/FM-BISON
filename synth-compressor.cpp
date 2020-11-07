@@ -13,7 +13,7 @@ namespace SFM
 {	
 	float Compressor::Apply(float *pLeft, float *pRight, unsigned numSamples, bool autoGain, float RMSToPeak)
 	{
-		SFM_ASSERT(RMSToPeak >= 0.f && RMSToPeak <= 1.f);
+		SFM_ASSERT_NORM(RMSToPeak);
 		
 		float bite = 0.f;
 
@@ -115,7 +115,10 @@ namespace SFM
 		}
 
 		if (numSamples > 0)
+		{
 			bite = bite/numSamples;
+			SFM_ASSERT_NORM(bite);
+		}
 
 		return bite;
 	}
