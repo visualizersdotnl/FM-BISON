@@ -34,9 +34,12 @@
 	#define SFM_ASSERT(condition)
 #endif
 
-// Try to use this one for all normalized ([0..1]) variables (25/08/2020)
+// Use these for all normalized variables (25/08/2020)
 #define SFM_ASSERT_NORM(variable)   SFM_ASSERT(variable >=  0.f && variable <= 1.f)
 #define SFM_ASSERT_BINORM(variable) SFM_ASSERT(variable >= -1.f && variable <= 1.f)
+
+// Use this for range checks (08/11/2020)
+#define SFM_ASSERT_RANGE(variable, range) SFM_ASSERT(variable >= -range && variable <= range)
 
 // Set to 1 to kill all SFM log output
 #if defined(_DEBUG) && !defined(PROFILE_BUILD)
@@ -134,8 +137,7 @@ namespace SFM
 	// Post EQ tuning range (dB), default is 0dB
 	// ----------------------------------------------------------------------------------------------
 
-	constexpr float kMinTuningdB = -12.f;
-	constexpr float kMaxTuningdB =  12.f;
+	constexpr float kTuningRangedB =  12.f;
 
 	// ----------------------------------------------------------------------------------------------
 	// Filter
@@ -176,6 +178,7 @@ namespace SFM
 	constexpr float kPostFilterCutoffRange = kMaxPostFilterCutoffHz-kMinPostFilterCutoffHz;
 
 	// Usual magnitude (gain) response at cutoff point (it's 1.0/sqrt(2.0)) (Biquad)
+	// Can very well be used as default Q
 	constexpr float kDefGainAtCutoff = 0.707106769f;
 
 	// ----------------------------------------------------------------------------------------------

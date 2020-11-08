@@ -201,6 +201,7 @@ namespace SFM
 		m_masterVoldBPS          = { sampleRatePS };
 		m_bassTuningdBPS         = { sampleRatePS };
 		m_trebleTuningdBPS       = { sampleRatePS };
+		m_midTuningdBPS          = { sampleRatePS };
 		
 		// FIXME: move to constructors above
 		m_effectWetPS.Reset(m_patch.cpWet);
@@ -237,6 +238,7 @@ namespace SFM
 		m_masterVoldBPS.Reset(m_patch.masterVoldB);
 		m_bassTuningdBPS.Reset(m_patch.bassTuningdB);
 		m_trebleTuningdBPS.Reset(m_patch.trebleTuningdB);
+		m_midTuningdBPS.Reset(m_patch.midTuningdB);
 
 		// Auto-wah
 		m_autoWahPedalPS = { sampleRatePS, kDefParameterSlewMS*0.5f /* A bit faster */ };
@@ -2138,6 +2140,7 @@ namespace SFM
 			/* Tuning (post-EQ) */
 			m_bassTuningdBPS.Apply(m_patch.bassTuningdB),
 			m_trebleTuningdBPS.Apply(m_patch.trebleTuningdB),
+			m_midTuningdBPS.Apply(m_patch.midTuningdB),
 			/* Master volume */
 			m_masterVoldBPS.Apply(m_patch.masterVoldB),
 			/* Buffers */

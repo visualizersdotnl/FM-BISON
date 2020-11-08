@@ -393,7 +393,7 @@ namespace SFM
 		ParameterSlew m_reverbPreDelayPS;
 		ParameterSlew m_compLookaheadPS;
 		ParameterSlew m_masterVoldBPS;
-		ParameterSlew m_bassTuningdBPS, m_trebleTuningdBPS;
+		ParameterSlew m_bassTuningdBPS, m_trebleTuningdBPS, m_midTuningdBPS;
 
 		// Slew for auto-wah pedal mode (so it doesn't sound that harsh, I know this is unusual for auto-wah, but a lot of things about FM. BISON are unusual)
 		ParameterSlew m_autoWahPedalPS;

@@ -14,7 +14,7 @@
 	- Compressor
 	- Low cut, tuning, master volume & final clamp
 
-	This grew into a huge class; that was of course not the intention but so far it's functional and quite well
+	This grew into a huge function; that was of course not the intention but so far it's functional and quite well
 	documented so right now (01/07/2020) I see no reason to chop it up
 
 	However, the amount of processing done every Render() cycle is significant, so I should look into disabling
@@ -132,11 +132,10 @@ namespace SFM
 						 float tubeDistort, float tubeDrive, float tubeOffset,
 	                     float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
 	                     float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead, bool compAutoGain, float compRMSToPeak,
-	                     float bassTuningdB, float trebleTuningdB, float masterVoldB,
+	                     float bassTuningdB, float trebleTuningdB, float midTuningdB, float masterVoldB,
 	                     const float *pLeftIn, const float *pRightIn, float *pLeftOut, float *pRightOut)
 	{
-		// Shitload of assertions; some values are asserted in functions they're passed to plus this might not
-		// be 100% complete (FIXME)
+		// Shitload of assertions; some values are asserted in functions they're passed to (make this a habit) plus this might not be 100% complete (FIXME)
 		SFM_ASSERT(nullptr != pLeftIn  && nullptr != pRightIn);
 		SFM_ASSERT(nullptr != pLeftOut && nullptr != pRightOut);
 		SFM_ASSERT(numSamples > 0);
@@ -154,8 +153,6 @@ namespace SFM
 		SFM_ASSERT(tubeDistort >= 0.f && tubeDistort <= 1.f);
 		SFM_ASSERT(tubeDrive >= kMinTubeDrive && tubeDrive <= kMaxTubeDrive);
 		SFM_ASSERT(tubeOffset >= kMinTubeOffset && tubeOffset <= kMaxTubeOffset);
-		SFM_ASSERT(bassTuningdB >= kMinTuningdB && bassTuningdB <= kMaxTuningdB);
-		SFM_ASSERT(trebleTuningdB >= kMinTuningdB && trebleTuningdB <= kMaxTuningdB);
 		
 		// Delay is automatically overridden to it's manual setting if it doesn't fit in it's delay line
 		const bool useBPM = 0.f != rateBPM;
@@ -271,7 +268,7 @@ namespace SFM
 				effectFunc(sampleL, sampleR, left, right, effectWet); // Only if necessary
 
 			//
-			// Apply delay
+			// Apply delay (always executed, for now, FIXME?)
 			//
 
 			const float monaural = left*0.5f + right*0.5f;
@@ -280,7 +277,6 @@ namespace SFM
 			SFM_ASSERT(curDelayInSec >= 0.f && curDelayInSec <= kMainDelayInSec);
 
 			// Write driven samples to delay line
-			
 			const float drive = m_curDelayDrive.Sample();
 			m_delayLineL.Write(left     * drive);
 			m_delayLineM.Write(monaural * drive);
@@ -493,7 +489,7 @@ namespace SFM
 		m_curMasterVol.SetTarget(dBToGain(masterVoldB));
 
 		// Set EQ target
-		m_postEQ.SetTargetdBs(bassTuningdB, trebleTuningdB);
+		m_postEQ.SetTargetdBs(bassTuningdB, trebleTuningdB, midTuningdB);
 
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{

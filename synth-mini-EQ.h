@@ -37,9 +37,9 @@ namespace SFM
 
 		SFM_INLINE void SetTargetdBs(float bassdB, float trebledB, float middB = 0.f)
 		{
-			SFM_ASSERT(bassdB   >= kInfdB);
-			SFM_ASSERT(trebledB >= kInfdB);
-			SFM_ASSERT(middB    >= kInfdB);
+			SFM_ASSERT_RANGE(bassdB,   kTuningRangedB);
+			SFM_ASSERT_RANGE(trebledB, kTuningRangedB);
+			SFM_ASSERT_RANGE(middB,    kTuningRangedB);
 
 			// FIXME: I get an artifact when going past 0 dB, figure out why
 			bassdB   += kEpsilon;

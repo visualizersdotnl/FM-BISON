@@ -227,6 +227,7 @@ namespace SFM
 		// Post EQ
 		float bassTuningdB;   // [kMinTuningdB..kMaxTuningdB]
 		float trebleTuningdB; //
+		float midTuningdB;    //
 
 		void ResetToEngineDefaults()
 		{
@@ -377,6 +378,7 @@ namespace SFM
 			// Flat post-EQ
 			bassTuningdB = 0.f;
 			trebleTuningdB = 0.f;
+			midTuningdB = 0.f;
 		}
 	};
 }
