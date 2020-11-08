@@ -28,7 +28,7 @@
 	(C) visualizers.nl & bipolaraudio.nl
 
 	- Code is quite verbose and has not been optimized "to the bone" yet (we're still in R&D stage)
-	- Currently fitted to play nice with the JUCE framework, needs significant work to work with other platforms (especially embeddedO
+	- Currently fitted to play nice with the JUCE framework, needs significant work to work with other platforms (especially embedded)
 	- Synthesizer is stereo output *only*
 	- Parameters are not just interpolated by also filtered to alleviate crackle during automation or MIDI control (see 'ParameterSlew')
 	- 'SFM' is a legacy prefix & namespace name
