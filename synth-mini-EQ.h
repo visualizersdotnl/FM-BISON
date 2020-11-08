@@ -36,9 +36,9 @@ namespace SFM
 			SFM_ASSERT(bassdB > kInfdB);
 			SFM_ASSERT(trebledB > kInfdB);
 
-			// FIXME: there's an artifact when crossing 0dB; research!
-			bassdB   += kEpsilon;
-			trebledB += kEpsilon;
+			// FIXME: I used to get an artifact when going past 0 dB
+//			bassdB   += kEpsilon;
+//			trebledB += kEpsilon;
 
 			m_bassdB.SetTarget(bassdB);
 			m_trebledB.SetTarget(trebledB);

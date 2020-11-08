@@ -1174,6 +1174,9 @@ namespace SFM
 			if (true == m_modeSwitch)
 				Log("Voice mode switch (stealing voices)");
 
+			if (true == m_resetVoices)
+				Log("Asked to reset all voices");
+
 			// Steal *all* active voices
 			for (unsigned iVoice = 0; iVoice < kMaxVoices; ++iVoice)
 			{
@@ -1183,7 +1186,7 @@ namespace SFM
 				{
 					StealVoice(iVoice);
 
-//					Log("Voice mode switch, stealing voice: " + std::to_string(iVoice));
+					Log("Voice mode switch / Voice reset, stealing voice: " + std::to_string(iVoice));
 				}
 			}
 
@@ -1649,7 +1652,7 @@ namespace SFM
 			voice.m_modLFO.SetSampleAndHoldSlewRate(slewRate);
 
 			// Global amp. allows use to fade the voice in and out within this frame
-			InterpolatedParameter<kLinInterpolate> globalAmp(1.f, std::min<unsigned>(128, numSamples));
+			InterpolatedParameter<kLinInterpolate> globalAmp(1.f, numSamples);
 
 			if (true == voice.IsStolen())
 			{

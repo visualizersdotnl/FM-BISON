@@ -141,9 +141,9 @@ namespace SFM
 		}
 		
 		// Render number of samples to 2 channels (stereo)
-		// Bend wheel: amount of pitch bend (wheel) [-1..1]
-		// Modulation: amount of modulation (wheel)  [0..1]
-		// Aftertouch: amount of (monophonic) aftertouch
+		// 'bendWheel'  - amount of pitch bend (wheel) [-1..1]
+		// 'modulation' - amount of modulation (wheel)  [0..1]
+		// 'aftertouch' - amount of (monophonic) aftertouch
 		void Render(unsigned numSamples, float bendWheel, float modulation, float aftertouch, float *pLeft, float *pRight);
 
 		// Set BPM (can be used as LFO frequency)
