@@ -22,7 +22,7 @@ FM. BISON - A hybrid FM synthesis engine.
 - /literature: PDFs et cetera
 - /amigaklang: top secret
 
-# TRAILER (30/04/2020)
+# (OLD) TRAILER (30/04/2020)
 
 https://youtu.be/hjkpSV5BxB0
 
