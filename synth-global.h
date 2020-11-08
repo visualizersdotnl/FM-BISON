@@ -177,7 +177,7 @@ namespace SFM
 	constexpr float kMaxPostFilterCutoffHz = 22050.f;
 	constexpr float kPostFilterCutoffRange = kMaxPostFilterCutoffHz-kMinPostFilterCutoffHz;
 
-	// Usual magnitude (gain) response at cutoff point (it's 1.0/sqrt(2.0)) (Biquad)
+	// Usual magnitude (gain) response at cutoff point (it's 1.0/sqrt(2.0)) (Biquad, name coined by Nigel Redmon)
 	// Can very well be used as default Q
 	constexpr float kDefGainAtCutoff = 0.707106769f;
 
