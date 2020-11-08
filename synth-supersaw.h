@@ -128,6 +128,7 @@ namespace SFM
 			}
 		}
 
+		// FIXME: code duplication
 		SFM_INLINE void PitchBend(float bend)
 		{
 			if (1.f == bend)

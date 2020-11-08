@@ -19,7 +19,11 @@
 
 	However, the amount of processing done every Render() cycle is significant, so I should look into disabling
 	certain effects when they do not contribute to the patch (at that particular moment); I've implemented this
-	for the oversampled loop!
+	for: 
+	
+	- The 4X oversampled loop
+	- Chorus/Phaser
+	- ...
 */
 
 #include "synth-post-pass.h"
@@ -86,7 +90,7 @@ namespace SFM
 ,		m_curTubeOffset(0.f, m_sampleRate4X, kDefParameterLatency)
 
 		// Post (EQ)
-,		m_postEQ(sampleRate)
+,		m_postEQ(sampleRate, true)
 
 		// External effects
 ,		m_wah(sampleRate, Nyquist)
@@ -250,24 +254,32 @@ namespace SFM
 		{
 			const float sampleL = m_pBufL[iSample];
 			const float sampleR = m_pBufR[iSample];
-				
-			// Always feed the chorus' delay line
-			// This approach has it's flaws: https://matthewvaneerde.wordpress.com/2010/12/07/downmixing-stereo-to-mono/
-			m_chorusDL.Write(sampleL*0.5f + sampleR*0.5f);
-			
-			// Apply effect
-			float effectL, effectR;
-			const float effectWet = m_curEffectWet.Sample();
-			effectFunc(sampleL, sampleR, effectL, effectR, effectWet);
 
+			float left = sampleL, right = sampleR;
+				
+			// Always feed the chorus delay line
+			// This approach has it's flaws: https://matthewvaneerde.wordpress.com/2010/12/07/downmixing-stereo-to-mono/
+			m_chorusDL.Write(left*0.5f + right*0.5f);
+			
+			//
+			// Apply effect
+			//
+
+			const float effectWet = m_curEffectWet.Sample();
+			
+			if (effectWet != 0.f)
+				effectFunc(sampleL, sampleR, left, right, effectWet); // Only if necessary
+
+			//
 			// Apply delay
+			//
+
+			const float monaural = left*0.5f + right*0.5f;
+
 			const float curDelayInSec = m_curDelayInSec.Sample();
 			SFM_ASSERT(curDelayInSec >= 0.f && curDelayInSec <= kMainDelayInSec);
 
 			// Write driven samples to delay line
-			const float left     = effectL;
-			const float right    = effectR;
-			const float monaural = 0.5f*(left+right);
 			
 			const float drive = m_curDelayDrive.Sample();
 			m_delayLineL.Write(left     * drive);
@@ -299,7 +311,7 @@ namespace SFM
 
 			const float filteredM = 0.5f*filteredL + 0.5f*filteredR;
 
-			// Feed back into delay line
+			// Feedback
 			const float curFeedback =  m_curDelayFeedback.Sample()*kMaxDelayFeedback;
 			m_delayLineL.WriteFeedback(filteredL, curFeedback);
 			m_delayLineM.WriteFeedback(filteredM, curFeedback);
@@ -320,7 +332,6 @@ namespace SFM
 			const float wet1  = wet*(width*0.5f + 0.5f);
 			const float wet2  = wet*((1.f-width)*0.5f);
 			
-			// Unfiltered
 			m_pBufL[iSample] = delayL*wet1 + delayR*wet2 + left*dry;
 			m_pBufR[iSample] = delayR*wet1 + delayL*wet2 + right*dry;
 		}

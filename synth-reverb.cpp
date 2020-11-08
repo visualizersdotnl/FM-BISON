@@ -54,7 +54,7 @@ namespace SFM
 
 	Reverb::Reverb(unsigned sampleRate, unsigned Nyquist) :
 		m_sampleRate(sampleRate), m_Nyquist(Nyquist)
-,		m_preEQ(sampleRate)
+,		m_preEQ(sampleRate, false)
 ,		m_preDelayLine(sampleRate, kReverbPreDelayLen)
 ,		m_width(kDefaultWidth)
 ,		m_roomSize(kDefaultRoomSize)

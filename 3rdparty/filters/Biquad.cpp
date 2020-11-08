@@ -41,100 +41,106 @@ void Biquad::reset()
  
 void Biquad::calcBiquad(void) {
 	float norm;
-	float V = m_peakGainV; // powf(10.f, fabsf(m_peakGain) / 20.f);
-	float K = m_FcK;       // tanf(M_PI * m_Fc);
+	const float V = m_peakGainV; 
+	const float K = m_FcK;    
+
 	switch (m_type) {
 		case bq_type_lowpass:
-			norm = 1 / (1 + K / m_Q + K * K);
+			norm = 1.f / (1.f + K / m_Q + K * K);
 			a0 = K * K * norm;
-			a1 = 2 * a0;
+			a1 = 2.f * a0;
 			a2 = a0;
-			b1 = 2 * (K * K - 1) * norm;
-			b2 = (1 - K / m_Q + K * K) * norm;
+			b1 = 2.f * (K * K - 1.f) * norm;
+			b2 = (1.f - K / m_Q + K * K) * norm;
 			break;
             
 		case bq_type_highpass:
-			norm = 1 / (1 + K / m_Q + K * K);
-			a0 = 1 * norm;
-			a1 = -2 * a0;
+			norm = 1.f / (1.f + K / m_Q + K * K);
+			a0 = 1.f * norm;
+			a1 = -2.f * a0;
 			a2 = a0;
-			b1 = 2 * (K * K - 1) * norm;
-			b2 = (1 - K / m_Q + K * K) * norm;
+			b1 = 2.f * (K * K - 1.f) * norm;
+			b2 = (1.f - K / m_Q + K * K) * norm;
 			break;
             
 		case bq_type_bandpass:
-			norm = 1 / (1 + K / m_Q + K * K);
+			norm = 1.f / (1.f + K / m_Q + K * K);
 			a0 = K / m_Q * norm;
 			a1 = 0;
 			a2 = -a0;
-			b1 = 2 * (K * K - 1) * norm;
-			b2 = (1 - K / m_Q + K * K) * norm;
+			b1 = 2.f * (K * K - 1.f) * norm;
+			b2 = (1.f - K / m_Q + K * K) * norm;
 			break;
             
 		case bq_type_notch:
-			norm = 1 / (1 + K / m_Q + K * K);
-			a0 = (1 + K * K) * norm;
-			a1 = 2 * (K * K - 1) * norm;
+			norm = 1.f / (1.f + K / m_Q + K * K);
+			a0 = (1.f + K * K) * norm;
+			a1 = 2.f * (K * K - 1.f) * norm;
 			a2 = a0;
 			b1 = a1;
-			b2 = (1 - K / m_Q + K * K) * norm;
+			b2 = (1.f - K / m_Q + K * K) * norm;
 			break;
-            
+  
+  /*
 		case bq_type_peak:
-			if (m_peakGain >= 0.0) {    // boost
-				norm = 1 / (1 + 1/m_Q * K + K * K);
-				a0 = (1 + V/m_Q * K + K * K) * norm;
-				a1 = 2 * (K * K - 1) * norm;
-				a2 = (1 - V/m_Q * K + K * K) * norm;
+			if (m_peakGain >= 0.f) {    // boost
+				norm = 1.f / (1.f + 1.f/m_Q * K + K * K);
+				a0 = (1.f + V/m_Q * K + K * K) * norm;
+				a1 = 2.f * (K * K - 1.f) * norm;
+				a2 = (1.f - V/m_Q * K + K * K) * norm;
 				b1 = a1;
-				b2 = (1 - 1/m_Q * K + K * K) * norm;
+				b2 = (1.f - 1.f/m_Q * K + K * K) * norm;
 			}
 			else {    // cut
-				norm = 1 / (1 + V/m_Q * K + K * K);
-				a0 = (1 + 1/m_Q * K + K * K) * norm;
-				a1 = 2 * (K * K - 1) * norm;
-				a2 = (1 - 1/m_Q * K + K * K) * norm;
+				norm = 1.f / (1.f + V/m_Q * K + K * K);
+				a0 = (1.f + 1.f/m_Q * K + K * K) * norm;
+				a1 = 2.f * (K * K - 1.f) * norm;
+				a2 = (1.f - 1.f/m_Q * K + K * K) * norm;
 				b1 = a1;
-				b2 = (1 - V/m_Q * K + K * K) * norm;
+				b2 = (1.f - V/m_Q * K + K * K) * norm;
 			}
 			break;
 
 		case bq_type_lowshelf:
 			if (m_peakGain >= 0.f) {    // boost
-				norm = 1 / (1 + sqrtf(2) * K + K * K);
-				a0 = (1 + sqrtf(2*V) * K + V * K * K) * norm;
-				a1 = 2 * (V * K * K - 1) * norm;
-				a2 = (1 - sqrtf(2*V) * K + V * K * K) * norm;
-				b1 = 2 * (K * K - 1) * norm;
-				b2 = (1 - sqrtf(2) * K + K * K) * norm;
+				norm = 1.f / (1.f + sqrtf(2.f) * K + K * K);
+				a0 = (1.f + sqrtf(2.f*V) * K + V * K * K) * norm;
+				a1 = 2.f * (V * K * K - 1.f) * norm;
+				a2 = (1.f - sqrtf(2.f*V) * K + V * K * K) * norm;
+				b1 = 2.f * (K * K - 1.f) * norm;
+				b2 = (1.f - sqrtf(2.f) * K + K * K) * norm;
 			}
 			else {    // cut
-				norm = 1 / (1 + sqrt(2*V) * K + V * K * K);
-				a0 = (1 + sqrtf(2) * K + K * K) * norm;
-				a1 = 2 * (K * K - 1) * norm;
-				a2 = (1 - sqrtf(2) * K + K * K) * norm;
-				b1 = 2 * (V * K * K - 1) * norm;
-				b2 = (1 - sqrtf(2*V) * K + V * K * K) * norm;
+				norm = 1.f / (1.f + sqrt(2.f*V) * K + V * K * K);
+				a0 = (1.f + sqrtf(2.f) * K + K * K) * norm;
+				a1 = 2.f * (K * K - 1.f) * norm;
+				a2 = (1.f - sqrtf(2.f) * K + K * K) * norm;
+				b1 = 2.f * (V * K * K - 1.f) * norm;
+				b2 = (1.f - sqrtf(2.f*V) * K + V * K * K) * norm;
 			}
 			break;
 
 		case bq_type_highshelf:
 			if (m_peakGain >= 0.f) {    // boost
-				norm = 1 / (1 + sqrtf(2) * K + K * K);
-				a0 = (V + sqrtf(2*V) * K + K * K) * norm;
-				a1 = 2 * (K * K - V) * norm;
-				a2 = (V - sqrtf(2*V) * K + K * K) * norm;
-				b1 = 2 * (K * K - 1) * norm;
-				b2 = (1 - sqrtf(2) * K + K * K) * norm;
+				norm = 1.f / (1.f + sqrtf(2.f) * K + K * K);
+				a0 = (V + sqrtf(2.f*V) * K + K * K) * norm;
+				a1 = 2.f * (K * K - V) * norm;
+				a2 = (V - sqrtf(2.f*V) * K + K * K) * norm;
+				b1 = 2.f * (K * K - 1.f) * norm;
+				b2 = (1.f - sqrtf(2.f) * K + K * K) * norm;
 			}
 			else {    // cut
-				norm = 1 / (V + sqrtf(2*V) * K + K * K);
-				a0 = (1 + sqrtf(2) * K + K * K) * norm;
-				a1 = 2 * (K * K - 1) * norm;
-				a2 = (1 - sqrtf(2) * K + K * K) * norm;
-				b1 = 2 * (K * K - V) * norm;
-				b2 = (V - sqrtf(2*V) * K + K * K) * norm;
+				norm = 1.f / (V + sqrtf(2.f*V) * K + K * K);
+				a0 = (1.f + sqrtf(2.f) * K + K * K) * norm;
+				a1 = 2.f * (K * K - 1.f) * norm;
+				a2 = (1.f - sqrtf(2.f) * K + K * K) * norm;
+				b1 = 2.f * (K * K - V) * norm;
+				b2 = (V - sqrtf(2.f*V) * K + K * K) * norm;
 			}
 			break;
+		*/
+
+		default:
+			SFM_ASSERT(false);
 	}
 }

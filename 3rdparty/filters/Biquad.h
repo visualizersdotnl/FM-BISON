@@ -4,17 +4,20 @@
 // Modified for FM. BISON
 //
 // This filter is the basic building block of filters; it does *not* respond well to rapid changes
-// of the frequency, so much like the Butterworth 24dB it's mostly suited for specific tasks; that
-// said, this filter is rather versatile (well suited for an EQ for example)
-//
-// ** Default process() call is now stereo, use processMono() for monaural, but do *not* mix and
-//    match **
+// of the frequency; this filter is rather versatile (well suited for an EQ for example) and a
+// building block for other (higher order) filters
 //
 // - No external dependencies
 // - Added reset() function
 // - Ported to single precision
 // - Added stereo support
+// - Forcibly inlined a few functions
 // - Removed useless functions (like setQ() et cetera)
+// - Minor optimizations
+//
+// IMPORTANT:
+// - do not mix process() and processMono()
+// - processMono() returns filtered sample instead of writing to ref.
 //
 // Useful (graphical) design tool @ https://www.earlevel.com/main/2013/10/13/biquad-calculator-v2/
 //
@@ -22,7 +25,7 @@
 //
 // ----------------------------------------------------------------------------------------------------
 
-#include "../../helper/synth-helper.h" // For SFM::kPI
+#include "../../synth-global.h" // for SFM_INLINE, SFM_ASSERT, SFM::kPI
 
 //
 //  Biquad.h
@@ -47,8 +50,6 @@
 
 #define _USE_MATH_DEFINES
 #include <math.h>
-
-#include "../../synth-global.h"
 
 enum {
     bq_type_lowpass = 0,
@@ -78,7 +79,7 @@ public:
 	~Biquad() {}
 
 	void reset();
-	void setBiquad(int type, float Fc, float Q, float peakGaindB);
+	SFM_INLINE void setBiquad(int type, float Fc, float Q, float peakGaindB);
 
 	SFM_INLINE void  process(float &sampleL, float &sampleR); 
 	SFM_INLINE float processMono(float sample);
@@ -86,9 +87,10 @@ public:
 protected:
 	void calcBiquad(void);
 
-	// For MiniEQ
+	// Initially added for SFM::MiniEQ
 	SFM_INLINE void setLowShelf();
 	SFM_INLINE void setHighShelf();
+	SFM_INLINE void setPeak();
 
 	int m_type;
 	float m_Fc, m_Q, m_peakGain, m_FcK, m_peakGainV;
@@ -124,8 +126,12 @@ SFM_INLINE void Biquad::setBiquad(int type, float Fc, float Q, float peakGaindB)
 	m_Q = Q;
 	m_Fc = Fc;
 	m_FcK = tanf(SFM::kPI*m_Fc);
-	m_peakGain = peakGaindB;
-	m_peakGainV = (0.f != m_peakGain) ? powf(10.f, fabsf(m_peakGain) / 20.f) : 1.f/20.f;
+
+	if (m_peakGain != peakGaindB) // Looks like it'll be worth the branch
+	{
+		m_peakGain = peakGaindB;
+		m_peakGainV = (0.f != m_peakGain) ? powf(10.f, fabsf(m_peakGain) / 20.f) : 1.f/20.f;
+	}
 	
 	switch (type)
 	{
@@ -134,12 +140,15 @@ SFM_INLINE void Biquad::setBiquad(int type, float Fc, float Q, float peakGaindB)
 		setLowShelf();
 		break;
 
-	// Inlined
 	case bq_type_highshelf:
 		setHighShelf();
 		break;
 
-	// Catch-all setup function
+	case bq_type_peak:
+		setPeak();
+		break;
+	
+	// Others
 	default:
 		calcBiquad();
 	};
@@ -148,48 +157,72 @@ SFM_INLINE void Biquad::setBiquad(int type, float Fc, float Q, float peakGaindB)
 SFM_INLINE void Biquad::setLowShelf()
 {
 	float norm;
-	float V = m_peakGainV; // powf(10.f, fabsf(m_peakGain) / 20.f);
-	float K = m_FcK;       // tanf(M_PI * m_Fc);
+	const float V = m_peakGainV;
+	const float K = m_FcK;    
 
-	if (m_peakGain >= 0.0) {    // boost
-		norm = 1 / (1 + sqrtf(2) * K + K * K);
-		a0 = (1 + sqrtf(2*V) * K + V * K * K) * norm;
-		a1 = 2 * (V * K * K - 1) * norm;
-		a2 = (1 - sqrtf(2*V) * K + V * K * K) * norm;
-		b1 = 2 * (K * K - 1) * norm;
-		b2 = (1 - sqrtf(2) * K + K * K) * norm;
+	if (m_peakGain >= 0.f) {    // boost
+		norm = 1.f / (1.f + sqrtf(2.f) * K + K * K);
+		a0 = (1.f + sqrtf(2.f*V) * K + V * K * K) * norm;
+		a1 = 2.f * (V * K * K - 1.f) * norm;
+		a2 = (1.f - sqrtf(2.f*V) * K + V * K * K) * norm;
+		b1 = 2.f * (K * K - 1.f) * norm;
+		b2 = (1.f - sqrtf(2.f) * K + K * K) * norm;
 	}
 	else {    // cut
-		norm = 1 / (1 + sqrtf(2*V) * K + V * K * K);
-		a0 = (1 + sqrtf(2) * K + K * K) * norm;
-		a1 = 2 * (K * K - 1) * norm;
-		a2 = (1 - sqrtf(2) * K + K * K) * norm;
-		b1 = 2 * (V * K * K - 1) * norm;
-		b2 = (1 - sqrtf(2*V) * K + V * K * K) * norm;
+		norm = 1.f / (1.f + sqrtf(2.f*V) * K + V * K * K);
+		a0 = (1.f + sqrtf(2.f) * K + K * K) * norm;
+		a1 = 2.f * (K * K - 1.f) * norm;
+		a2 = (1.f - sqrtf(2.f) * K + K * K) * norm;
+		b1 = 2.f * (V * K * K - 1.f) * norm;
+		b2 = (1.f - sqrtf(2.f*V) * K + V * K * K) * norm;
 	}
 }
 
 SFM_INLINE void Biquad::setHighShelf()
 {
 	float norm;
-	float V = m_peakGainV; // powf(10.f, fabsf(m_peakGain) / 20.f);
-	float K = m_FcK;       // tanf(M_PI * m_Fc);
+	const float V = m_peakGainV;
+	const float K = m_FcK;   
 
-	if (m_peakGain >= 0.0) {    // boost
-		norm = 1 / (1 + sqrtf(2) * K + K * K);
-		a0 = (V + sqrtf(2*V) * K + K * K) * norm;
-		a1 = 2 * (K * K - V) * norm;
-		a2 = (V - sqrtf(2*V) * K + K * K) * norm;
-		b1 = 2 * (K * K - 1) * norm;
-		b2 = (1 - sqrtf(2) * K + K * K) * norm;
+	if (m_peakGain >= 0.f) {    // boost
+		norm = 1.f / (1.f + sqrtf(2.f) * K + K * K);
+		a0 = (V + sqrtf(2.f*V) * K + K * K) * norm;
+		a1 = 2.f * (K * K - V) * norm;
+		a2 = (V - sqrtf(2.f*V) * K + K * K) * norm;
+		b1 = 2.f * (K * K - 1.f) * norm;
+		b2 = (1.f - sqrtf(2.f) * K + K * K) * norm;
 	}
 	else {    // cut
-		norm = 1 / (V + sqrtf(2*V) * K + K * K);
-		a0 = (1 + sqrtf(2) * K + K * K) * norm;
-		a1 = 2 * (K * K - 1) * norm;
-		a2 = (1 - sqrtf(2) * K + K * K) * norm;
-		b1 = 2 * (K * K - V) * norm;
-		b2 = (V - sqrtf(2*V) * K + K * K) * norm;
+		norm = 1.f / (V + sqrtf(2.f*V) * K + K * K);
+		a0 = (1.f + sqrtf(2.f) * K + K * K) * norm;
+		a1 = 2.f * (K * K - 1.f) * norm;
+		a2 = (1.f - sqrtf(2.f) * K + K * K) * norm;
+		b1 = 2.f * (K * K - V) * norm;
+		b2 = (V - sqrtf(2.f*V) * K + K * K) * norm;
+	}
+}
+
+SFM_INLINE void Biquad::setPeak()
+{
+	float norm;
+	const float V = m_peakGainV;
+	const float K = m_FcK;      
+
+	if (m_peakGain >= 0.f) {    // boost
+		norm = 1.f / (1.f + 1.f/m_Q * K + K * K);
+		a0 = (1.f + V/m_Q * K + K * K) * norm;
+		a1 = 2.f * (K * K - 1.f) * norm;
+		a2 = (1.f - V/m_Q * K + K * K) * norm;
+		b1 = a1;
+		b2 = (1.f - 1.f/m_Q * K + K * K) * norm;
+	}
+	else {    // cut
+		norm = 1.f / (1.f + V/m_Q * K + K * K);
+		a0 = (1.f + 1.f/m_Q * K + K * K) * norm;
+		a1 = 2.f * (K * K - 1.f) * norm;
+		a2 = (1.f - 1.f/m_Q * K + K * K) * norm;
+		b1 = a1;
+		b2 = (1.f - V/m_Q * K + K * K) * norm;
 	}
 }
 
