@@ -57,9 +57,7 @@
 		- Subtractive synthesis (filters & effects) on top
 		- Goal: low CPU footprint in DAWs, possibly embedded targets in the future
 
-	VST/JUCE related:
-		- See PluginProcessor.cpp
-		- This library is *not* thread-safe (does not have to be) though it uses them internally
+	This library is *not* thread-safe!
  
 	Issues:
 		- I've spotted some potentially overzealous and inconsistent use of SFM_INLINE (29/05/2020)
