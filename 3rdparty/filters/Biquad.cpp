@@ -41,7 +41,7 @@ void Biquad::reset()
  
 void Biquad::calcBiquad(void) {
 	float norm;
-	const float V = m_peakGainV; 
+//	const float V = m_peakGainV; 
 	const float K = m_FcK;    
 
 	switch (m_type) {
