@@ -406,7 +406,7 @@ namespace SFM
 
 			float distortedL = postFilteredL, distortedR = postFilteredR;
 
-			if (amount > 0.f) // Because I should optimize ZoelzerClip() (FIXME)
+			if (amount > 0.f)
 			{
 				distortedL = ZoelzerClip(offset+(distortedL*drive)); // Simply sounds better than ClassicCubicClip() 99% of the time
 				distortedR = ZoelzerClip(offset+(distortedR*drive)); //
