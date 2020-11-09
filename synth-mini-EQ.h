@@ -30,6 +30,7 @@ namespace SFM
 ,			m_midFc(1000.f/sampleRate)
 ,			m_bassdB(0.f, sampleRate, kDefParameterLatency)
 ,			m_trebledB(0.f, sampleRate, kDefParameterLatency)
+,			m_middB(0.f, sampleRate, kDefParameterLatency)
 		{
 		}
 
