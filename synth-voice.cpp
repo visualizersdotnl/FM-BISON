@@ -262,6 +262,7 @@ namespace SFM
 					sample = lerpf<float>(sample, squared, curSquarepusher);
 				}
 
+/* SVF
 #if !defined(SFM_DISABLE_FX)
 
 				// Apply filter
@@ -283,13 +284,37 @@ namespace SFM
 				bool hasOpFilter = false;
 
 #endif
+*/
+
+// Biquad
+#if !defined(SFM_DISABLE_FX)
+
+				// Apply filter
+				bool hasOpFilter = true;
+
+				switch (voiceOp.filter.getType())
+				{
+				case bq_type_none:
+					hasOpFilter = false;
+					break;
+
+				default:
+					// I'm assuming the filter is set up properly
+					sample = voiceOp.filter.processMono(sample);
+				}
+
+#else
+
+				bool hasOpFilter = false;
+
+#endif
 
 				// Store (filtered) sample for modulation, with modulation index applied
 				float modSample = sample*curIndex;
 				
 				if (false == hasOpFilter && SvfLinearTrapOptimised2::NO_FLT_TYPE != voiceOp.modFilter.getFilterType())
 				{
-					// Only apply if no operator filter applied and modulator filter set (only applied to a few waveforms)
+					// Only apply if modulator filter set (only applied to a few waveforms)
 					voiceOp.modFilter.tickMono(modSample);
 				}
 

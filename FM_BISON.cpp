@@ -630,7 +630,9 @@ namespace SFM
 		else if (true == patchOp.cutRightOfLSBP && key > breakpoint)
 			// Cut right
 			multiplier = 0.f;
-		else
+		
+		// We didn't cut, so apply level scaling as usual
+		if (0.f != multiplier)
 		{
 			// Apply level scaling
 			const unsigned numSemis = patchOp.levelScaleRange;
@@ -670,7 +672,7 @@ namespace SFM
 					// Fade in by adding to set level
 					multiplier = lerpf<float>(multiplier, std::min<float>(1.f, multiplier+fabsf(amount)), factor);
 
-				// Subtractive as well as additive scaling leave the output on the other side
+				// Subtractive as well as additive scaling leave the multiplier (output) on the other side
 				// of the breakpoint intact; this makes it intuitive to use this feature (I think)
 			}
 		}
@@ -717,14 +719,16 @@ namespace SFM
 		return tracking*normalizedKey;
 	}
 
-	// Set up (static) operator SVF filter
-	static void SetOperatorFilters(unsigned key, unsigned sampleRate, SvfLinearTrapOptimised2 &filter, SvfLinearTrapOptimised2 &modFilter, const PatchOperators::Operator &patchOp)
+	// Set up (static) operator filter
+//	static void SetOperatorFilters(unsigned key, unsigned sampleRate, SvfLinearTrapOptimised2 &filter, SvfLinearTrapOptimised2 &modFilter, const PatchOperators::Operator &patchOp)
+	static void SetOperatorFilters(unsigned key, unsigned sampleRate, Biquad &filter, SvfLinearTrapOptimised2 &modFilter, const PatchOperators::Operator &patchOp)
 	{
 		SFM_ASSERT(sampleRate > 0);
 
 		const unsigned Nyquist = sampleRate/2;
 
-		filter.resetState();
+//		filter.resetState();
+		filter.reset();
 		modFilter.resetState();
 		
 		const float normQ = patchOp.resonance;
@@ -744,33 +748,38 @@ namespace SFM
 		}
 		
 		float cutoffNorm = -1.f; // Causes assertion if not set
+		const float biQ = 0.01f + 9.99f*normQ; // See Biquad.h
 		switch (patchOp.filterType)
 		{
 		default:
 			SFM_ASSERT(false);
 
 		case PatchOperators::Operator::kNoFilter:
-			filter.updateNone();
+			filter.setBiquad(bq_type_none, 0.f, 0.f, 0.f);
 			break;
 
 		case PatchOperators::Operator::kLowpassFilter:
 			cutoffNorm = lerpf<float>(cutoffNormFrom, cutoffNormTo, tracking); // Keytrack
-			filter.updateLowpassCoeff(SVF_CutoffToHz(cutoffNorm, Nyquist), SVF_ResoToQ(normQ), sampleRate);
+			filter.setBiquad(bq_type_lowpass, SVF_CutoffToHz(cutoffNorm, Nyquist)/sampleRate, biQ, 0.f);
+//			filter.updateLowpassCoeff(SVF_CutoffToHz(cutoffNorm, Nyquist), SVF_ResoToQ(normQ), sampleRate);
 			break;
 
 		case PatchOperators::Operator::kHighpassFilter:
 			cutoffNorm = lerpf<float>(cutoffNormFrom, 1.f-cutoffNormTo, tracking); // Keytrack
-			filter.updateHighpassCoeff(SVF_CutoffToHz(cutoffNorm, Nyquist), SVF_ResoToQ(normQ), sampleRate);
+			filter.setBiquad(bq_type_highpass, SVF_CutoffToHz(cutoffNorm, Nyquist)/sampleRate, biQ, 0.f);
+//			filter.updateHighpassCoeff(SVF_CutoffToHz(cutoffNorm, Nyquist), SVF_ResoToQ(normQ), sampleRate);
 			break;
 
 		case PatchOperators::Operator::kBandpassFilter:
-			filter.updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), SVF_ResoToQ(0.25f*normQ), SvfLinearTrapOptimised2::BAND_PASS_FILTER, sampleRate);
+			filter.setBiquad(bq_type_bandpass, SVF_CutoffToHz(patchOp.cutoff, Nyquist)/sampleRate, biQ, 0.f);
+//			filter.updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), SVF_ResoToQ(0.25f*normQ), SvfLinearTrapOptimised2::BAND_PASS_FILTER, sampleRate);
 			break;
 
 		case PatchOperators::Operator::kPeakFilter:
 			SFM_ASSERT(patchOp.peakdB >= kMinOpFilterPeakdB && patchOp.peakdB <= kMaxOpFilterPeakdB);
-			filter.setGain(patchOp.peakdB);
-			filter.updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), SVF_ResoToQ(0.25f - 0.25f*normQ), SvfLinearTrapOptimised2::BELL_FILTER, sampleRate);
+			filter.setBiquad(bq_type_peak, SVF_CutoffToHz(cutoffNorm, Nyquist)/sampleRate, biQ, patchOp.peakdB);
+//			filter.setGain(patchOp.peakdB);
+//			filter.updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), SVF_ResoToQ(0.25f - 0.25f*normQ /* FIXME: !? */), SvfLinearTrapOptimised2::BELL_FILTER, sampleRate);
 			break;
 		}
 		

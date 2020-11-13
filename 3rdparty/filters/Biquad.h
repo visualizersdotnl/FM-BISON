@@ -13,13 +13,15 @@
 // - Added stereo support
 // - Forcibly inlined a few functions
 // - Removed useless functions (like setQ() et cetera)
+// - Added 'none' type (user's responsibility to *not* call process() or processMono())
 // - Minor optimizations
 //
 // IMPORTANT:
 // - do not mix process() and processMono()
 // - processMono() returns filtered sample instead of writing to ref.
 //
-// Useful (graphical) design tool @ https://www.earlevel.com/main/2013/10/13/biquad-calculator-v2/
+// - Useful (graphical) design tool @ https://www.earlevel.com/main/2013/10/13/biquad-calculator-v2/
+// - As for Q, 0.707 is a nice default value, and [0.01..10.0] a decent range (just don't feed it zero!)
 //
 // I can't say I'm a big fan of how most DSP code is written but I'll try to keep it as-is.
 //
@@ -52,7 +54,8 @@
 #include <math.h>
 
 enum {
-    bq_type_lowpass = 0,
+	bq_type_none = 0,
+    bq_type_lowpass,
     bq_type_highpass,
     bq_type_bandpass,
     bq_type_notch,
@@ -71,9 +74,6 @@ public:
 	Biquad(int type, float Fc, float Q, float peakGainDB)
 	{
 		setBiquad(type, Fc, Q, peakGainDB);
-
-		z1l = z2l = 0.f; // Stereo (L)
-		z1r = z2r = 0.f; // (R)
 	}
 
 	~Biquad() {}
@@ -83,6 +83,11 @@ public:
 
 	SFM_INLINE void  process(float &sampleL, float &sampleR); 
 	SFM_INLINE float processMono(float sample);
+
+	SFM_INLINE int getType() const
+	{
+		return m_type;
+	}
 
 protected:
 	void calcBiquad(void);
@@ -100,6 +105,9 @@ protected:
 };
 
 SFM_INLINE void Biquad::process(float &sampleL, float &sampleR) { 
+
+	SFM_ASSERT(m_type != bq_type_none);
+
 	const float outL = sampleL * a0 + z1l;
 	z1l = sampleL * a1 + z2l - b1 * outL;
 	z2l = sampleL * a2 - b2 * outL;
@@ -113,6 +121,9 @@ SFM_INLINE void Biquad::process(float &sampleL, float &sampleR) {
 }
 
 SFM_INLINE float Biquad::processMono(float sample) {
+
+	SFM_ASSERT(m_type != bq_type_none);
+
 	const float out = sample * a0 + z1l; // Just use left Zs
 	z1l = sample * a1 + z2l - b1 * out;  //
 	z2l = sample * a2 - b2 * out;        //
@@ -123,6 +134,13 @@ SFM_INLINE float Biquad::processMono(float sample) {
 SFM_INLINE void Biquad::setBiquad(int type, float Fc, float Q, float peakGaindB)
 {
 	m_type = type;
+
+	if (bq_type_none == type)
+		return;
+
+	z1l = z2l = 0.f; // Stereo (L)
+	z1r = z2r = 0.f; // (R)
+
 	m_Q = Q;
 	m_Fc = Fc;
 	m_FcK = tanf(SFM::kPI*m_Fc);

@@ -35,8 +35,8 @@ void Biquad::reset()
 	m_peakGain = 0.f;
 	m_peakGainV = 1.f/20.f;
 	
-	z1l = z2l = 0.f;
-	z1r = z2r = 0.f;
+	z1l = z2l = 0.f; // Stereo (L)
+	z1r = z2r = 0.f; // (R)
 }
  
 void Biquad::calcBiquad(void) {

@@ -14,6 +14,7 @@
 #pragma once
 
 #include "3rdparty/filters/SvfLinearTrapOptimised2.hpp"
+#include "3rdparty/filters/Biquad.h"
 
 #include "synth-global.h"
 #include "synth-oscillator.h"
@@ -93,8 +94,9 @@ namespace SFM
 			bool isCarrier;
 			
 			// Filters
-			SvfLinearTrapOptimised2 filter;    // Operator filter
-			SvfLinearTrapOptimised2 modFilter; // Filter can be used to take the edge off an operator to be used as modulator (Set to default by Reset())
+//			SvfLinearTrapOptimised2 filter;    // Operator filter, used to be SVF but I'm replacing it with a good old Biquad now, no '(R)' applies here so it will be stable
+			Biquad filter;                     //
+			SvfLinearTrapOptimised2 modFilter; // Filter can be used to take the edge off an operator to be used as modulator (Set to default by Reset(), could be a Biquad, sure, but this is tweaked to work)
 
 			// Gain envelope
 			FollowerEnvelope envGain;
@@ -151,8 +153,9 @@ namespace SFM
 				isCarrier = false;
 				
 				// Reset operator filter
-				filter.updateNone();
-				filter.resetState();
+//				filter.updateNone();
+//				filter.resetState();
+				filter.reset();
 
 				// Reset modulator filter
 				modFilter.updateNone();
