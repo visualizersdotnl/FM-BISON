@@ -157,7 +157,11 @@ namespace SFM
 
 	constexpr float kMinFilterCutoff      =  0.f;    // Normalized min. filter cutoff; range is simply [0..1] (use SVF_CutoffToHz())
 	constexpr float kSVFMinFilterCutoffHz = 20.f;    // Min 16.f (See impl.)
-	constexpr float kSVFMaxFilterCutoffHz = 22050.f; // Nyquist @ 44.1KHz (FIXME: is this wise?)
+	constexpr float kSVFMaxFilterCutoffHz = 22050.f; // Nyquist @ 44.1KHz
+	
+	// Biquad
+	constexpr float kBiquadMinFilterCutoffHz = 0.f;
+	constexpr float kBiquadMacFilterCutoffHz = 22050.f; // See above
 
 	// Default main (SVF) filter settings
 	constexpr float kDefMainFilterCutoff       =   1.f; // Normalized; no (or minimal) filtering (when acting as LPF at least)

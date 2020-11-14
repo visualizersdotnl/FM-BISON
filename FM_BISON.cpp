@@ -760,24 +760,24 @@ namespace SFM
 
 		case PatchOperators::Operator::kLowpassFilter:
 			cutoffNorm = lerpf<float>(cutoffNormFrom, cutoffNormTo, tracking); // Keytrack
-			filter.setBiquad(bq_type_lowpass, SVF_CutoffToHz(cutoffNorm, Nyquist)/sampleRate, biQ, 0.f);
+			filter.setBiquad(bq_type_lowpass, BQ_CutoffToHz(cutoffNorm, Nyquist)/sampleRate, biQ, 0.f);
 //			filter.updateLowpassCoeff(SVF_CutoffToHz(cutoffNorm, Nyquist), SVF_ResoToQ(normQ), sampleRate);
 			break;
 
 		case PatchOperators::Operator::kHighpassFilter:
 			cutoffNorm = lerpf<float>(cutoffNormFrom, 1.f-cutoffNormTo, tracking); // Keytrack
-			filter.setBiquad(bq_type_highpass, SVF_CutoffToHz(cutoffNorm, Nyquist)/sampleRate, biQ, 0.f);
+			filter.setBiquad(bq_type_highpass, BQ_CutoffToHz(cutoffNorm, Nyquist)/sampleRate, biQ, 0.f);
 //			filter.updateHighpassCoeff(SVF_CutoffToHz(cutoffNorm, Nyquist), SVF_ResoToQ(normQ), sampleRate);
 			break;
 
 		case PatchOperators::Operator::kBandpassFilter:
-			filter.setBiquad(bq_type_bandpass, SVF_CutoffToHz(patchOp.cutoff, Nyquist)/sampleRate, biQ, 0.f);
+			filter.setBiquad(bq_type_bandpass, BQ_CutoffToHz(patchOp.cutoff, Nyquist)/sampleRate, biQ, 0.f);
 //			filter.updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), SVF_ResoToQ(0.25f*normQ), SvfLinearTrapOptimised2::BAND_PASS_FILTER, sampleRate);
 			break;
 
 		case PatchOperators::Operator::kPeakFilter:
 			SFM_ASSERT(patchOp.peakdB >= kMinOpFilterPeakdB && patchOp.peakdB <= kMaxOpFilterPeakdB);
-			filter.setBiquad(bq_type_peak, SVF_CutoffToHz(cutoffNorm, Nyquist)/sampleRate, biQ, patchOp.peakdB);
+			filter.setBiquad(bq_type_peak, BQ_CutoffToHz(cutoffNorm, Nyquist)/sampleRate, biQ, patchOp.peakdB);
 //			filter.setGain(patchOp.peakdB);
 //			filter.updateCoefficients(SVF_CutoffToHz(patchOp.cutoff, Nyquist), SVF_ResoToQ(0.25f - 0.25f*normQ /* FIXME: !? */), SvfLinearTrapOptimised2::BELL_FILTER, sampleRate);
 			break;

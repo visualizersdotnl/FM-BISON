@@ -161,7 +161,7 @@ namespace SFM
 
 	/* ----------------------------------------------------------------------------------------------------
 
-		Helper functions for SVF filter.
+		Helper functions for SVF & Biquad filter.
 
 		Please note that the SVF filter is not 100% stable w/o oversampling, therefore until another
 		filter for continuous operation (PostPass) is in place the state should be reset when it falls
@@ -172,11 +172,20 @@ namespace SFM
 	 ------------------------------------------------------------------------------------------------------ */
 
 	// Normalized cutoff [0..1] to Hz
+	SFM_INLINE static float BQ_CutoffToHz(float cutoff, unsigned Nyquist)
+	{
+		// Allowed according to SVF impl.: [16.0..Nyquist]
+		const float maxCutoff = (Nyquist < kBiquadMaxFilterCutoffHz) ? Nyquist : kBiquadFilterCutoffHz;
+		SFM_ASSERT_NORM(cutoff);
+		return cutoff*(maxCutoff-kBiquadMinFilterCutoffHz);
+	}
+
+	// Normalized cutoff [0..1] to Hz
 	SFM_INLINE static float SVF_CutoffToHz(float cutoff, unsigned Nyquist, float minCutoff = kSVFMinFilterCutoffHz)
 	{
 		// Allowed according to SVF impl.: [16.0..Nyquist]
 		const float maxCutoff = (Nyquist < kSVFMaxFilterCutoffHz) ? Nyquist : kSVFMaxFilterCutoffHz;
-		SFM_ASSERT(cutoff >= 0.f && cutoff <= 1.f);
+		SFM_ASSERT_NORM(cutoff);
 		return minCutoff + cutoff*(maxCutoff-minCutoff);
 	}
 
