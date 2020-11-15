@@ -262,31 +262,6 @@ namespace SFM
 					sample = lerpf<float>(sample, squared, curSquarepusher);
 				}
 
-/* SVF
-#if !defined(SFM_DISABLE_FX)
-
-				// Apply filter
-				bool hasOpFilter = true;
-
-				switch (voiceOp.filter.getFilterType())
-				{
-				case SvfLinearTrapOptimised2::NO_FLT_TYPE:
-					hasOpFilter = false;
-					break;
-
-				default:
-					// I'm assuming the filter is set up properly
-					voiceOp.filter.tickMono(sample);
-				}
-
-#else
-
-				bool hasOpFilter = false;
-
-#endif
-*/
-
-// Biquad
 #if !defined(SFM_DISABLE_FX)
 
 				// Apply filter

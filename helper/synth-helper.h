@@ -175,7 +175,7 @@ namespace SFM
 	SFM_INLINE static float BQ_CutoffToHz(float cutoff, unsigned Nyquist)
 	{
 		// Allowed according to SVF impl.: [16.0..Nyquist]
-		const float maxCutoff = (Nyquist < kBiquadMaxFilterCutoffHz) ? Nyquist : kBiquadMinFilterCutoffHz;
+		const float maxCutoff = (Nyquist < kBiquadMaxFilterCutoffHz) ? Nyquist : kBiquadMaxFilterCutoffHz;
 		SFM_ASSERT_NORM(cutoff);
 		return kBiquadMinFilterCutoffHz + cutoff*(maxCutoff-kBiquadMinFilterCutoffHz);
 	}
