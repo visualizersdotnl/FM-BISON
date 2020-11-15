@@ -727,9 +727,9 @@ namespace SFM
 
 		const unsigned Nyquist = sampleRate/2;
 
-//		filter.resetState();
-		filter.reset();
-		modFilter.resetState();
+//		filter.resetState();    //
+//		filter.reset();         // <- Shouldn't be necessary, as we always initialize it or set it to 'bq_type_none'
+		modFilter.resetState(); //
 		
 		const float normQ = patchOp.resonance;
 		
