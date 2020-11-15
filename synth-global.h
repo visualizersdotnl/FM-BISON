@@ -161,7 +161,7 @@ namespace SFM
 	
 	// Biquad
 	constexpr float kBiquadMinFilterCutoffHz = 0.f;
-	constexpr float kBiquadMacFilterCutoffHz = 22050.f; // See above
+	constexpr float kBiquadMaxFilterCutoffHz = 22050.f; // See above
 
 	// Default main (SVF) filter settings
 	constexpr float kDefMainFilterCutoff       =   1.f; // Normalized; no (or minimal) filtering (when acting as LPF at least)
