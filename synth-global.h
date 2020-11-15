@@ -160,7 +160,7 @@ namespace SFM
 	constexpr float kSVFMaxFilterCutoffHz = 22050.f; // Nyquist @ 44.1KHz
 	
 	// Biquad
-	constexpr float kBiquadMinFilterCutoffHz = 0.f;
+	constexpr float kBiquadMinFilterCutoffHz = 20.f;    // Keep identical to SVF
 	constexpr float kBiquadMaxFilterCutoffHz = 22050.f; // See above
 
 	// Default main (SVF) filter settings

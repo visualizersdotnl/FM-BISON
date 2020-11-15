@@ -177,7 +177,7 @@ namespace SFM
 		// Allowed according to SVF impl.: [16.0..Nyquist]
 		const float maxCutoff = (Nyquist < kBiquadMaxFilterCutoffHz) ? Nyquist : kBiquadMinFilterCutoffHz;
 		SFM_ASSERT_NORM(cutoff);
-		return cutoff*(maxCutoff-kBiquadMinFilterCutoffHz);
+		return kBiquadMinFilterCutoffHz + cutoff*(maxCutoff-kBiquadMinFilterCutoffHz);
 	}
 
 	// Normalized cutoff [0..1] to Hz

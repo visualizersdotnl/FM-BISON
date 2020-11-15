@@ -714,7 +714,7 @@ namespace SFM
 		const float normalizedKey = key/127.f;
 
 		/* const */ float tracking = cutoffKeyTrack;
-		SFM_ASSERT(tracking >= -1.f && tracking <= 1.f);
+		SFM_ASSERT_BINORM(tracking);
 
 		return tracking*normalizedKey;
 	}
