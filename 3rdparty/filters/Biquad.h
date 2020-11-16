@@ -55,13 +55,13 @@
 
 enum {
 	bq_type_none = 0,
-    bq_type_lowpass,
-    bq_type_highpass,
-    bq_type_bandpass,
-    bq_type_notch,
-    bq_type_peak,
-    bq_type_lowshelf,
-    bq_type_highshelf
+	bq_type_lowpass,
+	bq_type_highpass,
+	bq_type_bandpass,
+	bq_type_notch,
+	bq_type_peak,
+	bq_type_lowshelf,
+	bq_type_highshelf
 };
 
 class Biquad {
