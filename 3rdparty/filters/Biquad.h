@@ -9,7 +9,7 @@
 //
 // - No external dependencies
 // - Added reset() function
-// - Ported to single precision
+// - Ported to single precision (32-bit floating point is sufficient for audio range)
 // - Added stereo support
 // - Forcibly inlined a few functions
 // - Removed useless functions (like setQ() et cetera)
