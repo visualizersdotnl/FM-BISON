@@ -25,8 +25,8 @@ namespace SFM
 	public:
 		MiniEQ(unsigned sampleRate, bool withMid) :
 			m_withMid(withMid)
-,			m_bassFc(250.f/sampleRate)
-,			m_trebleFc(4000.f/sampleRate)
+,			m_bassFc(500.f/sampleRate)
+,			m_trebleFc(8000.f/sampleRate)
 ,			m_midFc(1000.f/sampleRate)
 ,			m_bassdB(0.f, sampleRate, kDefParameterLatency)
 ,			m_trebledB(0.f, sampleRate, kDefParameterLatency)
@@ -58,9 +58,9 @@ namespace SFM
 
 			if (true == m_withMid)
 				m_midPeak.process(sampleL, sampleR);
-
-			m_lowShelf.process(sampleL, sampleR);
-			m_highShelf.process(sampleL, sampleR);
+				
+			m_bassShelf.process(sampleL, sampleR);
+			m_trebleShelf.process(sampleL, sampleR);
 		}
 
 		SFM_INLINE float ApplyMono(float sample)
@@ -70,7 +70,9 @@ namespace SFM
 			if (true == m_withMid)
 				sample = m_midPeak.processMono(sample);
 
-			return m_highShelf.processMono(m_lowShelf.processMono(sample));
+			sample = m_bassShelf.processMono(m_trebleShelf.processMono(sample));
+
+			return sample;
 		}
 
 	private:
@@ -80,8 +82,8 @@ namespace SFM
 		const float m_trebleFc;
 		const float m_midFc;
 
-		Biquad m_lowShelf;
-		Biquad m_highShelf;
+		Biquad m_bassShelf;
+		Biquad m_trebleShelf;
 		Biquad m_midPeak;
 
 		InterpolatedParameter<kLinInterpolate> m_bassdB;
@@ -90,8 +92,8 @@ namespace SFM
 
 		SFM_INLINE void SetBiquads()
 		{
-			m_lowShelf.setBiquad(bq_type_lowshelf, m_bassFc, 0.f, m_bassdB.Sample());       // Bass
-			m_highShelf.setBiquad(bq_type_highshelf, m_trebleFc, 0.f, m_trebledB.Sample()); // Treble
+			m_bassShelf.setBiquad(bq_type_highshelf, m_bassFc, 0.f, m_bassdB.Sample());      // Bass
+			m_trebleShelf.setBiquad(bq_type_lowshelf, m_trebleFc, 0.f, m_trebledB.Sample()); // Treble
 
 			// Mid?
 			if (true == m_withMid)
