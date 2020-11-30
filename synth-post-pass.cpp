@@ -344,6 +344,7 @@ namespace SFM
 			Currently we use the IIR version for minimal latency
 
 			I've tried to skip oversampling entirely but this resulted in clicking artifacts, so tough luck :)
+			FIXME: research why!
 
 		 ------------------------------------------------------------------------------------------------------ */
 
