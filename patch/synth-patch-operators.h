@@ -68,7 +68,7 @@ namespace SFM
 
 			float peakdB;    // [kMinOpPeakdB..kMaxOpPeakdB]
 			float cutoff;    // Or 'frequency' (FIXME)
-			float resonance; // Or 'bandwidth' (FIXME)
+			float resonance; // Or 'bandwidth' (FIXME: should be 0.707f (approx.) for Biquad to sound identical at default (no) cutoff, create issue!)
 
 			// Cutoff keytracking (higher key(s) means higher or lower cutoff frequency)
 			float cutoffKeyTrack; // [-1..1]
