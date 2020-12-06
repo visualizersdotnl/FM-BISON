@@ -2020,7 +2020,7 @@ namespace SFM
 				VoiceThreadContext contexts[2] = { parameters, parameters };
 				
 				// Split voices up 50/50
-				const size_t half = voiceIndices.size();
+				const size_t half = voiceIndices.size() / 2;
 				contexts[0].voiceIndices = std::vector<unsigned>(voiceIndices.begin(), voiceIndices.begin() + half);
 				contexts[1].voiceIndices = std::vector<unsigned>(voiceIndices.begin() + half, voiceIndices.end());
 

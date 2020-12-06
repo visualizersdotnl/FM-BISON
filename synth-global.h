@@ -64,9 +64,10 @@ namespace SFM
 		this was a much smaller project and there simply weren't too many them
 
 		This changed over time and now more and more of them are defined close to or in the implementation they're relevant instead; 
-		new ones that go here should be either used in different places or, important: be of use by the host software
+		new ones that go here should be either be in use in various places (ask yourself why), or, important: be of use by the host
+		software
 
-		I added some comment blocks to make this easier to navigate
+		I've added some comment blocks to make this easier to navigate
 	*/
 
 	// ----------------------------------------------------------------------------------------------
