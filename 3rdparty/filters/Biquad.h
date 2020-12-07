@@ -21,6 +21,7 @@
 // - processMono() returns filtered sample instead of writing to ref.
 //
 // - Useful (graphical) design tool @ https://www.earlevel.com/main/2013/10/13/biquad-calculator-v2/
+// - Like above, but to "design" coefficients @ https://www.earlevel.com/main/2013/10/28/pole-zero-placement-v2/
 // - As for Q, 0.707 is a nice default value, and [0.01..10.0] a decent range (just don't feed it zero!)
 //
 // I can't say I'm a big fan of how most DSP code is written but I'll try to keep it as-is.
