@@ -113,8 +113,8 @@ namespace SFM
 		m_tapeDelayLFO.Initialize(kTapeDelayHz, m_sampleRate);
 		
 		// Set (final pass) low cut filter
-		m_postLowShelf.reset();
-		m_postLowShelf.setBiquad(bq_type_lowshelf, kLowCutHz/sampleRate, 0.f, kLowCutdB);
+		m_postHighShelf.reset();
+		m_postHighShelf.setBiquad(bq_type_highshelf, kLowCutHz/sampleRate, 0.f, kLowCutdB);
 	}
 
 	PostPass::~PostPass()
@@ -478,7 +478,7 @@ namespace SFM
 			float sampleR = m_pBufR[iSample];
 			
 			// Minimize low(est) end
-			m_postLowShelf.process(sampleL, sampleR);
+			m_postHighShelf.process(sampleL, sampleR);
 
 			// EQ
 			m_postEQ.Apply(sampleL, sampleR);

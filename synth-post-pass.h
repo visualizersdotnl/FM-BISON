@@ -136,7 +136,7 @@ namespace SFM
 		Biquad m_tubeFilterAA;
 		
 		// Post (low cut (shelf) filter & EQ)
-		Biquad m_postLowShelf;
+		Biquad m_postHighShelf;
 		MiniEQ m_postEQ;
 				
 		// External effects
