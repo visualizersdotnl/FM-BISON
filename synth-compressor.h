@@ -25,8 +25,8 @@ namespace SFM
 
 		Compressor(unsigned sampleRate) :
 			m_sampleRate(sampleRate)
-,			m_outDelayL(sampleRate, kMaxCompLookahead)
-,			m_outDelayR(sampleRate, kMaxCompLookahead)
+,			m_outDelayL(sampleRate, kMaxCompLookaheadMS*0.001f)
+,			m_outDelayR(sampleRate, kMaxCompLookaheadMS*0.001f)
 ,			m_RMS(sampleRate, kCompRMSWindowSec)
 ,			m_peak(sampleRate, kMinCompAttack)
 ,			m_gainEnvdB(sampleRate, kInfdB)
@@ -52,7 +52,7 @@ namespace SFM
 			SFM_ASSERT(gaindB >= kMinCompGaindB && gaindB <= kMaxCompGaindB);
 			SFM_ASSERT(attack >= kMinCompAttack && attack <= kMaxCompAttack);
 			SFM_ASSERT(release >= kMinCompRelease && release <= kMaxCompRelease);
-			SFM_ASSERT(lookahead >= 0.f && lookahead <= kMaxCompLookahead);
+			SFM_ASSERT(lookahead >= 0.f && lookahead <= kMaxCompLookaheadMS);
 
 			m_curThresholddB.SetTarget(thresholddB);
 			m_curKneedB.SetTarget(kneedB);
@@ -60,7 +60,7 @@ namespace SFM
 			m_curGaindB.SetTarget(gaindB);
 			m_curAttack.SetTarget(attack);
 			m_curRelease.SetTarget(release);
-			m_curLookahead.SetTarget(lookahead/kMaxCompLookahead); // Because DelayLine::ReadNormalized()
+			m_curLookahead.SetTarget(lookahead/kMaxCompLookaheadMS); // Because DelayLine::ReadNormalized()
 		}
 		
 		// Returns "bite" (can be used for a visual indicator)
