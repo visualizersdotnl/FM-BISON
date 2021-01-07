@@ -299,6 +299,7 @@ namespace SFM
 	constexpr float kMinCompRelease     = 0.001f; // 1MS
 	constexpr float kMaxCompRelease     =    1.f; // 1 sec.
 	constexpr float kDefCompRelease     = 0.700f; // 100MS
+	constexpr float kMaxCompLookahead   =  100.f; // 100MS (it's actually a delay, also, Paul, feel free to change this)
 
 	// ----------------------------------------------------------------------------------------------
 	// Auto-wah range & defaults

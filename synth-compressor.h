@@ -16,9 +16,8 @@
 namespace SFM
 {
 	// Constant local parameters
-	constexpr float kCompMaxDelay     =  0.01f; // 10MS
-	constexpr float kCompRMSWindowSec = 0.005f; //  5MS
-	constexpr float kCompAutoGainMS   =    1.f; //  1MS (SignalFollower)
+	constexpr float kCompRMSWindowSec = 0.005f; // 5MS
+	constexpr float kCompAutoGainMS   =    1.f; // 1MS (SignalFollower)
 
 	class Compressor
 	{
@@ -26,8 +25,8 @@ namespace SFM
 
 		Compressor(unsigned sampleRate) :
 			m_sampleRate(sampleRate)
-,			m_outDelayL(sampleRate, kCompMaxDelay)
-,			m_outDelayR(sampleRate, kCompMaxDelay)
+,			m_outDelayL(sampleRate, kMaxCompLookahead)
+,			m_outDelayR(sampleRate, kMaxCompLookahead)
 ,			m_RMS(sampleRate, kCompRMSWindowSec)
 ,			m_peak(sampleRate, kMinCompAttack)
 ,			m_gainEnvdB(sampleRate, kInfdB)
@@ -53,7 +52,7 @@ namespace SFM
 			SFM_ASSERT(gaindB >= kMinCompGaindB && gaindB <= kMaxCompGaindB);
 			SFM_ASSERT(attack >= kMinCompAttack && attack <= kMaxCompAttack);
 			SFM_ASSERT(release >= kMinCompRelease && release <= kMaxCompRelease);
-			SFM_ASSERT(lookahead >= 0.f && lookahead <= 1.f);
+			SFM_ASSERT(lookahead >= 0.f && lookahead <= kMaxCompLookahead);
 
 			m_curThresholddB.SetTarget(thresholddB);
 			m_curKneedB.SetTarget(kneedB);
@@ -61,7 +60,7 @@ namespace SFM
 			m_curGaindB.SetTarget(gaindB);
 			m_curAttack.SetTarget(attack);
 			m_curRelease.SetTarget(release);
-			m_curLookahead.SetTarget(lookahead);
+			m_curLookahead.SetTarget(lookahead/kMaxCompLookahead); // Because DelayLine::ReadNormalized()
 		}
 		
 		// Returns "bite" (can be used for a visual indicator)

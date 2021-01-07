@@ -157,8 +157,8 @@ namespace SFM
 		float compGaindB;
 		float compAttack;
 		float compRelease;
-		float compLookahead;
-		bool  compAutoGain; // Compressor ignores 'compGaindB' if set
+		float compLookahead; // [0..kMaxCompLookahead]
+		bool  compAutoGain;  // Compressor ignores 'compGaindB' if set
 		float compRMSToPeak;
 
 		// Filter parameters
