@@ -1,11 +1,20 @@
 
 /*
+	FM. BISON hybrid FM synthesis -- Vowelizer ('vox') effect implementation (WIP).
+	(C) visualizers.nl & bipolaraudio.nl
+	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
+*/
+
+
+/*
 	FM. BISON hybrid FM synthesis -- 'Auto-wah' with "vox" (vowelizer) implementation (WIP).
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 */
 
 #pragma once
+
+// FIXME: review headers
 
 #include "3rdparty/filters/SvfLinearTrapOptimised2.hpp"
 
@@ -25,12 +34,12 @@ namespace SFM
 	constexpr float kMaxWahGhostReleaseMS =  600.f; // 600MS
 	constexpr float kWahVoxSandHSlewRate  = 0.001f; //   1MS
 
-	class AutoWah
+	class Vox
 	{
 	private:
 
 	public:
-		AutoWah(unsigned sampleRate, unsigned Nyquist) :
+		Vox(unsigned sampleRate, unsigned Nyquist) :
 			m_sampleRate(sampleRate), m_Nyquist(Nyquist)
 //,			m_RMS(sampleRate, 0.005f)
 ,			m_peak(sampleRate, kMinWahAttack)
@@ -52,7 +61,7 @@ namespace SFM
 			m_LFO.Initialize(Oscillator::Waveform::kPolySaw, kDefWahRate, m_sampleRate, 0.f);
 		}
 
-		~AutoWah() {}
+		~Vox() {}
 
 		SFM_INLINE void SetParameters(float resonance, float attack, float hold, float rate, float drivedB, float speak, float speakVowel, float speakVowelMod, float speakGhost, float speakCut, float speakReso, float cut, float wetness)
 		{
