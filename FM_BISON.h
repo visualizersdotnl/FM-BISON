@@ -82,7 +82,7 @@
 #include "synth-post-pass.h"
 #include "synth-phase.h"
 #include "synth-voice.h"
-#include "synth-sidechain-envelope.h"
+#include "synth-signal-follower.h"
 
 namespace SFM
 {

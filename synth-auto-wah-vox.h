@@ -10,7 +10,7 @@
 #include "3rdparty/filters/SvfLinearTrapOptimised2.hpp"
 
 #include "synth-global.h"
-#include "synth-sidechain-envelope.h"
+#include "synth-signal-follower.h"
 #include "synth-delay-line.h"
 #include "synth-oscillator.h"
 #include "quarantined/synth-vowelizer-V1.h"

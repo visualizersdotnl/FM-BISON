@@ -21,7 +21,7 @@
 #include "patch/synth-patch-global.h"
 #include "synth-envelope.h"
 #include "synth-one-pole-filters.h"
-#include "synth-sidechain-envelope.h"
+#include "synth-signal-follower.h"
 
 namespace SFM
 {

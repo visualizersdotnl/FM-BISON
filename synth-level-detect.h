@@ -8,7 +8,7 @@
 #pragma once
 
 #include "synth-global.h"
-#include "synth-sidechain-envelope.h"
+#include "synth-signal-follower.h"
 #include "synth-delay-line.h"
 
 namespace SFM
