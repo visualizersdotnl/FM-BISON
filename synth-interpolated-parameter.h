@@ -34,14 +34,14 @@
 #pragma once
 
 // Include JUCE (for juce::SmoothedValue)
-#include "../FM-BISON-internal-plug-in/JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
 
 #include "synth-global.h"
 
 namespace SFM
 {
-	typedef ValueSmoothingTypes::Linear kLinInterpolate;
-	typedef ValueSmoothingTypes::Multiplicative kMulInterpolate; // Target value may *never* be zero!
+	typedef juce::ValueSmoothingTypes::Linear kLinInterpolate;
+	typedef juce::ValueSmoothingTypes::Multiplicative kMulInterpolate; // Target value may *never* be zero!
 
 	template <typename T> class InterpolatedParameter
 	{

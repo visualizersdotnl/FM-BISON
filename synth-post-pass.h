@@ -17,7 +17,7 @@
 #include "3rdparty/filters/Biquad.h"
 
 // Include JUCE (for juce::dsp::Oversampling)
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
 
 #include "synth-global.h"
 #include "synth-delay-line.h"
