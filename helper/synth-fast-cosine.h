@@ -40,10 +40,10 @@ namespace SFM
 		const auto fractScale = 1 << fractBits;
 		const auto fractMask  = fractScale-1;
 
-		const unsigned significant = unsigned(((phaseAsInt<<exponent) >> (52-32)));
+		const unsigned significand = unsigned(((phaseAsInt<<exponent) >> (52-32)));
 
-		const auto index    = significant >> fractBits;
-		const int  fraction = significant &  fractMask;
+		const auto index    = significand >> fractBits;
+		const int  fraction = significand &  fractMask;
 
 		const auto left  = g_fastCosTab[index];
 		const auto right = g_fastCosTab[index+1];
