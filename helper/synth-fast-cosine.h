@@ -5,7 +5,7 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	- Period is [0..1], values outside of [0..1] work fine
-	- Includes sinus and tangent
+	- Includes sinus and tangens
 */
 
 #pragma once
