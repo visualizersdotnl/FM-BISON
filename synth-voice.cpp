@@ -126,9 +126,9 @@ namespace SFM
 
 	void Voice::Sample(float &left, float &right, float pitchBend, float ampBend, float modulation, float LFOBlend, float LFOModDepth)
 	{
-	    //
-	    // Render?
-	    //
+		//
+		// Render?
+		//
 	    
 		if (kIdle == m_state || m_sampleOffs > 0)
 		{
@@ -147,7 +147,7 @@ namespace SFM
 		// Parameter assertions
 		//
 
-        SFM_ASSERT(ampBend >= dB2Lin(-kAmpBendRange) && ampBend <= dB2Lin(kAmpBendRange)); // Linear gain
+		SFM_ASSERT(ampBend >= dB2Lin(-kAmpBendRange) && ampBend <= dB2Lin(kAmpBendRange)); // Linear gain
 		SFM_ASSERT(pitchBend >= -1.f && pitchBend <= 1.f);
 		SFM_ASSERT(modulation >= 0.f && modulation <= 1.f);
 		SFM_ASSERT(LFOBlend >= 0.f && LFOBlend <= 1.f);
@@ -181,10 +181,10 @@ namespace SFM
 		const float pitchEnv = powf(2.f, m_pitchEnvelope.Sample(false)*pitchRangeOct); // Sample pitch envelope (does not sustain!)
 		pitchBend = powf(2.f, pitchBend*pitchRangeOct);
 
-	    //
+		//
 		// Process all operators top-down
 		// This imposes the limitation that an operator can only be modulated by one below it
-        //
+		//
         
 		alignas(16) float modSamples[kNumOperators] = { 0.f }; // Samples for modulation
 		float mixL = 0.f, mixR = 0.f; // Carrier mix
@@ -300,7 +300,7 @@ namespace SFM
 
 				// Add sample to gain envelope (for VU meter)
 				const float absModSample = fabsf(modSample);                     
-				const float gainSample = (voiceOp.isCarrier)                     // Carrier prioritized if both (FIXME?)
+				const float gainSample = (voiceOp.isCarrier)                         // Carrier prioritized if both (FIXME?)
 					? sample                                                     // Adj. for actual volume
 					: absModSample/(kEpsilon+curIndex);                          // Normalized (with a little hack that prevents a branch to check for zero, which in turn *might* push the value a teensy bit (kEpsilon) out of range)
 				voiceOp.envGain.Apply(gainSample);
