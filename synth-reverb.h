@@ -23,13 +23,8 @@ namespace SFM
 	{
 	public:
 		ReverbComb() :
-			m_size(0)
-,           m_buffer(nullptr)
-,           m_writeIdx(0)
-,           m_dampening(0.f)
-,           m_previous(0.f)
-		{
-		}
+			m_size(0), m_buffer(nullptr), m_writeIdx(0), m_dampening(0.f), m_previous(0.f)
+		{}
 
 		~ReverbComb() {}
 		
@@ -87,9 +82,7 @@ namespace SFM
 	{
 	public:
 		ReverbAllPass() :
-			m_size(0)
-,           m_buffer(nullptr)
-,           m_writeIdx(0)
+			m_size(0), m_buffer(nullptr), m_writeIdx(0)
 		{}
 
 		~ReverbAllPass() {}
