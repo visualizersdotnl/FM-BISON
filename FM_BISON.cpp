@@ -700,9 +700,17 @@ namespace SFM
 	SFM_INLINE static float CalcPhaseShift(const Voice::Operator &voiceOp, const PatchOperators::Operator &patchOp)
 	{
 		// For certain oscillators (supersaw, noise, ...) this is useseless but not worth checking for
+		float shift = 0.f;
+		if (false == patchOp.keySync)
+		{
+			shift = voiceOp.oscillator.GetPhase() * mt_randf();
+		}
+
+#if 0
 		const float shift = (true == patchOp.keySync)
 			? 0.f // Synchronized
 			: voiceOp.oscillator.GetPhase(); // No key sync.: use last known phase (works well enough for 'normal' oscillators, others run free)
+#endif
 
 		return shift;
 	}
@@ -2047,9 +2055,10 @@ namespace SFM
 		
 		// Keep *all* supersaw oscillators running; I could move this loop to RenderVoices(), but that would clutter up the function a bit,
 		// and here it's easy to follow and easy to extend
+//		const bool monophonic = Patch::VoiceMode::kMono == m_patch.voiceMode;
 		for (auto &voice : m_voices)
 		{	
-			const bool isIdle = voice.IsIdle();
+			const bool isIdle = voice.IsIdle() && !monophonic;
 
 			for (auto &voiceOp : voice.m_operators)
 			{
