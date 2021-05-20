@@ -107,25 +107,21 @@ namespace SFM
 
 		SFM_INLINE void SetFrequency(float frequency)
 		{	
-			// Bail if unnecessary; this is relatively expensive
-			if (m_frequency != frequency)
-			{
-				m_frequency = frequency;
+			m_frequency = frequency;
 				
-				// Calc. pitch
-				for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
-				{
-					const float offset   = m_curDetune*kSupersawRelative[iOsc];
-					const float freqOffs = frequency * offset;
-					const float detuned  = frequency + freqOffs;
-					const float pitch    = CalculatePitch<float>(detuned, m_sampleRate);
-					m_pitch[iOsc] = pitch;
-				}
-
-				// Set HPF
-				constexpr float Q = kDefGainAtCutoff*kPI*0.5f; // FIXME: what the f*ck kind of value is *this* then?
-				m_HPF.setBiquad(bq_type_highpass, m_frequency/m_sampleRate, Q, 0.f);
+			// Calc. pitch
+			for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
+			{
+				const float offset   = m_curDetune*kSupersawRelative[iOsc];
+				const float freqOffs = frequency * offset;
+				const float detuned  = frequency + freqOffs;
+				const float pitch    = CalculatePitch<float>(detuned, m_sampleRate);
+				m_pitch[iOsc] = pitch;
 			}
+
+			// Set HPF
+			constexpr float Q = kDefGainAtCutoff*kPI*0.5f; // FIXME: what the f*ck kind of value is *this* then?
+			m_HPF.setBiquad(bq_type_highpass, m_frequency/m_sampleRate, Q, 0.f);
 		}
 
 		// FIXME: code duplication
@@ -167,7 +163,7 @@ namespace SFM
 			return signal;
 		}
 		
-		// Advance phase by a number of samples (used by Bison::Render() for true 'free running')
+		// Advance phase by a number of samples (used by Bison::Render() for true 'free running') <-- FIXME!
 		SFM_INLINE void Skip(unsigned numSamples)
 		{
 			for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)

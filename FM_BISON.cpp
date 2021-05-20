@@ -2053,14 +2053,14 @@ namespace SFM
 		}
 
 	// FIXME: review free running as a whole (see ticket)
-#if 0
-		
+#if 1
+//		const bool monophonic = Patch::VoiceMode::kMono == m_patch.voiceMode;
+
 		// Keep *all* supersaw oscillators running; I could move this loop to RenderVoices(), but that would clutter up the function a bit,
 		// and here it's easy to follow and easy to extend
-//		const bool monophonic = Patch::VoiceMode::kMono == m_patch.voiceMode;
 		for (auto &voice : m_voices)
 		{	
-			const bool isIdle = voice.IsIdle(); // && !monophonic;
+			const bool isIdle = voice.IsIdle() && !monophonic;
 
 			for (auto &voiceOp : voice.m_operators)
 			{
@@ -2068,7 +2068,7 @@ namespace SFM
 				if (true == isIdle || false == voiceOp.enabled)
 				{
 					auto &saw = voiceOp.oscillator.GetSupersaw();
-//					saw.Skip(numSamples);
+					saw.Skip(numSamples);
 				}
 			}
 		}
