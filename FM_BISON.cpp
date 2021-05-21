@@ -702,14 +702,8 @@ namespace SFM
 		float shift = 0.f;
 		if (false == patchOp.keySync)
 		{
-			shift = voiceOp.oscillator.GetPhase() * mt_randf();
+			shift = voiceOp.oscillator.GetPhase() * mt_randf(); // FIXME: keep phase running or at least have global ones for each operator
 		}
-
-#if 0
-		const float shift = (true == patchOp.keySync)
-			? 0.f // Synchronized
-			: voiceOp.oscillator.GetPhase(); // No key sync.: use last known phase (works well enough for 'normal' oscillators, others run free)
-#endif
 
 		return shift;
 	}
@@ -2052,12 +2046,12 @@ namespace SFM
 			}
 		}
 
-	// FIXME: review free running as a whole (see ticket)
+	// FIXME: review this (see Github issue: https://github.com/bipolaraudio/FM-BISON/issues/235)
 #if 1
-//		const bool monophonic = Patch::VoiceMode::kMono == m_patch.voiceMode;
-
 		// Keep *all* supersaw oscillators running; I could move this loop to RenderVoices(), but that would clutter up the function a bit,
 		// and here it's easy to follow and easy to extend
+
+//		const bool monophonic = Patch::VoiceMode::kMono == m_patch.voiceMode;
 		for (auto &voice : m_voices)
 		{	
 			const bool isIdle = voice.IsIdle() && !monophonic;
