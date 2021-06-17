@@ -7,9 +7,9 @@
 //
 // - No external dependencies (including LadderBase (class))
 // - Stereo support
-// - Replaced MOOG_PI with M_PI
+// - Replaced MOOG_PI with SFM::kPI
 // - Added SetParameters()
-// - Added soft clip (SFM::ultra_tanh()) to prevent blowing up with samples outside of [-1..1] range
+// - Added soft clip to prevent blowing up with samples outside of [-1..1] range
 // - Misc. minor modifications 
 //
 // I can't say I'm a big fan of how most DSP code is written but I'll try to keep it as-is.
@@ -43,10 +43,10 @@ public:
 
 	SFM_INLINE void Reset()
 	{
-		memset(m_stage[0], 0, 4*sizeof(double));
-		memset(m_stage[1], 0, 4*sizeof(double));
-		memset(m_delay[0], 0, 4*sizeof(double));
-		memset(m_delay[1], 0, 4*sizeof(double));
+		memset(m_stage[0], 0, 4*sizeof(float));
+		memset(m_stage[1], 0, 4*sizeof(float));
+		memset(m_delay[0], 0, 4*sizeof(float));
+		memset(m_delay[1], 0, 4*sizeof(float));
 	}
 
 	SFM_INLINE void SetParameters(float cutoff, float resonance, float drive /* Gain (linear) */)
@@ -64,28 +64,28 @@ public:
 	}
 
 private:
-	SFM_INLINE void SetResonance(double resonance)
+	SFM_INLINE void SetResonance(float resonance)
 	{
 		SFM_ASSERT(resonance >= 0.f && resonance <= 1.f);
-		m_resonance = resonance * (t2 + 6.0 * t1) / (t2 - 6.0 * t1);
+		m_resonance = resonance * (t2 + 6.f*t1) / (t2 - 6.f*t1);
 	}
 
 	SFM_INLINE void SetCutoff(float cutoff, float resonance)
 	{
-		m_cutoff = 2.0 * cutoff / m_sampleRate;
+		m_cutoff = 2.f * cutoff/m_sampleRate;
 
-		p = m_cutoff * (1.8 - 0.8 * m_cutoff);
-		k = 2.0 * sin(m_cutoff * M_PI * 0.5) - 1.0;
-		t1 = (1.0 - p) * 1.386249;
-		t2 = 12.0 + t1 * t1;
+		p = m_cutoff * (1.8f - 0.8f * m_cutoff);
+		k = 2.f * sinf(m_cutoff*SFM::kPI*0.5f) - 1.f;
+		t1 = (1.f - p) * 1.386249f;
+		t2 = 12.f + t1*t1;
 
 		SetResonance(resonance);
 	}
 
-	SFM_INLINE void Apply(float &sample, double *stage, double *delay)
+	SFM_INLINE void Apply(float &sample, float *stage, float *delay)
 	{
 		// Without the soft clip it's prone to blow up in a path that doesn't necessarily adhere to [-1..1] at that point
-		double x = SFM::ultra_tanh(sample*m_drive - m_resonance*stage[3]);
+		float x = SFM::ultra_tanhf(sample*m_drive - m_resonance*stage[3]);
 
 		// Four cascaded one-pole filters (bilinear transform)
 		stage[0] = x * p + delay[0]  * p - k * stage[0];
@@ -94,14 +94,14 @@ private:
 		stage[3] = stage[2] * p + delay[3] * p - k * stage[3];
 		
 		// Clipping band-limited sigmoid
-		stage[3] -= (stage[3] * stage[3] * stage[3]) / 6.0;
+		stage[3] -= (stage[3] * stage[3] * stage[3]) / 6.f;
 			
 		delay[0] = x;
 		delay[1] = stage[0];
 		delay[2] = stage[1];
 		delay[3] = stage[2];
 
-		sample = float(stage[3]); // FIXME!
+		sample = stage[3];
 
 		// Filter still in working order?
 		SFM::FloatAssert(sample);
@@ -109,15 +109,15 @@ private:
 
 	const unsigned m_sampleRate;
 
-	double m_resonance;
-	double m_cutoff;
-	double m_drive = 1.0;
+	float m_resonance;
+	float m_cutoff;
+	float m_drive = 1.f;
 
-	double m_stage[2][4];
-	double m_delay[2][4];
+	float m_stage[2][4];
+	float m_delay[2][4];
 
-	double p;
-	double k;
-	double t1;
-	double t2;
+	float p;
+	float k;
+	float t1;
+	float t2;
 };

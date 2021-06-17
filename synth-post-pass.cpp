@@ -75,7 +75,7 @@ namespace SFM
 ,		m_phaserSweepLPF((kSweepCutoffHz*2.f)/sampleRate) // Tweaked a little for effect
 
 		// Oversampling (stereo)
-,		m_oversampling4X(2, 2, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true)
+,		m_oversampling4X(2, 2, juce::dsp::Oversampling<float>::filterHalfBandFIREquiripple, true)
 
 		// Post filter
 ,		m_postFilter(m_sampleRate4X)
@@ -129,7 +129,7 @@ namespace SFM
 	                     float cpRate, float cpWet, bool isChorus,
 	                     float delayInSec, float delayWet, float delayDrivedB, float delayFeedback, float delayFeedbackCutoff, float delayTapeWow,
 	                     float postCutoff, float postReso, float postDrivedB, float postWet,
-			     float tubeDistort, float tubeDrive, float tubeOffset,
+	                     float tubeDistort, float tubeDrive, float tubeOffset,
 	                     float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
 	                     float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead, bool compAutoGain, float compRMSToPeak,
 	                     float bassTuningdB, float trebleTuningdB, float midTuningdB, float masterVoldB,
@@ -341,8 +341,6 @@ namespace SFM
 			  distortion. With FIR filters, the phase is linear but the latency is maximised. With IIR 
 			  filtering, the phase is compromised around the Nyquist frequency but the latency is minimised. "
 
-			Currently we use the IIR version for minimal latency
-
 			I've tried to skip oversampling entirely but this resulted in clicking artifacts, so tough luck :)
 			FIXME: research why!
 
@@ -351,7 +349,7 @@ namespace SFM
 		// Set post filter parameters
 		m_curPostCutoff.SetTarget(postCutoff);
 		m_curPostReso.SetTarget(postReso);
-		m_curPostDrive.SetTarget(dB2Lin(postDrivedB));
+		m_curPostDrive.SetTarget(dBToGain(postDrivedB));
 		m_curPostWet.SetTarget(postWet);
 
 		// Set tube distortion parameters
@@ -399,6 +397,8 @@ namespace SFM
 				postFilteredL = lerpf<float>(sampleL, filteredL, curPostWet);
 				postFilteredR = lerpf<float>(sampleR, filteredR, curPostWet);
 			}
+			else
+				m_postFilter.Reset();
 								
 			// Apply (non-linear) distortion
 			const float amount = m_curTubeDist.Sample();
@@ -457,7 +457,7 @@ namespace SFM
 
 		 m_compressor.SetParameters(compThresholddB, compKneedB, compRatio, compGaindB, compAttack, compRelease, compLookahead);
 		 m_compressorBiteLPF.Apply(m_compressor.Apply(m_pBufL, m_pBufR, numSamples, compAutoGain, compRMSToPeak));
-
+		 
 #endif
 
 		/* ----------------------------------------------------------------------------------------------------

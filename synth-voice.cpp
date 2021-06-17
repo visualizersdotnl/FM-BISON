@@ -307,18 +307,28 @@ namespace SFM
 
 				// Update feedback
 				voiceOp.feedback = 0.25f*(voiceOp.feedback*0.995f + fabsf(sample)*curFeedbackAmt);
-				
-				// Calc. panning
-				const float panMod = voiceOp.panMod;
-				const float panning = (0.f == panMod)
-					? curPanning
-					: LFO*panMod*modulation*0.5f + 0.5f; // If panning modulation is set it overrides manual panning
-				
+								
 				if (true == voiceOp.isCarrier)
 				{
+					// Calc. panning
+					const float panMod = voiceOp.panMod;
+					/* const */ float panning = (0.f == panMod)
+						? curPanning
+						: LFO*panMod*modulation*0.5f + 0.5f; // If panning modulation is set it overrides manual panning
+
+					// Because parameter interpolation is not very precise, and a negative square root is in that it is unforgiving
+					panning = Clamp(panning); 
+
+					const float carrierL = sample*sqrtf(1.f-panning);
+					const float carrierR = sample*sqrtf(panning);
+					
+					// We've had some trouble here (see above, negative square root...)
+					FloatAssert(carrierL);
+					FloatAssert(carrierR);
+
 					// Apply panning & mix (square law panning retains equal power)
-					mixL += sample*sqrtf(1.f-panning);
-					mixR += sample*sqrtf(panning);
+					mixL += carrierL;
+					mixR += carrierR;
 				}
 			}
 		} 
