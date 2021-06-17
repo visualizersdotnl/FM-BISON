@@ -42,7 +42,8 @@ namespace SFM
 		m_patch.ResetToEngineDefaults();
 
 		// Initialize polyphony
-		m_curPolyphony = m_patch.maxVoices;
+		const bool monophonic = Patch::VoiceMode::kMono == m_patch.voiceMode;
+		m_curPolyphony = (false == monophonic) ? m_patch.maxVoices : 1;
 
 		Log("Instance of FM. BISON engine initalized");
 		Log("Suzie, call DR. BISON, tell him it's for me...");
@@ -1747,7 +1748,7 @@ namespace SFM
 					const float cutoffHz = lerpf<float>(context.fullCutoff, nonEnvCutoffHz, filterEnv);
 					const float sampQ = curQ.Sample();
 
-					if (true == context.secondFilterPass)
+					if (false) // true == context.secondFilterPass)
 					{
 						// Currently we're only using this for the LPF, which allows for a minor optimization
 						SFM_ASSERT(SvfLinearTrapOptimised2::LOW_PASS_FILTER == context.filterType2);
@@ -1770,8 +1771,12 @@ namespace SFM
 
 				// Apply gain and add to mix
 				const float amplitude = curGlobalAmp.Sample() * voiceGain;
-				pDestL[iSample] += amplitude * left;
-				pDestR[iSample] += amplitude * right;
+
+				const float finalL = amplitude * left;
+				const float finalR = amplitude * right;
+
+				pDestL[iSample] += finalL;
+				pDestR[iSample] += finalR;
 			}
 		}
 	}
@@ -1807,14 +1812,11 @@ namespace SFM
 
 		const bool monophonic = Patch::VoiceMode::kMono == m_curVoiceMode;
 
-		// Reset voices if polyphony changes (monophonic switch is handled in UpdateVoicesPreRender())
-		if (false == monophonic)
+		// Reset voices if polyphony changes
+		if (m_curPolyphony != m_patch.maxVoices)
 		{
-			if (m_curPolyphony != m_patch.maxVoices)
-			{
-				m_resetVoices = true;
-				m_curPolyphony = m_patch.maxVoices;
-			}
+			m_resetVoices = true;
+			m_curPolyphony = m_patch.maxVoices;
 		}
 
 		// Modulation override?
