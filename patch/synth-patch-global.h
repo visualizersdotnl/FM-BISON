@@ -122,8 +122,8 @@ namespace SFM
 		// If the pitch wheel should modulate amplitude instead
 		bool pitchIsAmpMod;
 
-		// Max. voices for patch
-		unsigned maxVoices;
+		// Max. voices for patch (polyphonic)
+		unsigned maxPolyVoices;
 
 		// Auto-wah settings (see synth-global.h & synth-auto-wah.h for non-normalized parameters)
 		float wahResonance;
@@ -283,7 +283,7 @@ namespace SFM
 			pitchIsAmpMod = false;
 
 			// Def. max voices
-			maxVoices = kDefMaxVoices;
+			maxPolyVoices = kDefMaxPolyVoices;
 
 			// Default auto-wah, 100% dry
 			wahResonance = kDefWahResonance;

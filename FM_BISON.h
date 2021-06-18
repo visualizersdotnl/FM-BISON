@@ -233,7 +233,7 @@ namespace SFM
 		SFM_INLINE void SetKey(unsigned key, int index)
 		{
 			SFM_ASSERT(key <= 127);
-			SFM_ASSERT(index >= 0 && index < kMaxVoices);
+			SFM_ASSERT(index >= 0 && index < kMaxPolyVoices);
 
 			m_keyToVoice[key] = index;
 		}
@@ -427,8 +427,8 @@ namespace SFM
 		float *m_pBufL[2] = { nullptr, nullptr };
 		float *m_pBufR[2] = { nullptr, nullptr };
 
-		alignas(16) Voice m_voices[kMaxVoices];       // Array of voices to use
-		alignas(16) bool  m_voicesStolen[kMaxVoices]; // Simple way to flag voices as stolen; contain related logic in FM_BISON.cpp
+		alignas(16) Voice m_voices[kMaxPolyVoices];       // Array of voices to use
+		alignas(16) bool  m_voicesStolen[kMaxPolyVoices]; // Simple way to flag voices as stolen; contain related logic in FM_BISON.cpp
 
 		// Global voice count
 		unsigned m_voiceCount = 0;

@@ -83,11 +83,11 @@ namespace SFM
 	constexpr float kMaxFixedHz = 96000.f;
 
 	// Polyphony constraints
-	constexpr unsigned kMinVoices = 1;
-	constexpr unsigned kMaxVoices = 128;
+	constexpr unsigned kMinPolyVoices = 1;
+	constexpr unsigned kMaxPolyVoices = 128;
 
 	// Default number of vioces
-	constexpr unsigned kDefMaxVoices = 32; // Safe and fast
+	constexpr unsigned kDefMaxPolyVoices = 32; // Safe and fast
 
 	// ----------------------------------------------------------------------------------------------
 	// Parameter latency & slew

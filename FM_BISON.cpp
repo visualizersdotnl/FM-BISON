@@ -43,7 +43,7 @@ namespace SFM
 
 		// Initialize polyphony
 		const bool monophonic = Patch::VoiceMode::kMono == m_patch.voiceMode;
-		m_curPolyphony = (false == monophonic) ? m_patch.maxVoices : 1;
+		m_curPolyphony = (false == monophonic) ? m_patch.maxPolyVoices : 1;
 
 		Log("Instance of FM. BISON engine initalized");
 		Log("Suzie, call DR. BISON, tell him it's for me...");
@@ -84,7 +84,7 @@ namespace SFM
 		DeleteRateDependentObjects();
 
 		// Stop & reset all voices, clear slots & wipe requests
-		for (unsigned iVoice = 0; iVoice < kMaxVoices; ++iVoice)		
+		for (unsigned iVoice = 0; iVoice < kMaxPolyVoices; ++iVoice)		
 			m_voices[iVoice].Reset(m_sampleRate);
 
 		for (unsigned iSlot = 0; iSlot < 128; ++iSlot)
@@ -297,7 +297,7 @@ namespace SFM
 	// Release voice, but retain key slot
 	void Bison::ReleaseVoice(int index)
 	{
-		SFM_ASSERT(index >= 0 && index < kMaxVoices);
+		SFM_ASSERT(index >= 0 && index < kMaxPolyVoices);
 
 		Voice &voice = m_voices[index];
 		SFM_ASSERT(true == voice.IsPlaying());
@@ -313,9 +313,7 @@ namespace SFM
 	// Free voice & key slot immediately
 	void Bison::FreeVoice(int index)
 	{
-		
-		
-		SFM_ASSERT(index >= 0 && index < kMaxVoices);
+		SFM_ASSERT(index >= 0 && index < kMaxPolyVoices);
 
 		Voice &voice = m_voices[index];
 
@@ -345,7 +343,7 @@ namespace SFM
 	// Steal voice (quick fade)
 	void Bison::StealVoice(int index)
 	{
-		SFM_ASSERT(index >= 0 && index < kMaxVoices);
+		SFM_ASSERT(index >= 0 && index < kMaxPolyVoices);
 
 		Voice &voice = m_voices[index];
 		SFM_ASSERT(false == voice.IsIdle());
@@ -1186,7 +1184,7 @@ namespace SFM
 				Log("Asked to reset all voices");
 
 			// Steal *all* active voices
-			for (unsigned iVoice = 0; iVoice < kMaxVoices; ++iVoice)
+			for (unsigned iVoice = 0; iVoice < kMaxPolyVoices; ++iVoice)
 			{
 				Voice &voice = m_voices[iVoice];
 				
@@ -1487,7 +1485,7 @@ namespace SFM
 	void Bison::UpdateVoicesPostRender()
 	{
 		// Free (stolen) voices
-		for (unsigned iVoice = 0; iVoice < kMaxVoices /* Evaluate all! */; ++iVoice)
+		for (unsigned iVoice = 0; iVoice < kMaxPolyVoices /* Evaluate all! */; ++iVoice)
 		{
 			Voice &voice = m_voices[iVoice];
 
@@ -1813,7 +1811,7 @@ namespace SFM
 		const bool monophonic = Patch::VoiceMode::kMono == m_curVoiceMode;
 
 		// Reset voices if polyphony changes
-		const unsigned maxVoices = (false == monophonic) ? m_patch.maxVoices : 1;
+		const unsigned maxVoices = (false == monophonic) ? m_patch.maxPolyVoices : 1;
 		if (m_curPolyphony != maxVoices)
 		{
 			m_resetVoices = true;
@@ -1993,7 +1991,7 @@ namespace SFM
 
 			// Build array of voices to render
 			std::vector<unsigned> voiceIndices;
-			for (int iVoice = 0; iVoice < kMaxVoices /* Actual voice count can be > m_curPolyphony */; ++iVoice)
+			for (int iVoice = 0; iVoice < kMaxPolyVoices /* Actual voice count can be > m_curPolyphony */; ++iVoice)
 			{
 				if (false == m_voices[iVoice].IsIdle())
 					voiceIndices.push_back(iVoice);
