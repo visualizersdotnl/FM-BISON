@@ -1205,7 +1205,7 @@ namespace SFM
 			m_curVoiceMode = m_patch.voiceMode;
 
 			// Monophonic?
-			if (Patch::VoiceMode::kMono == m_curVoiceMode)
+			if (true == monophonic)
 			{
 				// Set polyphony
 				m_curPolyphony = 1;
@@ -1813,10 +1813,11 @@ namespace SFM
 		const bool monophonic = Patch::VoiceMode::kMono == m_curVoiceMode;
 
 		// Reset voices if polyphony changes
-		if (m_curPolyphony != m_patch.maxVoices)
+		const unsigned maxVoices = (false == monophonic) ? m_patch.maxVoices : 1;
+		if (m_curPolyphony != maxVoices)
 		{
 			m_resetVoices = true;
-			m_curPolyphony = m_patch.maxVoices;
+			m_curPolyphony = maxVoices;
 		}
 
 		// Modulation override?
