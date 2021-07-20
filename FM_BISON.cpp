@@ -1115,9 +1115,13 @@ namespace SFM
 				else
 				{
 					// Glide
+					voiceOp.supersawDetune.SetTarget(patchOp.supersawDetune);
+					voiceOp.supersawMix.SetTarget(patchOp.supersawMix);
+
 					voiceOp.amplitude.SetTarget(amplitude);
 					voiceOp.index.SetTarget(index);
 					
+					// See synth-interpolated-parameter.h to see why I do this in this particular order
 					const float curFreq = voiceOp.curFreq.Get();
 					voiceOp.curFreq.SetRate(m_sampleRate, voice.m_freqGlide);
 					voiceOp.curFreq.Set(curFreq);
