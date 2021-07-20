@@ -194,8 +194,8 @@ namespace SFM
 	constexpr float kMinTubeDrive  =   1.f;
 	constexpr float kMaxTubeDrive  = 100.f;
 	constexpr float kDefTubeDrive  =  10.f;
-	constexpr float kMinTubeOffset = -0.1f;
-	constexpr float kMaxTubeOffset =  0.1f;
+	constexpr float kMinTubeOffset = -0.3f;
+	constexpr float kMaxTubeOffset =  0.3f;
 
 	// ----------------------------------------------------------------------------------------------
 	// Envelope
@@ -237,7 +237,7 @@ namespace SFM
 
 	constexpr int kMinVolumedB   =   -96;
 	constexpr int kMaxVolumedB   =     3;
-	constexpr int kDefVolumedB   =    -9;
+	constexpr int kDefVolumedB   =    -3;
 	constexpr int kVolumeRangedB = kMaxVolumedB-kMinVolumedB;
 
 	// Nicked from juce::Decibels
