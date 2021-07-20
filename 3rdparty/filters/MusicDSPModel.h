@@ -3,8 +3,6 @@
 //
 // Modified for FM. BISON
 //
-// FIXME: modify to single precision
-//
 // - No external dependencies (including LadderBase (class))
 // - Stereo support
 // - Replaced MOOG_PI with SFM::kPI
