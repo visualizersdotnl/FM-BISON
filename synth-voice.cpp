@@ -206,7 +206,19 @@ namespace SFM
 				
 				// Set base freq.
 				auto &oscillator = voiceOp.oscillator;
-				oscillator.SetFrequency(curFreq);
+
+				if (Oscillator::Waveform::kSupersaw != oscillator.GetWaveform())
+				{
+					oscillator.SetFrequency(curFreq);
+				}
+				else
+				{
+					// Special case
+					const float curDetune = voiceOp.supersawDetune.Sample();
+					const float curMix    = voiceOp.supersawMix.Sample();
+					
+					oscillator.GetSupersaw().SetFrequency(curFreq, curDetune, curMix);
+				}
 
 				// Get modulation from max. 3 sources
 				float phaseShift = 0.f;

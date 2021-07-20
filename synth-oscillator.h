@@ -102,13 +102,18 @@ namespace SFM
 			if (kSupersaw != m_form)
 				m_phase.SetFrequency(frequency);
 			else
-				m_supersaw.SetFrequency(frequency);
+				SFM_ASSERT(false); // Special case (see synth-supersaw.h)
 		}
 		
 		SFM_INLINE void Reset()
 		{
 			SFM_ASSERT(kSupersaw != m_form && kPinkNoise != m_form && kWhiteNoise != m_form);
 			m_phase.Reset();
+		}
+
+		SFM_INLINE Waveform GetWaveform() const
+		{
+			return m_form;
 		}
 
 		SFM_INLINE float GetFrequency() const 

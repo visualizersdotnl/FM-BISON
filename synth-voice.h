@@ -100,6 +100,10 @@ namespace SFM
 			// Gain envelope
 			FollowerEnvelope envGain;
 
+			// Supersaw parameters
+			InterpolatedParameter<kLinInterpolate> supersawDetune;
+			InterpolatedParameter<kLinInterpolate> supersawMix;
+
 			// This function is called by Voice::Reset()
 			void Reset(unsigned sampleRate)
 			{
@@ -163,6 +167,10 @@ namespace SFM
 				envGain.SetSampleRate(sampleRate);
 				envGain.SetAttack(12.f);   // In MS
 				envGain.SetRelease(240.f); //
+
+				// Default supersaw settings
+				supersawDetune = { kDefSupersawDetune, sampleRate, kDefParameterLatency };
+				supersawMix    = { kDefSupersawMix,    sampleRate, kDefParameterLatency };
 			}
 
 		} m_operators[kNumOperators];

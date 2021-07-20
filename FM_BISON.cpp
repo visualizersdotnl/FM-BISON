@@ -924,6 +924,13 @@ namespace SFM
 				voiceOp.oscillator.Initialize(
 					patchOp.waveform, frequency, m_sampleRate, CalcPhaseShift(voiceOp, patchOp), patchOp.supersawDetune, patchOp.supersawMix);
 
+				// Set supersaw parameters for interpolation
+				voiceOp.supersawDetune.SetRate(m_sampleRate, kDefParameterLatency);
+				voiceOp.supersawDetune.Set(patchOp.supersawDetune);
+
+				voiceOp.supersawMix.SetRate(m_sampleRate, kDefParameterLatency);
+				voiceOp.supersawMix.Set(patchOp.supersawMix);
+
 				// Set (static) amplitude
 				voiceOp.amplitude.SetRate(m_sampleRate, kDefParameterLatency);
 				voiceOp.amplitude.Set(amplitude);
@@ -1082,6 +1089,13 @@ namespace SFM
 				{
 					voiceOp.oscillator.Initialize(
 						patchOp.waveform, frequency, m_sampleRate, CalcPhaseShift(voiceOp, patchOp), patchOp.supersawDetune, patchOp.supersawMix);
+
+					// Set supersaw parameters for interpolation
+					voiceOp.supersawDetune.SetRate(m_sampleRate, kDefParameterLatency);
+					voiceOp.supersawDetune.Set(patchOp.supersawDetune);
+
+					voiceOp.supersawMix.SetRate(m_sampleRate, kDefParameterLatency);
+					voiceOp.supersawMix.Set(patchOp.supersawMix);
 
 					// Set amplitude
 					voiceOp.amplitude.SetRate(m_sampleRate, kDefParameterLatency);
@@ -1314,6 +1328,10 @@ namespace SFM
 					
 									// Panning (as set by static parameter)
 									voiceOp.panning.SetTarget(CalcPanning(patchOp));
+
+									// Supersaw parameters
+									voiceOp.supersawDetune.SetTarget(patchOp.supersawDetune);
+									voiceOp.supersawMix.SetTarget(patchOp.supersawMix);
 								}
 							}
 						}

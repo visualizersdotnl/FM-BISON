@@ -11,6 +11,7 @@
 		- Minimize beating (especially at lower frequencies)
 		- Review filter
 		- SSE implementation
+		- Too much implementation lives in this header file
 
 	For now I'm picking the single precision version since I can't hear the f*cking difference ;)
 */
@@ -86,38 +87,27 @@ namespace SFM
 				phase = mt_randf();
 		}
 
-		void Initialize(float frequency, unsigned sampleRate, float detune, float mix)
+		void Initialize(float frequency, unsigned sampleRate, float detune, float mix);
+
+		// Allows on the fly adjustment of the 2 key JP-8000 parameters (read: whilst note held)
+		SFM_INLINE void SetFrequency(float frequency, float detune, float mix)
 		{
-			m_sampleRate = sampleRate;
-			
 			// Set JP-8000 controls
-			SetDetune(detune);
+			SetDetune(detune); // FIXME: only calculate if actually changed, and use a LUT!
 			SetMix(mix);
 
-			// Reset filter
-			m_HPF.reset();
-
-			// Reset DC blocker
-			m_blocker.Reset();
-
-			// Set frequency (pitch, filter)
-			m_frequency = 0.f; 
-			SetFrequency(frequency);
-		}
-
-		SFM_INLINE void SetFrequency(float frequency)
-		{	
 			m_frequency = frequency;
-			OnFrequencySet(frequency);
+			OnFrequencyChange(m_frequency);
 		}
 
 		SFM_INLINE void PitchBend(float bend)
 		{
+			// An unnecessary OnFrequencyChange() isn't cheap enough to just disregard
 			if (1.f == bend)
 				return;
 
 			const float frequency = m_frequency*bend;
-			OnFrequencySet(frequency);
+			OnFrequencyChange(frequency);
 		}
 
 		SFM_INLINE float Sample()
@@ -172,9 +162,6 @@ namespace SFM
 		Biquad m_HPF;
 		DCBlocker m_blocker;
 
-		void SetDetune(float detune /* [0..1] */);
-		void SetMix(float mix /* [0..1] */);
-
 		SFM_INLINE float Tick(unsigned iOsc)
 		{
 			SFM_ASSERT(iOsc < kNumSupersawOscillators);
@@ -198,7 +185,7 @@ namespace SFM
 			return oscPolySaw(Tick(iOsc), m_pitch[iOsc]);
 		}
 
-		SFM_INLINE void OnFrequencySet(float frequency)
+		SFM_INLINE void OnFrequencyChange(float frequency)
 		{
 			// Calc. pitch for each oscillator
 			for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
@@ -214,6 +201,23 @@ namespace SFM
 			constexpr float Q = kDefGainAtCutoff*kPI*0.5f;
 			m_HPF.setBiquad(bq_type_highpass, frequency/m_sampleRate, Q, 0.f);
 		}
+		
+		// Key parameters (detune & mix)
+		SFM_INLINE void SetDetune(float detune /* [0..1] */)
+		{
+			m_curDetune = (float) SampleDetuneCurve(detune);
+			SFM_ASSERT(m_curDetune >= 0.f && m_curDetune <= 1.f);
+		}
+	
+		SFM_INLINE void SetMix(float mix /* [0..1] */)
+		{
+			SFM_ASSERT_NORM(mix);
+			m_mainMix = -0.55366f*mix + 0.99785f;
+			m_sideMix = -0.73764f*powf(mix, 2.f) + 1.2841f*mix + 0.044372f;
+		}
+		
+		// See impl.
+		static double SampleDetuneCurve(double detune);
 	};
 }
 

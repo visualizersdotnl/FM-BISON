@@ -27,6 +27,7 @@
 	FM. BISON hybrid FM synthesis
 	(C) visualizers.nl & bipolaraudio.nl
 
+	- https://github.com/bipolaraudio/FM-BISON/issues
 	- Code is quite verbose and has not been optimized "to the bone" yet (we're still in R&D stage)
 	- Currently fitted to play nice with the JUCE framework, needs significant work to work with other platforms (especially embedded)
 	- Synthesizer is stereo output *only*
@@ -49,7 +50,7 @@
 
 	Most of these were modified and optimized by us
 
-	** Depends on JUCE 6.01 or compatible! **
+	** Depends on JUCE 6.01 or later! **
 	
 	Core goals:
 		- Yamaha DX7 style core FM tone generator with a plethora of extra features
@@ -60,8 +61,8 @@
  
 	Issues:
 		- I've spotted some potentially overzealous and inconsistent use of SFM_INLINE (29/05/2020)
-		- Class (object) design is somewhwere inbetween C and C++; this is because the project started out
-		  as a simple experiment; I've also started to use more modern C++ features here and there, but 
+		- Class (object) design is somewhere between C and C++; this is because the project started out
+		  as a simple (C) experiment; I've also started to use more modern C++ features here and there, but 
 		  I'm not religious about it
 		- Performance needs to be analyzed closer, especially on OSX
 
