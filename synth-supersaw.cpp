@@ -17,10 +17,9 @@ namespace SFM
 
 	/* static */ void Supersaw::CalculateDetuneTable()
 	{
-		const float delta = 1.f/kDetuneSteps;
-		
 		for (unsigned iStep = 0; iStep < kDetuneSteps; ++iStep)
 		{
+			constexpr float delta = 1.f/kDetuneSteps;
 			const float detune = (float) SampleDetuneCurve(delta*iStep); // Cast to single precision makes no audible difference, so far
 			s_detuneTab[iStep] = detune;
 		}

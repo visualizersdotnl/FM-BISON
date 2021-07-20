@@ -128,8 +128,8 @@ namespace SFM
 			bool cutRightOfLSBP;
 
 			// Parameters for this operator's supersaw oscillator (just to be sure: both are [0..1])
-			float supersawDetune;
-			float supersawMix;
+			float supersawDetune; // (R)
+			float supersawMix;    //
 		};
 	
 		Operator operators[kNumOperators];
