@@ -451,7 +451,7 @@ namespace SFM
 			SFM_ASSERT(1 == m_curPolyphony);
 
 			// Issue first request only
-			if (m_voiceReq.size() < m_curPolyphony)
+			if (true == m_voiceReq.empty())
 			{
 				m_voiceReq.emplace_back(request);
 
@@ -521,35 +521,6 @@ namespace SFM
 					Log("Removed from monophonic sequence, key: " + std::to_string(key) + ", deque size: " + std::to_string(m_monoReq.size()));
 
 					break;
-				}
-			}
-			
-			// Request in deque?
-			if (true == m_voiceReq.empty() && false == m_monoReq.empty())
-			{
-				/* const */ auto &voice = m_voices[0];
-
-				float output = 0.f;
-				if (false == voice.IsIdle())
-					output = voice.GetSummedOutput();
-
-				const bool isSilent = output == 0.f;
-
-				if (false == isSilent) // If silent, wait for player to start a new sequence
-				{
-					// Retrigger frontmost note in sequence
-					const auto &request = m_monoReq.front();
-					NoteOn(request.key, request.frequency, request.velocity, timeStamp, true);
-					m_monoReq.pop_front();
-
-					Log("Mono NOTE_ON for prev. key " +  std::to_string(request.key));
-				}
-				else
-				{
-					// If we fell silent, clear the deque as we'll be starting a new sequence
-					m_monoReq.clear();
-
-					Log("Mono seq. fell silent, erasing request(s)");
 				}
 			}
 		}
@@ -1440,7 +1411,33 @@ namespace SFM
 		{
 			/* Monophonic */
 
-			const auto &voice = m_voices[0];
+			/* const */ auto &voice = m_voices[0];
+
+			// No voice requests but we *do* have a release req. and a sequence?
+			if (true == m_voiceReq.empty() && false == m_voiceReleaseReq.empty() && false == m_monoReq.empty())
+			{
+				float output = 0.f;
+				if (false == voice.IsIdle())
+					output = voice.GetSummedOutput();
+
+				const bool isSilent = output == 0.f;
+
+				if (false == isSilent) // If silent, wait for player to start a new sequence
+				{
+					// Request is previous note in sequence
+					m_voiceReq.emplace_back(m_monoReq.front());
+					m_monoReq.pop_front();
+
+					Log("Mono NOTE_ON for prev. key in sequence: " +  std::to_string(m_voiceReq[0].key));
+				}
+				else
+				{
+					// If we fell silent, clear the deque as we'll be starting a new sequence
+					m_monoReq.clear();
+
+					Log("Mono seq. fell silent, erasing request(s)");
+				}
+			}
 
 			// Voice request?
 			if (false == m_voiceReq.empty())
@@ -1465,22 +1462,22 @@ namespace SFM
 				
 				if (m_voiceCount > 1)
 					--m_voiceCount;
+				
+				// Confused? See impl. (in header)
+				InitializeVoice(0);
 
-				InitializeMonoVoice(m_voiceReq[0]);
-				m_voiceReq.pop_front();
-
-				// New voice: clear release request
+				// New voice: clear release request(s)
 				m_voiceReleaseReq.clear();
 			}
 			else if (false == m_voiceReleaseReq.empty()) // No voice request, is there a release request?
 			{
 				// One at a time
-				SFM_ASSERT(m_voiceReleaseReq.size() <= 1);
+				SFM_ASSERT(m_voiceReleaseReq.size() == 1);
 
 				const auto key = m_voiceReleaseReq[0];
 				const int index = GetVoice(key);
 			
-				// Voice allocated? (FIXME: it should be, assertion?)
+				// Voice allocated?
 				if (index >= 0)
 				{
 					Voice &voiceToRelease = m_voices[index];
@@ -1493,11 +1490,11 @@ namespace SFM
 						{
 							ReleaseVoice(index);
 						}
-
-						// Request honoured
-						m_voiceReleaseReq.clear();
 					}
 				}
+
+				// Clear release request(s)
+				m_voiceReleaseReq.clear();
 			}
 
 			// Rationale: second voice may only be used to quickly cut the previous voice
