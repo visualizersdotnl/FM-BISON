@@ -1443,8 +1443,7 @@ namespace SFM
 			const auto &voice = m_voices[0];
 
 			// Voice request?
-//			if (false == m_voiceReq.empty())
-			if (true == m_voiceReleaseReq.empty() && false == m_voiceReq.empty())
+			if (false == m_voiceReq.empty())
 			{
 				// One at a time
 				SFM_ASSERT(1 == m_voiceReq.size());
