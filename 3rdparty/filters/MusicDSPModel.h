@@ -85,7 +85,7 @@ private:
 	SFM_INLINE void Apply(float &sample, float *stage, float *delay)
 	{
 		// Without the soft clip it's prone to blow up in a path that doesn't necessarily adhere to [-1..1] at that point
-		float x = SFM::ultra_tanhf(sample*m_drive - m_resonance*stage[3]);
+		const float x = SFM::ultra_tanhf(sample*m_drive - m_resonance*stage[3]);
 
 		// Four cascaded one-pole filters (bilinear transform)
 		stage[0] = x * p + delay[0]  * p - k * stage[0];

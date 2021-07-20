@@ -92,7 +92,7 @@ namespace SFM
 
 	/*
 		Interface tailored for JUCE VST plug-in
-		Keep in mind this was never designed as a class but rather for embedded purposes, so it's not C++ 1-0-1
+		Keep in mind this was never designed as a class but rather C-style (for embedded purposes), so it's not C++ 1-0-1
 	*/
 
 	class Bison

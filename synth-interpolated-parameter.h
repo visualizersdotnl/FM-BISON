@@ -77,7 +77,8 @@ namespace SFM
 		{
 			const float result = m_value.getNextValue();
 			
-			// FIXME: I once or twice (can't reproduce) encountered SmoothedValue overshooting
+			// So, through the magic of floating point accuracy the target value is often very closely approached
+			// instead of reached dead on (FIXME)
 //			const float target = m_value.getTargetValue();
 
 			return result;

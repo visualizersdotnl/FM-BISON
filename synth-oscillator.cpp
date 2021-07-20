@@ -102,7 +102,7 @@ namespace SFM
 				break;
 
 			/*
-				Approximate a ranmp and a saw with a *very* subtle slope (for LFO)
+				Approximate a ramp and a saw with a *very* subtle slope (for LFO)
 			*/
 			
 			case kSoftRamp:

@@ -108,43 +108,16 @@ namespace SFM
 		SFM_INLINE void SetFrequency(float frequency)
 		{	
 			m_frequency = frequency;
-				
-			// Calc. pitch
-			for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
-			{
-				const float offset   = m_curDetune*kSupersawRelative[iOsc];
-				const float freqOffs = frequency * offset;
-				const float detuned  = frequency + freqOffs;
-				const float pitch    = CalculatePitch<float>(detuned, m_sampleRate);
-				m_pitch[iOsc] = pitch;
-			}
-
-			// Set HPF
-			constexpr float Q = kDefGainAtCutoff*kPI*0.5f; // FIXME: what the f*ck kind of value is *this* then?
-			m_HPF.setBiquad(bq_type_highpass, m_frequency/m_sampleRate, Q, 0.f);
+			OnFrequencySet(frequency);
 		}
 
-		// FIXME: code duplication
 		SFM_INLINE void PitchBend(float bend)
 		{
 			if (1.f == bend)
 				return;
 
 			const float frequency = m_frequency*bend;
-
-			// Calc pitch.
-			for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
-			{
-				const float offset   = m_curDetune*kSupersawRelative[iOsc];
-				const float freqOffs = frequency * offset;
-				const float detuned  = frequency + freqOffs;
-				const float pitch    = CalculatePitch<float>(detuned, m_sampleRate);
-				m_pitch[iOsc] = pitch;
-			}
-
-			// Set HPF
-			constexpr float Q = kDefGainAtCutoff*kPI*0.5f;
-			m_HPF.setBiquad(bq_type_highpass, frequency/m_sampleRate, Q, 0.f);
+			OnFrequencySet(frequency);
 		}
 
 		SFM_INLINE float Sample()
@@ -157,8 +130,8 @@ namespace SFM
 			for (unsigned iOsc = 1; iOsc < kNumSupersawOscillators; ++iOsc)
 				sides += Oscillate(iOsc);
 
-			float signal = m_HPF.processMono(main*m_mainMix + sides*m_sideMix);
-			signal = m_blocker.Apply(signal);
+			float signal = m_HPF.processMono(main*m_mainMix + sides*m_sideMix); // As far as I remember (FIXME: check paper) this filter is to remove (possible aliasing related) rumble below the centre freq.
+			signal = m_blocker.Apply(signal); // Why exactly do I think I should do something about a DC offset in this situation?
 
 			return signal;
 		}
@@ -223,6 +196,23 @@ namespace SFM
 		SFM_INLINE float Oscillate(unsigned iOsc)
 		{
 			return oscPolySaw(Tick(iOsc), m_pitch[iOsc]);
+		}
+
+		SFM_INLINE void OnFrequencySet(float frequency)
+		{
+			// Calc. pitch for each oscillator
+			for (unsigned iOsc = 0; iOsc < kNumSupersawOscillators; ++iOsc)
+			{
+				const float offset   = m_curDetune*kSupersawRelative[iOsc];
+				const float freqOffs = frequency * offset;
+				const float detuned  = frequency + freqOffs;
+				const float pitch    = CalculatePitch<float>(detuned, m_sampleRate);
+				m_pitch[iOsc] = pitch;
+			}
+
+			// Cut lower end
+			constexpr float Q = kDefGainAtCutoff*kPI*0.5f;
+			m_HPF.setBiquad(bq_type_highpass, frequency/m_sampleRate, Q, 0.f);
 		}
 	};
 }
