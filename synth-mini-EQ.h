@@ -101,8 +101,8 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_bassdB;
 		InterpolatedParameter<kLinInterpolate> m_trebledB;
 		InterpolatedParameter<kLinInterpolate> m_middB;
-
-		// FIXME: performance, setBiquad() is expensive!
+		
+		// Only called if necessary
 		SFM_INLINE void SetBiquads()
 		{
 			m_bassShelf.setBiquad(bq_type_lowshelf, m_bassFc, 0.f, m_bassdB.Sample());        // Bass
