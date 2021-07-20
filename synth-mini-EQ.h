@@ -3,6 +3,10 @@
 	FM. BISON hybrid FM synthesis -- Mini EQ (3-band).
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
+
+	FIXME:
+		- Maybe: optimize SetTargetdBs()
+		- Turn into 3-band full cut EQ
 */
 
 #pragma once
@@ -15,7 +19,7 @@
 namespace SFM
 {
 	// Use the peak filter to tweak Q to a sort of satisfactory shape: https://www.earlevel.com/main/2013/10/13/biquad-calculator-v2/
-	constexpr float kMidQ = kDefGainAtCutoff*kGoldenRatio;
+	constexpr float kMidQ = kPI*2.f;
 
 	// Centre frequencies (I hope, also, looked at https://blog.landr.com/eq-basics-everything-musicians-need-know-eq/ for ref.)
 	constexpr float kLoHz  = 80.f;
@@ -57,6 +61,11 @@ namespace SFM
 		{
 			SetBiquads();
 
+			if (true == m_withMid)
+			{
+				m_midPeak.process(sampleL, sampleR); // First push or pull MID freq.
+			}
+			
 			float loL = sampleL, loR = sampleR;
 			m_bassShelf.process(loL, loR);
 
@@ -64,16 +73,19 @@ namespace SFM
 			m_trebleShelf.process(hiL, hiR);
 
 			// Not sure if this is right at all, I'll keep the ticket open, but it does the trick for now
-			sampleL = (loL+hiL)*0.5f;
-			sampleR = (loR+hiR)*0.5f;
-
-			if (true == m_withMid)
-				m_midPeak.process(sampleL, sampleR);
+			sampleL = (loL+hiL)*kDefGainAtCutoff;
+			sampleR = (loR+hiR)*kDefGainAtCutoff;
 		}
 
 		SFM_INLINE float ApplyMono(float sample)
 		{
 			SetBiquads(); 
+
+			// FIXME
+			return sample;
+
+			if (true == m_withMid)
+				sample = m_midPeak.processMono(sample);
 
 			float LO = sample;
 			m_bassShelf.processMono(LO);
@@ -82,9 +94,6 @@ namespace SFM
 			m_trebleShelf.processMono(HI);
 
 			sample = (LO+HI)*0.5f;
-
-			if (true == m_withMid)
-				sample = m_midPeak.processMono(sample);
 
 			return sample;
 		}
@@ -104,6 +113,7 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_trebledB;
 		InterpolatedParameter<kLinInterpolate> m_middB;
 
+		// FIXME: performance, setBiquad() is expensive!
 		SFM_INLINE void SetBiquads()
 		{
 			m_bassShelf.setBiquad(bq_type_lowshelf, m_bassFc, 0.f, m_bassdB.Sample());        // Bass

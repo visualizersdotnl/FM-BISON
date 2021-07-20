@@ -138,8 +138,8 @@ namespace SFM
 	// (Mini) EQ, default is 0.f (0 dB, or neutral gain)
 	// ----------------------------------------------------------------------------------------------
 
-	constexpr float kMiniEQMindB = -24.f;
-	constexpr float kMiniEQMaxdB =  12.f;
+	constexpr float kMiniEQMindB =  -48.f;
+	constexpr float kMiniEQMaxdB =   12.f;
 
 	// ----------------------------------------------------------------------------------------------
 	// Filter
@@ -369,7 +369,7 @@ namespace SFM
 	// Post low cut freq. & dB
 	// ----------------------------------------------------------------------------------------------
 
-	constexpr float kLowCutHz = 20.f;
+	constexpr float kLowCutHz =  10.f;
 	constexpr float kLowCutdB = -48.f;
 };
 
