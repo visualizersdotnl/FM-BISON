@@ -123,8 +123,8 @@ namespace SFM
 	{
 		SFM_ASSERT(nullptr != pLeft && nullptr != pRight);
 		SFM_ASSERT(wet >= 0.f && wet <= 1.f);
-		SFM_ASSERT(bassTuningdB >= kMinReverbTuningdB && bassTuningdB <= kMaxReverbTuningdB);
-		SFM_ASSERT(trebleTuningdB >= kMinReverbTuningdB && trebleTuningdB <= kMaxReverbTuningdB);
+		SFM_ASSERT(bassTuningdB >= kMiniEQMindB && bassTuningdB <= kMiniEQMaxdB);
+		SFM_ASSERT(trebleTuningdB >= kMiniEQMindB && trebleTuningdB <= kMiniEQMaxdB);
 
 		// Set parameter targets
 		m_curWet.SetTarget(wet);

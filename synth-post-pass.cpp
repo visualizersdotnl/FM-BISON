@@ -113,8 +113,8 @@ namespace SFM
 		m_tapeDelayLFO.Initialize(kTapeDelayHz, m_sampleRate);
 		
 		// Set (final pass) low cut filter
-		m_postHighShelf.reset();
-		m_postHighShelf.setBiquad(bq_type_highshelf, kLowCutHz/sampleRate, 0.f, kLowCutdB);
+		m_postCut.reset();
+		m_postCut.setBiquad(bq_type_lowshelf, kLowCutHz/sampleRate, 0.f, kLowCutdB);
 	}
 
 	PostPass::~PostPass()
@@ -462,7 +462,7 @@ namespace SFM
 
 		/* ----------------------------------------------------------------------------------------------------
 
-			Final pass: Low cut, EQ, master volume, clamp
+			Final pass consists of a low cut, EQ, master volume, clamp
 
 		 ------------------------------------------------------------------------------------------------------ */
 		
@@ -476,17 +476,17 @@ namespace SFM
 		{
 			float sampleL = m_pBufL[iSample];
 			float sampleR = m_pBufR[iSample];
-			
-			// Minimize low(est) end
-			m_postHighShelf.process(sampleL, sampleR);
 
 			// EQ
 			m_postEQ.Apply(sampleL, sampleR);
-			
+						
 			// Apply gain (master volume)
 			const float gain = m_curMasterVol.Sample();
 			sampleL *= gain;
 			sampleR *= gain;
+
+			// Minimize low(est) end
+//			m_postCut.process(sampleL, sampleR);
 			
 			// Clamp(): we won't assume anything about the host's reaction to output outside [-1..1],
 			//          plus it prevents DAWs from completely flipping out if something goes haywire

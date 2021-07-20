@@ -41,7 +41,7 @@ void Biquad::reset()
  
 void Biquad::calcBiquad(void) {
 	float norm;
-//	const float V = m_peakGainV; 
+	const float V = m_peakGainV; 
 	const float K = m_FcK;    
 
 	switch (m_type) {
@@ -81,7 +81,6 @@ void Biquad::calcBiquad(void) {
 			b2 = (1.f - K / m_Q + K * K) * norm;
 			break;
   
-  /*
 		case bq_type_peak:
 			if (m_peakGain >= 0.f) {    // boost
 				norm = 1.f / (1.f + 1.f/m_Q * K + K * K);
@@ -101,7 +100,7 @@ void Biquad::calcBiquad(void) {
 			}
 			break;
 
-		case bq_type_lowshelf:
+		case bq_type_highshelf:
 			if (m_peakGain >= 0.f) {    // boost
 				norm = 1.f / (1.f + sqrtf(2.f) * K + K * K);
 				a0 = (1.f + sqrtf(2.f*V) * K + V * K * K) * norm;
@@ -120,7 +119,7 @@ void Biquad::calcBiquad(void) {
 			}
 			break;
 
-		case bq_type_highshelf:
+		case bq_type_lowshelf:
 			if (m_peakGain >= 0.f) {    // boost
 				norm = 1.f / (1.f + sqrtf(2.f) * K + K * K);
 				a0 = (V + sqrtf(2.f*V) * K + K * K) * norm;
@@ -138,7 +137,6 @@ void Biquad::calcBiquad(void) {
 				b2 = (V - sqrtf(2.f*V) * K + K * K) * norm;
 			}
 			break;
-		*/
 
 		default:
 			SFM_ASSERT(false);

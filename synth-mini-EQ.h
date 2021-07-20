@@ -3,12 +3,6 @@
 	FM. BISON hybrid FM synthesis -- Mini EQ (3-band).
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
-	
-	" Bass and Treble is a two-band Equalizer. The Bass control is a low-shelf filter with the half 
-	  gain frequency at 250 Hz. The Treble control is a high-shelf filter with the half gain frequency 
-	  at 4000 Hz. " (source: Audacity)
-
-	I've added (optional) "mid" (peak filter) @ 1ooo Hz (simply spotted someone else using that frequency)
 */
 
 #pragma once
@@ -20,14 +14,22 @@
 
 namespace SFM
 {
+	// Use the peak filter to tweak Q to a sort of satisfactory shape: https://www.earlevel.com/main/2013/10/13/biquad-calculator-v2/
+	constexpr float kMidQ = kDefGainAtCutoff*kGoldenRatio;
+
+	// Centre frequencies (I hope, also, looked at https://blog.landr.com/eq-basics-everything-musicians-need-know-eq/ for ref.)
+	constexpr float kLoHz  = 80.f;
+	constexpr float kMidHz = 1200.f;
+	constexpr float kHiHz  = 4000.f;
+
 	class MiniEQ
 	{
 	public:
 		MiniEQ(unsigned sampleRate, bool withMid) :
 			m_withMid(withMid)
-,			m_bassFc(500.f/sampleRate)
-,			m_trebleFc(8000.f/sampleRate)
-,			m_midFc(1000.f/sampleRate)
+,			m_bassFc(kLoHz/sampleRate)
+,			m_trebleFc(kHiHz/sampleRate)
+,			m_midFc(kMidHz/sampleRate)
 ,			m_bassdB(0.f, sampleRate, kDefParameterLatency)
 ,			m_trebledB(0.f, sampleRate, kDefParameterLatency)
 ,			m_middB(0.f, sampleRate, kDefParameterLatency)
@@ -38,14 +40,13 @@ namespace SFM
 
 		SFM_INLINE void SetTargetdBs(float bassdB, float trebledB, float middB = 0.f)
 		{
-			SFM_ASSERT_RANGE(bassdB,   kTuningRangedB);
-			SFM_ASSERT_RANGE(trebledB, kTuningRangedB);
-			SFM_ASSERT_RANGE(middB,    kTuningRangedB);
+			SFM_ASSERT(bassdB   >= kMiniEQMindB && bassdB   <= kMiniEQMaxdB); 
+			SFM_ASSERT(trebledB >= kMiniEQMindB && trebledB <= kMiniEQMaxdB); 
+			SFM_ASSERT(middB    >= kMiniEQMindB && middB    <= kMiniEQMaxdB);
 
-			// FIXME: I get an artifact when going past 0 dB, figure out why
-			bassdB   += kEpsilon;
+			// FIXME: why?
+			bassdB += kEpsilon;
 			trebledB += kEpsilon;
-			middB    += kEpsilon;
 
 			m_bassdB.SetTarget(bassdB);
 			m_trebledB.SetTarget(trebledB);
@@ -56,21 +57,34 @@ namespace SFM
 		{
 			SetBiquads();
 
+			float loL = sampleL, loR = sampleR;
+			m_bassShelf.process(loL, loR);
+
+			float hiL = sampleL, hiR = sampleR;
+			m_trebleShelf.process(hiL, hiR);
+
+			// Not sure if this is right at all, I'll keep the ticket open, but it does the trick for now
+			sampleL = (loL+hiL)*0.5f;
+			sampleR = (loR+hiR)*0.5f;
+
 			if (true == m_withMid)
 				m_midPeak.process(sampleL, sampleR);
-				
-			m_bassShelf.process(sampleL, sampleR);
-			m_trebleShelf.process(sampleL, sampleR);
 		}
 
 		SFM_INLINE float ApplyMono(float sample)
 		{
 			SetBiquads(); 
 
+			float LO = sample;
+			m_bassShelf.processMono(LO);
+
+			float HI = sample;
+			m_trebleShelf.processMono(HI);
+
+			sample = (LO+HI)*0.5f;
+
 			if (true == m_withMid)
 				sample = m_midPeak.processMono(sample);
-
-			sample = m_bassShelf.processMono(m_trebleShelf.processMono(sample));
 
 			return sample;
 		}
@@ -92,12 +106,12 @@ namespace SFM
 
 		SFM_INLINE void SetBiquads()
 		{
-			m_bassShelf.setBiquad(bq_type_highshelf, m_bassFc, 0.f, m_bassdB.Sample());      // Bass
-			m_trebleShelf.setBiquad(bq_type_lowshelf, m_trebleFc, 0.f, m_trebledB.Sample()); // Treble
+			m_bassShelf.setBiquad(bq_type_lowshelf, m_bassFc, 0.f, m_bassdB.Sample());        // Bass
+			m_trebleShelf.setBiquad(bq_type_highshelf, m_trebleFc, 0.f, m_trebledB.Sample()); // Treble
 
 			// Mid?
 			if (true == m_withMid)
-				m_midPeak.setBiquad(bq_type_peak, m_midFc, kDefGainAtCutoff, m_middB.Sample());
+				m_midPeak.setBiquad(bq_type_peak, m_midFc, kMidQ, m_middB.Sample());
 		}
 	};
 }

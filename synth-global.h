@@ -135,10 +135,11 @@ namespace SFM
 	constexpr float kMaxDetuneJitter = 1.f; // 100th of a note
 
 	// ----------------------------------------------------------------------------------------------
-	// Post EQ tuning range (dB), default is 0dB
+	// (Mini) EQ, default is 0.f (0 dB, or neutral gain)
 	// ----------------------------------------------------------------------------------------------
 
-	constexpr float kTuningRangedB =  12.f;
+	constexpr float kMiniEQMindB = -24.f;
+	constexpr float kMiniEQMaxdB =  12.f;
 
 	// ----------------------------------------------------------------------------------------------
 	// Filter
@@ -182,8 +183,8 @@ namespace SFM
 	constexpr float kMaxPostFilterCutoffHz = 22050.f;
 	constexpr float kPostFilterCutoffRange = kMaxPostFilterCutoffHz-kMinPostFilterCutoffHz;
 
-	// Usual magnitude (gain) response at cutoff point (it's 1.0/sqrt(2.0)) (Biquad, name coined by Nigel Redmon)
-	// Can very well be used as default Q
+	// Usual magnitude (gain) response at cutoff point (it's 1.0/SQRT(2.0)) (Biquad, name coined by Nigel Redmon)
+	// Often default Q
 	constexpr float kDefGainAtCutoff = 0.707106769f;
 
 	// ----------------------------------------------------------------------------------------------
@@ -235,13 +236,13 @@ namespace SFM
 	// Master output volume range & default in dB + our definition of -INF
 	// ----------------------------------------------------------------------------------------------
 
-	constexpr int kMinVolumedB   =   -96;
+	constexpr int kMinVolumedB   =  -100;
 	constexpr int kMaxVolumedB   =     3;
-	constexpr int kDefVolumedB   =    -3;
+	constexpr int kDefVolumedB   =    -9;
 	constexpr int kVolumeRangedB = kMaxVolumedB-kMinVolumedB;
 
 	// Nicked from juce::Decibels
-	constexpr int   kInfdB  = -100; 
+	constexpr float kInfdB  = -100.f; 
 	constexpr float kInfLin = 9.99999975e-06f; // dB2Lin(kInfdB)
 
 	// ----------------------------------------------------------------------------------------------
@@ -267,10 +268,6 @@ namespace SFM
 
 	// Reverb effect sounds best until mixed to max. 50-60 percent (wetness)
 	constexpr float kMaxReverbWet = 0.55f;
-
-	// Reverb EQ tuning range (dB), default is 0dB
-	constexpr float kMinReverbTuningdB = -12.f;
-	constexpr float kMaxReverbTuningdB =  12.f;
 
 	// Reverb width range & default
 	constexpr float kMinReverbWidth = 0.f;
@@ -373,7 +370,7 @@ namespace SFM
 	// ----------------------------------------------------------------------------------------------
 
 	constexpr float kLowCutHz = 20.f;
-	constexpr float kLowCutdB = -9.f;
+	constexpr float kLowCutdB = -48.f;
 };
 
 // All helper functionality is at your disposal by default
