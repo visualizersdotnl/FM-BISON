@@ -9,7 +9,24 @@
 
 namespace SFM
 {
-	double Supersaw::SampleDetuneCurve(double detune)
+	// Keep this a fraction of a feasible Intel level 1 cache size (at least 64KB these days)
+	// For true JP-8000 simulation 128 does the trick, but a little extra precision won't hurt
+	constexpr unsigned kDetuneSteps = 1024;
+
+	alignas(16) static float s_detuneTab[kDetuneSteps];
+
+	/* static */ void Supersaw::CalculateDetuneTable()
+	{
+		const float delta = 1.f/kDetuneSteps;
+		
+		for (unsigned iStep = 0; iStep < kDetuneSteps; ++iStep)
+		{
+			const float detune = (float) SampleDetuneCurve(delta*iStep); // Cast to single precision makes no audible difference, so far
+			s_detuneTab[iStep] = detune;
+		}
+	}
+
+	/* static */ double Supersaw::SampleDetuneCurve(double detune)
 	{
 		SFM_ASSERT_NORM(detune);
 
@@ -25,6 +42,14 @@ namespace SFM
 			(138150.6761080548*pow(detune, 8.0)) + (106649.6679158292*pow(detune, 7.0)) - (53046.9642751875*pow(detune, 6.0))  + 
 			(17019.9518580080*pow(detune, 5.0))  - (3425.0836591318*pow(detune, 4.0))   + (404.2703938388*pow(detune, 3.0))    - 
 			(24.1878824391*pow(detune, 2.0))     + (0.6717417634*detune)                + 0.0030115596;		
+	}
+
+	/* static */ float Supersaw::SampleDetuneTable(float detune)
+	{
+		SFM_ASSERT_NORM(detune);
+
+		const unsigned index = unsigned(detune*(kDetuneSteps-1));
+		return s_detuneTab[index];
 	}
 
 	void Supersaw::Initialize(float frequency, unsigned sampleRate, float detune, float mix)

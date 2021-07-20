@@ -79,6 +79,8 @@ namespace SFM
 		};
 		
 	public:
+		static void CalculateDetuneTable();
+
 		Supersaw() : 
 			m_sampleRate(1) 
 		{
@@ -93,7 +95,7 @@ namespace SFM
 		SFM_INLINE void SetFrequency(float frequency, float detune, float mix)
 		{
 			// Set JP-8000 controls
-			SetDetune(detune); // FIXME: only calculate if actually changed, and use a LUT!
+			SetDetune(detune);
 			SetMix(mix);
 
 			m_frequency = frequency;
@@ -205,7 +207,8 @@ namespace SFM
 		// Key parameters (detune & mix)
 		SFM_INLINE void SetDetune(float detune /* [0..1] */)
 		{
-			m_curDetune = (float) SampleDetuneCurve(detune);
+//			m_curDetune = (float) SampleDetuneCurve(detune);
+			m_curDetune = SampleDetuneTable(detune);
 			SFM_ASSERT(m_curDetune >= 0.f && m_curDetune <= 1.f);
 		}
 	
@@ -218,6 +221,7 @@ namespace SFM
 		
 		// See impl.
 		static double SampleDetuneCurve(double detune);
+		static float SampleDetuneTable(float detune);
 	};
 }
 

@@ -34,6 +34,7 @@ namespace SFM
 			InitializeRandomGenerator();
 			CalculateMIDIToFrequencyLUT();
 			InitializeFastCosine();
+			Supersaw::CalculateDetuneTable();
 
 			s_performStaticInit = false;
 		}
