@@ -1011,7 +1011,7 @@ namespace SFM
 		if (true == request.monoRetrigger)
 			reset = false;
 
-		// Won't reset envelope until all keys are depressed
+		// Won't reset (envelope et cetera) until all keys are depressed
 		if (m_monoReq.size() > 1)
 			reset = false;
 
@@ -1443,7 +1443,8 @@ namespace SFM
 			const auto &voice = m_voices[0];
 
 			// Voice request?
-			if (false == m_voiceReq.empty())
+//			if (false == m_voiceReq.empty())
+			if (true == m_voiceReleaseReq.empty() && false == m_voiceReq.empty())
 			{
 				// One at a time
 				SFM_ASSERT(1 == m_voiceReq.size());
@@ -1466,7 +1467,8 @@ namespace SFM
 				if (m_voiceCount > 1)
 					--m_voiceCount;
 
-				InitializeVoice(0);
+				InitializeMonoVoice(m_voiceReq[0]);
+				m_voiceReq.pop_front();
 
 				// New voice: clear release request
 				m_voiceReleaseReq.clear();
