@@ -138,7 +138,7 @@ namespace SFM
 	// (Mini) EQ, default is 0.f (0 dB, or neutral gain)
 	// ----------------------------------------------------------------------------------------------
 
-	constexpr float kMiniEQMindB =  -48.f;
+	constexpr float kMiniEQMindB =  -64.f;
 	constexpr float kMiniEQMaxdB =   12.f;
 
 	// ----------------------------------------------------------------------------------------------

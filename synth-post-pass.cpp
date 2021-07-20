@@ -473,14 +473,14 @@ namespace SFM
 		{
 			float sampleL = m_pBufL[iSample];
 			float sampleR = m_pBufR[iSample];
-
-			// EQ
-			m_postEQ.Apply(sampleL, sampleR);
 						
 			// Apply gain (master volume)
 			const float gain = m_curMasterVol.Sample();
 			sampleL *= gain;
 			sampleR *= gain;
+
+			// EQ
+			m_postEQ.Apply(sampleL, sampleR);
 			
 			// Clamp(): we won't assume anything about the host's reaction to output outside [-1..1],
 			//          plus it prevents DAWs from completely flipping out if something goes haywire

@@ -5,8 +5,7 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	FIXME:
-		- Maybe: optimize SetTargetdBs()
-		- Turn into 3-band full cut EQ
+		- Turn into (semi-)3-band full cut EQ
 */
 
 #pragma once
@@ -34,32 +33,22 @@ namespace SFM
 ,			m_bassFc(kLoHz/sampleRate)
 ,			m_trebleFc(kHiHz/sampleRate)
 ,			m_midFc(kMidHz/sampleRate)
+,			m_skipInterpolate(true)
 ,			m_bassdB(0.f, sampleRate, kDefParameterLatency)
 ,			m_trebledB(0.f, sampleRate, kDefParameterLatency)
 ,			m_middB(0.f, sampleRate, kDefParameterLatency)
 		{
+			SetBiquads();
 		}
 
 		~MiniEQ() {}
 
-		SFM_INLINE void SetTargetdBs(float bassdB, float trebledB, float middB = 0.f)
-		{
-			SFM_ASSERT(bassdB   >= kMiniEQMindB && bassdB   <= kMiniEQMaxdB); 
-			SFM_ASSERT(trebledB >= kMiniEQMindB && trebledB <= kMiniEQMaxdB); 
-			SFM_ASSERT(middB    >= kMiniEQMindB && middB    <= kMiniEQMaxdB);
-
-			// FIXME: why?
-			bassdB += kEpsilon;
-			trebledB += kEpsilon;
-
-			m_bassdB.SetTarget(bassdB);
-			m_trebledB.SetTarget(trebledB);
-			m_middB.SetTarget(middB);
-		}
+		void SetTargetdBs(float bassdB, float trebledB, float middB = 0.f);
 
 		SFM_INLINE void Apply(float &sampleL, float &sampleR)
 		{
-			SetBiquads();
+			if (false == m_skipInterpolate)
+				SetBiquads();
 
 			if (true == m_withMid)
 			{
@@ -76,13 +65,12 @@ namespace SFM
 			sampleL = (loL+hiL)*kDefGainAtCutoff;
 			sampleR = (loR+hiR)*kDefGainAtCutoff;
 		}
-
+		
+		// Code duplication, but what are we going to do about it outside of a huge overhaul?
 		SFM_INLINE float ApplyMono(float sample)
 		{
-			SetBiquads(); 
-
-			// FIXME
-			return sample;
+			if (false == m_skipInterpolate)
+				SetBiquads();
 
 			if (true == m_withMid)
 				sample = m_midPeak.processMono(sample);
@@ -93,9 +81,7 @@ namespace SFM
 			float HI = sample;
 			m_trebleShelf.processMono(HI);
 
-			sample = (LO+HI)*0.5f;
-
-			return sample;
+			return (LO+HI)*kDefGainAtCutoff;
 		}
 
 	private:
@@ -108,6 +94,9 @@ namespace SFM
 		Biquad m_bassShelf;
 		Biquad m_trebleShelf;
 		Biquad m_midPeak;
+
+		// Since setBiquad() is mighty expensive, don't do it in 99% (right?) of all cases
+		bool m_skipInterpolate;
 
 		InterpolatedParameter<kLinInterpolate> m_bassdB;
 		InterpolatedParameter<kLinInterpolate> m_trebledB;
