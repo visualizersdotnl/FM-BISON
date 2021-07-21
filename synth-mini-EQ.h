@@ -18,7 +18,7 @@
 namespace SFM
 {
 	// Use the peak filter to tweak Q to a sort of satisfactory shape: https://www.earlevel.com/main/2013/10/13/biquad-calculator-v2/
-	constexpr float kMidQ = kPI*2.f;
+	constexpr float kMidQ = kDefGainAtCutoff; // kPI*2.f;
 
 	// Centre frequencies (I hope, also, looked at https://blog.landr.com/eq-basics-everything-musicians-need-know-eq/ for ref.)
 	constexpr float kLoHz  = 80.f;

@@ -1424,13 +1424,16 @@ namespace SFM
 				// We can only ever release the first slot as we merely use the second to steal a voice
 				SFM_ASSERT(0 == index);
 
-				if (false == voice.IsSustained() && false == voice.IsReleasing())
+				if (false == voice.IsSustained())
 				{
-					ReleaseVoice(0);
-				}
+					if (false == voice.IsReleasing())
+					{
+						ReleaseVoice(0);
+					}
 
-				// Invalidate request
-				m_monoVoiceReleaseReq.key = MonoVoiceReleaseRequest::kInvalid;
+					// Invalidate request, otherwise keep it (and any consecutive one) until the sustain pedal is released
+					m_monoVoiceReleaseReq.key = MonoVoiceReleaseRequest::kInvalid;
+				}
 			}
 
 			// Rationale: second voice may only be used to quickly cut the previous voice
