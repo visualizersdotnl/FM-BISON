@@ -91,8 +91,8 @@ namespace SFM
 		for (unsigned iSlot = 0; iSlot < 128; ++iSlot)
 			m_keyToVoice[iSlot] = -1;
 
-		m_voiceReq.clear();
-		m_voiceReleaseReq.clear();
+		m_polyVoiceReq.clear();
+		m_polyVoiceReleaseReq.clear();
 
 		m_resetVoices = false;
 
@@ -382,7 +382,7 @@ namespace SFM
 		SFM_ASSERT(velocity >= 0.f && velocity <= 1.f);
 
 		// In case of duplicates honour the first NOTE_ON
-		for (const auto &request : m_voiceReq)
+		for (const auto &request : m_polyVoiceReq)
 			if (request.key == key)
 			{
 				Log("Duplicate NoteOn() for key: " + std::to_string(key));
@@ -419,15 +419,15 @@ namespace SFM
 			}
 
 			// Issue request
-			if (m_voiceReq.size() < m_curPolyphony)
+			if (m_polyVoiceReq.size() < m_curPolyphony)
 			{
-				m_voiceReq.push_back(request);
+				m_polyVoiceReq.push_back(request);
 			}
 			else
 			{
 				// Replace last request (FIXME: honour time stamp?)
-				m_voiceReq.pop_back();
-				m_voiceReq.push_back(request);
+				m_polyVoiceReq.pop_back();
+				m_polyVoiceReq.push_back(request);
 			}
 		}
 		else
@@ -457,7 +457,7 @@ namespace SFM
 		SFM_ASSERT(key <= 127);
 
 		// In case of duplicates honour the first NOTE_OFF
-		for (auto request : m_voiceReleaseReq)
+		for (auto request : m_polyVoiceReleaseReq)
 			if (request == key)
 			{
 				Log("Duplicate NoteOff() for key: " + std::to_string(key));
@@ -472,16 +472,16 @@ namespace SFM
 			if (index >= 0)
 			{
 				// Issue request				
-				m_voiceReleaseReq.push_back(key);
+				m_polyVoiceReleaseReq.push_back(key);
 			}
 		
 			// It might be that a deferred request matches this NOTE_OFF, in which case we get rid of the request
-			for (auto iReq = m_voiceReq.begin(); iReq != m_voiceReq.end(); ++iReq)
+			for (auto iReq = m_polyVoiceReq.begin(); iReq != m_polyVoiceReq.end(); ++iReq)
 			{
 				if (iReq->key == key)
 				{
 					// Erase and break since NoteOn() ensures there are no duplicates in the deque
-					m_voiceReq.erase(iReq);
+					m_polyVoiceReq.erase(iReq);
 
 					Log("Deferred NoteOn() removed due to matching NOTE_OFF for key: " + std::to_string(key));
 
@@ -1177,8 +1177,8 @@ namespace SFM
 				}
 			}
 
-			m_voiceReq.clear();
-			m_voiceReleaseReq.clear();
+			m_polyVoiceReq.clear();
+			m_polyVoiceReleaseReq.clear();
 
 			// Set voice mode state
 			m_curVoiceMode = m_patch.voiceMode;
@@ -1209,7 +1209,7 @@ namespace SFM
 
 			std::deque<VoiceReleaseRequest> remainder;
 		
-			for (auto key : m_voiceReleaseReq)
+			for (auto key : m_polyVoiceReleaseReq)
 			{
 				const int index = GetVoice(key);
 			
@@ -1235,7 +1235,7 @@ namespace SFM
 				}
 			}
 
-			m_voiceReleaseReq = remainder;
+			m_polyVoiceReleaseReq = remainder;
 		}
 
 		/*
@@ -1248,10 +1248,10 @@ namespace SFM
 
 			// Sort list by time stamp
 			// The front of the deque will be the first (smallest) time stamp; we'll honour requests in that order
-			std::sort(m_voiceReq.begin(), m_voiceReq.end(), [](const auto &left, const auto &right) -> bool { return left.timeStamp < right.timeStamp; } );
+			std::sort(m_polyVoiceReq.begin(), m_polyVoiceReq.end(), [](const auto &left, const auto &right) -> bool { return left.timeStamp < right.timeStamp; } );
 			
 			// Allocate voices (simple first-fit)
-			while (m_voiceReq.size() > 0 && m_voiceCount < m_curPolyphony)
+			while (m_polyVoiceReq.size() > 0 && m_voiceCount < m_curPolyphony)
 			{
 				// Pick first free voice
 				for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
@@ -1270,7 +1270,7 @@ namespace SFM
 			// If we still have requests, try to steal (releasing or sustaining) voices in order to 
 			// free up slots that can be used to spawn these voices the next frame (no gaurantee though!)
 
-			size_t remainingRequests = m_voiceReq.size();
+			size_t remainingRequests = m_polyVoiceReq.size();
 
 			if (remainingRequests > 0)
 			{
@@ -1325,7 +1325,7 @@ namespace SFM
 			}
 
 			// Now first in line to be allocated next frame
-			for (auto &request : m_voiceReq)
+			for (auto &request : m_polyVoiceReq)
 				request.timeStamp = 0;
 		}
 
@@ -1333,7 +1333,7 @@ namespace SFM
 			Handle all requests (monophonic)
 		*/
 
-		if (true == monophonic)
+		/* else */ if (true == monophonic)
 		{
 			/* Monophonic */
 
@@ -1379,7 +1379,9 @@ namespace SFM
 				{
 					if (true == voice.IsPlaying() && false == fromSequence)
 					{
-						// Release, and by doing so, make a fresh start
+						// Release, and by doing so, make a fresh start: why is this important?
+						// If timing is so tight it falls within the same Render() pass, it should still approximate the behaviour as closely as possible, and just resorting
+						// to glide is, while you could probably defend it in your manual, not the right thing to do and not what a producer would expect
 						ReleaseVoice(0);
 					}
 				}

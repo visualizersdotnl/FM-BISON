@@ -264,13 +264,13 @@ namespace SFM
 		{
 			if (Patch::VoiceMode::kMono != m_curVoiceMode)
 			{
-				SFM_ASSERT(m_voiceReq.size() > 0);
+				SFM_ASSERT(m_polyVoiceReq.size() > 0);
 
-				const VoiceRequest request = m_voiceReq.front();
+				const VoiceRequest request = m_polyVoiceReq.front();
 				InitializeVoice(request, iVoice);
 
 				// Done: pop it!
-				m_voiceReq.pop_front();
+				m_polyVoiceReq.pop_front();
 			}
 			else
 			{
@@ -348,8 +348,8 @@ namespace SFM
 		Patch::VoiceMode m_curVoiceMode;
 
 		// Polyphonic requests
-		std::deque<VoiceRequest> m_voiceReq;
-		std::deque<VoiceReleaseRequest> m_voiceReleaseReq;
+		std::deque<VoiceRequest> m_polyVoiceReq;
+		std::deque<VoiceReleaseRequest> m_polyVoiceReleaseReq;
 
 		// Monophonic requests
 		std::deque<VoiceRequest> m_monoSequence;       // All pressed keys (including ones not triggered) are tracked
