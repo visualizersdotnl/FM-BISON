@@ -398,41 +398,26 @@ namespace SFM
 		
 		const int index = GetVoice(key);
 
-		// Key bound to voice (retrigger)?
-		if (index >= 0)
+		if (false == monophonic)
 		{
-			Voice &voice = m_voices[index];
+			/* Polyphonic */
 
-			if (false == voice.IsIdle())
+			// Key bound to voice (retrigger)?
+			if (index >= 0)
 			{
-				if (false == monophonic)
+				Voice &voice = m_voices[index];
+
+				if (false == voice.IsIdle())
 				{
 					/* Polyphonic */
 
 					// Steal if still playing (performance fix)
 					if (false == voice.IsStolen())
 						StealVoice(index);
+
+					Log("NoteOn() retrigger: " + std::to_string(key) + ", voice: " + std::to_string(index));
 				}
-				else
-				{
-					/* Monophonic (FIXME: is this (still) necessary?) */
-
-					// Release if still playing
-					if (true == voice.IsPlaying())
-						ReleaseVoice(index);
-
-					// Disassociate voice from key
-					FreeKey(voice.m_key);
-					voice.m_key = -1;
-				}
-
-				Log("NoteOn() retrigger: " + std::to_string(key) + ", voice: " + std::to_string(index));
 			}
-		}
-
-		if (false == monophonic)
-		{
-			/* Polyphonic */
 
 			// Issue request
 			if (m_voiceReq.size() < m_curPolyphony)
@@ -454,12 +439,11 @@ namespace SFM
 
 			Log("NoteOn() monophonic, key: " + std::to_string(key));
 
-			if (false == m_monoVoiceReq.MonoIsValid() || request.timeStamp > m_monoVoiceReq.timeStamp)
+			if (false == m_monoVoiceReq.MonoIsValid()) // FIXME: disregards stamp
 			{
-				// Honour (last) request
 				m_monoVoiceReq = request;
 
-				Log("Monophonic: is audible (last) request");
+				Log("Monophonic: is audible request");
 			}
 
 			// Always add requests to sequence
