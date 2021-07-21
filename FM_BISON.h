@@ -202,6 +202,8 @@ namespace SFM
 			Voice management
 		*/
 
+		static const unsigned kInvalidKey = unsigned(-1);
+
 		bool m_resetVoices = false;
 
 		struct VoiceRequest
@@ -210,16 +212,28 @@ namespace SFM
 			float frequency;    // By JUCE or internal table
 			float velocity;     // [0..1]
 			unsigned timeStamp; // In amount of samples relative to those passed to Render() call
-			bool monoRetrigger; // Internal: is retrigger of note in monophonic sequence
+
+			// Internal: is retrigger of note in monophonic sequence
+			bool monoRetrigger;
+
+			// Internal: valid monophonic request?
+			bool MonoIsValid() /* const */  { return kInvalidKey != key; }
 		};
 
-		typedef unsigned VoiceReleaseRequest; // Simply a MIDI key number
+		typedef unsigned VoiceReleaseRequest; // Simply a MIDI key (n0umber)
+
+		struct MonoVoiceReleaseRequest
+		{
+			VoiceReleaseRequest key;
+			unsigned timeStamp;
+
+			bool IsValid() const { return kInvalidKey != key; }
+		};
 
 		// Remove voice index from key
 		SFM_INLINE void FreeKey(unsigned key)
 		{
 			SFM_ASSERT(key <= 127);
-
 			m_keyToVoice[key] = -1;
 		}
 	
@@ -253,22 +267,25 @@ namespace SFM
 		// Use front (latest) request (list has been sorted in polyphonic mode) to initialize new voice
 		SFM_INLINE void InitializeVoice(unsigned iVoice)
 		{
-			SFM_ASSERT(m_voiceReq.size() > 0);
-
-			const VoiceRequest request = m_voiceReq.front();
-
 			if (Patch::VoiceMode::kMono != m_curVoiceMode)
+			{
+				SFM_ASSERT(m_voiceReq.size() > 0);
+
+				const VoiceRequest request = m_voiceReq.front();
 				InitializeVoice(request, iVoice);
+
+				// Done: pop it!
+				m_voiceReq.pop_front();
+			}
 			else
 			{
 				SFM_ASSERT(0 == iVoice);
-				InitializeMonoVoice(request);
+				SFM_ASSERT(true == m_monoVoiceReq.MonoIsValid());
+
+				InitializeMonoVoice(m_monoVoiceReq);
 			}
 			
 			Log("Voice triggered: " + std::to_string(iVoice) + ", key: " + std::to_string(m_voices[iVoice].m_key));
-		
-			// Done: pop it!
-			m_voiceReq.pop_front();
 		}
 
 		// Called by Render()
@@ -335,8 +352,14 @@ namespace SFM
 		bool m_modeSwitch;
 		Patch::VoiceMode m_curVoiceMode;
 
-		// Monophonic state
-		std::deque<VoiceRequest> m_monoReq;
+		// Polyphonic requests
+		std::deque<VoiceRequest> m_voiceReq;
+		std::deque<VoiceReleaseRequest> m_voiceReleaseReq;
+
+		// Monophonic requests
+		std::deque<VoiceRequest> m_monoSequence;       // All pressed keys (including ones not triggered) are tracked
+		VoiceRequest m_monoVoiceReq;                   // This frame's request; if 'key' is kInvalidKey, there is none
+		MonoVoiceReleaseRequest m_monoVoiceReleaseReq; // Same, but for, you guessed it, release
 
 		// Sustain?
 		bool m_sustain;
@@ -434,15 +457,10 @@ namespace SFM
 		// Global voice count
 		unsigned m_voiceCount = 0;
 
-		// Voice trigger & release requests
-		// This may be redundant in certain scenarios but in a thread-safe situation these will come in handy
-		std::deque<VoiceRequest> m_voiceReq;
-		std::deque<VoiceReleaseRequest> m_voiceReleaseReq;
-
 		// Key-to-voice mapping table
 		int m_keyToVoice[128];
 
-		// Per operator peaks
+		// Per operator peaks (FIXME: move into 'Visualization' object; Github issue created)
 		SignalFollower m_opPeaksEnv[kNumOperators];
 		float m_opPeaks[kNumOperators];
 	};

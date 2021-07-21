@@ -104,7 +104,9 @@ namespace SFM
 		m_curVoiceMode = m_patch.voiceMode;
 
 		// Reset monophonic state
-		m_monoReq.clear();
+		m_monoSequence.clear();
+		m_monoVoiceReq.key = kInvalidKey;
+		m_monoVoiceReleaseReq.key = kInvalidKey;
 
 		// Reset filter type
 		m_curFilterType = SvfLinearTrapOptimised2::NO_FLT_TYPE;
@@ -374,6 +376,8 @@ namespace SFM
 
 	void Bison::NoteOn(unsigned key, float frequency, float velocity, unsigned timeStamp, bool isMonoRetrigger /* = false */)
 	{
+		const bool monophonic = Patch::VoiceMode::kMono == m_patch.voiceMode;
+
 		SFM_ASSERT(key <= 127);
 		SFM_ASSERT(velocity >= 0.f && velocity <= 1.f);
 
@@ -392,56 +396,54 @@ namespace SFM
 		request.timeStamp     = timeStamp;
 		request.monoRetrigger = isMonoRetrigger;
 		
-		const bool monophonic = Patch::VoiceMode::kMono == m_patch.voiceMode;
-
 		const int index = GetVoice(key);
+
+		// Key bound to voice (retrigger)?
+		if (index >= 0)
+		{
+			Voice &voice = m_voices[index];
+
+			if (false == voice.IsIdle())
+			{
+				if (false == monophonic)
+				{
+					/* Polyphonic */
+
+					// Steal if still playing (performance fix)
+					if (false == voice.IsStolen())
+						StealVoice(index);
+				}
+				else
+				{
+					/* Monophonic (FIXME: is this (still) necessary?) */
+
+					// Release if still playing
+					if (true == voice.IsPlaying())
+						ReleaseVoice(index);
+
+					// Disassociate voice from key
+					FreeKey(voice.m_key);
+					voice.m_key = -1;
+				}
+
+				Log("NoteOn() retrigger: " + std::to_string(key) + ", voice: " + std::to_string(index));
+			}
+		}
 
 		if (false == monophonic)
 		{
 			/* Polyphonic */
-			
-			// Key bound to voice?
-			if (index >= 0)
-			{
-				Voice &voice = m_voices[index];
-
-				if (false == voice.IsIdle())
-				{
-					if (true == monophonic)
-					{
-						/*
-							FIXME: I've kept this logic for monophonic mode, but purely because I did not want to mess with it!
-						*/
-
-						// Release if still playing
-						if (true == voice.IsPlaying())
-							ReleaseVoice(index);
-
-						// Disassociate voice from key
-						FreeKey(voice.m_key);
-						voice.m_key = -1;
-					}
-					else
-					{
-						// Steal if still playing (performance fix)
-						if (false == voice.IsStolen())
-							StealVoice(index);
-					}
-
-					Log("NoteOn() retrigger: " + std::to_string(key) + ", voice: " + std::to_string(index));
-				}
-			}
 
 			// Issue request
 			if (m_voiceReq.size() < m_curPolyphony)
 			{
-				m_voiceReq.emplace_back(request);
+				m_voiceReq.push_back(request);
 			}
 			else
 			{
-				// Replace last request (FIXME: replace by time stamp instead?)
+				// Replace last request (FIXME: honour time stamp?)
 				m_voiceReq.pop_back();
-				m_voiceReq.emplace_back(request);
+				m_voiceReq.push_back(request);
 			}
 		}
 		else
@@ -450,19 +452,25 @@ namespace SFM
 
 			SFM_ASSERT(1 == m_curPolyphony);
 
-			// Issue first request only
-			if (true == m_voiceReq.empty())
-			{
-				m_voiceReq.emplace_back(request);
+			Log("NoteOn() monophonic, key: " + std::to_string(key));
 
-				// Add to sequence
-				m_monoReq.emplace_front(request);
+			if (false == m_monoVoiceReq.MonoIsValid() || request.timeStamp > m_monoVoiceReq.timeStamp)
+			{
+				// Honour (last) request
+				m_monoVoiceReq = request;
+
+				Log("Monophonic: is audible (last) request");
 			}
+
+			// Always add requests to sequence
+			m_monoSequence.emplace_front(request);
 		}
 	}
 
 	void Bison::NoteOff(unsigned key, unsigned timeStamp)
 	{
+		const bool monophonic = Patch::VoiceMode::kMono == m_patch.voiceMode;
+
 		SFM_ASSERT(key <= 127);
 
 		// In case of duplicates honour the first NOTE_OFF
@@ -473,56 +481,65 @@ namespace SFM
 				return;
 			}
 
-		const bool monophonic = Patch::VoiceMode::kMono == m_patch.voiceMode;
-
-		const int index = GetVoice(key);
-		if (index >= 0)
+		if (false == monophonic)
 		{
-			if (false == monophonic)
+			/* Polyphonic */
+
+			const int index = GetVoice(key);
+			if (index >= 0)
 			{
 				// Issue request				
 				m_voiceReleaseReq.push_back(key);
 			}
-			else
-			{
-				// Monophonic: issue only 1 (the last) request
-				m_voiceReleaseReq.clear();
-				m_voiceReleaseReq.push_back(key);
-
-				Log("Release issued for monophonic key: " + std::to_string(key));
-			}
-		}
 		
-		// It might be that a deferred request matches this NOTE_OFF, in which case we get rid of the request
-		for (auto iReq = m_voiceReq.begin(); iReq != m_voiceReq.end(); ++iReq)
-		{
-			if (iReq->key == key)
-			{
-				// Erase and break since NoteOn() ensures there are no duplicates in the deque
-				m_voiceReq.erase(iReq);
-
-				Log("Deferred NoteOn() removed due to matching NOTE_OFF for key: " + std::to_string(key));
-
-				break;
-			}
-		}
-
-		if (true == monophonic)
-		{
-			/* Monophonic */
-
-			// Remove key from sequence
-			for (auto iReq = m_monoReq.begin(); iReq != m_monoReq.end(); ++iReq)
+			// It might be that a deferred request matches this NOTE_OFF, in which case we get rid of the request
+			for (auto iReq = m_voiceReq.begin(); iReq != m_voiceReq.end(); ++iReq)
 			{
 				if (iReq->key == key)
 				{
-					m_monoReq.erase(iReq);
+					// Erase and break since NoteOn() ensures there are no duplicates in the deque
+					m_voiceReq.erase(iReq);
 
-					Log("Removed from monophonic sequence, key: " + std::to_string(key) + ", deque size: " + std::to_string(m_monoReq.size()));
+					Log("Deferred NoteOn() removed due to matching NOTE_OFF for key: " + std::to_string(key));
 
 					break;
 				}
 			}
+		}
+		else
+		{
+			/* Monophonic */
+
+			Log("NoteOff() monophonic, key: " + std::to_string(key));
+
+			const int index = GetVoice(key);
+			if (index >= 0)
+			{
+				// We've only got a single voice playing, so this should occur only once
+				SFM_ASSERT(false == m_monoVoiceReleaseReq.IsValid());
+
+				// Key actually playing?
+				m_monoVoiceReleaseReq.key = key;
+				m_monoVoiceReleaseReq.timeStamp = timeStamp;
+
+				Log("Monophonic: is audible release request");
+			}
+			
+//			if (false == m_monoSequence.empty())
+			{
+				// FIXME: or should I remove the last occurence?
+				for (auto iReq = m_monoSequence.begin(); iReq != m_monoSequence.end(); ++iReq)
+				{
+					if (iReq->key == key)
+					{
+						m_monoSequence.erase(iReq);
+
+						Log("Key removed from sequence");
+
+						break;
+					}
+				}
+			}			
 		}
 	}
 
@@ -983,7 +1000,7 @@ namespace SFM
 			reset = false;
 
 		// Won't reset (envelope et cetera) until all keys are depressed
-		if (m_monoReq.size() > 1)
+		if (m_monoSequence.size() > 1)
 			reset = false;
 
 		// Voice not sustained
@@ -1198,8 +1215,10 @@ namespace SFM
 				// Set polyphony
 				m_curPolyphony = 1;
 
-				// Clear sequence
-				m_monoReq.clear();
+				// Clear state
+				m_monoSequence.clear();
+				m_monoVoiceReq.key = kInvalidKey;
+				m_monoVoiceReleaseReq.key = kInvalidKey;
 			}
 			
 			// Release stolen voices
@@ -1413,38 +1432,37 @@ namespace SFM
 
 			/* const */ auto &voice = m_voices[0];
 
-			// No voice requests but we *do* have a release req. and a sequence?
-			if (true == m_voiceReq.empty() && false == m_voiceReleaseReq.empty() && false == m_monoReq.empty())
+			// No NOTE_ON *but* (audible) NOTE_OFF?
+			if (false == m_monoVoiceReq.MonoIsValid() && true == m_monoVoiceReleaseReq.IsValid())
 			{
 				float output = 0.f;
 				if (false == voice.IsIdle())
 					output = voice.GetSummedOutput();
 
-				const bool isSilent = output == 0.f;
+				const bool isSilent = output < kEpsilon;
 
-				if (false == isSilent) // If silent, wait for player to start a new sequence
+				if (false == isSilent)
 				{
-					// Request is previous note in sequence
-					m_voiceReq.emplace_back(m_monoReq.front());
-					m_monoReq.pop_front();
+					if (false == m_monoSequence.empty())
+					{
+						// Request is last note in sequence (released key removed in NoteOff())
+						m_monoVoiceReq = m_monoSequence.front();
 
-					Log("Mono NOTE_ON for prev. key in sequence: " +  std::to_string(m_voiceReq[0].key));
+						Log("Monophonic: trigger previous note in sequence: " + std::to_string(m_monoVoiceReq.key));
+					}
 				}
 				else
 				{
-					// If we fell silent, clear the deque as we'll be starting a new sequence
-					m_monoReq.clear();
+					// Sequence fell silent
+					m_monoSequence.clear();
 
-					Log("Mono seq. fell silent, erasing request(s)");
+					Log("Monophonic: sequence fell silent, erased request(s)");
 				}
 			}
 
-			// Voice request?
-			if (false == m_voiceReq.empty())
+			// Got a valid request?
+			if (true == m_monoVoiceReq.MonoIsValid())
 			{
-				// One at a time
-				SFM_ASSERT(1 == m_voiceReq.size());
-				
 				// Current key
 				const auto key = voice.m_key;
 
@@ -1456,45 +1474,42 @@ namespace SFM
 					StealVoice(1);             // Steal
 				}
 
+				// If there is an audible request, it's now invalid as that voice has been stolen
+				m_monoVoiceReleaseReq.key = kInvalidKey;
+
 				// Initialize new voice immediately
 				if (-1 != key)
 					FreeKey(key);
 				
-				if (m_voiceCount > 1)
+				if (m_voiceCount > 1) // FIXME: why?
 					--m_voiceCount;
-				
-				// Confused? See impl. (in header)
+
+				// Fire off and invalidate
 				InitializeVoice(0);
-
-				// New voice: clear release request(s)
-				m_voiceReleaseReq.clear();
+				m_monoVoiceReq.key = kInvalidKey;
 			}
-			else if (false == m_voiceReleaseReq.empty()) // No voice request, is there a release request?
+			else if (true == m_monoVoiceReleaseReq.IsValid())
 			{
-				// One at a time
-				SFM_ASSERT(m_voiceReleaseReq.size() == 1);
-
-				const auto key = m_voiceReleaseReq[0];
+				const auto key  = m_monoVoiceReleaseReq.key;
 				const int index = GetVoice(key);
-			
-				// Voice allocated?
-				if (index >= 0)
-				{
-					Voice &voiceToRelease = m_voices[index];
+
+				// If this isn't the case, the logic in NoteOff() is invalid
+				SFM_ASSERT(index >= 0);
+
+				Voice &voiceToRelease = m_voices[index];
 					
-					// Voice not sustained?
-					if (false == voiceToRelease.IsSustained())
+				// Voice not sustained?
+				if (false == voiceToRelease.IsSustained())
+				{
+					// Voice not releasing?
+					if (true != voiceToRelease.IsReleasing())
 					{
-						// Voice not releasing?
-						if (true != voiceToRelease.IsReleasing())
-						{
-							ReleaseVoice(index);
-						}
+						ReleaseVoice(index);
 					}
 				}
 
-				// Clear release request(s)
-				m_voiceReleaseReq.clear();
+				// Invalidate request
+				m_monoVoiceReleaseReq.key = kInvalidKey;
 			}
 
 			// Rationale: second voice may only be used to quickly cut the previous voice
@@ -1530,10 +1545,6 @@ namespace SFM
 
 		// Possible mode switch complete
 		m_modeSwitch = false;
-		
-		// Voice request should be honoured immediately in monophonic mode
-		const bool monophonic = Patch::VoiceMode::kMono == m_curVoiceMode;
-		SFM_ASSERT(false == monophonic || true == m_voiceReq.empty());
 	}
 
 	// Update sustain state
@@ -2068,10 +2079,9 @@ namespace SFM
 			}
 		}
 
-	// FIXME: review this (see Github issue: https://github.com/bipolaraudio/FM-BISON/issues/235)
-#if 1
 		// Keep *all* supersaw oscillators running; I could move this loop to RenderVoices(), but that would clutter up the function a bit,
 		// and here it's easy to follow and easy to extend
+		// FIXME: review this (see Github issue: https://github.com/bipolaraudio/FM-BISON/issues/235)
 
 //		const bool monophonic = Patch::VoiceMode::kMono == m_patch.voiceMode;
 		for (auto &voice : m_voices)
@@ -2088,7 +2098,6 @@ namespace SFM
 				}
 			}
 		}
-#endif
 
 		// Advance global LFO phase (free running)
 		m_globalLFO->Skip(numSamples);
@@ -2191,6 +2200,10 @@ namespace SFM
 		// This has been done by now
 		m_resetVoices   = false;
 		m_resetPhaseBPM = false;
+
+		//
+		// Primitive visualization (FIXME: move!)
+		//
 
 		// Calculate peak ([0..1]) for each operator (for visualization purposes, plus it's not very pretty, FIXME)
 		if (numVoices > 0)
