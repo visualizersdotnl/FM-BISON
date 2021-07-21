@@ -268,10 +268,14 @@ namespace SFM
 	void Bison::DeleteRateDependentObjects()
 	{
 		// Allocate intermediate sample buffers
-		freeAligned(m_pBufL[0]);
-		freeAligned(m_pBufL[1]);
-		freeAligned(m_pBufR[0]);
-		freeAligned(m_pBufR[1]);
+		if (nullptr != m_pBufL[0]) // Good enough to assume
+		{
+			freeAligned(m_pBufL[0]);
+			freeAligned(m_pBufL[1]);
+			freeAligned(m_pBufR[0]);
+			freeAligned(m_pBufR[1]);
+		}
+
 		m_pBufL[0] = m_pBufL[1] = m_pBufR[0] = m_pBufR[1] = nullptr;
 
 		// Release post-pass
