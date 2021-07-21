@@ -42,7 +42,7 @@ namespace SFM
 		// Set ratios
 		const double ratioA = CalcRatio(parameters.attackCurve);
 		const double ratioD = CalcRatio(parameters.decayCurve);
-		const double ratioR = CalcRatio(parameters.releaseCurve);
+		const double ratioR = CalcRatio(0.f != parameters.release ? parameters.releaseCurve : 0.f); // Release transient hack
 
 		m_ADSR.setTargetRatioA(ratioA);
 		m_ADSR.setTargetRatioD(ratioD);
@@ -52,11 +52,15 @@ namespace SFM
 		SFM_ASSERT(parameters.sustain >= 0.f && parameters.sustain <= 1.f);
 		m_ADSR.setSustainLevel(parameters.sustain);
 
+		// Release transient hack: less of a click with zero release
+		const float hackRelease = 0.f != parameters.release ? parameters.release : 0.001f;
+
 		// Set rates
 		const double rateMul  = parameters.rateMul*keyTracking;
 		const double attack   = CalcRate(rateMul,            parameters.attack,  sampleRate);
 		const double decay    = CalcRate(rateMul*velScaling, parameters.decay,   sampleRate); // Velocity scaling can lengthen the decay phase
-		const double release  = CalcRate(rateMul,            parameters.release, sampleRate);
+//		const double release  = CalcRate(rateMul,            parameters.release, sampleRate);
+		const double release  = CalcRate(rateMul,            hackRelease,        sampleRate);
 
 		m_ADSR.setAttackRate(attack);
 		m_ADSR.setDecayRate(decay);
@@ -65,7 +69,7 @@ namespace SFM
 		// Go!
 		m_ADSR.gate(true, 0.f);
 
-		// Maarten van Strien advised this due to his experience with FM8
+		// Maarten van Strien advised this on account of his experience with FM8
 		// It means the envelope will never go past it's sustain phase
 		// This does however not apply if this envelope is part of a carrier operator!
 		m_isInfinite = false == isCarrier && parameters.release == 1.f;
