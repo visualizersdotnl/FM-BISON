@@ -17,8 +17,9 @@
 // - Bug fix: swapped shelf filter coeff. calculations
 //
 // IMPORTANT:
-// - do not mix process() and processMono()
+// - Do not mix process() and processMono()
 // - processMono() returns filtered sample instead of writing to ref.
+// - Certain filters are relatively expensive to 'set', see setBiquad() impl.
 //
 // - Useful (graphical) design tool @ https://www.earlevel.com/main/2013/10/13/biquad-calculator-v2/
 // - Like above, but to "design" coefficients @ https://www.earlevel.com/main/2013/10/28/pole-zero-placement-v2/
