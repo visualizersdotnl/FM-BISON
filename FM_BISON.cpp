@@ -371,7 +371,7 @@ namespace SFM
 			Log("Voice stolen: " + std::to_string(index) + " for key: " + std::to_string(key));
 		}
 		else
-			Log("Voice stolen: " + std::to_string(index));
+			Log("Voice stolen (not bound to key): " + std::to_string(index));
 	}
 
 	void Bison::NoteOn(unsigned key, float frequency, float velocity, unsigned timeStamp)
@@ -438,7 +438,7 @@ namespace SFM
 
 			Log("NoteOn() monophonic, key: " + std::to_string(key));
 
-			if (false == m_monoVoiceReq.MonoIsValid()) // FIXME: disregards stamp
+			if (false == m_monoVoiceReq.MonoIsValid() || request.timeStamp <= m_monoVoiceReq.timeStamp)
 			{
 				m_monoVoiceReq = request;
 
@@ -1249,7 +1249,7 @@ namespace SFM
 			// Sort list by time stamp
 			// The front of the deque will be the first (smallest) time stamp; we'll honour requests in that order
 			std::sort(m_polyVoiceReq.begin(), m_polyVoiceReq.end(), [](const auto &left, const auto &right) -> bool { return left.timeStamp < right.timeStamp; } );
-			
+
 			// Allocate voices (simple first-fit)
 			while (m_polyVoiceReq.size() > 0 && m_voiceCount < m_curPolyphony)
 			{
