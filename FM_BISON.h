@@ -161,8 +161,7 @@ namespace SFM
 			unsigned key, 
 			float frequency,               // Uses internal table if -1.f
 			float velocity,                // Zero will *not* yield NOTE_OFF, handle that yourself
-			unsigned timeStamp,            // See VoiceRequest 
-			bool isMonoRetrigger = false); // Internal use only!
+			unsigned timeStamp);           // See VoiceRequest 
 
 		void NoteOff(unsigned key, unsigned timeStamp);
 		
@@ -202,8 +201,6 @@ namespace SFM
 			Voice management
 		*/
 
-		static const unsigned kInvalidKey = unsigned(-1);
-
 		bool m_resetVoices = false;
 
 		struct VoiceRequest
@@ -213,11 +210,8 @@ namespace SFM
 			float velocity;     // [0..1]
 			unsigned timeStamp; // In amount of samples relative to those passed to Render() call
 
-			// Internal: is retrigger of note in monophonic sequence
-			bool monoRetrigger;
-
-			// Internal: valid monophonic request?
-			bool MonoIsValid() /* const */  { return kInvalidKey != key; }
+			static const unsigned kInvalid = unsigned(-1);
+			bool MonoIsValid() /* const */  { return kInvalid != key; }
 		};
 
 		typedef unsigned VoiceReleaseRequest; // Simply a MIDI key (n0umber)
@@ -227,7 +221,8 @@ namespace SFM
 			VoiceReleaseRequest key;
 			unsigned timeStamp;
 
-			bool IsValid() const { return kInvalidKey != key; }
+			static const unsigned kInvalid = unsigned(-1);
+			bool IsValid() const { return kInvalid != key; }
 		};
 
 		// Remove voice index from key
@@ -358,7 +353,7 @@ namespace SFM
 
 		// Monophonic requests
 		std::deque<VoiceRequest> m_monoSequence;       // All pressed keys (including ones not triggered) are tracked
-		VoiceRequest m_monoVoiceReq;                   // This frame's request; if 'key' is kInvalidKey, there is none
+		VoiceRequest m_monoVoiceReq;                   // This frame's request; if 'key' is kInvalid, there is none
 		MonoVoiceReleaseRequest m_monoVoiceReleaseReq; // Same, but for, you guessed it, release
 
 		// Sustain?

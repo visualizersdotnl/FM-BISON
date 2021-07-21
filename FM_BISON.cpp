@@ -105,8 +105,8 @@ namespace SFM
 
 		// Reset monophonic state
 		m_monoSequence.clear();
-		m_monoVoiceReq.key = kInvalidKey;
-		m_monoVoiceReleaseReq.key = kInvalidKey;
+		m_monoVoiceReq.key = VoiceRequest::kInvalid;
+		m_monoVoiceReleaseReq.key = MonoVoiceReleaseRequest::kInvalid;
 
 		// Reset filter type
 		m_curFilterType = SvfLinearTrapOptimised2::NO_FLT_TYPE;
@@ -374,7 +374,7 @@ namespace SFM
 			Log("Voice stolen: " + std::to_string(index));
 	}
 
-	void Bison::NoteOn(unsigned key, float frequency, float velocity, unsigned timeStamp, bool isMonoRetrigger /* = false */)
+	void Bison::NoteOn(unsigned key, float frequency, float velocity, unsigned timeStamp)
 	{
 		const bool monophonic = Patch::VoiceMode::kMono == m_patch.voiceMode;
 
@@ -390,11 +390,10 @@ namespace SFM
 			}
 
 		VoiceRequest request;
-		request.key           = key;
-		request.frequency     = frequency;
-		request.velocity      = velocity;
-		request.timeStamp     = timeStamp;
-		request.monoRetrigger = isMonoRetrigger;
+		request.key            = key;
+		request.frequency      = frequency;
+		request.velocity       = velocity;
+		request.timeStamp      = timeStamp;
 		
 		const int index = GetVoice(key);
 
@@ -499,31 +498,30 @@ namespace SFM
 			const int index = GetVoice(key);
 			if (index >= 0)
 			{
-				// We've only got a single voice playing, so this should occur only once
-				SFM_ASSERT(false == m_monoVoiceReleaseReq.IsValid());
+				SFM_ASSERT(0 == index);
 
 				// Key actually playing?
-				m_monoVoiceReleaseReq.key = key;
-				m_monoVoiceReleaseReq.timeStamp = timeStamp;
+				if (m_voices[index].IsPlaying())
+				{
+					m_monoVoiceReleaseReq.key = key;
+					m_monoVoiceReleaseReq.timeStamp = timeStamp;
 
-				Log("Monophonic: is audible release request");
+					Log("Monophonic: is release request of playing note");
+				}
 			}
 			
-//			if (false == m_monoSequence.empty())
+			// Remove occurence			
+			for (auto iReq = m_monoSequence.begin(); iReq != m_monoSequence.end(); ++iReq)
 			{
-				// FIXME: or should I remove the last occurence?
-				for (auto iReq = m_monoSequence.begin(); iReq != m_monoSequence.end(); ++iReq)
+				if (iReq->key == key)
 				{
-					if (iReq->key == key)
-					{
-						m_monoSequence.erase(iReq);
+					m_monoSequence.erase(iReq);
 
-						Log("Key removed from sequence");
+					Log("Monophonic: key removed from sequence");
 
-						break;
-					}
+					break;
 				}
-			}			
+			}
 		}
 	}
 
@@ -975,17 +973,9 @@ namespace SFM
 
 		// No voice reset, this function should initialize all necessary components
 		// and be able to use previous values such as oscillator phase to enable/disable
-
-		const bool isReleasing = voice.IsReleasing();
-		bool reset = voice.IsDone() || true == isReleasing;
-
-		// Retrigger mono. sequence?
-		if (true == request.monoRetrigger)
-			reset = false;
-
-		// Won't reset (envelope et cetera) until all keys are depressed
-		if (m_monoSequence.size() > 1)
-			reset = false;
+		
+		// Reset (do *not* glide) if voice has been let go
+		bool reset = voice.IsReleasing() || voice.IsDone();
 
 		// Voice not sustained
 		voice.m_sustained = false;
@@ -1201,8 +1191,8 @@ namespace SFM
 
 				// Clear state
 				m_monoSequence.clear();
-				m_monoVoiceReq.key = kInvalidKey;
-				m_monoVoiceReleaseReq.key = kInvalidKey;
+				m_monoVoiceReq.key = VoiceRequest::kInvalid;
+				m_monoVoiceReleaseReq.key = MonoVoiceReleaseRequest::kInvalid;
 			}
 			
 			// Release stolen voices
@@ -1215,6 +1205,8 @@ namespace SFM
 
 		if (false == monophonic)
 		{
+			/* Polyphonic */
+
 			std::deque<VoiceReleaseRequest> remainder;
 		
 			for (auto key : m_voiceReleaseReq)
@@ -1245,84 +1237,10 @@ namespace SFM
 
 			m_voiceReleaseReq = remainder;
 		}
-		
+
 		/*
-			Update real-time voice parameters
+			Handle all voice requests (polyphonic)
 		*/
-
-		for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
-		{
-			Voice &voice = m_voices[iVoice];
-			{
-				// Active?
-				if (false == voice.IsIdle())
-				{
-					// Playing and not stolen?
-					if (false == voice.IsDone() && false == voice.IsStolen())
-					{
-						// Still bound to a key?
-						// FIXME: I could do this for all voices that satisfy the condition above (and just retain the last known amplitude, issue created 16/09/2020)
-						if (-1 != voice.m_key)
-						{
-							// Update active voice:
-							// - Each (active) operator has a set of parameters that need per-sample interpolation 
-							// - Most of these are updated in this loop
-							// - The set of parameters (also outside of this object) isn't conclusive and may vary depending on the use of FM. BISON (currently: VST plug-in)
-
-							for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
-							{
-								auto &voiceOp = voice.m_operators[iOp];
-
-								// Update per-sample interpolated parameters
-								if (true == voiceOp.enabled)
-								{
-									const float fundamentalFreq = voice.m_fundamentalFreq;
-									const PatchOperators::Operator &patchOp = m_patch.operators.operators[iOp];
-
-									// Get velocity & frequency
-									const float opVelocity = (false == patchOp.velocityInvert) ? voice.m_velocity : 1.f-voice.m_velocity;
-									const float frequency = CalcOpFreq(fundamentalFreq, voiceOp.detuneOffs, patchOp);
-
-									// Get amplitude & index
-									const float level = CalcOpLevel(voice.m_key, opVelocity, patchOp);
-									const float amplitude = patchOp.output*level, index = patchOp.output*level; /* FIXME: patchOp.index*level; */
-								
-									// Interpolate freq. if necessary
-									if (frequency != voiceOp.setFrequency)
-									{
-										voiceOp.curFreq.SetTarget(frequency);
-										voiceOp.setFrequency = frequency;
-									}
-
-									// Set amplitude & index
-									voiceOp.amplitude.SetTarget(amplitude);
-									voiceOp.index.SetTarget(index);
-
-									// Square(pusher) (or "drive")
-									const float drive = lerpf<float>(patchOp.drive, patchOp.drive*opVelocity, patchOp.velSens);
-									voiceOp.drive.SetTarget(drive);
-
-									// Feedback amount
-									voiceOp.feedbackAmt.SetTarget(patchOp.feedbackAmt);
-					
-									// Panning (as set by static parameter)
-									voiceOp.panning.SetTarget(CalcPanning(patchOp));
-
-									// Supersaw parameters
-									voiceOp.supersawDetune.SetTarget(patchOp.supersawDetune);
-									voiceOp.supersawMix.SetTarget(patchOp.supersawMix);
-								}
-							}
-						}
-						else
-						{
-							// Not bound to key: voice must be releasing (though after a recent (13/05/2020) adjustment this should no longer happen in polyphonic mode)
-							SFM_ASSERT(true == voice.IsReleasing());
-						}
-					}
-				}
-			}
-		}
 		
 		if (false == monophonic)
 		{
@@ -1410,20 +1328,27 @@ namespace SFM
 			for (auto &request : m_voiceReq)
 				request.timeStamp = 0;
 		}
-		else
+
+		/*
+			Handle all requests (monophonic)
+		*/
+
+		if (true == monophonic)
 		{
 			/* Monophonic */
 
 			/* const */ auto &voice = m_voices[0];
 
-			// No NOTE_ON *but* (audible) NOTE_OFF?
+			bool fromSequence = false;
+
+			// If no NOTE_ON but audible/playing NOTE_OFF, fetch previous note in sequence (if any), or reset the sequence if silent
 			if (false == m_monoVoiceReq.MonoIsValid() && true == m_monoVoiceReleaseReq.IsValid())
 			{
 				float output = 0.f;
 				if (false == voice.IsIdle())
 					output = voice.GetSummedOutput();
 
-				const bool isSilent = output < kEpsilon;
+				const bool isSilent = 0.f == output;
 
 				if (false == isSilent)
 				{
@@ -1431,6 +1356,8 @@ namespace SFM
 					{
 						// Request is last note in sequence (released key removed in NoteOff())
 						m_monoVoiceReq = m_monoSequence.front();
+
+						fromSequence = true;
 
 						Log("Monophonic: trigger previous note in sequence: " + std::to_string(m_monoVoiceReq.key));
 					}
@@ -1447,6 +1374,19 @@ namespace SFM
 			// Got a valid request?
 			if (true == m_monoVoiceReq.MonoIsValid())
 			{
+				// Releasing at the same time?
+				if (true == m_monoVoiceReleaseReq.IsValid())
+				{
+					if (true == voice.IsPlaying() && false == fromSequence)
+					{
+						// Release, and by doing so, make a fresh start
+						ReleaseVoice(0);
+					}
+				}
+
+				// We're always transitioning to another note, which effectively validates the release request
+				m_monoVoiceReleaseReq.key = MonoVoiceReleaseRequest::kInvalid;
+
 				// Current key
 				const auto key = voice.m_key;
 
@@ -1457,47 +1397,116 @@ namespace SFM
 					m_voices[1].m_key = -1;    // Unbind
 					StealVoice(1);             // Steal
 				}
-
-				// If there is an audible request, it's now invalid as that voice has been stolen
-				m_monoVoiceReleaseReq.key = kInvalidKey;
-
-				// Initialize new voice immediately
+				
+				// Free up slot immediately
 				if (-1 != key)
 					FreeKey(key);
-				
-				if (m_voiceCount > 1) // FIXME: why?
+
+				// Keep number of voices in check
+				if (m_voiceCount > 1)
 					--m_voiceCount;
 
-				// Fire off and invalidate
 				InitializeVoice(0);
-				m_monoVoiceReq.key = kInvalidKey;
+
+				m_monoVoiceReq.key = VoiceRequest::kInvalid;
 			}
 			else if (true == m_monoVoiceReleaseReq.IsValid())
 			{
 				const auto key  = m_monoVoiceReleaseReq.key;
 				const int index = GetVoice(key);
+				
+				// We can only ever release the first slot as we merely use the second to steal a voice
+				SFM_ASSERT(0 == index);
 
-				// If this isn't the case, the logic in NoteOff() is invalid
-				SFM_ASSERT(index >= 0);
-
-				Voice &voiceToRelease = m_voices[index];
-					
-				// Voice not sustained?
-				if (false == voiceToRelease.IsSustained())
+				if (false == voice.IsSustained() && false == voice.IsReleasing())
 				{
-					// Voice not releasing?
-					if (true != voiceToRelease.IsReleasing())
-					{
-						ReleaseVoice(index);
-					}
+					ReleaseVoice(0);
 				}
 
 				// Invalidate request
-				m_monoVoiceReleaseReq.key = kInvalidKey;
+				m_monoVoiceReleaseReq.key = MonoVoiceReleaseRequest::kInvalid;
 			}
 
 			// Rationale: second voice may only be used to quickly cut the previous voice
 			SFM_ASSERT(true == m_voices[1].IsIdle() || true == m_voices[1].IsStolen());
+		}
+
+		/*
+			Update real-time voice parameters
+		*/
+
+		for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
+		{
+			Voice &voice = m_voices[iVoice];
+			{
+				// Active?
+				if (false == voice.IsIdle())
+				{
+					// Playing and not stolen?
+					if (false == voice.IsDone() && false == voice.IsStolen())
+					{
+						// Still bound to a key?
+						// FIXME: I could do this for all voices that satisfy the condition above (and just retain the last known amplitude, issue created 16/09/2020)
+						if (-1 != voice.m_key)
+						{
+							// Update active voice:
+							// - Each (active) operator has a set of parameters that need per-sample interpolation 
+							// - Most of these are updated in this loop
+							// - The set of parameters (also outside of this object) isn't conclusive and may vary depending on the use of FM. BISON (currently: VST plug-in)
+
+							for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
+							{
+								auto &voiceOp = voice.m_operators[iOp];
+
+								// Update per-sample interpolated parameters
+								if (true == voiceOp.enabled)
+								{
+									const float fundamentalFreq = voice.m_fundamentalFreq;
+									const PatchOperators::Operator &patchOp = m_patch.operators.operators[iOp];
+
+									// Get velocity & frequency
+									const float opVelocity = (false == patchOp.velocityInvert) ? voice.m_velocity : 1.f-voice.m_velocity;
+									const float frequency = CalcOpFreq(fundamentalFreq, voiceOp.detuneOffs, patchOp);
+
+									// Get amplitude & index
+									const float level = CalcOpLevel(voice.m_key, opVelocity, patchOp);
+									const float amplitude = patchOp.output*level, index = patchOp.output*level; /* FIXME: patchOp.index*level; */
+								
+									// Interpolate freq. if necessary
+									if (frequency != voiceOp.setFrequency)
+									{
+										voiceOp.curFreq.SetTarget(frequency);
+										voiceOp.setFrequency = frequency;
+									}
+
+									// Set amplitude & index
+									voiceOp.amplitude.SetTarget(amplitude);
+									voiceOp.index.SetTarget(index);
+
+									// Square(pusher) (or "drive")
+									const float drive = lerpf<float>(patchOp.drive, patchOp.drive*opVelocity, patchOp.velSens);
+									voiceOp.drive.SetTarget(drive);
+
+									// Feedback amount
+									voiceOp.feedbackAmt.SetTarget(patchOp.feedbackAmt);
+					
+									// Panning (as set by static parameter)
+									voiceOp.panning.SetTarget(CalcPanning(patchOp));
+
+									// Supersaw parameters
+									voiceOp.supersawDetune.SetTarget(patchOp.supersawDetune);
+									voiceOp.supersawMix.SetTarget(patchOp.supersawMix);
+								}
+							}
+						}
+						else
+						{
+							// Not bound to key: voice must be releasing (though after a recent (13/05/2020) adjustment this should no longer happen in polyphonic mode)
+							SFM_ASSERT(true == voice.IsReleasing());
+						}
+					}
+				}
+			}
 		}
 	}
 
