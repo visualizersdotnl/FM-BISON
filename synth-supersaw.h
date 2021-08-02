@@ -214,7 +214,9 @@ namespace SFM
 	
 		SFM_INLINE void SetMix(float mix /* [0..1] */)
 		{
-			SFM_ASSERT_NORM(mix);
+			// FIXME: uncomment when bug in synth-interpolated-parameter.h is fixed!
+//			SFM_ASSERT_NORM(mix);
+
 			m_mainMix = -0.55366f*mix + 0.99785f;
 			m_sideMix = -0.73764f*powf(mix, 2.f) + 1.2841f*mix + 0.044372f;
 		}

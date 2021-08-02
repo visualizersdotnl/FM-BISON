@@ -47,8 +47,12 @@ namespace SFM
 	{
 		SFM_ASSERT_NORM(detune);
 
-		const unsigned index = unsigned(detune*(kDetuneSteps-1));
-		return s_detuneTab[index];
+		const unsigned indexA = unsigned(floorf(detune * (kDetuneSteps - 1)));
+		const unsigned indexB = indexA + 1;
+		SFM_ASSERT(indexB < kDetuneSteps);
+		const float valA = s_detuneTab[indexA];
+		const float valB = s_detuneTab[indexB];
+		return lerpf<float>(valA, valB, fracf(detune));
 	}
 
 	void Supersaw::Initialize(float frequency, unsigned sampleRate, float detune, float mix)
