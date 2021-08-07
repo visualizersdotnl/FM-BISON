@@ -48,8 +48,11 @@ namespace SFM
 		SFM_ASSERT_NORM(detune);
 
 		const unsigned indexA = unsigned(floorf(detune * (kDetuneSteps - 1)));
+		SFM_ASSERT(indexA >= 0); // FIXME: remove when interp. value issue has been solved
+
 		const unsigned indexB = indexA + 1;
-		SFM_ASSERT(indexB < kDetuneSteps);
+		SFM_ASSERT(indexB < kDetuneSteps); // FIXME: remove when interp. value issue has been solved
+
 		const float valA = s_detuneTab[indexA];
 		const float valB = s_detuneTab[indexB];
 		return lerpf<float>(valA, valB, fracf(detune));
