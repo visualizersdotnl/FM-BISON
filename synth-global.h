@@ -192,7 +192,7 @@ namespace SFM
 	// ----------------------------------------------------------------------------------------------
 
 	// Tube distortion drive & offset
-	constexpr float kMinTubeDrive  =   1.f;
+	constexpr float kMinTubeDrive  =   0.f;
 	constexpr float kMaxTubeDrive  = 100.f;
 	constexpr float kDefTubeDrive  =  10.f;
 	constexpr float kMinTubeOffset = -0.1f;

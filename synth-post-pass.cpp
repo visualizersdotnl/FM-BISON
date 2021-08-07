@@ -400,8 +400,9 @@ namespace SFM
 
 			{
 				// Arctangent distortion
-				float distortedL = Squarepusher(offset+postFilteredL, drive);
-				float distortedR = Squarepusher(offset+postFilteredR, drive);
+				const float driveAdj = drive/(kMaxTubeDrive*0.5f); // FIXME
+				float distortedL = Squarepusher(offset+postFilteredL, driveAdj);
+				float distortedR = Squarepusher(offset+postFilteredR, driveAdj);
 			
 				// Remove possible DC offset
 				m_tubeDCBlocker.Apply(distortedL, distortedR);
