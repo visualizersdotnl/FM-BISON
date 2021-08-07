@@ -353,10 +353,6 @@ namespace SFM
 		m_curTubeDist.SetTarget(tubeDistort);
 		m_curTubeDrive.SetTarget(tubeDrive);
 		m_curTubeOffset.SetTarget(tubeOffset);
-
-		// Anti-aliasing filter: LPF for distortion (takes the edge off)
-		const float tubeCutFc = m_Nyquist / float(m_sampleRate4X);
-		m_tubeFilterAA.setBiquad(bq_type_lowpass, tubeCutFc, kDefGainAtCutoff, 0.f);
 		
 		// Main buffers
 		float *inputBuffers[2] = { m_pBufL, m_pBufR };
@@ -402,7 +398,6 @@ namespace SFM
 			const float drive  = m_curTubeDrive.Sample();
 			const float offset = m_curTubeOffset.Sample();
 
-			if (amount > 0.f)
 			{
 				// Arctangent distortion
 				float distortedL = Squarepusher(offset+postFilteredL, drive);
@@ -411,17 +406,9 @@ namespace SFM
 				// Remove possible DC offset
 				m_tubeDCBlocker.Apply(distortedL, distortedR);
 
-				// Apply distortion AA filter
-				m_tubeFilterAA.process(distortedL, distortedR);
-
 				// Mix results (FIXME: I'll keep this intact for now, 20/10/2020, but how exactly is this what I want?)
 				sampleL = lerpf<float>(postFilteredL, distortedL, amount);
 				sampleR = lerpf<float>(postFilteredR, distortedR, amount);
-			}
-			else
-			{
-				sampleL = postFilteredL;
-				sampleR = postFilteredR;
 			}
 
 			// Write

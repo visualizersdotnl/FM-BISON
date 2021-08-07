@@ -133,7 +133,6 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate> m_curTubeDrive;
 		InterpolatedParameter<kLinInterpolate> m_curTubeOffset;
 		StereoDCBlocker m_tubeDCBlocker;	
-		Biquad m_tubeFilterAA;
 		
 		// Post
 		MiniEQ m_postEQ;
