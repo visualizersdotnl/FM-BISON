@@ -407,6 +407,7 @@ namespace SFM
 				m_tubeDCBlocker.Apply(distortedL, distortedR);
 
 				// Mix results (FIXME: I'll keep this intact for now, 20/10/2020, but how exactly is this what I want?)
+				// Idea: add *back* on top of signal after EQ?
 				sampleL = lerpf<float>(postFilteredL, distortedL, amount);
 				sampleR = lerpf<float>(postFilteredR, distortedR, amount);
 			}
