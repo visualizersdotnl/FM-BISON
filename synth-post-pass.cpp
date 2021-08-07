@@ -402,23 +402,27 @@ namespace SFM
 			const float drive  = m_curTubeDrive.Sample();
 			const float offset = m_curTubeOffset.Sample();
 
-			float distortedL = postFilteredL, distortedR = postFilteredR;
-
 			if (amount > 0.f)
 			{
-				distortedL = ZoelzerClip(offset+(distortedL*drive)); // Simply sounds better than ClassicCubicClip() 99% of the time
-				distortedR = ZoelzerClip(offset+(distortedR*drive)); //
+				// Arctangent distortion
+				float distortedL = Squarepusher(offset+postFilteredL, drive);
+				float distortedR = Squarepusher(offset+postFilteredR, drive);
 			
 				// Remove possible DC offset
 				m_tubeDCBlocker.Apply(distortedL, distortedR);
 
 				// Apply distortion AA filter
 				m_tubeFilterAA.process(distortedL, distortedR);
+
+				// Mix results (FIXME: I'll keep this intact for now, 20/10/2020, but how exactly is this what I want?)
+				sampleL = lerpf<float>(postFilteredL, distortedL, amount);
+				sampleR = lerpf<float>(postFilteredR, distortedR, amount);
 			}
-			
-			// Mix results (FIXME: I'll keep this intact for now, 20/10/2020, but how exactly is this what I want?)
-			sampleL = lerpf<float>(postFilteredL, distortedL, amount);
-			sampleR = lerpf<float>(postFilteredR, distortedR, amount);
+			else
+			{
+				sampleL = postFilteredL;
+				sampleR = postFilteredR;
+			}
 
 			// Write
 			pOverL[iSample] = sampleL;
