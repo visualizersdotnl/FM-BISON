@@ -471,9 +471,6 @@ namespace SFM
 			float sampleL = m_pBufL[iSample];
 			float sampleR = m_pBufR[iSample];
 
-			// Low cut
-			m_killLow.process(sampleL, sampleR);
-
 			// EQ
 			m_postEQ.Apply(sampleL, sampleR);
 
@@ -481,7 +478,10 @@ namespace SFM
 			const float gain = m_curMasterVol.Sample();
 			sampleL *= gain;
 			sampleR *= gain;
-			
+
+			// Low cut
+			m_killLow.process(sampleL, sampleR);
+
 			// Clamp because DAWs like it like that
 			pLeftOut[iSample]  = Clamp(sampleL);
 			pRightOut[iSample] = Clamp(sampleR);

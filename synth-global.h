@@ -370,7 +370,7 @@ namespace SFM
 	// ----------------------------------------------------------------------------------------------
 
 	constexpr float kLowCutHz =  20.f;
-	constexpr float kLowCutQ  =  0.1f; // Use Redmon's Biquad calc. V2 to check it out
+	constexpr float kLowCutQ  =  kDefGainAtCutoff;
 //	constexpr float kLowCutdB = -64.f;
 };
 
