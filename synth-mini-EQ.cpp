@@ -16,9 +16,11 @@ namespace SFM
 		SFM_ASSERT(middB    >= kMiniEQMindB && middB    <= kMiniEQMaxdB);
 
 		// FIXME: why?
-		bassdB += kEpsilon;
+		bassdB   += kEpsilon;
 		trebledB += kEpsilon;
+		middB    += kEpsilon;
 
+/*
 		if (bassdB == m_bassdB.GetTarget() && trebledB == m_trebledB.GetTarget() && middB == m_middB.GetTarget())
 		{
 			// Skip expensive setBiquad() calls
@@ -26,7 +28,7 @@ namespace SFM
 			m_skipInterpolate = true;
 			return;
 		}
-
+*/
 		m_bassdB.SetTarget(bassdB);
 		m_trebledB.SetTarget(trebledB);
 		m_middB.SetTarget(middB);

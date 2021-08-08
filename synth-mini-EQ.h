@@ -81,7 +81,7 @@ namespace SFM
 			float HI = sample;
 			m_trebleShelf.processMono(HI);
 
-			return (LO+HI)*kDefGainAtCutoff;
+			return (LO+HI)*0.5f;
 		}
 
 	private:
