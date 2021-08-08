@@ -400,7 +400,7 @@ namespace SFM
 
 			{
 				// Arctangent distortion
-				const float driveAdj = drive/(kMaxTubeDrive*0.5f); // FIXME
+				const float driveAdj = drive/(kMaxTubeDrive*0.5f); // FIXME: this is just a "by ear" tweak (so driveAdj = [0..2])
 				float distortedL = Squarepusher(offset+postFilteredL, driveAdj);
 				float distortedR = Squarepusher(offset+postFilteredR, driveAdj);
 			

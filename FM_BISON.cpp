@@ -949,9 +949,8 @@ namespace SFM
 			}
 		}
 
-		// Reset filters
-		voice.m_filterSVF1.resetState();
-		voice.m_filterSVF2.resetState();
+		// Reset main filter
+		voice.m_filterSVF.resetState();
 
 		// Start filter envelope
 		voice.m_filterEnvelope.Start(m_patch.filterEnvParams, m_sampleRate, false, 1.f, envAcousticScaling);
@@ -1123,9 +1122,8 @@ namespace SFM
 
 		if (true == reset)
 		{
-			// Reset filters
-			voice.m_filterSVF1.resetState();
-			voice.m_filterSVF2.resetState();
+			// Reset main filter
+			voice.m_filterSVF.resetState();
 			
 			// Start filter envelope
 			voice.m_filterEnvelope.Start(m_patch.filterEnvParams, m_sampleRate, false, 1.f, envAcousticScaling);
@@ -1712,8 +1710,7 @@ namespace SFM
 			if (true == context.resetFilter)
 			{
 				// Reset
-				voice.m_filterSVF1.resetState();
-				voice.m_filterSVF2.resetState();
+				voice.m_filterSVF.resetState();
 			}
 
 			// LFO
@@ -1735,12 +1732,8 @@ namespace SFM
 			// Reset to initial global amp.
 			auto curGlobalAmp = globalAmp;
 
-			const bool noFilter = SvfLinearTrapOptimised2::NO_FLT_TYPE == context.filterType1;
+			const bool noFilter = SvfLinearTrapOptimised2::NO_FLT_TYPE == context.filterType;
 			auto& filterEG      = voice.m_filterEnvelope;
-
-			// Second filter lags behind a little to add a bit of "gritty sparkle"
-			SinglePoleLPF secondCutoffLPF(SVF_CutoffToHz(0.9f, m_Nyquist)/m_sampleRate);
-			secondCutoffLPF.Reset(curCutoff.Get());
 					
 			for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 			{
@@ -1780,20 +1773,9 @@ namespace SFM
 					const float cutoffHz = lerpf<float>(context.fullCutoff, nonEnvCutoffHz, filterEnv);
 					const float sampQ = curQ.Sample();
 
-					if (false) // true == context.secondFilterPass)
-					{
-						// Currently we're only using this for the LPF, which allows for a minor optimization
-						SFM_ASSERT(SvfLinearTrapOptimised2::LOW_PASS_FILTER == context.filterType2);
-
-						const float secondQ = std::min<float>(kSVFMaxFilterQ, sampQ+context.secondQOffs);
-						voice.m_filterSVF2.updateLowpassCoeff(secondCutoffLPF.Apply(cutoffHz), secondQ, m_sampleRate);
-//						voice.m_filterSVF2.updateCoefficients(secondCutoffLPF.Apply(cutoffHz), secondQ, context.filterType2, m_sampleRate);
-						voice.m_filterSVF2.tick(filteredL, filteredR);
-					}
-
 					// Ref.: https://github.com/FredAntonCorvest/Common-DSP/blob/master/Filter/SvfLinearTrapOptimised2Demo.cpp
-					voice.m_filterSVF1.updateCoefficients(cutoffHz, sampQ, context.filterType1, m_sampleRate);
-					voice.m_filterSVF1.tick(filteredL, filteredR);
+					voice.m_filterSVF.updateCoefficients(cutoffHz, sampQ, context.filterType, m_sampleRate);
+					voice.m_filterSVF.tick(filteredL, filteredR);
 							
 					left  = filteredL;
 					right = filteredR;
@@ -1917,10 +1899,9 @@ namespace SFM
 		UpdateVoicesPreRender();
 
 		// Update filter type & state
-		// This is where the magic happens ;)
+		//
 
-		SvfLinearTrapOptimised2::FLT_TYPE filterType1; // Actually the *second* step if 'secondFilterpass' is true, and the only if it's false
-		SvfLinearTrapOptimised2::FLT_TYPE filterType2 = SvfLinearTrapOptimised2::NO_FLT_TYPE;
+		SvfLinearTrapOptimised2::FLT_TYPE filterType;
 		
 		// Set target cutoff (Hz) & Q
 		const float normCutoff = m_cutoffPS.Apply(m_patch.cutoff);
@@ -1933,8 +1914,6 @@ namespace SFM
 		// Set filter type & parameters
 		float normQ = resonance;
 
-		bool secondFilterPass  = false;                          // Second pass
-		float secondQOffs      = 0.f;                            // Q offset for second stage
 		const float fullCutoff = SVF_CutoffToHz(1.f, m_Nyquist); // Full cutoff used to apply DCF
 
 		float Q;
@@ -1942,31 +1921,28 @@ namespace SFM
 		{
 		default:
 		case Patch::kNoFilter:
-			filterType1 = SvfLinearTrapOptimised2::NO_FLT_TYPE;
+			filterType = SvfLinearTrapOptimised2::NO_FLT_TYPE;
 			Q = SVF_ResoToQ(normQ*m_patch.resonanceLimit);
 			break;
 
 		case Patch::kLowpassFilter:
 			// Screams and yells
-			secondFilterPass = true;
-			secondQOffs = 0.1f;
-			filterType1 = SvfLinearTrapOptimised2::LOW_PASS_FILTER;
-			filterType2 = SvfLinearTrapOptimised2::LOW_PASS_FILTER;
+			filterType = SvfLinearTrapOptimised2::LOW_PASS_FILTER;
 			Q = SVF_ResoToQ(normQ*m_patch.resonanceLimit);
 			break;
 
 		case Patch::kHighpassFilter:
-			filterType1 = SvfLinearTrapOptimised2::HIGH_PASS_FILTER;
+			filterType = SvfLinearTrapOptimised2::HIGH_PASS_FILTER;
 			Q = SVF_ResoToQ(normQ*m_patch.resonanceLimit);
 			break;
 
 		case Patch::kBandpassFilter:
-			filterType1 = SvfLinearTrapOptimised2::BAND_PASS_FILTER;
+			filterType = SvfLinearTrapOptimised2::BAND_PASS_FILTER;
 			Q = SVF_ResoToQ(0.25f*normQ); // Lifts
 			break;
 
 		case Patch::kNotchFilter:
-			filterType1 = SvfLinearTrapOptimised2::NOTCH_FILTER;
+			filterType = SvfLinearTrapOptimised2::NOTCH_FILTER;
 			Q = SVF_ResoToQ(0.25f - 0.25f*normQ); // Dents
 			break;
 		}
@@ -1975,8 +1951,8 @@ namespace SFM
 		m_curQ.SetTarget(Q);
 
 		// Switched filter type?
-		const bool resetFilter = m_curFilterType != filterType1;
-		m_curFilterType = filterType1;
+		const bool resetFilter = m_curFilterType != filterType;
+		m_curFilterType = filterType;
 
 		// Set pitch & amp. wheel & modulation target values
 		const float bendWheelFiltered = m_bendWheelPS.Apply(bendWheel);
@@ -2014,11 +1990,8 @@ namespace SFM
 
 			VoiceRenderParameters parameters;
 			parameters.freqLFO = freqLFO;
-			parameters.filterType1 = filterType1;
-			parameters.filterType2 = filterType2;
+			parameters.filterType = filterType;
 			parameters.resetFilter = resetFilter;
-			parameters.secondFilterPass = secondFilterPass;
-			parameters.secondQOffs = secondQOffs;
 			parameters.fullCutoff = fullCutoff;
 			parameters.modulationAftertouch = modulationAftertouch;
 			parameters.mainFilterAftertouch = mainFilterAftertouch;

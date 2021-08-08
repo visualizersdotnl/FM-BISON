@@ -294,11 +294,8 @@ namespace SFM
 			float freqLFO;
 			
 			// Filter setup
-			SvfLinearTrapOptimised2::FLT_TYPE filterType1;
-			SvfLinearTrapOptimised2::FLT_TYPE filterType2;
+			SvfLinearTrapOptimised2::FLT_TYPE filterType;
 			bool resetFilter;
-			bool secondFilterPass;
-			float secondQOffs;
 			float fullCutoff;
 			
 			// Questionable cycle savers (FIXME)

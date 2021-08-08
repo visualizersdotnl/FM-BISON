@@ -82,7 +82,7 @@ namespace SFM
 	{
 	public:
 		Peak(unsigned sampleRate, float attackInSec) :
-			m_peakEnv(sampleRate, attackInSec*1000.f /* MS used as unit in synth-sidechain-envelope.h (see Github issue) */)
+			m_peakEnv(sampleRate, attackInSec*1000.f /* MS used as unit in synth-signal-follower.h (see Github issue) */)
 		{}
 
 		SFM_INLINE void Reset()

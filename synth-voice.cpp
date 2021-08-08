@@ -45,9 +45,8 @@ namespace SFM
 		m_pitchBendRange = kDefPitchBendRange;
 		m_pitchEnvelope.Reset(sampleRate);
 
-		// Reset filter
-		m_filterSVF1.resetState();
-		m_filterSVF2.resetState();
+		// Reset main filter
+		m_filterSVF.resetState();
 
 		// Def. glide
 		m_freqGlide = kDefPolyFreqGlide;

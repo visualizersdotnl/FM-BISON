@@ -59,7 +59,7 @@ namespace SFM
 	// "Squarepusher" (or just 'arctangent distortion')
 	SFM_INLINE static float Squarepusher(float sample, float amount)
 	{
-		const float scaledAmt = 1.f + amount*31.f;
-		return atanf(sample*scaledAmt)*(2.f/kPI); // FIXME: try fast_atanf() if this one shows up in performance measurements too much
+		const float scaledAmt = 1.f + amount*31.f; // Amount doesn't really have to be [0..1], it's a (soft) clip so you can drive it up the wall as much as you want
+		return atanf(sample*scaledAmt)*(2.f/kPI);  // FIXME: try fast_atanf() if this one shows up in performance measurements too much
 	}
 }
