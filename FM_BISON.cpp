@@ -128,7 +128,7 @@ namespace SFM
 		// Reset global interpolated parameters
 		m_curLFOBlend    = { m_patch.LFOBlend, m_sampleRate, kDefParameterLatency };
 		m_curLFOModDepth = { m_patch.LFOModDepth, m_sampleRate, kDefParameterLatency };
-		m_curCutoff      = { SVF_CutoffToHz(m_patch.cutoff, m_Nyquist), m_samplesPerBlock, kDefParameterLatency * 2.f /* Longer */ };
+		m_curCutoff      = { SVF_CutoffToHz(m_patch.cutoff, m_Nyquist), m_samplesPerBlock, kDefParameterLatency * 10.f /* Longer */ };
 		m_curQ           = { SVF_ResoToQ(m_patch.resonance), m_sampleRate, kDefParameterLatency };
 		m_curPitchBend   = { 0.f, m_samplesPerBlock, kDefParameterLatency };
 		m_curAmpBend     = { 1.f /* 0dB */, m_samplesPerBlock, kDefParameterLatency };
@@ -157,7 +157,7 @@ namespace SFM
 		m_LFOBlendPS            = { sampleRatePS };
 		m_LFOModDepthPS         = { sampleRatePS };
 		m_SandHSlewRatePS       = { sampleRatePS };
-		m_cutoffPS              = { sampleRatePS, 100.f /* 100MS */ };
+		m_cutoffPS              = { sampleRatePS, 100.f /* 100MS, Hail Mary pass! */ };
 		m_resoPS                = { sampleRatePS };
 
 		m_LFORatePS.Reset(freqLFO);

@@ -111,7 +111,10 @@ namespace SFM
 
 		// Set tape delay mod. frequency
 		m_tapeDelayLFO.Initialize(kTapeDelayHz, m_sampleRate);
-		
+
+		// Set low kill/cut filter
+		m_killLow.reset();
+		m_killLow.setBiquad(bq_type_highshelf, kLowCutHz/sampleRate, 0.f, kLowCutdB);
 	}
 
 	PostPass::~PostPass()
@@ -452,7 +455,7 @@ namespace SFM
 
 		/* ----------------------------------------------------------------------------------------------------
 
-			Final pass consists of: EQ, master volume, clamp
+			Final pass
 
 		 ------------------------------------------------------------------------------------------------------ */
 		
@@ -466,17 +469,19 @@ namespace SFM
 		{
 			float sampleL = m_pBufL[iSample];
 			float sampleR = m_pBufR[iSample];
-						
+
+			// EQ
+			m_postEQ.Apply(sampleL, sampleR);
+
 			// Apply gain (master volume)
 			const float gain = m_curMasterVol.Sample();
 			sampleL *= gain;
 			sampleR *= gain;
 
-			// EQ
-			m_postEQ.Apply(sampleL, sampleR);
+			// Low cut
+			m_killLow.process(sampleL, sampleR);
 			
-			// Clamp(): we won't assume anything about the host's reaction to output outside [-1..1],
-			//          plus it prevents DAWs from completely flipping out if something goes haywire
+			// Clamp because DAWs like it like that
 			pLeftOut[iSample]  = Clamp(sampleL);
 			pRightOut[iSample] = Clamp(sampleR);
 		}

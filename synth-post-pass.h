@@ -136,6 +136,7 @@ namespace SFM
 		
 		// Post
 		MiniEQ m_postEQ;
+		Biquad m_killLow;
 				
 		// External effects
 		AutoWah m_wah;
