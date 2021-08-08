@@ -15,19 +15,19 @@
 	
 	So what you do is:
 
-	'
+	<>
 		const float curValue = interpolator.Get();
 		interpolator.SetRate(sampleRate, timeInSec);
 		interpolator.Set(curValue);
 		interpolator.SetTarget(targetValue);
-	'
+	</>
 
 	I'm not fixing this as long as we use juce::SmoothedValue.
 	
 	FIXME: 
-	- Due to the nature of adding floating point values not being precise, it over- or undershoots, which can be a major problem
-	  for certain parameters (when used as linear interpolator)
 	- Replace JUCE implementation (also in other places where juce::SmoothedValue is used)
+	- Due to the nature of adding floating point values not being precise, it over- or undershoots, which can be a major problem
+	  for certain parameters (when used as linear interpolator); I've changed the type over to double precision to migitate this a bit
 	- I'm not entirely happy with the latter 2 constructors, the top one becomes ambiguous when I set the last
 	  parameter to a default value (kDefParameterLatency), which is the case 99% of the time
 */
@@ -75,21 +75,14 @@ namespace SFM
 
 		SFM_INLINE float Sample()
 		{
-			const float result = m_value.getNextValue();
-			
-			// So, through the magic of floating point accuracy the target value is often very closely approached
-			// instead of reached dead on, to fix:
-			// - Set direction
-			// - Clamp
-
-//			const float target = m_value.getTargetValue();
-
-			return result;
+//			const double target = GetTarget();
+			const double result = m_value.getNextValue();
+			return (float) result;
 		}
 
 		SFM_INLINE float Get() const
 		{
-			return m_value.getCurrentValue();
+			return (float) m_value.getCurrentValue();
 		}
 
 		// Set current & target
@@ -107,7 +100,7 @@ namespace SFM
 		// Get target
 		SFM_INLINE float GetTarget() const
 		{
-			return m_value.getTargetValue();
+			return (float) m_value.getTargetValue();
 		}
 
 		// Skip over N samples towards target value
@@ -135,6 +128,7 @@ namespace SFM
 		}
 
 	private:
-		juce::SmoothedValue<float, T> m_value;
+//		juce::SmoothedValue<float, T> m_value;
+		juce::SmoothedValue<double, T> m_value;
 	};
 };
