@@ -285,7 +285,7 @@ namespace SFM
 			// Def. max voices
 			maxPolyVoices = kDefMaxPolyVoices;
 
-			// Default auto-wah, 100% dry
+			// Default 'auto-wah-vox', 100% dry
 			wahResonance = kDefWahResonance;
 			wahAttack = kDefWahAttack;
 			wahHold = kDefWahHold;

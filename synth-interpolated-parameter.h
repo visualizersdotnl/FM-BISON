@@ -25,11 +25,11 @@
 	I'm not fixing this as long as we use juce::SmoothedValue.
 	
 	FIXME: 
-		- Replace JUCE implementation (also in other places where juce::SmoothedValue is used)
-		- I'm not entirely happy with the latter 2 constructors, the top one becomes ambiguous when I set the last
-		  parameter to a default value (kDefParameterLatency), which is the case 99% of the time
-		- I've had it interpolating past the target, which in turn resulted in invalid parameters: it is not, so take extra
-		  care when using these values with mathematical functions that trip over these tiny margins of error (such as sqrtf())
+	- Due to the nature of adding floating point values not being precise, it over- or undershoots, which can be a major problem
+	  for certain parameters (when used as linear interpolator)
+	- Replace JUCE implementation (also in other places where juce::SmoothedValue is used)
+	- I'm not entirely happy with the latter 2 constructors, the top one becomes ambiguous when I set the last
+	  parameter to a default value (kDefParameterLatency), which is the case 99% of the time
 */
 
 #pragma once
