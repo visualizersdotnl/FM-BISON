@@ -114,7 +114,8 @@ namespace SFM
 
 		// Set low kill/cut filter
 		m_killLow.reset();
-		m_killLow.setBiquad(bq_type_highshelf, kLowCutHz/sampleRate, 0.f, kLowCutdB);
+		m_killLow.setBiquad(bq_type_highpass, kLowCutHz/sampleRate, 0.1f, 0.f);
+//		m_killLow.setBiquad(bq_type_highshelf, kLowCutHz/sampleRate, 0.f, kLowCutdB);
 	}
 
 	PostPass::~PostPass()
@@ -470,6 +471,9 @@ namespace SFM
 			float sampleL = m_pBufL[iSample];
 			float sampleR = m_pBufR[iSample];
 
+			// Low cut
+			m_killLow.process(sampleL, sampleR);
+
 			// EQ
 			m_postEQ.Apply(sampleL, sampleR);
 
@@ -477,9 +481,6 @@ namespace SFM
 			const float gain = m_curMasterVol.Sample();
 			sampleL *= gain;
 			sampleR *= gain;
-
-			// Low cut
-			m_killLow.process(sampleL, sampleR);
 			
 			// Clamp because DAWs like it like that
 			pLeftOut[iSample]  = Clamp(sampleL);

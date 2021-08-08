@@ -369,8 +369,8 @@ namespace SFM
 	// Post low cut freq. & dB
 	// ----------------------------------------------------------------------------------------------
 
-	constexpr float kLowCutHz =  40.f;
-	constexpr float kLowCutdB = -48.f;
+	constexpr float kLowCutHz =  20.f;
+//	constexpr float kLowCutdB = -64.f;
 };
 
 // All helper functionality is at your disposal by default
