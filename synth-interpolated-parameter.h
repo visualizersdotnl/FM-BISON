@@ -27,6 +27,7 @@
 	FIXME: 
 	- Replace JUCE implementation (also in other places where juce::SmoothedValue is used)
 	- Due to the nature of adding floating point values not being precise, it over- or undershoots
+	- Working with double prec. internally to migitate the above
 	- I'm not entirely happy with the latter 2 constructors, the top one becomes ambiguous when I set the last
 	  parameter to a default value (kDefParameterLatency), which is the case 99% of the time
 */
@@ -75,13 +76,13 @@ namespace SFM
 		SFM_INLINE float Sample()
 		{
 //			const float target = GetTarget();
-			const float result = m_value.getNextValue();
-			return result;
+			const double result = m_value.getNextValue();
+			return (float) result;
 		}
 
 		SFM_INLINE float Get() const
 		{
-			return m_value.getCurrentValue();
+			return (float) m_value.getCurrentValue();
 		}
 
 		// Set current & target
@@ -127,6 +128,7 @@ namespace SFM
 		}
 
 	private:
-		juce::SmoothedValue<float, T> m_value;
+//		juce::SmoothedValue<float, T> m_value;
+		juce::SmoothedValue<double, T> m_value;
 	};
 };
