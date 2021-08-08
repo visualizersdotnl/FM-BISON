@@ -20,19 +20,8 @@ namespace SFM
 		trebledB += kEpsilon;
 		middB    += kEpsilon;
 
-/*
-		if (bassdB == m_bassdB.GetTarget() && trebledB == m_trebledB.GetTarget() && middB == m_middB.GetTarget())
-		{
-			// Skip expensive setBiquad() calls
-			// This cheap mechanism hinges on a use pattern where SetTargetdBs() is called each time a chunk of samples is processed
-			m_skipInterpolate = true;
-			return;
-		}
-*/
 		m_bassdB.SetTarget(bassdB);
 		m_trebledB.SetTarget(trebledB);
 		m_middB.SetTarget(middB);
-
-		m_skipInterpolate = false;
 	}
 }

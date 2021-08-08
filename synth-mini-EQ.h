@@ -33,7 +33,6 @@ namespace SFM
 ,			m_bassFc(kLoHz/sampleRate)
 ,			m_trebleFc(kHiHz/sampleRate)
 ,			m_midFc(kMidHz/sampleRate)
-,			m_skipInterpolate(true)
 ,			m_bassdB(0.f, sampleRate, kDefParameterLatency)
 ,			m_trebledB(0.f, sampleRate, kDefParameterLatency)
 ,			m_middB(0.f, sampleRate, kDefParameterLatency)
@@ -47,8 +46,7 @@ namespace SFM
 
 		SFM_INLINE void Apply(float &sampleL, float &sampleR)
 		{
-			if (false == m_skipInterpolate)
-				SetBiquads();
+			SetBiquads();
 
 			if (true == m_withMid)
 			{
@@ -69,8 +67,7 @@ namespace SFM
 		// Code duplication, but what are we going to do about it outside of a huge overhaul?
 		SFM_INLINE float ApplyMono(float sample)
 		{
-			if (false == m_skipInterpolate)
-				SetBiquads();
+			SetBiquads();
 
 			if (true == m_withMid)
 				sample = m_midPeak.processMono(sample);
@@ -94,9 +91,6 @@ namespace SFM
 		Biquad m_bassShelf;
 		Biquad m_trebleShelf;
 		Biquad m_midPeak;
-
-		// Since setBiquad() is mighty expensive, don't do it in 99% (right?) of all cases
-		bool m_skipInterpolate;
 
 		InterpolatedParameter<kLinInterpolate> m_bassdB;
 		InterpolatedParameter<kLinInterpolate> m_trebledB;
