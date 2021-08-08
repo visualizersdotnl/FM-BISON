@@ -114,7 +114,7 @@ namespace SFM
 
 		// Set low kill/cut filter
 		m_killLow.reset();
-		m_killLow.setBiquad(bq_type_highpass, kLowCutHz/sampleRate, 0.1f, 0.f);
+		m_killLow.setBiquad(bq_type_highpass, kLowCutHz/sampleRate, kLowCutQ, 0.f);
 //		m_killLow.setBiquad(bq_type_highshelf, kLowCutHz/sampleRate, 0.f, kLowCutdB);
 	}
 

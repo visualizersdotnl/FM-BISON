@@ -366,10 +366,11 @@ namespace SFM
 	constexpr float kDefSupersawMix    = 0.f; //
 
 	// ----------------------------------------------------------------------------------------------
-	// Post low cut freq. & dB
+	// Post low cut settings
 	// ----------------------------------------------------------------------------------------------
 
 	constexpr float kLowCutHz =  20.f;
+	constexpr float kLowCutQ  =  0.1f; // Use Redmon's Biquad calc. V2 to check it out
 //	constexpr float kLowCutdB = -64.f;
 };
 
