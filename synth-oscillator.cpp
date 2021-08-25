@@ -136,8 +136,15 @@ namespace SFM
 			/* See synth-oscillator.h */
 
 			case kUniRamp:
-				signal = oscPolyRamp(modulated, pitch);
-				signal = 0.5f + signal*0.5f;
+				{
+					const float ramp = oscSine(modulated + 0.1f*oscSine(modulated));
+					const float squared = Squarepusher(ramp, 0.4f);
+					signal = lerpf<float>(ramp, squared, 0.4f);
+					signal = 0.5f + signal*0.5f;
+				}
+
+//				signal = oscPolyRamp(modulated, pitch);
+//				signal = 0.5f + signal*0.5f;
 				break;
 
 			/* LFO */
