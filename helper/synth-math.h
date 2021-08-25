@@ -17,6 +17,7 @@ namespace SFM
 	constexpr float k2PI = 2.f*kPI;
 	constexpr float kEpsilon = 5.96e-08f; // Max. error for single precision (32-bit)
 	constexpr float kGoldenRatio = 1.61803398875f;
+	constexpr float kGoldenRatioConjugate = 0.61803398875f;
 	constexpr float kRootHalf = 0.70710678118f;
 	constexpr float kExp = 2.7182818284f;
 
