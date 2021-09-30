@@ -73,12 +73,12 @@ namespace SFM
 				sample = m_midPeak.processMono(sample);
 
 			float LO = sample;
-			m_bassShelf.processMono(LO);
+			LO = m_bassShelf.processMono(LO);
 
 			float HI = sample;
-			m_trebleShelf.processMono(HI);
+			HI = m_trebleShelf.processMono(HI);
 
-			return (LO+HI)*0.5f;
+			return (LO+HI)*kDefGainAtCutoff;
 		}
 
 	private:
