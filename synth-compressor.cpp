@@ -29,8 +29,8 @@ namespace SFM
 			const float kneedB      = m_curKneedB.Sample();
 
 			// Set env. parameters in MS
-			m_gainEnvdB.SetAttack(curAttack*100.f);   // FIXME: this ain't right but it's working?
-			m_gainEnvdB.SetRelease(curRelease*100.f); //        (also see 'synth-auto-wah-vox.cpp')
+			m_gainEnvdB.SetAttack(curAttack*1000.f);
+			m_gainEnvdB.SetRelease(curRelease*1000.f);
 
 			// Input
 			const float sampleL = pLeft[iSample];

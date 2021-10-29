@@ -47,9 +47,9 @@ namespace SFM
 			const float lowCut     = m_curCut.Sample()*0.125f; // Nyquist/8 is more than enough!
 			const float wetness    = m_curWet.Sample();
 			
-			// Set parameters
-			m_gainEnvdB.SetAttack(curAttack*100.f); // FIXME: why does this *sound* right at one tenth of what it should be?
-			m_gainEnvdB.SetRelease(curHold*100.f);  // 
+			// Set parameters (S -> MS)
+			m_gainEnvdB.SetAttack(curAttack*1000.f);
+			m_gainEnvdB.SetRelease(curHold*1000.f);
 
 			// BPM sync. or manual?
 			const float adjRate = (true == manualRate)

@@ -29,7 +29,7 @@ namespace SFM
 ,			m_outDelayR(sampleRate, kMaxCompLookaheadMS*0.001f)
 ,			m_RMS(sampleRate, kCompRMSWindowSec)
 ,			m_peak(sampleRate, kMinCompAttack)
-,			m_gainEnvdB(sampleRate, kInfdB)
+,			m_gainEnvdB(sampleRate, 0.f /* Unit gain in dB */)
 ,			m_autoGainEnvdB(sampleRate, kCompAutoGainMS)
 //,			m_autoGainEnvdB(sampleRate, kInfVolumedB)
 ,			m_curThresholddB(kDefCompThresholddB, sampleRate, kDefParameterLatency)
