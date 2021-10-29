@@ -370,6 +370,7 @@ namespace SFM
 		float *pOverL = outBlock.getChannelPointer(0);
 		float *pOverR = outBlock.getChannelPointer(1);
 
+#if 0 // Old loop: filter first, distortion after
 		for (unsigned iSample = 0; iSample < numOversamples; ++iSample)
 		{
 			float sampleL = pOverL[iSample]; 
@@ -412,7 +413,6 @@ namespace SFM
 				m_tubeDCBlocker.Apply(distortedL, distortedR);
 
 				// Mix results (FIXME: I'll keep this intact for now, 20/10/2020, but how exactly is this what I want?)
-				// Idea: add *back* on top of signal after EQ?
 				sampleL = lerpf<float>(postFilteredL, distortedL, amount);
 				sampleR = lerpf<float>(postFilteredR, distortedR, amount);
 			}
@@ -421,7 +421,59 @@ namespace SFM
 			pOverL[iSample] = sampleL;
 			pOverR[iSample] = sampleR;
 		}
-	
+#endif
+		
+		// New loop: filter first, distortion after
+		for (unsigned iSample = 0; iSample < numOversamples; ++iSample)
+		{
+			float sampleL = pOverL[iSample]; 
+			float sampleR = pOverR[iSample];
+
+			// Apply (non-linear) distortion
+			const float amount = m_curTubeDist.Sample();
+			const float drive  = m_curTubeDrive.Sample();
+			const float offset = m_curTubeOffset.Sample();
+
+			float postDistortedL = sampleL, postDistortedR = sampleR;
+
+			{
+				// Arctangent distortion
+				const float driveAdj = drive/(kMaxTubeDrive*0.5f); // FIXME: this is just a "by ear" tweak (so driveAdj = [0..2])
+				float distortedL = Squarepusher(offset+postDistortedL, driveAdj);
+				float distortedR = Squarepusher(offset+postDistortedR, driveAdj);
+
+				// Remove possible DC offset
+				m_tubeDCBlocker.Apply(distortedL, distortedR);
+
+				postDistortedL = lerpf<float>(sampleL, distortedL, amount);
+				postDistortedR = lerpf<float>(sampleR, distortedR, amount);
+			}
+
+			// Apply 24dB post filter
+			const float curPostCutoff = m_curPostCutoff.Sample();
+			const float curPostReso   = m_curPostReso.Sample();
+			const float curPostDrive  = m_curPostDrive.Sample();
+			const float curPostWet    = m_curPostWet.Sample();
+
+//			if (0.f == curPostWet)
+//				m_postFilter.Reset();
+
+			{				
+				// Apply filter
+				float filteredL = postDistortedL, filteredR = postDistortedR;
+				m_postFilter.SetParameters(kMinPostFilterCutoffHz + curPostCutoff*kPostFilterCutoffRange, curPostReso /* [0..1] */, curPostDrive);
+				m_postFilter.Apply(filteredL, filteredR);
+
+				// Blend
+				sampleL = lerpf<float>(sampleL, filteredL, curPostWet);
+				sampleR = lerpf<float>(sampleR, filteredR, curPostWet);
+			}
+
+			// Write
+			pOverL[iSample] = sampleL;
+			pOverR[iSample] = sampleR;
+		}
+
 		// Downsample result
 		m_oversampling4X.processSamplesDown(inputBlock);
 
