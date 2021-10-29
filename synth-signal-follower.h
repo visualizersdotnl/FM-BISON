@@ -12,7 +12,6 @@
 namespace SFM
 {
 	// This class is also used to apply slew to signal(s) and parameters
-	// It's also the second implementation to date (15/06/2020) of this filter (see synth-one-pole-filters.h)
 	class SignalFollower
 	{
 	public:
