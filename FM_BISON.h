@@ -355,74 +355,12 @@ namespace SFM
 
 		// Sustain?
 		bool m_sustain;
-	
-		// Parameter slew (called each Render(), against artifacts; crackle, mostly)
-		class ParameterSlew
-		{
-		public:
-			ParameterSlew() {}
-
-			ParameterSlew(unsigned sampleRate, float state = 0.f, float MS = kDefParameterSlewMS) :
-				m_sigEnv(sampleRate, MS)
-,				m_state(state)
-			{
-			}
-
-			void Reset(float value)
-			{
-				m_state = value;
-			}
-
-			SFM_INLINE float Apply(float sample)
-			{
-				return m_sigEnv.Apply(sample, m_state);
-			}
-
-			SFM_INLINE float Get() const 
-			{
-				return m_state;
-			}
-
-		private:
-			SignalFollower m_sigEnv;
-			float m_state;
-		};
-
-		// FIXME: perhaps it would be nice to stash these in a map or a structure (at the very least)
-		ParameterSlew m_LFORatePS;
-		ParameterSlew m_LFOBlendPS;
-		ParameterSlew m_LFOModDepthPS;
-		ParameterSlew m_SandHSlewRatePS;
-		ParameterSlew m_cutoffPS, m_resoPS;
-		ParameterSlew m_effectWetPS, m_effectRatePS;
-		ParameterSlew m_delayPS, m_delayWetPS, m_delayDrivePS, m_delayFeedbackPS, m_delayFeedbackCutoffPS, m_delayTapeWowPS;
-		ParameterSlew m_postCutoffPS, m_postResoPS, m_postDrivePS, m_postWetPS;
-		ParameterSlew m_tubeDistPS, m_tubeDrivePS;
-		ParameterSlew m_wahRatePS, m_wahDrivePS, m_wahSpeakPS, m_wahSpeakVowelPS, m_wahSpeakVowelModPS, m_wahSpeakGhostPS, m_wahSpeakCutPS, m_wahSpeakResoPS, m_wahCutPS, m_wahWetPS;
-		ParameterSlew m_reverbWetPS;
-		ParameterSlew m_reverbRoomSizePS;
-		ParameterSlew m_reverbDampeningPS;
-		ParameterSlew m_reverbWidthPS;
-		ParameterSlew m_reverbBassTuningdBPS;
-		ParameterSlew m_reverbTrebleTuningdBPS;
-		ParameterSlew m_reverbPreDelayPS;
-		ParameterSlew m_compLookaheadPS;
-		ParameterSlew m_masterVoldBPS;
-		ParameterSlew m_bassTuningdBPS, m_trebleTuningdBPS, m_midTuningdBPS;
-
-		// Slew for auto-wah pedal mode (so it doesn't sound that harsh, I know this is unusual for auto-wah, but a lot of things about FM. BISON are unusual)
-		ParameterSlew m_autoWahPedalPS;
 
 		// Per-sample interpolated global parameters
 		InterpolatedParameter<kLinInterpolate> m_curLFOBlend;
 		InterpolatedParameter<kLinInterpolate> m_curLFOModDepth;
 		InterpolatedParameter<kLinInterpolate> m_curCutoff;
 		InterpolatedParameter<kLinInterpolate> m_curQ;
-		
-		// Not in patch but supplied as parameters:
-		ParameterSlew m_bendWheelPS;
-		ParameterSlew m_modulationPS; // Can be overridden by patch parameter
-		ParameterSlew m_aftertouchPS;
 
 		// Not in patch but supplied as parameters:
 		InterpolatedParameter<kLinInterpolate> m_curPitchBend;
@@ -452,7 +390,7 @@ namespace SFM
 		// Key-to-voice mapping table
 		int m_keyToVoice[128];
 
-		// Per operator peaks (FIXME: move into 'Visualization' object; Github issue created)
+		// Per operator peaks (FIXME: move into 'Visualization' object; Github issue created, also: doesn't work with variable block sizes!)
 		SignalFollower m_opPeaksEnv[kNumOperators];
 		float m_opPeaks[kNumOperators];
 	};

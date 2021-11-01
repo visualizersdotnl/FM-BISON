@@ -128,140 +128,30 @@ namespace SFM
 		// Reset global interpolated parameters
 		m_curLFOBlend    = { m_patch.LFOBlend, m_sampleRate, kDefParameterLatency };
 		m_curLFOModDepth = { m_patch.LFOModDepth, m_sampleRate, kDefParameterLatency };
-		m_curCutoff      = { SVF_CutoffToHz(m_patch.cutoff, m_Nyquist), m_samplesPerBlock, kDefParameterLatency * 10.f /* Longer */ };
+		m_curCutoff      = { SVF_CutoffToHz(m_patch.cutoff, m_Nyquist), m_sampleRate, kDefParameterLatency * 10.f /* Longer */ };
 		m_curQ           = { SVF_ResoToQ(m_patch.resonance), m_sampleRate, kDefParameterLatency };
-		m_curPitchBend   = { 0.f, m_samplesPerBlock, kDefParameterLatency };
-		m_curAmpBend     = { 1.f /* 0dB */, m_samplesPerBlock, kDefParameterLatency };
-		m_curModulation  = { 0.f, m_samplesPerBlock, kDefParameterLatency * 1.5f /* Longer */ };
-		m_curAftertouch  = { 0.f, m_samplesPerBlock, kDefParameterLatency * 3.f  /* Longer */ };
+		m_curPitchBend   = { 0.f, m_sampleRate, kDefParameterLatency };
+		m_curAmpBend     = { 1.f /* 0dB */, m_sampleRate, kDefParameterLatency };
+		m_curModulation  = { 0.f, m_sampleRate, kDefParameterLatency * 1.5f /* Longer */ };
+		m_curAftertouch  = { 0.f, m_sampleRate, kDefParameterLatency * 3.f  /* Longer */ };
 
-		/*
-			Reset parameter (slew) filters; they reduce automation/MIDI noise (by a default slew in MS, mostly)
-
-			They are kept *only* in this class since they're not a pretty sight and may need to be
-			removed or overhauled for other (non) VST projects
-
-			Some have a longer slew MS because they're more prone to artifacts, usually in conjuction with
-			a longer parameter latency for their InterpolatedParameter counterpart
-
-			This of course causes the response of certain parameters to be slower (or shorter) than
-			the default settings, but for now I regard that simply as the instrument's behaviour
-		*/
-
-		// Their sample rate is the amount of Render() calls it takes to render a second of audio
-		// FIXME: this could be a class member so it doesn't need to be passed on to ParameterSlew!
-		const unsigned sampleRatePS = m_sampleRate/m_samplesPerBlock;
-
-		// Global
-		m_LFORatePS             = { sampleRatePS };
-		m_LFOBlendPS            = { sampleRatePS };
-		m_LFOModDepthPS         = { sampleRatePS };
-		m_SandHSlewRatePS       = { sampleRatePS };
-		m_cutoffPS              = { sampleRatePS, 100.f /* 100MS, Hail Mary pass! */ };
-		m_resoPS                = { sampleRatePS };
-
-		m_LFORatePS.Reset(freqLFO);
-		m_LFOBlendPS.Reset(m_patch.LFOBlend);
-		m_LFOModDepthPS.Reset(m_patch.LFOModDepth);
-		m_SandHSlewRatePS.Reset(m_patch.SandHSlewRate);
-		m_cutoffPS.Reset(m_patch.cutoff);
-		m_resoPS.Reset(m_patch.resonance);
-
-		// PostPass
-		m_effectWetPS           = { sampleRatePS }; 
-		m_effectRatePS          = { sampleRatePS };
-		m_delayPS               = { sampleRatePS, 100.f /* 100MS */ };
-		m_delayWetPS            = { sampleRatePS };
-		m_delayFeedbackPS       = { sampleRatePS };
-		m_delayFeedbackCutoffPS = { sampleRatePS };
-		m_delayTapeWowPS        = { sampleRatePS };
-		
-		// These apply to effects operating on oversampled data, but that's not relevant to ParameterSlew
-		m_tubeDistPS            = { sampleRatePS };
-		m_tubeDrivePS           = { sampleRatePS };
-		m_postCutoffPS          = { sampleRatePS, 100.f /* 100MS */ };
-		m_postResoPS            = { sampleRatePS };
-		m_postDrivePS           = { sampleRatePS };
-		m_postWetPS             = { sampleRatePS };
-		
-		m_wahRatePS              = { sampleRatePS };
-		m_wahDrivePS             = { sampleRatePS };
-		m_wahSpeakPS             = { sampleRatePS };
-		m_wahSpeakVowelPS        = { sampleRatePS, 10.f /* 10MS */ };
-		m_wahSpeakVowelModPS     = { sampleRatePS };
-		m_wahSpeakGhostPS        = { sampleRatePS };
-		m_wahSpeakCutPS          = { sampleRatePS, 100.f /* 100MS */ };
-		m_wahSpeakResoPS         = { sampleRatePS, 10.f  /*  10MS */ };
-		m_wahCutPS               = { sampleRatePS };
-		m_wahWetPS               = { sampleRatePS };
-		m_reverbWetPS            = { sampleRatePS };
-		m_reverbRoomSizePS       = { sampleRatePS };
-		m_reverbDampeningPS      = { sampleRatePS };
-		m_reverbWidthPS          = { sampleRatePS };
-		m_reverbBassTuningdBPS   = { sampleRatePS };
-		m_reverbTrebleTuningdBPS = { sampleRatePS };
-		m_reverbPreDelayPS       = { sampleRatePS, 100.f /* 100MS */ };
-		m_compLookaheadPS        = { sampleRatePS, 100.f /* 100MS */ };
-		m_masterVoldBPS          = { sampleRatePS };
-		m_bassTuningdBPS         = { sampleRatePS };
-		m_trebleTuningdBPS       = { sampleRatePS };
-		m_midTuningdBPS          = { sampleRatePS };
-		
-		// FIXME: move to constructors above
-		m_effectWetPS.Reset(m_patch.cpWet);
-		m_effectRatePS.Reset(m_patch.cpRate);
-		m_delayPS.Reset(m_patch.delayInSec);
-		m_delayWetPS.Reset(m_patch.delayWet);
-		m_delayFeedbackPS.Reset(m_patch.delayFeedback);
-		m_delayFeedbackCutoffPS.Reset(m_patch.delayFeedbackCutoff);
-		m_delayTapeWowPS.Reset(m_patch.delayTapeWow);
-		m_postCutoffPS.Reset(m_patch.postCutoff);
-		m_postResoPS.Reset(m_patch.postResonance);
-		m_postDrivePS.Reset(m_patch.postDrivedB);
-		m_postWetPS.Reset(m_patch.postWet);
-		m_tubeDistPS.Reset(m_patch.tubeDistort);
-		m_tubeDrivePS.Reset(m_patch.tubeDrive);
-		m_wahRatePS.Reset(m_patch.wahRate);
-		m_wahDrivePS.Reset(m_patch.wahDrivedB);
-		m_wahSpeakPS.Reset(m_patch.wahSpeak);
-		m_wahSpeakVowelPS.Reset(m_patch.wahSpeakVowel);
-		m_wahSpeakVowelModPS.Reset(m_patch.wahSpeakVowelMod);
-		m_wahSpeakGhostPS.Reset(m_patch.wahSpeakGhost);
-		m_wahSpeakCutPS.Reset(m_patch.wahSpeakCut);
-		m_wahSpeakResoPS.Reset(m_patch.wahSpeakResonance);
-		m_wahCutPS.Reset(m_patch.wahCut);
-		m_wahWetPS.Reset(m_patch.wahWet);
-		m_reverbWetPS.Reset(m_patch.reverbWet);
-		m_reverbRoomSizePS.Reset(m_patch.reverbRoomSize);
-		m_reverbDampeningPS.Reset(m_patch.reverbDampening);
-		m_reverbWidthPS.Reset(m_patch.reverbWidth);
-		m_reverbBassTuningdBPS.Reset(m_patch.reverbBassTuningdB);
-		m_reverbTrebleTuningdBPS.Reset(m_patch.reverbTrebleTuningdB);
-		m_reverbPreDelayPS.Reset(m_patch.reverbPreDelay);
-		m_compLookaheadPS.Reset(0.f);
-		m_masterVoldBPS.Reset(m_patch.masterVoldB);
-		m_bassTuningdBPS.Reset(m_patch.bassTuningdB);
-		m_trebleTuningdBPS.Reset(m_patch.trebleTuningdB);
-		m_midTuningdBPS.Reset(m_patch.midTuningdB);
-
-		// Auto-wah
-		m_autoWahPedalPS = { sampleRatePS, kDefParameterSlewMS*0.5f /* A bit faster */ };
-		m_autoWahPedalPS.Reset(1.f);
-
-		// Local
-		m_bendWheelPS  = { sampleRatePS };
-		m_modulationPS = { sampleRatePS };
-		m_aftertouchPS = { sampleRatePS };
+		//
+		// FIXME: see below
+		//
 
 		// Reset operator peak followers
 		for (auto &peakEnv : m_opPeaksEnv)
 		{
-			peakEnv.SetTimeCoeff(1.f); // 1MS
 			peakEnv.SetSampleRate(sampleRate/samplesPerBlock); // Updated once per Render() call
+			peakEnv.SetTimeCoeff(1.f); // 1MS
 		}
 
 		for (unsigned iPeak = 0; iPeak < kNumOperators; ++iPeak)
 			m_opPeaks[iPeak] = 0.f;
+
+		//
+		// FIXME: see above
+		//
 	}
 
 	// Cleans up after OnSetSamplingProperties()
@@ -1684,7 +1574,7 @@ namespace SFM
 			voice.m_modLFO.SetFrequency(modFrequency);
 			
 			// Update LFO S&H parameters
-			const float slewRate = m_SandHSlewRatePS.Get();
+			const float slewRate = m_patch.SandHSlewRate;
 			voice.m_LFO1.SetSampleAndHoldSlewRate(slewRate);
 			voice.m_LFO2.SetSampleAndHoldSlewRate(slewRate);
 			voice.m_modLFO.SetSampleAndHoldSlewRate(slewRate);
@@ -1868,7 +1758,7 @@ namespace SFM
 		{
 			// Set LFO speed in (DX7) range
 			freqLFO = MIDI_To_DX7_LFO_Hz(m_patch.LFORate);
-			m_globalLFO->SetFrequency(m_LFORatePS.Apply(freqLFO));
+			m_globalLFO->SetFrequency(freqLFO); // FIXME: LPF?
 		}
 		else
 		{
@@ -1877,7 +1767,7 @@ namespace SFM
 
 			if (false == m_resetPhaseBPM)
 			{
-				m_globalLFO->SetFrequency(m_LFORatePS.Apply(freqLFO));
+				m_globalLFO->SetFrequency(freqLFO); // FIXME: LPF?
 			}
 			else
 			{
@@ -1885,17 +1775,15 @@ namespace SFM
 				// This *must* be done prior to UpdateVoicesPreRender()
 				m_globalLFO->Initialize(freqLFO, m_sampleRate);
 
-				// (Re)set ParameterSlew
-				m_LFORatePS.Reset(freqLFO); 
+				// FIXME: this is where one would reinitialize possible interpolation of LFO rate (removed along with ParameterSlew @ 1/11/2021)
 			}
 		}
 		
-		// Filter/Prepare LFO & S&H parameters (so they can be used by RenderVoices())
-		m_curLFOBlend.SetTarget(m_LFOBlendPS.Apply(m_patch.LFOBlend));
-		m_curLFOModDepth.SetTarget(m_LFOModDepthPS.Apply(m_patch.LFOModDepth));
-		m_SandHSlewRatePS.Apply(m_patch.SandHSlewRate); // Does not need per-sample interpolation
+		// Set (interpolated) LFO parameters
+		m_curLFOBlend.SetTarget(m_patch.LFOBlend);
+		m_curLFOModDepth.SetTarget(m_patch.LFOModDepth);
 
-		// Update voice logic (pre)
+		// Update voice logic (PRE)
 		UpdateVoicesPreRender();
 
 		// Update filter type & state
@@ -1904,8 +1792,8 @@ namespace SFM
 		SvfLinearTrapOptimised2::FLT_TYPE filterType;
 		
 		// Set target cutoff (Hz) & Q
-		const float normCutoff = m_cutoffPS.Apply(m_patch.cutoff);
-		const float resonance = m_resoPS.Apply(m_patch.resonance);
+		const float normCutoff = m_patch.cutoff;
+		const float resonance = m_patch.resonance;
 
 		// Using smoothstepf() to add a little curvature, chiefly intended to appease basic MIDI controls
 		const float cutoff = SVF_CutoffToHz(smoothstepf(normCutoff), m_Nyquist);
@@ -1955,7 +1843,7 @@ namespace SFM
 		m_curFilterType = filterType;
 
 		// Set pitch & amp. wheel & modulation target values
-		const float bendWheelFiltered = m_bendWheelPS.Apply(bendWheel);
+		const float bendWheelFiltered = bendWheel;
 		if (false == m_patch.pitchIsAmpMod)
 		{
 			// Wheel modulates pitch
@@ -1970,9 +1858,9 @@ namespace SFM
 		}
 
 		// Set modulation & aftertouch target values
-		m_curModulation.SetTarget(m_modulationPS.Apply(modulation));
+		m_curModulation.SetTarget(modulation);
 
-		const float aftertouchFiltered = m_aftertouchPS.Apply(aftertouch);
+		const float aftertouchFiltered = aftertouch; // FIXME: LPF?
 		m_curAftertouch.SetTarget(aftertouchFiltered);
 
 		// Clear L/R buffers
@@ -2083,16 +1971,6 @@ namespace SFM
 		// Update sustain state
 		UpdateSustain();
 
-		// Handle auto-wah ("sustain") pedal case
-		if (Patch::kWahPedal == m_patch.sustainType)
-		{
-			// Apply slew
-			m_autoWahPedalPS.Apply( (true == m_sustain) ? 1.f : 0.f );
-		}
-		else
-			// Full effect
-			m_autoWahPedalPS.Apply(1.f);
-
 		// Calc. post filter wetness
 		float postWet = m_patch.postWet;
 		if (Patch::kPostFilter == m_patch.aftertouchMod)
@@ -2106,59 +1984,59 @@ namespace SFM
 			m_patch.wahResonance,
 			m_patch.wahAttack,
 			m_patch.wahHold,
-			m_wahRatePS.Apply(m_patch.wahRate),
-			m_wahDrivePS.Apply(m_patch.wahDrivedB),
-			m_wahSpeakPS.Apply(m_patch.wahSpeak),
-			m_wahSpeakVowelPS.Apply(m_patch.wahSpeakVowel),
-			m_wahSpeakVowelModPS.Apply(m_patch.wahSpeakVowelMod),
-			m_wahSpeakGhostPS.Apply(m_patch.wahSpeakGhost),
-			m_wahSpeakCutPS.Apply(m_patch.wahSpeakCut),
-			m_wahSpeakResoPS.Apply(m_patch.wahSpeakResonance),
-			m_wahCutPS.Apply(m_patch.wahCut),
-			m_wahWetPS.Apply(m_patch.wahWet*m_autoWahPedalPS.Get()),
+			m_patch.wahRate,
+			m_patch.wahDrivedB,
+			m_patch.wahSpeak,
+			m_patch.wahSpeakVowel,
+			m_patch.wahSpeakVowelMod,
+			m_patch.wahSpeakGhost,
+			m_patch.wahSpeakCut,
+			m_patch.wahSpeakResonance,
+			m_patch.wahCut,
+			m_patch.wahWet * ( (Patch::kWahPedal == m_patch.sustainType) ? m_sustain : 1.f ), // FIXME: this ain't great, will probably be noisy without some sort of LPF
 			/* Chorus/Phaser */
-			m_effectRatePS.Apply(m_patch.cpRate),
-			m_effectWetPS.Apply(m_patch.cpWet),
+			m_patch.cpRate,
+			m_patch.cpWet,
 			false == m_patch.cpIsPhaser,
 			/* Delay */
-			m_delayPS.Apply(m_patch.delayInSec),
-			m_delayWetPS.Apply(m_patch.delayWet),
-			m_delayDrivePS.Apply(m_patch.delayDrivedB),
-			m_delayFeedbackPS.Apply(m_patch.delayFeedback),
-			m_delayFeedbackCutoffPS.Apply(m_patch.delayFeedbackCutoff),
-			m_delayTapeWowPS.Apply(m_patch.delayTapeWow),
+			m_patch.delayInSec,
+			m_patch.delayWet,
+			m_patch.delayDrivedB,
+			m_patch.delayFeedback,
+			m_patch.delayFeedbackCutoff,
+			m_patch.delayTapeWow,
 			/* MOOG-style 24dB filter + Tube distort */
-			m_postCutoffPS.Apply(m_patch.postCutoff),
-			m_postResoPS.Apply(m_patch.postResonance),
-			m_postDrivePS.Apply(m_patch.postDrivedB),
-			m_postWetPS.Apply(postWet),
-			m_tubeDistPS.Apply(m_patch.tubeDistort),
-			m_tubeDrivePS.Apply(m_patch.tubeDrive),
-			m_patch.tubeOffset, // Does not crackle without ParameterSlew
+			m_patch.postCutoff,
+			m_patch.postResonance,
+			m_patch.postDrivedB,
+			postWet,
+			m_patch.tubeDistort,
+			m_patch.tubeDrive,
+			m_patch.tubeOffset,
 			/* Reverb */
-			m_reverbWetPS.Apply(m_patch.reverbWet),
-			m_reverbRoomSizePS.Apply(m_patch.reverbRoomSize),
-			m_reverbDampeningPS.Apply(m_patch.reverbDampening),
-			m_reverbWidthPS.Apply(m_patch.reverbWidth),
-			m_reverbBassTuningdBPS.Apply(m_patch.reverbBassTuningdB),
-			m_reverbTrebleTuningdBPS.Apply(m_patch.reverbTrebleTuningdB),
-			m_reverbPreDelayPS.Apply(m_patch.reverbPreDelay),
-			/* Compressor (FIXME: use more ParameterSlew if necessary) */
+			m_patch.reverbWet,
+			m_patch.reverbRoomSize,
+			m_patch.reverbDampening,
+			m_patch.reverbWidth,
+			m_patch.reverbBassTuningdB,
+			m_patch.reverbTrebleTuningdB,
+			m_patch.reverbPreDelay,
+			/* Compressor */
 			m_patch.compThresholddB,
 			m_patch.compKneedB,
 			m_patch.compRatio,
 			m_patch.compGaindB,
 			m_patch.compAttack,
 			m_patch.compRelease,
-			m_compLookaheadPS.Apply(m_patch.compLookahead),
+			m_patch.compLookahead,
 			m_patch.compAutoGain,
 			m_patch.compRMSToPeak,
 			/* Tuning (post-EQ) */
-			m_bassTuningdBPS.Apply(m_patch.bassTuningdB),
-			m_trebleTuningdBPS.Apply(m_patch.trebleTuningdB),
-			m_midTuningdBPS.Apply(m_patch.midTuningdB),
+			m_patch.bassTuningdB,
+			m_patch.trebleTuningdB,
+			m_patch.midTuningdB,
 			/* Master volume */
-			m_masterVoldBPS.Apply(m_patch.masterVoldB),
+			m_patch.masterVoldB,
 			/* Buffers */
 			m_pBufL[0], m_pBufR[0], pLeft, pRight);
 
@@ -2177,10 +2055,10 @@ namespace SFM
 		m_resetPhaseBPM = false;
 
 		//
-		// Primitive visualization (FIXME: move!)
+		// Primitive visualization aid(s) (FIXME: fix (it sucks) and move!)
 		//
 
-		// Calculate peak ([0..1]) for each operator (for visualization purposes, plus it's not very pretty, FIXME)
+		// Calculate peak ([0..1]) for each operator
 		if (numVoices > 0)
 		{
 			// Find max. gain for each operator

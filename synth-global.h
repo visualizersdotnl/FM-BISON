@@ -95,9 +95,6 @@ namespace SFM
 
 	// Default parameter latency (used for per-sample interpolation of parameters and controls)
 	constexpr float kDefParameterLatency = 0.01f; // 10MS
-
-	// Default ParameterSlew MS (sampled per frame (Render() call))
-	constexpr float kDefParameterSlewMS = 5.f;
 	
 	// ----------------------------------------------------------------------------------------------
 	// Number of FM synthesis operators (changing this value requires a thorough check)

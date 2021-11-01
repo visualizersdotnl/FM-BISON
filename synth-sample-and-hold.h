@@ -11,6 +11,7 @@
 #include "synth-stateless-oscillators.h"
 #include "synth-phase.h"
 #include "synth-interpolated-parameter.h"
+#include "synth-signal-follower.h"
 
 namespace SFM
 {
