@@ -466,8 +466,8 @@ namespace SFM
 				m_postFilter.Apply(filteredL, filteredR);
 
 				// Blend
-				sampleL = lerpf<float>(sampleL, filteredL, curPostWet);
-				sampleR = lerpf<float>(sampleR, filteredR, curPostWet);
+				sampleL = lerpf<float>(postDistortedL, filteredL, curPostWet);
+				sampleR = lerpf<float>(postDistortedR, filteredR, curPostWet);
 			}
 
 			// Write
