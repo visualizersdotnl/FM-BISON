@@ -83,7 +83,6 @@
 #include "synth-post-pass.h"
 #include "synth-phase.h"
 #include "synth-voice.h"
-#include "synth-signal-follower.h"
 
 namespace SFM
 {
@@ -390,8 +389,7 @@ namespace SFM
 		// Key-to-voice mapping table
 		int m_keyToVoice[128];
 
-		// Per operator peaks (FIXME: move into 'Visualization' object; Github issue created, also: doesn't work with variable block sizes!)
-		SignalFollower m_opPeaksEnv[kNumOperators];
+		// Per operator peaks (FIXME: move into 'Visualization' object; Github issue created)
 		float m_opPeaks[kNumOperators];
 	};
 

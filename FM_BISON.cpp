@@ -135,23 +135,9 @@ namespace SFM
 		m_curModulation  = { 0.f, m_sampleRate, kDefParameterLatency * 1.5f /* Longer */ };
 		m_curAftertouch  = { 0.f, m_sampleRate, kDefParameterLatency * 3.f  /* Longer */ };
 
-		//
-		// FIXME: see below
-		//
-
-		// Reset operator peak followers
-		for (auto &peakEnv : m_opPeaksEnv)
-		{
-			peakEnv.SetSampleRate(sampleRate/samplesPerBlock); // Updated once per Render() call
-			peakEnv.SetTimeCoeff(1.f); // 1MS
-		}
-
-		for (unsigned iPeak = 0; iPeak < kNumOperators; ++iPeak)
-			m_opPeaks[iPeak] = 0.f;
-
-		//
-		// FIXME: see above
-		//
+		// Reset operator peaks (visualization)
+		for (float &peak : m_opPeaks)
+			peak = 0.f;
 	}
 
 	// Cleans up after OnSetSamplingProperties()
@@ -2055,15 +2041,15 @@ namespace SFM
 		m_resetPhaseBPM = false;
 
 		//
-		// Primitive visualization aid(s) (FIXME: fix (it sucks) and move!)
+		// Primitive visualization aid(s)
 		//
 
 		// Calculate peak ([0..1]) for each operator
+		for (float &peak : m_opPeaks)
+			peak = 0.f;
+
 		if (numVoices > 0)
 		{
-			// Find max. gain for each operator
-			float maxGains[kNumOperators] = { 0.f };
-
 			for (unsigned iVoice = 0; iVoice < m_curPolyphony; ++iVoice)
 			{
 				Voice &voice = m_voices[iVoice];
@@ -2079,22 +2065,12 @@ namespace SFM
 							const float curGain = voiceOp.envGain.Get();
 							
 							// New maximum?
-							if (curGain > maxGains[iOp])
-								maxGains[iOp] = curGain;
+							if (curGain > m_opPeaks[iOp])
+								m_opPeaks[iOp] = curGain;
 						}
 					}
 				}
 			}
-
-			// Apply max. gains
-			for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
-				m_opPeaksEnv[iOp].Apply(maxGains[iOp], m_opPeaks[iOp]);
-		}
-		else if (0 == numVoices)
-		{
-			// Decay towards zero
-			for (unsigned iOp = 0; iOp < kNumOperators; ++iOp)
-				m_opPeaksEnv[iOp].Apply(0.f, m_opPeaks[iOp]);
 		}
 	}
 
