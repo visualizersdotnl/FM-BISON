@@ -173,7 +173,7 @@ namespace SFM
 	// Default post-pass filter drive range & default (dB)	
 	constexpr float kMinPostFilterDrivedB = -3.f;
 	constexpr float kMaxPostFilterDrivedB =  9.f;
-	constexpr float kDefPostFilterDrivedB =  3.f;
+	constexpr float kDefPostFilterDrivedB =  0.f;
 
 	// Post-pass filter cutoff range
 	constexpr float kMinPostFilterCutoffHz = 40.f;
