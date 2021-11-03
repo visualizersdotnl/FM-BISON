@@ -1999,6 +1999,7 @@ namespace SFM
 			m_patch.tubeDistort,
 			m_patch.tubeDrive,
 			m_patch.tubeOffset,
+			m_patch.tubeTone,
 			/* Reverb */
 			m_patch.reverbWet,
 			m_patch.reverbRoomSize,

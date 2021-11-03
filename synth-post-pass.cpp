@@ -4,27 +4,17 @@
 	(C) visualizers.nl & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
-	FIXME: re-order! :-)
 	- Copy
 	- Auto-wah
 	- Delay
 	- Yamaha Reface CP-style chorus & phaser
-	- Post filter (24dB) (4X oversampling)
-	- Tube distortion    (4X oversampling)
+	- Post filter (24dB) + Tube distortion (4X oversampling)
 	- Reverb
 	- Compressor
 	- Low cut, tuning, master volume & final clamp
 
 	This grew into a huge function; that was of course not the intention but so far it's functional and quite well
 	documented so right now (01/07/2020) I see no reason to chop it up
-
-	However, the amount of processing done every Render() cycle is significant, so I should look into disabling
-	certain effects when they do not contribute to the patch (at that particular moment); I've implemented this
-	for: 
-	
-	- The 4X oversampled loop
-	- Chorus/Phaser
-	- ...
 */
 
 #include "synth-post-pass.h"
@@ -50,6 +40,9 @@ namespace SFM
 	// "Tape delay" constants (for 'wow' effect)
 	constexpr float kTapeDelayHz = kGoldenRatio;
 	constexpr float kTapeDelaySpread = 0.02f;
+
+	// Q (FIXME: parameter at some point?) for the tube tone (LPF) filter
+	constexpr float kTubeToneQ = kGoldenRatio*0.1f;
 
 	PostPass::PostPass(unsigned sampleRate, unsigned maxSamplesPerBlock, unsigned Nyquist) :
 		m_sampleRate(sampleRate), m_Nyquist(Nyquist), m_sampleRate4X(sampleRate*4)
@@ -89,6 +82,7 @@ namespace SFM
 ,		m_curTubeDist(0.f, m_sampleRate4X, kDefParameterLatency)
 ,		m_curTubeDrive(kDefTubeDrive, m_sampleRate4X, kDefParameterLatency)
 ,		m_curTubeOffset(0.f, m_sampleRate4X, kDefParameterLatency)
+,		m_curTubeTone(kDefTubeTone, m_sampleRate4X, kDefParameterLatency)
 
 		// Post (EQ)
 ,		m_postEQ(sampleRate, true)
@@ -131,7 +125,7 @@ namespace SFM
 	                     float cpRate, float cpWet, bool isChorus,
 	                     float delayInSec, float delayWet, float delayDrivedB, float delayFeedback, float delayFeedbackCutoff, float delayTapeWow,
 	                     float postCutoff, float postReso, float postDrivedB, float postWet,
-	                     float tubeDistort, float tubeDrive, float tubeOffset,
+	                     float tubeDistort, float tubeDrive, float tubeOffset, float tubeTone,
 	                     float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
 	                     float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead, bool compAutoGain, float compRMSToPeak,
 	                     float bassTuningdB, float trebleTuningdB, float midTuningdB, float masterVoldB,
@@ -155,6 +149,7 @@ namespace SFM
 		SFM_ASSERT(tubeDistort >= 0.f && tubeDistort <= 1.f);
 		SFM_ASSERT(tubeDrive >= kMinTubeDrive && tubeDrive <= kMaxTubeDrive);
 		SFM_ASSERT(tubeOffset >= kMinTubeOffset && tubeOffset <= kMaxTubeOffset);
+		SFM_ASSERT_NORM(tubeTone);
 		
 		// Delay is automatically overridden to it's manual setting if it doesn't fit in it's delay line
 		const bool useBPM = 0.f != rateBPM;
@@ -362,6 +357,7 @@ namespace SFM
 		m_curTubeDist.SetTarget(tubeDistort);
 		m_curTubeDrive.SetTarget(tubeDrive);
 		m_curTubeOffset.SetTarget(tubeOffset);
+		m_curTubeTone.SetTarget(tubeTone);
 		
 		// Main buffers
 		float *inputBuffers[2] = { m_pBufL, m_pBufR };
@@ -375,60 +371,6 @@ namespace SFM
 		float *pOverL = outBlock.getChannelPointer(0);
 		float *pOverR = outBlock.getChannelPointer(1);
 
-#if 0 // Old loop: filter first, distortion after
-		for (unsigned iSample = 0; iSample < numOversamples; ++iSample)
-		{
-			float sampleL = pOverL[iSample]; 
-			float sampleR = pOverR[iSample];
-
-			// Apply 24dB post filter
-			const float curPostCutoff = m_curPostCutoff.Sample();
-			const float curPostReso   = m_curPostReso.Sample();
-			const float curPostDrive  = m_curPostDrive.Sample();
-			const float curPostWet    = m_curPostWet.Sample();
-
-			float postFilteredL = sampleL, postFilteredR = sampleR;
-
-			if (curPostWet > 0.f) // Skip if not wet, saves a good deal of cycles
-			{				
-				// Apply filter
-				float filteredL = sampleL, filteredR = sampleR;
-				m_postFilter.SetParameters(kMinPostFilterCutoffHz + curPostCutoff*kPostFilterCutoffRange, curPostReso /* [0..1] */, curPostDrive);
-				m_postFilter.Apply(filteredL, filteredR);
-
-				// Blend
-				postFilteredL = lerpf<float>(sampleL, filteredL, curPostWet);
-				postFilteredR = lerpf<float>(sampleR, filteredR, curPostWet);
-			}
-			else
-				m_postFilter.Reset();
-								
-			// Apply (non-linear) distortion
-			const float amount = m_curTubeDist.Sample();
-			const float drive  = m_curTubeDrive.Sample();
-			const float offset = m_curTubeOffset.Sample();
-
-			{
-				// Arctangent distortion
-				const float driveAdj = drive/(kMaxTubeDrive*0.5f); // FIXME: this is just a "by ear" tweak (so driveAdj = [0..2])
-				float distortedL = Squarepusher(offset+postFilteredL, driveAdj);
-				float distortedR = Squarepusher(offset+postFilteredR, driveAdj);
-			
-				// Remove possible DC offset
-				m_tubeDCBlocker.Apply(distortedL, distortedR);
-
-				// Mix results (FIXME: I'll keep this intact for now, 20/10/2020, but how exactly is this what I want?)
-				sampleL = lerpf<float>(postFilteredL, distortedL, amount);
-				sampleR = lerpf<float>(postFilteredR, distortedR, amount);
-			}
-
-			// Write
-			pOverL[iSample] = sampleL;
-			pOverR[iSample] = sampleR;
-		}
-#endif
-		
-		// New loop: filter first, distortion after
 		for (unsigned iSample = 0; iSample < numOversamples; ++iSample)
 		{
 			float sampleL = pOverL[iSample]; 
@@ -438,14 +380,20 @@ namespace SFM
 			const float amount = m_curTubeDist.Sample();
 			const float drive  = m_curTubeDrive.Sample();
 			const float offset = m_curTubeOffset.Sample();
+			const float tone   = m_curTubeTone.Sample();
 
 			float postDistortedL = sampleL, postDistortedR = sampleR;
 
 			{
-				// Arctangent distortion
-				const float driveAdj = drive/(kMaxTubeDrive*0.5f); // FIXME: this is just a "by ear" tweak (so driveAdj = [0..2])
-				float distortedL = Squarepusher(offset+postDistortedL, driveAdj);
-				float distortedR = Squarepusher(offset+postDistortedR, driveAdj);
+				// Apply tone filter (resonant LPF)
+				m_tubeToneFilter.updateLowpassCoeff(SVF_CutoffToHz(tone, m_sampleRate4X/2), SVF_ResoToQ(kTubeToneQ), m_sampleRate4X);
+				float feedL = postDistortedL, feedR = postDistortedR;
+				m_tubeToneFilter.tick(feedL, feedR);
+
+				// Apply (soft) clipping
+				const float driveAdj = drive/kMaxTubeDrive; // Normalized
+				float distortedL = Squarepusher(offset+feedL, driveAdj);
+				float distortedR = Squarepusher(offset+feedR, driveAdj);
 
 				// Remove possible DC offset
 				m_tubeDCBlocker.Apply(distortedL, distortedR);

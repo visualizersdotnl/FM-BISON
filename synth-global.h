@@ -192,6 +192,7 @@ namespace SFM
 	constexpr float kMinTubeDrive  =   0.f;
 	constexpr float kMaxTubeDrive  = 100.f;
 	constexpr float kDefTubeDrive  =  10.f;
+	constexpr float kDefTubeTone   =   1.f; // Normalized cutoff
 	constexpr float kMinTubeOffset = -0.1f;
 	constexpr float kMaxTubeOffset =  0.1f;
 

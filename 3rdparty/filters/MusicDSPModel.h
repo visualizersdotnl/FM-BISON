@@ -84,7 +84,7 @@ private:
 	SFM_INLINE void Apply(float &sample, float *stage, float *delay)
 	{
 		// Need to saturate this to within [-1..1] in order not to blow up the filter
-		const float x = SFM::CubicClip(sample, m_drive) - m_resonance*stage[3]; 
+		const float x = SFM::ZoelzerClip(sample*m_drive) - m_resonance*stage[3]; // FIXME!
 
 		// Four cascaded one-pole filters (bilinear transform)
 		stage[0] = x * p + delay[0]  * p - k * stage[0];

@@ -213,6 +213,7 @@ namespace SFM
 		float tubeDistort;
 		float tubeDrive;   // [kMinTubeDrive..kMaxTubeDrive]
 		float tubeOffset;  // [kMinTubeOffset..kMaxTubeOffset]
+		float tubeTone;
 
 		// Piano pedal
 		float pianoPedalFalloff;
@@ -364,6 +365,7 @@ namespace SFM
 			tubeDistort = 0.f;
 			tubeDrive = kDefTubeDrive;
 			tubeOffset = 0.f;
+			tubeTone = kDefTubeTone;
 
 			// Default piano pedal settings
 			pianoPedalFalloff    = kDefPianoPedalFalloff;
