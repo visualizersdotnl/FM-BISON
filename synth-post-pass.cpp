@@ -330,8 +330,12 @@ namespace SFM
 			const float wet1  = wet*(width*0.5f + 0.5f);
 			const float wet2  = wet*((1.f-width)*0.5f);
 			
-			m_pBufL[iSample] = delayL*wet1 + delayR*wet2 + left*dry;
-			m_pBufR[iSample] = delayR*wet1 + delayL*wet2 + right*dry;
+//			m_pBufL[iSample] = delayL*wet1 + delayR*wet2 + left*dry;
+//			m_pBufR[iSample] = delayR*wet1 + delayL*wet2 + right*dry;
+			
+			// To be more like Ableton, we'll use the filtered samples rightaway
+			m_pBufL[iSample] = filteredL*wet1 + filteredR*wet2 + left*dry;
+			m_pBufR[iSample] = filteredR*wet1 + filteredL*wet2 + right*dry;
 		}
 
 		/* ----------------------------------------------------------------------------------------------------
