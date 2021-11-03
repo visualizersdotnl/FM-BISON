@@ -107,8 +107,9 @@ namespace SFM
 				bite += 1.f; // Register "bite"
 
 			// Apply to (delayed) signal
-			const float delayedL = m_outDelayL.ReadNormalized(lookahead);
-			const float delayedR = m_outDelayR.ReadNormalized(lookahead);
+			const float invLookahead = 1.f-lookahead;
+			const float delayedL = m_outDelayL.ReadNormalized(invLookahead);
+			const float delayedR = m_outDelayR.ReadNormalized(invLookahead);
 
 			pLeft[iSample]  = delayedL*gain;
 			pRight[iSample] = delayedR*gain;
