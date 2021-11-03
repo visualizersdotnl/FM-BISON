@@ -303,9 +303,9 @@ namespace SFM
 	constexpr float kMinWahAttack        = 0.001f; // 1MS
 	constexpr float kMaxWahAttack        =    1.f; // 1 sec.
 	constexpr float kDefWahAttack        = 0.333f; // 333MS 
-	constexpr float kMinWahHold          = 0.666f; // 666MS
+	constexpr float kMinWahHold          = 0.001f; // 1MS
 	constexpr float kMaxWahHold          =    1.f; // 1 sec.
-	constexpr float kDefWahHold          =   0.4f; // 400MS
+	constexpr float kDefWahHold          = 0.666f; // 666MS
 
 	constexpr float kMinWahRate          =    0.f; // DX7 rate (synth-DX7-LFO-table.h)
 	constexpr float kMaxWahRate          =  100.f; // 
