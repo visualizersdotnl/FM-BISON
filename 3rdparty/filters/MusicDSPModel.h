@@ -82,7 +82,7 @@ private:
 
 	SFM_INLINE void Apply(float &sample, float *stage, float *delay)
 	{
-		const float x = sample*m_drive - m_resonance*stage[3]; // SFM::ultra_tanhf(sample*m_drive - m_resonance*stage[3]);
+		const float x = /* sample*m_drive - m_resonance*stage[3]; */ SFM::ultra_tanhf(sample*m_drive - m_resonance*stage[3]);
 
 		// Four cascaded one-pole filters (bilinear transform)
 		stage[0] = x * p + delay[0]  * p - k * stage[0];
