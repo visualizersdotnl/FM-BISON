@@ -302,8 +302,8 @@ namespace SFM
 	constexpr float kDefWahResonance     =   0.5f; // 50%
 	constexpr float kMinWahAttack        = 0.001f; // 1MS
 	constexpr float kMaxWahAttack        =    1.f; // 1 sec.
-	constexpr float kDefWahAttack        = 0.350f; // 350MS 
-	constexpr float kMinWahHold          = 0.001f; // 1MS
+	constexpr float kDefWahAttack        = 0.333f; // 333MS 
+	constexpr float kMinWahHold          = 0.666f; // 666MS
 	constexpr float kMaxWahHold          =    1.f; // 1 sec.
 	constexpr float kDefWahHold          =   0.4f; // 400MS
 

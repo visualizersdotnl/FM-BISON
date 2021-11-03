@@ -71,7 +71,7 @@ namespace SFM
 			const float envGaindB = m_gainEnvdB.Apply(signaldB);
 			const float envGain   = dB2Lin(envGaindB);
 
-			if (envGain <= kEpsilon)
+			if (envGain <= kInfLin)
 			{
 				// It feels right to reset the "motion" during silence
 				m_LFO.Reset();
