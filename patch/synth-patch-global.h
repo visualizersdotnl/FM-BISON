@@ -317,7 +317,7 @@ namespace SFM
 			compGaindB = kDefCompGaindB;
 			compAttack = kDefCompAttack;
 			compRelease = kDefCompRelease;
-			compLookahead = 0.f; // No lookahead
+			compLookahead = kDefCompLookaheadMS; // Full lookahead (zero delay)
 			compAutoGain = true;
 			compRMSToPeak = 0.f; // 100% RMS
 			
