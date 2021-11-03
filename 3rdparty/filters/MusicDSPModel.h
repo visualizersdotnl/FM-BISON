@@ -20,6 +20,7 @@
 #include <math.h>
 
 #include "../../synth-global.h"
+#include "../../synth-distort.h"
 
 // This file is unlicensed and uncopyright as found at:
 // http://www.musicdsp.org/showone.php?id=24
@@ -82,7 +83,8 @@ private:
 
 	SFM_INLINE void Apply(float &sample, float *stage, float *delay)
 	{
-		const float x = sample*m_drive - m_resonance*stage[3]; // SFM::ultra_tanhf(sample*m_drive - m_resonance*stage[3]);
+		// Need to saturate this to within [-1..1] in order not to blow up the filter
+		const float x = SFM::CubicClip(sample, m_drive) - m_resonance*stage[3]; 
 
 		// Four cascaded one-pole filters (bilinear transform)
 		stage[0] = x * p + delay[0]  * p - k * stage[0];
