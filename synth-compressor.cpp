@@ -86,13 +86,12 @@ namespace SFM
 
 			if (true == autoGain)
 			{
-				// Automatic gain (level) adjustment (nicked from: https://github.com/ptrv/auto_compressor/blob/master/Source/PluginProcessor.cpp)
-				const float estimatedB = thresholddB * -slope/2.f;
-				const float autodB = m_autoGainEnvdB.Apply(envdB - estimatedB, m_autoGaindB);
-//				const float autodB = m_autoGainEnvdB.Apply(envdB - estimatedB);
-
-				// Adjust gain (see above); post gain *not* applied
-				envdB -= autodB + estimatedB;
+				// The TASCAM way (https://music-dsp.music.columbia.narkive.com/3BVi9E9D/computing-compressor-automatic-makeup-gain); calculating
+				// half of threshold divided by the ratio, and then something on me: running it through a simple filter for some slew, and simply
+				// adjusting the signal upwards to approximate a situation where 0dB input means 0dB output
+				const float approxAdjdB = thresholddB * -slope/2.f;
+				const float autodB = m_autoGainEnvdB.Apply(approxAdjdB, m_autoGaindB);
+				envdB = envdB + autodB;
 			}
 			else
 			{

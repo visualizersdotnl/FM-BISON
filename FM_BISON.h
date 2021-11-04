@@ -175,6 +175,7 @@ namespace SFM
 		unsigned GetNyquist() const         { return m_Nyquist;         }
 		
 		// Value can be used to visually represent compressor "bite" (when RMS falls below threshold dB)
+		// WARNING: not thread-safe!
 		float GetCompressorBite() const
 		{
 			if (nullptr != m_postPass)
@@ -184,6 +185,7 @@ namespace SFM
 		}
 
 		// Value is operator normalized peak (not affected by amplitude (output level) if modulator only)
+		// WARNING: not thread-safe!
 		float GetOperatorPeak(unsigned iOp) const
 		{
 			SFM_ASSERT(iOp < kNumOperators);
