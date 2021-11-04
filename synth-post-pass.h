@@ -60,6 +60,9 @@ namespace SFM
 
 			return bite;
 		}
+		
+		// Returns approx. latency in samples
+		float GetLatency() const;
 
 	private:
 		SFM_INLINE void SetChorusRate(float rate /* [0..1] */, float scale)

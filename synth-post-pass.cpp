@@ -119,6 +119,15 @@ namespace SFM
 		freeAligned(m_pBufR);
 	}
 
+	float PostPass::GetLatency() const
+	{
+		// FIXME: approx. complete sum best possible
+		const float oversamplingLatency = m_oversampling4X.getLatencyInSamples();
+		const float compressorLatency   = m_compressor.GetLatency();
+
+		return oversamplingLatency + compressorLatency;
+	}
+
 	void PostPass::Apply(unsigned numSamples,
 	                     float rateBPM, unsigned overideFlagsRateBPM,
 	                     float wahResonance, float wahAttack, float wahHold, float wahRate, float wahDrivedB, float wahSpeak, float wahSpeakVowel, float wahSpeakVowelMod, float wahSpeakGhost, float wahSpeakCut, float wahSpeakReso, float wahCut, float wahWet,

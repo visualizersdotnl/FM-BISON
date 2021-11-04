@@ -173,6 +173,21 @@ namespace SFM
 		unsigned GetSampleRate() const      { return m_sampleRate;      }
 		unsigned GetSamplesPerBlock() const { return m_samplesPerBlock; }
 		unsigned GetNyquist() const         { return m_Nyquist;         }
+
+		// Get synth. latency in samples (floating point)
+		float GetLatency() const
+		{
+			float latency = 0.f;
+
+			if (nullptr != m_postPass)
+			{
+				latency += m_postPass->GetLatency();
+			}
+
+			// FIXME: more?
+
+			return latency;
+		}
 		
 		// Value can be used to visually represent compressor "bite" (when RMS falls below threshold dB)
 		// WARNING: not thread-safe!

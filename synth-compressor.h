@@ -69,6 +69,12 @@ namespace SFM
 		// Returns "bite" (can be used for a visual indicator)
 		float Apply(float *pLeft, float *pRight, unsigned numSamples, bool autoGain, float RMSToPeak /* FIXME: interpolate as well? */);
 
+		SFM_INLINE float GetLatency() const
+		{
+			const float lookaheadInSec = m_curLookahead.Get()*kMaxCompLookaheadMS * 0.001f;
+			return m_sampleRate*lookaheadInSec;
+		}
+
 	private:
 		const unsigned m_sampleRate;
 
