@@ -311,9 +311,9 @@ namespace SFM
 
 				// Add sample to gain envelope (for VU meter)
 				const float absModSample = fabsf(modSample);                     
-				const float gainSample = (voiceOp.isCarrier)                         // Carrier prioritized if both (FIXME?)
-					? sample                                                     // Adj. for actual volume
-					: absModSample/(kEpsilon+curIndex);                          // Normalized (with a little hack that prevents a branch to check for zero, which in turn *might* push the value a teensy bit (kEpsilon) out of range)
+				const float gainSample = (voiceOp.isCarrier)   // Carrier prioritized if both (FIXME?)
+					? sample                                   // Adj. for actual volume
+					: absModSample/(kEpsilon+curIndex);        // Normalized (with a little hack that prevents a branch to check for zero, which in turn *might* push the value a teensy bit (kEpsilon) out of range)
 				voiceOp.envGain.Apply(gainSample);
 
 				// Update feedback

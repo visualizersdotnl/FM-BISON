@@ -770,7 +770,7 @@ namespace SFM
 				
 				// Get amplitude & index
 				const float level = CalcOpLevel(key, opVelocity, patchOp);
-				const float amplitude = patchOp.output*level, index = patchOp.output*level; /* FIXME: patchOp.index*level; */
+				const float amplitude = patchOp.output*level, index = patchOp.index*level;
 
 				voiceOp.oscillator.Initialize(
 					patchOp.waveform, frequency, m_sampleRate, CalcPhaseShift(voiceOp, patchOp), patchOp.supersawDetune, patchOp.supersawMix);
@@ -925,7 +925,7 @@ namespace SFM
 
 				// Get amplitude & index
 				const float level = CalcOpLevel(key, opVelocity, patchOp);
-				const float amplitude = patchOp.output*level, index = patchOp.output*level; /* FIXME: patchOp.index*level; */
+				const float amplitude = patchOp.output*level, index = patchOp.index*level;
 
 				if (true == reset)
 				{
@@ -1353,7 +1353,7 @@ namespace SFM
 
 									// Get amplitude & index
 									const float level = CalcOpLevel(voice.m_key, opVelocity, patchOp);
-									const float amplitude = patchOp.output*level, index = patchOp.output*level; /* FIXME: patchOp.index*level; */
+									const float amplitude = patchOp.output*level, index = patchOp.index*level;
 								
 									// Interpolate freq. if necessary
 									if (frequency != voiceOp.setFrequency)
