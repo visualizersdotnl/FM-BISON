@@ -55,7 +55,7 @@
 // #define SFM_DISABLE_FX
 
 // Define to disable extra voice rendering thread
-// #define SFM_DISABLE_VOICE_THREAD
+#define SFM_DISABLE_VOICE_THREAD
 
 namespace SFM
 {
@@ -74,10 +74,11 @@ namespace SFM
 	// Voices
 	// ----------------------------------------------------------------------------------------------
 
-	// Max. number of voices to render using the main (single) thread
+	// Max. number of voices & samples to render using the main (single) thread
 	// 32 is based on 64 being a reasonable total
-	// FIXME: make this or rather using the second thread at all a setting?
+	// Only relevant when !defined(SFM_DISABLE_VOICE_THREAD)
 	constexpr unsigned kSingleThreadMaxVoices = 32;
+	constexpr unsigned kMultiThreadMinSamples = 512;
 
 	// Max. fixed frequency (have fun with it!)
 	constexpr float kMaxFixedHz = 96000.f;

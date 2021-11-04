@@ -1881,7 +1881,7 @@ namespace SFM
 #if defined(SFM_DISABLE_VOICE_THREAD)
 			if (true)
 #else
-			if (voiceIndices.size() <= kSingleThreadMaxVoices)
+			if (voiceIndices.size() <= kSingleThreadMaxVoices || numSamples < kMultiThreadMinSamples)
 #endif
 			{
 				// Render all voices on current thread
