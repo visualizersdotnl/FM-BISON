@@ -194,9 +194,9 @@ namespace SFM
 	constexpr float kMaxTubeDrive    = 100.f;
 	constexpr float kDefTubeDrive    =  10.f;
 	constexpr float kDefTubeTone     =   1.f; // Normalized cutoff
-	constexpr bool  kDefTubeToneReso =  true; // Colo(u)red sound by default
-	constexpr float kMinTubeOffset =   -0.1f;
-	constexpr float kMaxTubeOffset =    0.1f;
+	constexpr bool  kDefTubeToneReso = false; 
+	constexpr float kMinTubeOffset   = -0.1f;
+	constexpr float kMaxTubeOffset   =  0.1f;
 
 	// ----------------------------------------------------------------------------------------------
 	// Envelope
