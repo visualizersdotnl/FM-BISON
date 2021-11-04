@@ -21,7 +21,7 @@ namespace SFM
 		{
 			// Get parameters
 			/* const */ float thresholddB = m_curThresholddB.Sample();
-			/* const */ float ratio       = m_curRatio.Sample();
+			const float ratio             = m_curRatio.Sample();
 			const float postGaindB        = m_curGaindB.Sample();
 			const float lookahead         = m_curLookahead.Sample();
 			const float curAttack         = m_curAttack.Sample();
@@ -74,25 +74,25 @@ namespace SFM
 			// Calc. gain reduction
 			float gaindB = std::min<float>(0.f, slope*deltadB*kneeMul);
 
-			float envdB = m_gainEnvdB.ApplyReverse(gaindB);
+//			float envdB = m_gainEnvdB.ApplyReverse(gaindB);
 
 			// Adjust gain			
-			float autoMakeUpGain = 1.f;
 			if (true == autoGain)
 			{
-				const float estimateddB = thresholddB * -slope/2.f;
-				m_autoGainDiff = m_autoGainCoeff*m_autoGainDiff + (1.f-m_autoGainCoeff)*(envdB-estimateddB); // Alpha blend / LPF
-				const float makeUpGaindB = -(m_autoGainDiff + estimateddB);
-				autoMakeUpGain = dB2Lin(makeUpGaindB);
+				// Some people talking about this: https://forum.hise.audio/topic/1965/dynamics-comp-makeup-values/9 
+				const float attenuation = thresholddB;
+				const float autoGaindB = slope * (attenuation * -1.f) * 0.7f;
+				m_autoGainDiff = autoGaindB + m_autoGainCoeff*(m_autoGainDiff-autoGaindB);
+				gaindB += m_autoGainDiff;
 			}
 			else
 			{
 				// Apply post gain (manual)
-				envdB += postGaindB;
+				gaindB += postGaindB;
 			}
 		
 			// Convert to final linear gain
-			const float gain = dB2Lin(envdB) * autoMakeUpGain;
+			const float gain = dB2Lin(m_gainEnvdB.ApplyReverse(gaindB));
 
 			if (gaindB < 0.f)
 				bite += 1.f; // Register "bite"
