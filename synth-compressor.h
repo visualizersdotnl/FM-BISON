@@ -20,9 +20,9 @@
 namespace SFM
 {
 	// Constant local parameters
-	constexpr float kCompRMSWindowSec = 0.005f; // 5MS
-	constexpr float kCompAutoGainMS   =   0.1f; // 0.1MS (SignalFollower)
-	constexpr float kCompLookaheadMS  =   10.f; // 10MS (5MS-10MS seems to be an acceptable range in the audio world)
+	constexpr float kCompRMSWindowSec      = 0.005f; // 5MS
+	constexpr float kCompLookaheadMS       =   10.f; // 10MS (5MS-10MS seems to be an acceptable range in the audio world)
+	constexpr float kCompAutoGainSlewInSec = 0.001f; // 1MS
 
 	class Compressor
 	{
@@ -35,7 +35,6 @@ namespace SFM
 ,			m_RMS(sampleRate, kCompRMSWindowSec)
 ,			m_peak(sampleRate, kMinCompAttack)
 ,			m_gainEnvdB(sampleRate, 0.f /* Unit gain in dB */)
-,			m_autoGainEnvdB(sampleRate, kCompAutoGainMS)
 ,			m_curThresholddB(kDefCompThresholddB, sampleRate, kDefParameterLatency)
 ,			m_curKneedB(kDefCompKneedB, sampleRate, kDefParameterLatency)
 ,			m_curRatio(kDefCompRatio, sampleRate, kDefParameterLatency)
@@ -43,6 +42,7 @@ namespace SFM
 ,			m_curAttack(kDefCompAttack, sampleRate, kDefParameterLatency)
 ,			m_curRelease(kDefCompRelease, sampleRate, kDefParameterLatency)
 ,			m_curLookahead(0.f, sampleRate, kDefParameterLatency)
+,			m_autoGainCoeff(expf(-1.f / (sampleRate*kCompAutoGainSlewInSec)))
 		{
 		}
 
@@ -85,8 +85,8 @@ namespace SFM
 		Peak m_peak;
 		FollowerEnvelope m_gainEnvdB;
 
-		SignalFollower m_autoGainEnvdB;
-		float m_autoGaindB = 0.f;
+		const float m_autoGainCoeff;
+		float m_autoGainDiff = 0.f;
 
 		// Interpolated parameters
 		InterpolatedParameter<kLinInterpolate> m_curThresholddB;

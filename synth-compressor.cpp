@@ -84,14 +84,13 @@ namespace SFM
 
 			float envdB = m_gainEnvdB.ApplyReverse(gaindB);
 
+			float autoMakeUpGain = 1.f;
 			if (true == autoGain)
 			{
-				// The TASCAM way (https://music-dsp.music.columbia.narkive.com/3BVi9E9D/computing-compressor-automatic-makeup-gain); calculating
-				// half of threshold divided by the ratio, and then something on me: running it through a simple filter for some slew, and simply
-				// adjusting the signal upwards to approximate a situation where 0dB input means 0dB output
-				const float approxAdjdB = thresholddB * -slope/2.f;
-				const float autodB = m_autoGainEnvdB.Apply(approxAdjdB, m_autoGaindB);
-				envdB = envdB + autodB;
+				const float estimateddB = thresholddB * -slope/2.f;
+				m_autoGainDiff = m_autoGainCoeff*m_autoGainDiff + (1.f-m_autoGainCoeff)*(envdB-estimateddB); // Alpha blend / LPF
+				const float makeUpGaindB = -(m_autoGainDiff + estimateddB);
+				autoMakeUpGain = dB2Lin(makeUpGaindB);
 			}
 			else
 			{
@@ -100,7 +99,7 @@ namespace SFM
 			}
 		
 			// Convert to final linear gain
-			const float gain = dB2Lin(envdB);
+			const float gain = dB2Lin(envdB) * autoMakeUpGain;
 
 			if (gaindB < 0.f)
 				bite += 1.f; // Register "bite"
