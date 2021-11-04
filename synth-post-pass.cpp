@@ -41,8 +41,9 @@ namespace SFM
 	constexpr float kTapeDelayHz = kGoldenRatio;
 	constexpr float kTapeDelaySpread = 0.02f;
 
-	// Q (FIXME: parameter at some point?) for the tube tone (LPF) filter
-	constexpr float kTubeToneQ = kGoldenRatio*0.0628f;
+	// Tube tone LPF Qs
+	constexpr float kTubeToneFlatQ = 0.f;
+	constexpr float kTubeToneColorQ = kGoldenRatio*0.0628f;
 
 	PostPass::PostPass(unsigned sampleRate, unsigned maxSamplesPerBlock, unsigned Nyquist) :
 		m_sampleRate(sampleRate), m_Nyquist(Nyquist), m_sampleRate4X(sampleRate*4)
@@ -134,7 +135,7 @@ namespace SFM
 	                     float cpRate, float cpWet, bool isChorus,
 	                     float delayInSec, float delayWet, float delayDrivedB, float delayFeedback, float delayFeedbackCutoff, float delayTapeWow,
 	                     float postCutoff, float postReso, float postDrivedB, float postWet,
-	                     float tubeDistort, float tubeDrive, float tubeOffset, float tubeTone,
+	                     float tubeDistort, float tubeDrive, float tubeOffset, float tubeTone, bool tubeToneReso,
 	                     float reverbWet, float reverbRoomSize, float reverbDampening, float reverbWidth, float reverbLP, float reverbHP, float reverbPreDelay,
 	                     float compThresholddB, float compKneedB, float compRatio, float compGaindB, float compAttack, float compRelease, float compLookahead, bool compAutoGain, float compRMSToPeak,
 	                     float bassTuningdB, float trebleTuningdB, float midTuningdB, float masterVoldB,
@@ -367,6 +368,8 @@ namespace SFM
 		m_curTubeDrive.SetTarget(tubeDrive);
 		m_curTubeOffset.SetTarget(tubeOffset);
 		m_curTubeTone.SetTarget(tubeTone);
+
+		const float toneQ = SVF_ResoToQ(tubeToneReso ? kTubeToneColorQ : kTubeToneFlatQ);
 		
 		// Main buffers
 		float *inputBuffers[2] = { m_pBufL, m_pBufR };
@@ -395,7 +398,7 @@ namespace SFM
 
 			{
 				// Apply tone filter (resonant LPF)
-				m_tubeToneFilter.updateLowpassCoeff(SVF_CutoffToHz(tone, m_sampleRate4X/2), SVF_ResoToQ(kTubeToneQ), m_sampleRate4X);
+				m_tubeToneFilter.updateLowpassCoeff(SVF_CutoffToHz(tone, m_sampleRate4X/2), toneQ, m_sampleRate4X);
 				float feedL = postDistortedL, feedR = postDistortedR;
 				m_tubeToneFilter.tick(feedL, feedR);
 

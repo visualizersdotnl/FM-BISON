@@ -214,6 +214,7 @@ namespace SFM
 		float tubeDrive;   // [kMinTubeDrive..kMaxTubeDrive]
 		float tubeOffset;  // [kMinTubeOffset..kMaxTubeOffset]
 		float tubeTone;
+		bool tubeToneReso; // Adds resonance (more "color") to the tone LPF
 
 		// Piano pedal
 		float pianoPedalFalloff;
@@ -366,6 +367,7 @@ namespace SFM
 			tubeDrive = kDefTubeDrive;
 			tubeOffset = 0.f;
 			tubeTone = kDefTubeTone;
+			tubeToneReso = kDefTubeToneReso;
 
 			// Default piano pedal settings
 			pianoPedalFalloff    = kDefPianoPedalFalloff;
