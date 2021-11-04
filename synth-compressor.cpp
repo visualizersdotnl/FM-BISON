@@ -20,13 +20,13 @@ namespace SFM
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
 			// Get parameters
-			const float thresholddB = m_curThresholddB.Sample();
-			const float ratio       = m_curRatio.Sample();
-			const float postGaindB  = m_curGaindB.Sample();
-			const float lookahead   = m_curLookahead.Sample();
-			const float curAttack   = m_curAttack.Sample();
-			const float curRelease  = m_curRelease.Sample();
-			const float kneedB      = m_curKneedB.Sample();
+			/* const */ float thresholddB = m_curThresholddB.Sample();
+			/* const */ float ratio       = m_curRatio.Sample();
+			const float postGaindB        = m_curGaindB.Sample();
+			const float lookahead         = m_curLookahead.Sample();
+			const float curAttack         = m_curAttack.Sample();
+			const float curRelease        = m_curRelease.Sample();
+			const float kneedB            = m_curKneedB.Sample();
 
 			// Set env. parameters in MS
 			m_gainEnvdB.SetAttack(curAttack*1000.f);
@@ -48,42 +48,35 @@ namespace SFM
 
 			// Calculate slope
 			SFM_ASSERT(ratio > 0.f);
+
 			float slope = 1.f - (1.f/ratio);
+
+			// Soft knee?
+			float kneeMul = 1.f;
+			if (kneedB > 0.f)
+			{
+				const float kneeHalfdB   = kneedB*0.5f;
+				const float kneeTopdB    = thresholddB + kneeHalfdB;
+				const float kneeBottomdB = thresholddB - kneeHalfdB;
+
+				if (signaldB >= kneeBottomdB && signaldB < kneeTopdB)
+				{
+					// Apply (pragmatic) soft knee
+					kneeMul = easeInOutQuintf((signaldB-kneeBottomdB)/kneedB);
+				}
+
+				thresholddB = kneeBottomdB;
+			}
 
 			// Signal delta					
 			const float deltadB = thresholddB-signaldB;
-			
+
 			// Calc. gain reduction
-			float gaindB = std::min<float>(0.f, slope*deltadB);
-				
-			// Soft knee?
-			if (kneedB > 0.f && gaindB < 0.f)
-			{
-				const float kneeHalfdB   = kneedB*0.5f;
-				const float kneeBottomdB = thresholddB - kneeHalfdB;
-				const float kneeTopdB    = thresholddB + kneeHalfdB;
-
-				if (deltadB >= kneeBottomdB && deltadB < kneeTopdB)
-				{
-					// Apply soft knee (interpolate between zero compression and full compression)
-
-//					float xPoints[2], yPoints[2];
-//					xPoints[0] = kneeBottomdB;
-//					xPoints[1] = kneeTopdB;
-//					yPoints[0] = 0.f;
-//					yPoints[1] = gaindB;
-//					gaindB = LagrangeInterpolatef(xPoints, yPoints, 2, deltadB);
-
-					// Lagrange (second order, in place)
-					float interpGaindB = 0.f;
-					interpGaindB += (deltadB-kneeTopdB)/(kneeBottomdB-kneeTopdB);
-					interpGaindB += (deltadB-kneeBottomdB)/(kneeTopdB-kneeBottomdB) * gaindB;
-					gaindB = interpGaindB;
-				}
-			}
+			float gaindB = std::min<float>(0.f, slope*deltadB*kneeMul);
 
 			float envdB = m_gainEnvdB.ApplyReverse(gaindB);
 
+			// Adjust gain			
 			float autoMakeUpGain = 1.f;
 			if (true == autoGain)
 			{
