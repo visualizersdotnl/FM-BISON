@@ -22,6 +22,7 @@ namespace SFM
 	// Constant local parameters
 	constexpr float kCompRMSWindowSec = 0.005f; // 5MS
 	constexpr float kCompAutoGainMS   =   0.1f; // 0.1MS (SignalFollower)
+	constexpr float kCompLookaheadMS  =   10.f; // 10MS (5MS-10MS seems to be an acceptable range in the audio world)
 
 	class Compressor
 	{
@@ -29,8 +30,8 @@ namespace SFM
 
 		Compressor(unsigned sampleRate) :
 			m_sampleRate(sampleRate)
-,			m_outDelayL(sampleRate, kMaxCompLookaheadMS*0.001f)
-,			m_outDelayR(sampleRate, kMaxCompLookaheadMS*0.001f)
+,			m_outDelayL(sampleRate, kCompLookaheadMS*0.001f)
+,			m_outDelayR(sampleRate, kCompLookaheadMS*0.001f)
 ,			m_RMS(sampleRate, kCompRMSWindowSec)
 ,			m_peak(sampleRate, kMinCompAttack)
 ,			m_gainEnvdB(sampleRate, 0.f /* Unit gain in dB */)
@@ -55,7 +56,7 @@ namespace SFM
 			SFM_ASSERT(gaindB >= kMinCompGaindB && gaindB <= kMaxCompGaindB);
 			SFM_ASSERT(attack >= kMinCompAttack && attack <= kMaxCompAttack);
 			SFM_ASSERT(release >= kMinCompRelease && release <= kMaxCompRelease);
-			SFM_ASSERT(lookahead >= 0.f && lookahead <= kMaxCompLookaheadMS);
+			SFM_ASSERT_NORM(lookahead);
 
 			m_curThresholddB.SetTarget(thresholddB);
 			m_curKneedB.SetTarget(kneedB);
@@ -63,7 +64,7 @@ namespace SFM
 			m_curGaindB.SetTarget(gaindB);
 			m_curAttack.SetTarget(attack);
 			m_curRelease.SetTarget(release);
-			m_curLookahead.SetTarget(lookahead/kMaxCompLookaheadMS); // Because DelayLine::ReadNormalized()
+			m_curLookahead.SetTarget(lookahead);
 		}
 		
 		// Returns "bite" (can be used for a visual indicator)
@@ -71,7 +72,7 @@ namespace SFM
 
 		SFM_INLINE float GetLatency() const
 		{
-			const float lookaheadInSec = m_curLookahead.Get()*kMaxCompLookaheadMS * 0.001f;
+			const float lookaheadInSec = m_curLookahead.Get()*kCompLookaheadMS * 0.001f;
 			return m_sampleRate*lookaheadInSec;
 		}
 

@@ -290,14 +290,13 @@ namespace SFM
 	constexpr float kMinCompGaindB      =   -6.f;
 	constexpr float kMaxCompGaindB      =   60.f;
 	constexpr float kDefCompGaindB      =    0.f;
-	constexpr float kMinCompAttack      = 0.001f;              // 1MS
-	constexpr float kMaxCompAttack      =    1.f;              // 1 sec.
-	constexpr float kDefCompAttack      = 0.500f;              // 500MS
-	constexpr float kMinCompRelease     = 0.001f;              // 1MS
-	constexpr float kMaxCompRelease     =    1.f;              // 1 sec.
-	constexpr float kDefCompRelease     = 0.500f;              // 500MS
-	constexpr float kMaxCompLookaheadMS =   10.f;              // 10MS (0/1MS-10MS seems to be an acceptable range in the audio world)
-	constexpr float kDefCompLookaheadMS = kMaxCompLookaheadMS; // Set to max. it'll react immediately (feels counterintuitive, but basically 'lookahead' is implemented using a delay)
+	constexpr float kMinCompAttack      = 0.001f; // 1MS
+	constexpr float kMaxCompAttack      =    1.f; // 1 sec.
+	constexpr float kDefCompAttack      = 0.500f; // 500MS
+	constexpr float kMinCompRelease     = 0.001f; // 1MS
+	constexpr float kMaxCompRelease     =    1.f; // 1 sec.
+	constexpr float kDefCompRelease     = 0.500f; // 500MS
+	constexpr float kDefCompLookahead   =    1.f; // Set to max. it'll react immediately (feels counterintuitive, but basically 'lookahead' is implemented using a delay)
 
 	// ----------------------------------------------------------------------------------------------
 	// Auto-wah range & defaults
