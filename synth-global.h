@@ -156,7 +156,7 @@ namespace SFM
 	constexpr float kSVFFilterQRange  = kSVFMaxFilterQ-kSVFMinFilterQ;
 
 	constexpr float kMinFilterCutoff      =  0.f;    // Normalized min. filter cutoff; range is simply [0..1] (use SVF_CutoffToHz())
-	constexpr float kSVFMinFilterCutoffHz = 20.f;    // Min 16.f (See impl.)
+	constexpr float kSVFMinFilterCutoffHz =  0.f;    // Min 16.f (See impl.) -> FIXME: I'm violating this to get a full cut!
 	constexpr float kSVFMaxFilterCutoffHz = 22050.f; // Nyquist @ 44.1KHz
 	
 	// Biquad filter range
