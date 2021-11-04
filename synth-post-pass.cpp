@@ -42,7 +42,7 @@ namespace SFM
 	constexpr float kTapeDelaySpread = 0.02f;
 
 	// Q (FIXME: parameter at some point?) for the tube tone (LPF) filter
-	constexpr float kTubeToneQ = kGoldenRatio*0.1f;
+	constexpr float kTubeToneQ = kGoldenRatio*0.0628f;
 
 	PostPass::PostPass(unsigned sampleRate, unsigned maxSamplesPerBlock, unsigned Nyquist) :
 		m_sampleRate(sampleRate), m_Nyquist(Nyquist), m_sampleRate4X(sampleRate*4)
