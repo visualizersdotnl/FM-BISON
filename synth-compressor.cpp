@@ -81,7 +81,7 @@ namespace SFM
 			{
 				// Some people talking about this: https://forum.hise.audio/topic/1965/dynamics-comp-makeup-values/9 
 				const float attenuation = thresholddB;
-				const float autoGaindB = slope * (attenuation * -1.f) * 0.7f;
+				const float autoGaindB = slope * (attenuation * -1.f) * 0.707f;
 				m_autoGainDiff = autoGaindB + m_autoGainCoeff*(m_autoGainDiff-autoGaindB);
 				gaindB += m_autoGainDiff;
 			}
@@ -94,7 +94,7 @@ namespace SFM
 			// Convert to final linear gain
 			const float gain = dB2Lin(m_gainEnvdB.ApplyReverse(gaindB));
 
-			if (gaindB < 0.f)
+			if (deltadB < 0.f)
 				bite += 1.f; // Register "bite"
 
 			// Apply to (delayed) signal
