@@ -74,25 +74,24 @@ namespace SFM
 			// Calc. gain reduction
 			float gaindB = std::min<float>(0.f, slope*deltadB*kneeMul);
 
-//			float envdB = m_gainEnvdB.ApplyReverse(gaindB);
+			float envdB = m_gainEnvdB.ApplyReverse(gaindB);
 
-			// Adjust gain			
+			// Adjust gain		
+			float makeUpGain = 1.f;
 			if (true == autoGain)
 			{
-				// Some people talking about this: https://forum.hise.audio/topic/1965/dynamics-comp-makeup-values/9 
-				const float attenuation = thresholddB;
-				const float autoGaindB = slope * (attenuation * -1.f) * 0.707f;
-				m_autoGainDiff = autoGaindB + m_autoGainCoeff*(m_autoGainDiff-autoGaindB);
-				gaindB += m_autoGainDiff;
+				// FIXME: can use coefficient here
+				const float makeUpdB = fabsf(thresholddB/ratio);
+				makeUpGain = dB2Lin(makeUpdB);
 			}
 			else
 			{
 				// Apply post gain (manual)
-				gaindB += postGaindB;
+				envdB += postGaindB;
 			}
 		
 			// Convert to final linear gain
-			const float gain = dB2Lin(m_gainEnvdB.ApplyReverse(gaindB));
+			const float gain = dB2Lin(envdB) * makeUpGain;
 
 			if (deltadB < 0.f)
 				bite += 1.f; // Register "bite"

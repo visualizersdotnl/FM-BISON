@@ -20,8 +20,8 @@
 namespace SFM
 {
 	// Constant local parameters
-	constexpr float kCompRMSWindowSec      = 0.005f; // 5MS
-	constexpr float kCompLookaheadMS       =   10.f; // 10MS (5MS-10MS seems to be an acceptable range in the audio world)
+	constexpr float kCompRMSWindowSec      = 0.400f; // 400MS (EBU R 128 'Momentary', https://tech.ebu.ch/docs/tech/tech3341.pdf)
+	constexpr float kCompLookaheadMS       =   10.f; //  10MS (5MS-10MS seems to be an acceptable range in the audio world)
 	constexpr float kCompAutoGainSlewInSec = 0.100f; // 100MS
 
 	class Compressor
