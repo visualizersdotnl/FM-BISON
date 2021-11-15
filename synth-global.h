@@ -183,7 +183,7 @@ namespace SFM
 
 	// Usual magnitude (gain) response at cutoff point (it's 1.0/SQRT(2.0)) (Biquad, name coined by Nigel Redmon)
 	// Often default Q
-	constexpr float kDefGainAtCutoff = 0.707106769f;
+	constexpr float kDefGainAtCutoff = 0.707106769f; // It's where the poles make a perfect 45 degree angle with the axis!
 
 	// ----------------------------------------------------------------------------------------------
 	// Tube distortion
