@@ -18,7 +18,7 @@
 namespace SFM
 {
 	// Use the peak filter to tweak Q to a sort of satisfactory shape: https://www.earlevel.com/main/2013/10/13/biquad-calculator-v2/
-	constexpr float kMidQ = kDefGainAtCutoff; // kPI*2.f;
+	constexpr float kMidQ = kNormalGainAtCutoff; // kPI*2.f;
 
 	// Centre frequencies (I hope, also, looked at https://blog.landr.com/eq-basics-everything-musicians-need-know-eq/ for ref.)
 	constexpr float kLoHz  = 80.f;
@@ -60,8 +60,8 @@ namespace SFM
 			m_trebleShelf.process(hiL, hiR);
 
 			// Not sure if this is right at all, I'll keep the ticket open, but it does the trick for now
-			sampleL = (loL+hiL)*kDefGainAtCutoff;
-			sampleR = (loR+hiR)*kDefGainAtCutoff;
+			sampleL = (loL+hiL)*kNormalGainAtCutoff;
+			sampleR = (loR+hiR)*kNormalGainAtCutoff;
 		}
 		
 		// Code duplication, but what are we going to do about it outside of a huge overhaul?
@@ -78,7 +78,7 @@ namespace SFM
 			float HI = sample;
 			HI = m_trebleShelf.processMono(HI);
 
-			return (LO+HI)*kDefGainAtCutoff;
+			return (LO+HI)*kNormalGainAtCutoff;
 		}
 
 	private:

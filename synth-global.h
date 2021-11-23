@@ -181,9 +181,10 @@ namespace SFM
 	constexpr float kMaxPostFilterCutoffHz = 22050.f;
 	constexpr float kPostFilterCutoffRange = kMaxPostFilterCutoffHz-kMinPostFilterCutoffHz;
 
-	// Usual magnitude (gain) response at cutoff point (it's 1.0/SQRT(2.0)) (Biquad, name coined by Nigel Redmon)
-	// Often default Q
-	constexpr float kDefGainAtCutoff = 0.707106769f; // It's where the poles make a perfect 45 degree angle with the axis!
+	// Normal magnitude (gain) response at cutoff point (it's 1.0/SQRT(2.0)) (Biquad, name more or less coined by Nigel Redmon)
+	// Also: https://www.youtube.com/watch?v=f8ITRgPgzmY&ab_channel=Lantertronics-AaronLanterman
+	// Often default Q; it's where the poles make a perfect 45 degree angle with the axis!
+	constexpr float kNormalGainAtCutoff = 0.707106769f; 
 
 	// ----------------------------------------------------------------------------------------------
 	// Tube distortion
@@ -370,7 +371,7 @@ namespace SFM
 	// ----------------------------------------------------------------------------------------------
 
 	constexpr float kLowCutHz =  20.f;
-	constexpr float kLowCutQ  =  kDefGainAtCutoff;
+	constexpr float kLowCutQ  =  kNormalGainAtCutoff;
 //	constexpr float kLowCutdB = -64.f;
 };
 

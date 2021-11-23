@@ -200,7 +200,7 @@ namespace SFM
 			}
 
 			// Cut lower end
-			constexpr float Q = kDefGainAtCutoff*kPI*0.5f;
+			constexpr float Q = kNormalGainAtCutoff*kPI*0.5f; // Totally arbitrary.. (FIXME?)
 			m_HPF.setBiquad(bq_type_highpass, frequency/m_sampleRate, Q, 0.f);
 		}
 		
