@@ -186,7 +186,7 @@ namespace SFM
 
 			// FIXME: more?
 
-			return int(ceilf(latency));
+			return int(latency);
 		}
 		
 		// Value can be used to visually represent compressor "bite" (when RMS falls below threshold dB)

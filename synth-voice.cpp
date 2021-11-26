@@ -233,8 +233,9 @@ namespace SFM
 				for (int iModulator : voiceOp.modulators)
 				{
 					SFM_ASSERT(-1 == iModulator || iModulator < kNumOperators);
-					phaseShift += m_modSamples[iModulator+1];
-//					phaseShift += modSamples[iModulator+1];
+					if (-1 != iModulator)
+						phaseShift += 1.f+m_modSamples[iModulator+1];
+//						phaseShift += modSamples[iModulator+1];
 				}
 				
 				// Get feedback

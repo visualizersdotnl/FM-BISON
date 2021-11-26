@@ -39,7 +39,7 @@ namespace SFM
 			m_frequency = frequency;
 			m_sampleRate = sampleRate;
 			m_pitch = CalculatePitch(frequency, sampleRate);
-			m_phase = fmodf(phaseShift, 1.f);
+			m_phase = fmodf(fabsf(phaseShift), 1.f);
 
 			SFM_ASSERT(m_phase >= 0.f && m_phase <= 1.f);
 		}
