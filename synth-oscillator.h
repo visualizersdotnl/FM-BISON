@@ -87,7 +87,7 @@ namespace SFM
 			Initialize(kNone, 0.f, sampleRate, 0.0);
 		}
 
-		void Initialize(Waveform form, float frequency, unsigned sampleRate, float phaseShift, float supersawDetune = 0.f, float supersawMix = 0.f);
+		void Initialize(Waveform form, float frequency, unsigned sampleRate, float phaseShift /* Can be negative */, float supersawDetune = 0.f, float supersawMix = 0.f);
 
 		SFM_INLINE void PitchBend(float bend)
 		{
@@ -143,7 +143,7 @@ namespace SFM
 			return m_supersaw;
 		}
 
-		float Sample(float phaseShift);
+		float Sample(float phaseShift /* Can be negative */);
 	};
 }
 

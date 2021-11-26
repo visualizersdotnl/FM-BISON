@@ -77,6 +77,7 @@ namespace SFM
 			// Sync. oscillator on key press
 			bool keySync;
 			
+			// FIXME: working on cross modulation
 			// Indices: -1 means none; modulators must be higher up (see impl. in synth-voice.cpp)
 			unsigned modulators[3], feedback;
 

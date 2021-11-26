@@ -33,6 +33,10 @@ namespace SFM
 		m_state = kIdle;
 		m_sustained = false;
 
+		// Reset
+		for (float &modSample : m_modSamples)
+			modSample = 0.f;
+
 		// LFO
 		m_LFO1   = Oscillator(sampleRate);
 		m_LFO2   = Oscillator(sampleRate);
@@ -184,13 +188,17 @@ namespace SFM
 		// Process all operators top-down
 		// This imposes the limitation that an operator can only be modulated by one below it
 		//
+		// FIXME: working on cross modulation
+		//
         
-		alignas(16) float modSamples[kNumOperators] = { 0.f }; // Samples for modulation
+		// FIXME: working on cross modulation
+//		alignas(16) float modSamples[kNumOperators+1] = { 0.f }; // Samples for modulation (plus one for index -1)
 		float mixL = 0.f, mixR = 0.f; // Carrier mix
 
-		for (int iOp = kNumOperators-1; iOp >= 0; --iOp)
+		// FIXME: working on cross modulation
+//		for (int iOp = kNumOperators-1; iOp >= 0; --iOp)
+		for (int iOp = 0; iOp < kNumOperators; ++iOp)
 		{
-			// Top-down
 			Operator &voiceOp = m_operators[iOp];
 
 			if (true == voiceOp.enabled)
@@ -219,22 +227,14 @@ namespace SFM
 					oscillator.GetSupersaw().SetFrequency(curFreq, curDetune, curMix);
 				}
 
-				// Get modulation from max. 3 sources
+				// FIXME: working on cross modulation
+				// Get modulation from 3 sources
 				float phaseShift = 0.f;
-				for (unsigned iMod = 0; iMod < 3; ++iMod)
+				for (int iModulator : voiceOp.modulators)
 				{
-					const int iModulator = voiceOp.modulators[iMod];
-
-					// Sanity checks
 					SFM_ASSERT(-1 == iModulator || iModulator < kNumOperators);
-					SFM_ASSERT(-1 == iModulator || iModulator > iOp);
-
-					if (-1 != iModulator) // By branching here I'm potentially sparing an fmodf() in Oscillator::Sample()
-					{
-						// Add sample to phase
-						const float sample = modSamples[iModulator];
-						phaseShift += 1.f+sample;
-					}
+					phaseShift += m_modSamples[iModulator+1];
+//					phaseShift += modSamples[iModulator+1];
 				}
 				
 				// Get feedback
@@ -303,8 +303,10 @@ namespace SFM
 					// Only apply if modulator filter set (only applied to a few waveforms)
 					voiceOp.modFilter.tickMono(modSample);
 				}
-
-				modSamples[iOp] = modSample;
+				
+				// FIXME: working on cross modulation
+//				modSamples[iOp+1] = modSample;
+				m_modSamples[iOp+1] = modSample;
 
 				// Apply (linear) amplitude to sample (including possible 'bend')
 				sample *= curAmplitude*ampBend;

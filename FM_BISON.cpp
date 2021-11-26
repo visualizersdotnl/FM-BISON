@@ -701,6 +701,9 @@ namespace SFM
 	{
 		Voice &voice = m_voices[iVoice];
 
+		// FIXME: working on cross modulation
+		voice.Reset(m_sampleRate);
+
 		// No voice reset, this function should initialize all necessary components
 		// and be able to use previous values such as oscillator phase to enable/disable
 
@@ -849,6 +852,9 @@ namespace SFM
 	void Bison::InitializeMonoVoice(const VoiceRequest &request)
 	{
 		Voice &voice = m_voices[0];
+
+		// FIXME: working on cross modulation
+		voice.Reset(m_sampleRate);
 
 		// No voice reset, this function should initialize all necessary components
 		// and be able to use previous values such as oscillator phase to enable/disable

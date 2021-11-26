@@ -51,6 +51,9 @@ namespace SFM
 		// Can be true in all non-kIdle states
 		bool m_sustained;
 
+		// FIXME: working on cross modulation
+		float m_modSamples[kNumOperators+1]; // First slot for index -1
+
 		struct Operator
 		{
 			bool enabled;

@@ -47,7 +47,7 @@ namespace SFM
 		
 		const float modulated = (0.f == phaseShift) // Not calling fmodf() certainly warrants a comparison and branch
 			? phase // Gauranteed to be [0..1]
-			: fmodf(phase+phaseShift, 1.f);
+			: fmodf(phase+fabsf(phaseShift), 1.f); // Using fabsf() works out and on most IEEE-compliant platforms, should be cheap
 		
 		// Calculate signal (switch statement has never shown up during profiling)
 		float signal = 0.f;
