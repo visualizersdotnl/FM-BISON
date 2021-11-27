@@ -239,8 +239,11 @@ namespace SFM
 
 	constexpr int kMinVolumedB   =  -100;
 	constexpr int kMaxVolumedB   =     3;
-	constexpr int kDefVolumedB   =    -9;
 	constexpr int kVolumeRangedB = kMaxVolumedB-kMinVolumedB;
+
+	// At -12dB a single pure sine at max. amplitude yields -16dB, the idea being that at this 
+	// volume you can start adding layers without running into the red too quickly
+	constexpr int kDefVolumedB = -12; 
 
 	// Nicked from juce::Decibels
 	constexpr float kInfdB  = -100.f; 
