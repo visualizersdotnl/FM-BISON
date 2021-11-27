@@ -1616,7 +1616,8 @@ namespace SFM
 
 			const bool noFilter = SvfLinearTrapOptimised2::NO_FLT_TYPE == context.filterType;
 			auto& filterEG      = voice.m_filterEnvelope;
-					
+			
+			// FIXME: split up in passes, so as to trade memory bandwidth for reduced read cache (misses)?
 			for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 			{
 				const float sampAftertouch = curAftertouch.Sample();

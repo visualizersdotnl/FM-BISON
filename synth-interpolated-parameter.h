@@ -27,7 +27,7 @@
 	FIXME: 
 	- Replace JUCE implementation (also in other places where juce::SmoothedValue is used)
 	- Due to the nature of adding floating point values not being precise, it over- or undershoots
-	- Working with double prec. internally to migitate the above
+	- Working with double prec. internally to migitate the above (FIXME: remove after edge cases fixed)
 	- I'm not entirely happy with the latter 2 constructors, the top one becomes ambiguous when I set the last
 	  parameter to a default value (kDefParameterLatency), which is the case 99% of the time
 */
