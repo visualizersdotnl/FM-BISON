@@ -76,7 +76,7 @@ namespace SFM
 
 			// Indices: -1 means none, modulator indices must be larger than operator index
 			int modulators[3], iFeedback;
-			bool noModulation; // Small optimization (see Voice::Render())
+			bool noModulation; // Small optimization (see Voice::Render()), initialized by PostInitialize()
 
 			// Feedback (R)
 			// See: https://www.reddit.com/r/FMsynthesis/comments/85jfrb/dx7_feedback_implementation/

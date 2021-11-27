@@ -59,6 +59,22 @@ namespace SFM
 		// Clear modulation buffer
 		for (float &modSample : m_modSamples)
 			modSample = 0.f;
+		
+		// Set (optimization) flag
+		for (auto &voiceOp : m_operators)
+		{
+			voiceOp.noModulation = true;
+
+			for (auto index : voiceOp.modulators)
+			{
+				if (-1 != index)
+				{
+					voiceOp.noModulation = false;
+
+					break;
+				}
+			}
+		}
 	}
 
 	bool Voice::IsDone() /* const */
@@ -134,10 +150,7 @@ namespace SFM
 
 	void Voice::Sample(float &left, float &right, float pitchBend, float ampBend, float modulation, float LFOBlend, float LFOModDepth)
 	{
-		//
 		// Render?
-		//
-	    
 		if (kIdle == m_state || m_sampleOffs > 0)
 		{
 			SFM_ASSERT(kIdle != m_state); // Idle voices shouldn't be sampled
@@ -151,20 +164,14 @@ namespace SFM
 			return;
 		}
 		
-		//
 		// Parameter assertions
-		//
-
 		SFM_ASSERT(ampBend >= dB2Lin(-kAmpBendRange) && ampBend <= dB2Lin(kAmpBendRange)); // Linear gain
-		SFM_ASSERT(pitchBend >= -1.f && pitchBend <= 1.f);
-		SFM_ASSERT(modulation >= 0.f && modulation <= 1.f);
-		SFM_ASSERT(LFOBlend >= 0.f && LFOBlend <= 1.f);
+		SFM_ASSERT_BINORM(pitchBend);
+		SFM_ASSERT_NORM(modulation);
+		SFM_ASSERT_NORM(LFOBlend);
 		SFM_ASSERT(LFOModDepth >= 0.f);
 		
-		//
 		// Calculate LFO value
-		//
-		
 		const float modLFO = m_modLFO.Sample(0.f);
 
 		auto modulate = [](float input, float modulation, float depth)
@@ -181,10 +188,7 @@ namespace SFM
 
 		SFM_ASSERT_BINORM(LFO);
         
-		//
 		// Calc. pitch envelope & bend multipliers
-		//
-		
 		const float pitchRangeOct = m_pitchBendRange/12.f;
 		const float pitchEnv = powf(2.f, m_pitchEnvelope.Sample(false)*pitchRangeOct); // Sample pitch envelope (does not sustain!)
 		pitchBend = powf(2.f, pitchBend*pitchRangeOct);
@@ -256,7 +260,7 @@ namespace SFM
 				oscillator.PitchBend(vibrato);
 
 				// Calculate sample
-				float sample = oscillator.Sample(phaseShift);//+feedback);
+				float sample = oscillator.Sample(phaseShift+feedback);
 
 				// LFO tremolo
 				const float tremolo = 1.f - fabsf(LFO*voiceOp.ampMod);
@@ -309,10 +313,9 @@ namespace SFM
 				sample *= curAmplitude*ampBend;
 
 				// Add sample to gain envelope (for VU meter)
-				const float absModSample = fabsf(modSample);                     
 				const float gainSample = (voiceOp.isCarrier)   // Carrier prioritized if both (FIXME?)
 					? sample                                   // Adj. for actual volume
-					: absModSample/(kEpsilon+curIndex);        // Normalized (with a little hack that prevents a branch to check for zero, which in turn *might* push the value a teensy bit (kEpsilon) out of range)
+					: fabsf(modSample)/(kEpsilon+curIndex);    // Normalized (with a little hack that prevents a branch to check for zero, which in turn *might* push the value a teensy bit (kEpsilon) out of range)
 				voiceOp.envGain.Apply(gainSample);
 
 				// Update feedback

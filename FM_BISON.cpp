@@ -696,17 +696,6 @@ namespace SFM
 
 	 ------------------------------------------------------------------------------------------------------ */
 	
-	SFM_INLINE static bool OpHasNoModulation(const PatchOperators::Operator& patchOp)
-	{
-		for (auto index : patchOp.modulators)
-		{
-			if (-1 != index)
-				return false;
-		}
-
-		return true;
-	}
-
 	// Initialize new voice
 	void Bison::InitializeVoice(const VoiceRequest &request, unsigned iVoice)
 	{
@@ -816,7 +805,6 @@ namespace SFM
 				voiceOp.modulators[0] = patchOp.modulators[0];
 				voiceOp.modulators[1] = patchOp.modulators[1];
 				voiceOp.modulators[2] = patchOp.modulators[2];
-				voiceOp.noModulation  = OpHasNoModulation(patchOp);
 
 				// Feedback
 				voiceOp.iFeedback   = patchOp.feedback;
@@ -991,7 +979,6 @@ namespace SFM
 				voiceOp.modulators[0] = patchOp.modulators[0];
 				voiceOp.modulators[1] = patchOp.modulators[1];
 				voiceOp.modulators[2] = patchOp.modulators[2];
-				voiceOp.noModulation  = OpHasNoModulation(patchOp);
 
 				// Feedback
 				voiceOp.iFeedback   = patchOp.feedback;
