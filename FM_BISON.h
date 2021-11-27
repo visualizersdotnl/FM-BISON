@@ -373,16 +373,16 @@ namespace SFM
 		bool m_sustain;
 
 		// Per-sample interpolated global parameters
-		InterpolatedParameter<kLinInterpolate> m_curLFOBlend;
-		InterpolatedParameter<kLinInterpolate> m_curLFOModDepth;
-		InterpolatedParameter<kLinInterpolate> m_curCutoff;
-		InterpolatedParameter<kLinInterpolate> m_curQ;
+		InterpolatedParameter<kLinInterpolate, true> m_curLFOBlend;
+		InterpolatedParameter<kLinInterpolate, true> m_curLFOModDepth;
+		InterpolatedParameter<kLinInterpolate, true, kSVFMinFilterCutoffHz, kSVFMaxFilterCutoffHz> m_curCutoff; // SVF filter, in Hz
+		InterpolatedParameter<kLinInterpolate, true, kSVFMinFilterQ, kSVFMaxFilterQ> m_curQ;                    // Minimum in this case is kSVFMinFilterQ (asserted)
 
 		// Not in patch but supplied as parameters:
-		InterpolatedParameter<kLinInterpolate> m_curPitchBend;
-		InterpolatedParameter<kLinInterpolate> m_curAmpBend; // Gain
-		InterpolatedParameter<kLinInterpolate> m_curModulation;
-		InterpolatedParameter<kLinInterpolate> m_curAftertouch;
+		InterpolatedParameter<kLinInterpolate, true, -1.f, 1.f> m_curPitchBend; // 'bendWheel' = [-1..1]
+		InterpolatedParameter<kLinInterpolate, false> m_curAmpBend;             // Gain
+		InterpolatedParameter<kLinInterpolate, true> m_curModulation;           // [-1..1]
+		InterpolatedParameter<kLinInterpolate, true> m_curAftertouch;           //
 	
 		// Effects
 		PostPass *m_postPass = nullptr;

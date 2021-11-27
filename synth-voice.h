@@ -60,7 +60,7 @@ namespace SFM
 			
 			// Frequency
 			float setFrequency; // As calculated by CalcOpFreq()
-			InterpolatedParameter<kMulInterpolate> curFreq;
+			InterpolatedParameter<kMulInterpolate, false> curFreq;
 
 			// Detune offset (used in jitter)
 			float detuneOffs;
@@ -69,18 +69,19 @@ namespace SFM
 			float keyTracking;
 
 			// Oscillator, amplitude & envelope
-			InterpolatedParameter<kLinInterpolate> amplitude; // (R)
-			InterpolatedParameter<kLinInterpolate> index;     // (R)
+			InterpolatedParameter<kLinInterpolate, true> amplitude; // (R)
+			InterpolatedParameter<kLinInterpolate, true> index;     // (R)
 			Oscillator oscillator;
 			Envelope envelope;
 
 			// Indices: -1 means none, modulator indices must be larger than operator index
+			// Yes, this means there is 1 frame of delay, but @ 44.1kHz that amounts to: 2,2675736961451247165532879818594e-5 and that value only gets smaller;
 			int modulators[3], iFeedback;
 			bool noModulation; // Small optimization (see Voice::Render()), initialized by PostInitialize()
 
 			// Feedback (R)
 			// See: https://www.reddit.com/r/FMsynthesis/comments/85jfrb/dx7_feedback_implementation/
-			InterpolatedParameter<kLinInterpolate> feedbackAmt;
+			InterpolatedParameter<kLinInterpolate, true> feedbackAmt;
 			float feedback; // Operator feedback
 
 			// LFO influence
@@ -89,10 +90,10 @@ namespace SFM
 			float panMod;
 
 			// Drive (square) distortion (R)
-			InterpolatedParameter<kLinInterpolate> drive;
+			InterpolatedParameter<kLinInterpolate, false> drive;
 
 			// Panning ([0..1], 0.5 is center) (R)
-			InterpolatedParameter<kLinInterpolate> panning;
+			InterpolatedParameter<kLinInterpolate, true> panning;
 
 			// Is carrier (output)
 			bool isCarrier;
@@ -105,8 +106,8 @@ namespace SFM
 			FollowerEnvelope envGain;
 
 			// Supersaw parameters
-			InterpolatedParameter<kLinInterpolate> supersawDetune;
-			InterpolatedParameter<kLinInterpolate> supersawMix;
+			InterpolatedParameter<kLinInterpolate, true> supersawDetune;
+			InterpolatedParameter<kLinInterpolate, true> supersawMix;
 
 			// This function is called by Voice::Reset()
 			void Reset(unsigned sampleRate)

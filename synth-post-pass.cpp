@@ -149,14 +149,16 @@ namespace SFM
 		SFM_ASSERT(cpRate >= 0.f && cpRate <= 1.f);
 		SFM_ASSERT(cpWet  >= 0.f && cpWet  <= 1.f);
 		SFM_ASSERT(delayInSec >= 0.f && delayInSec <= kMainDelayInSec);
-		SFM_ASSERT(delayWet >= 0.f && delayWet <= 1.f);
+		SFM_ASSERT_NORM(delayWet);
 		SFM_ASSERT(delayDrivedB >= kMinDelayDrivedB && delayDrivedB <= kMaxDelayDrivedB);
-		SFM_ASSERT(delayFeedback >= 0.f && delayFeedback <= 1.f);
+		SFM_ASSERT_NORM(delayFeedback);
 		SFM_ASSERT_NORM(delayTapeWow);
-		SFM_ASSERT(postCutoff >= 0.f && postCutoff <= 1.f);
-//		SFM_ASSERT(postReso >= 0.f && postReso <= 1.f); // FIXME: ?
+		SFM_ASSERT_NORM(delayFeedbackCutoff);
+		// tapewow..
+		SFM_ASSERT_NORM(postCutoff);
+		SFM_ASSERT_NORM(postReso);
 		SFM_ASSERT(masterVoldB >= kMinVolumedB && masterVoldB <= kMaxVolumedB);
-		SFM_ASSERT(tubeDistort >= 0.f && tubeDistort <= 1.f);
+		SFM_ASSERT_NORM(tubeDistort);
 		SFM_ASSERT(tubeDrive >= kMinTubeDrive && tubeDrive <= kMaxTubeDrive);
 		SFM_ASSERT(tubeOffset >= kMinTubeOffset && tubeOffset <= kMaxTubeOffset);
 		SFM_ASSERT_NORM(tubeTone);

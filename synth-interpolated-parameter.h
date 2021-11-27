@@ -23,13 +23,13 @@
 	</>
 
 	I'm not fixing this as long as we use juce::SmoothedValue.
+
+	IMPORTANT: use the clamp feature for values that should *not* go out of range; if a small under- or overshoot is
+	           no problem, please set it to false and save yourself a few branches
 	
 	FIXME: 
 	- Replace JUCE implementation (also in other places where juce::SmoothedValue is used)
-	- Due to the nature of adding floating point values not being precise, it over- or undershoots
-	- Working with double prec. internally to migitate the above (FIXME: remove after edge cases fixed)
-	- I'm not entirely happy with the latter 2 constructors, the top one becomes ambiguous when I set the last
-	  parameter to a default value (kDefParameterLatency), which is the case 99% of the time
+	- Model own implementation after this one
 */
 
 #pragma once
@@ -44,7 +44,8 @@ namespace SFM
 	typedef juce::ValueSmoothingTypes::Linear kLinInterpolate;
 	typedef juce::ValueSmoothingTypes::Multiplicative kMulInterpolate; // Target value may *never* be zero!
 
-	template <typename T> class InterpolatedParameter
+	template <typename T, bool clamp, float minimum = 0.f, float maximum = 1.f> 
+	class InterpolatedParameter
 	{
 	public:
 		// Default: zero
@@ -75,15 +76,14 @@ namespace SFM
 
 		SFM_INLINE float Sample()
 		{
-//			const float target = GetTarget();
-			const double result = m_value.getNextValue();
-			return (float) result;
+			const float result = m_value.getNextValue();
+			return (clamp) ? jlimit<float>(minimum, maximum, result) : result;
 		}
 
 		SFM_INLINE float Get() const
 		{
-			return (float) m_value.getCurrentValue();
-		}
+			const float result = m_value.getCurrentValue();
+			return (clamp) ? jlimit<float>(minimum, maximum, result) : result;		}
 
 		// Set current & target
 		SFM_INLINE void Set(float value)
@@ -128,7 +128,6 @@ namespace SFM
 		}
 
 	private:
-//		juce::SmoothedValue<float, T> m_value;
-		juce::SmoothedValue<double, T> m_value;
+		juce::SmoothedValue<float, T> m_value;
 	};
 };

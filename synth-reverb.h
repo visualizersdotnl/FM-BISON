@@ -153,7 +153,7 @@ namespace SFM
 
 		SFM_INLINE void SetRoomSize(float size)
 		{
-			SFM_ASSERT(size >= 0.f && size <= 1.f);
+			SFM_ASSERT_NORM(size);
 			size *= kReverbMaxRoomSize;
 			
 			// Taken from ref. implementation
@@ -165,14 +165,14 @@ namespace SFM
 		
 		SFM_INLINE void SetDampening(float dampening)
 		{
-			SFM_ASSERT(dampening >= 0.f && dampening <= 1.f);
+			SFM_ASSERT_NORM(dampening);
 			dampening *= 0.4f; // Taken from ref. implementation
 			m_dampening = dampening;			
 		}
 
 		SFM_INLINE void SetPreDelay(float preDelay)
 		{
-			SFM_ASSERT(preDelay >= 0.f && preDelay <= 1.f);
+			SFM_ASSERT_NORM(preDelay);
 			m_preDelay = preDelay;
 		}
 
@@ -197,12 +197,12 @@ namespace SFM
 		float m_preDelay;
 
 		// Interpolated parameters
-		InterpolatedParameter<kLinInterpolate> m_curWet;
-		InterpolatedParameter<kLinInterpolate> m_curWidth;
-		InterpolatedParameter<kLinInterpolate> m_curRoomSize;
-		InterpolatedParameter<kLinInterpolate> m_curDampening;
-		InterpolatedParameter<kLinInterpolate> m_curPreDelay;
-		InterpolatedParameter<kLinInterpolate> m_curBassdB, m_curTrebledB;
+		InterpolatedParameter<kLinInterpolate, true> m_curWet;
+		InterpolatedParameter<kLinInterpolate, true, kMinReverbWidth, kMaxReverbWidth> m_curWidth;
+		InterpolatedParameter<kLinInterpolate, true> m_curRoomSize;
+		InterpolatedParameter<kLinInterpolate, true> m_curDampening;
+		InterpolatedParameter<kLinInterpolate, true> m_curPreDelay;
+		InterpolatedParameter<kLinInterpolate, false> m_curBassdB, m_curTrebledB;
 
 		// Single buffer is used for all passes, this likely favors cache (FIXME: check)
 		size_t m_totalBufSize;

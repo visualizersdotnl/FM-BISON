@@ -1572,7 +1572,7 @@ namespace SFM
 			voice.m_modLFO.SetSampleAndHoldSlewRate(slewRate);
 
 			// Global amp. allows use to fade the voice in and out within this frame
-			InterpolatedParameter<kLinInterpolate> globalAmp(1.f, numSamples);
+			InterpolatedParameter<kLinInterpolate, true> globalAmp(1.f, numSamples);
 
 			if (true == voice.IsStolen())
 			{
@@ -1687,10 +1687,10 @@ namespace SFM
 	
 	void Bison::Render(unsigned numSamples, float bendWheel, float modulation, float aftertouch, float *pLeft, float *pRight)
 	{
-		SFM_ASSERT(bendWheel  >= -1.f && bendWheel  <= 1.f);
-		SFM_ASSERT(modulation >=  0.f && modulation <= 1.f);
-		SFM_ASSERT(aftertouch >=  0.f && aftertouch <= 1.f);
-
+		SFM_ASSERT_BINORM(bendWheel); 
+		SFM_ASSERT_NORM(modulation);
+		SFM_ASSERT_NORM(aftertouch); 
+		
 		SFM_ASSERT(nullptr != pLeft && nullptr != pRight);
 		SFM_ASSERT(nullptr != m_pBufL[0] && nullptr != m_pBufR[0]);
 		SFM_ASSERT(nullptr != m_pBufL[1] && nullptr != m_pBufR[1]);
@@ -1797,6 +1797,9 @@ namespace SFM
 
 		const float fullCutoff = SVF_CutoffToHz(1.f, m_Nyquist); // Full cutoff used to apply DCF
 
+		SFM_ASSERT_NORM(normCutoff);
+		SFM_ASSERT_NORM(normQ);
+
 		float Q;
 		switch (m_patch.filterType)
 		{
@@ -1829,6 +1832,7 @@ namespace SFM
 		}
 		
 		// Set correct Q
+		SFM_ASSERT(Q >= kSVFMinFilterQ);
 		m_curQ.SetTarget(Q);
 
 		// Switched filter type?

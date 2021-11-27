@@ -92,9 +92,9 @@ namespace SFM
 		Biquad m_trebleShelf;
 		Biquad m_midPeak;
 
-		InterpolatedParameter<kLinInterpolate> m_bassdB;
-		InterpolatedParameter<kLinInterpolate> m_trebledB;
-		InterpolatedParameter<kLinInterpolate> m_middB;
+		InterpolatedParameter<kLinInterpolate, false> m_bassdB;
+		InterpolatedParameter<kLinInterpolate, false> m_trebledB;
+		InterpolatedParameter<kLinInterpolate, false> m_middB;
 		
 		// Only called if necessary
 		SFM_INLINE void SetBiquads()

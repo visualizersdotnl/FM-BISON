@@ -56,19 +56,19 @@ namespace SFM
 
 		SFM_INLINE void SetParameters(float resonance, float attack, float hold, float rate, float drivedB, float speak, float speakVowel, float speakVowelMod, float speakGhost, float speakCut, float speakReso, float cut, float wetness)
 		{
-			SFM_ASSERT(resonance >= 0.f && resonance <= 1.f);
+			SFM_ASSERT_NORM(resonance);
 			SFM_ASSERT(attack >= kMinWahAttack && attack <= kMaxWahAttack);
 			SFM_ASSERT(hold >= kMinWahHold && hold <= kMaxWahHold);
 			SFM_ASSERT(rate >= kMinWahRate && rate <= kMaxWahRate);
 			SFM_ASSERT(drivedB >= kMinWahDrivedB && drivedB <= kMaxWahDrivedB);
-			SFM_ASSERT(speak >= 0.f && speak <= 1.f);
+			SFM_ASSERT_NORM(speak);
 			SFM_ASSERT(speakVowel >= 0.f && speakVowel <= kMaxWahSpeakVowel);
-			SFM_ASSERT(speakVowelMod >= 0.f && speakVowelMod <= 1.f);
-			SFM_ASSERT(speakGhost >= 0.f && speakGhost <= 1.f);
-			SFM_ASSERT(speakCut >= 0.f && speakCut <= 1.f);
-			SFM_ASSERT(speakReso >= 0.f && speakReso <= 1.f);
-			SFM_ASSERT(cut >= 0.f && cut <= 1.f);
-			SFM_ASSERT(wetness >= 0.f && wetness <= 1.f);
+			SFM_ASSERT_NORM(speakVowelMod);
+			SFM_ASSERT_NORM(speakGhost);
+			SFM_ASSERT_NORM(speakCut);
+			SFM_ASSERT_NORM(speakReso);
+			SFM_ASSERT_NORM(cut);
+			SFM_ASSERT_NORM(wetness);
 
 			m_curResonance.SetTarget(resonance);
 			m_curAttack.SetTarget(attack);
@@ -107,18 +107,18 @@ namespace SFM
 		Oscillator m_LFO;
 
 		// Interpolated parameters
-		InterpolatedParameter<kLinInterpolate> m_curResonance;
-		InterpolatedParameter<kLinInterpolate> m_curAttack;
-		InterpolatedParameter<kLinInterpolate> m_curHold;
-		InterpolatedParameter<kLinInterpolate> m_curRate;
-		InterpolatedParameter<kLinInterpolate> m_curDrivedB;
-		InterpolatedParameter<kLinInterpolate> m_curSpeak;
-		InterpolatedParameter<kLinInterpolate> m_curSpeakVowel;
-		InterpolatedParameter<kLinInterpolate> m_curSpeakVowelMod;
-		InterpolatedParameter<kLinInterpolate> m_curSpeakGhost;
-		InterpolatedParameter<kLinInterpolate> m_curSpeakCut;
-		InterpolatedParameter<kLinInterpolate> m_curSpeakReso;
-		InterpolatedParameter<kLinInterpolate> m_curCut;
-		InterpolatedParameter<kLinInterpolate> m_curWet;
+		InterpolatedParameter<kLinInterpolate, true> m_curResonance;
+		InterpolatedParameter<kLinInterpolate, true, kMinWahAttack, kMaxWahAttack> m_curAttack;
+		InterpolatedParameter<kLinInterpolate, true, kMinWahHold, kMaxWahHold> m_curHold;
+		InterpolatedParameter<kLinInterpolate, false> m_curRate;
+		InterpolatedParameter<kLinInterpolate, false> m_curDrivedB;
+		InterpolatedParameter<kLinInterpolate, true> m_curSpeak;
+		InterpolatedParameter<kLinInterpolate, true, 0.f, kMaxWahSpeakVowel> m_curSpeakVowel;
+		InterpolatedParameter<kLinInterpolate, true > m_curSpeakVowelMod;
+		InterpolatedParameter<kLinInterpolate, true> m_curSpeakGhost;
+		InterpolatedParameter<kLinInterpolate, true> m_curSpeakCut;
+		InterpolatedParameter<kLinInterpolate, true> m_curSpeakReso;
+		InterpolatedParameter<kLinInterpolate, true> m_curCut;
+		InterpolatedParameter<kLinInterpolate, true> m_curWet;
 	};
 }

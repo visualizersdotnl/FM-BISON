@@ -101,12 +101,12 @@ namespace SFM
 		DelayLine m_delayLineM;
 		DelayLine m_delayLineR;
 		CascadedSinglePoleLPF m_delayFeedbackLPF_L, m_delayFeedbackLPF_R;
-		InterpolatedParameter<kLinInterpolate> m_curDelayInSec;
-		InterpolatedParameter<kLinInterpolate> m_curDelayWet;
-		InterpolatedParameter<kLinInterpolate> m_curDelayDrive;
-		InterpolatedParameter<kLinInterpolate> m_curDelayFeedback;
-		InterpolatedParameter<kLinInterpolate> m_curDelayFeedbackCutoff;
-		InterpolatedParameter<kLinInterpolate> m_curDelayTapeWow;
+		InterpolatedParameter<kLinInterpolate, true, 0.f, kMainDelayInSec> m_curDelayInSec;
+		InterpolatedParameter<kLinInterpolate, true> m_curDelayWet;
+		InterpolatedParameter<kLinInterpolate, false> m_curDelayDrive;
+		InterpolatedParameter<kLinInterpolate, true> m_curDelayFeedback;
+		InterpolatedParameter<kLinInterpolate, true> m_curDelayFeedbackCutoff;
+		InterpolatedParameter<kLinInterpolate, true> m_curDelayTapeWow;
 		
 		// FIXME: enum. type
 		int m_chorusOrPhaser;
@@ -126,16 +126,16 @@ namespace SFM
 
 		// Post filter & interpolated parameters
 		MusicDSPMoog m_postFilter;
-		InterpolatedParameter<kLinInterpolate> m_curPostCutoff;
-		InterpolatedParameter<kLinInterpolate> m_curPostReso;
-		InterpolatedParameter<kLinInterpolate> m_curPostDrive;
-		InterpolatedParameter<kLinInterpolate> m_curPostWet;
+		InterpolatedParameter<kLinInterpolate, true> m_curPostCutoff;
+		InterpolatedParameter<kLinInterpolate, true> m_curPostReso;
+		InterpolatedParameter<kLinInterpolate, false> m_curPostDrive;
+		InterpolatedParameter<kLinInterpolate, true> m_curPostWet;
 
 		// Tube distortion filter (AA), DC blocker & interpolated parameters
-		InterpolatedParameter<kLinInterpolate> m_curTubeDist;
-		InterpolatedParameter<kLinInterpolate> m_curTubeDrive;
-		InterpolatedParameter<kLinInterpolate> m_curTubeOffset;
-		InterpolatedParameter<kLinInterpolate> m_curTubeTone; // Normalized cutoff
+		InterpolatedParameter<kLinInterpolate, true> m_curTubeDist;
+		InterpolatedParameter<kLinInterpolate, false> m_curTubeDrive;
+		InterpolatedParameter<kLinInterpolate, false> m_curTubeOffset;
+		InterpolatedParameter<kLinInterpolate, true> m_curTubeTone; // Normalized cutoff
 		SvfLinearTrapOptimised2 m_tubeToneFilter;
 		StereoDCBlocker m_tubeDCBlocker;	
 		
@@ -152,7 +152,7 @@ namespace SFM
 		CascadedSinglePoleLPF m_compressorBiteLPF;
 
 		// Misc.
-		InterpolatedParameter<kLinInterpolate> m_curEffectWet;
-		InterpolatedParameter<kLinInterpolate> m_curMasterVol;
+		InterpolatedParameter<kLinInterpolate, true> m_curEffectWet;
+		InterpolatedParameter<kLinInterpolate, false> m_curMasterVol;
 	};
 }

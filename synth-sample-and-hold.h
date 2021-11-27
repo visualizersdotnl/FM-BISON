@@ -66,6 +66,6 @@ namespace SFM
 
 		// State
 		float m_prevGate = -1.f;
-		InterpolatedParameter<kLinInterpolate> m_curSignal;
+		InterpolatedParameter<kLinInterpolate, false> m_curSignal;
 	};
 }

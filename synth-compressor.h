@@ -89,12 +89,12 @@ namespace SFM
 		float m_autoGainDiff = 0.f;
 
 		// Interpolated parameters
-		InterpolatedParameter<kLinInterpolate> m_curThresholddB;
-		InterpolatedParameter<kLinInterpolate> m_curKneedB;
-		InterpolatedParameter<kLinInterpolate> m_curRatio;
-		InterpolatedParameter<kLinInterpolate> m_curGaindB;
-		InterpolatedParameter<kLinInterpolate> m_curAttack;
-		InterpolatedParameter<kLinInterpolate> m_curRelease;
-		InterpolatedParameter<kLinInterpolate> m_curLookahead;
+		InterpolatedParameter<kLinInterpolate, false> m_curThresholddB;
+		InterpolatedParameter<kLinInterpolate, false> m_curKneedB;
+		InterpolatedParameter<kLinInterpolate, true, kMinCompRatio, kMaxCompRatio> m_curRatio;
+		InterpolatedParameter<kLinInterpolate, false> m_curGaindB;
+		InterpolatedParameter<kLinInterpolate, true, kMinCompAttack, kMaxCompAttack> m_curAttack;
+		InterpolatedParameter<kLinInterpolate, true, kMinCompRelease, kMaxCompRelease> m_curRelease;
+		InterpolatedParameter<kLinInterpolate, true> m_curLookahead;
 	};
 }
