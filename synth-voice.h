@@ -5,10 +5,9 @@
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	Important:
-		- An operator can only be modulated by an operator above it (as in index value)
-		- Feedback can be taken from any level
 		- This used to be a POD structure and it's not quite a C++ class (potential FIXME), initialization and manipulation of
 		  members, for a large part, happens in FM_BISON.cpp and the Sample() function
+		- (R) means (to be) interpolated per-sample; I might've forgotten to mark 1 or 2 though
 */
 
 #pragma once
@@ -105,7 +104,7 @@ namespace SFM
 			// Gain envelope
 			FollowerEnvelope envGain;
 
-			// Supersaw parameters
+			// Supersaw parameters (R)
 			InterpolatedParameter<kLinInterpolate, true> supersawDetune;
 			InterpolatedParameter<kLinInterpolate, true> supersawMix;
 
