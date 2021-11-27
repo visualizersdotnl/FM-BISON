@@ -696,13 +696,21 @@ namespace SFM
 
 	 ------------------------------------------------------------------------------------------------------ */
 	
+	SFM_INLINE static bool OpHasNoModulation(const PatchOperators::Operator& patchOp)
+	{
+		for (auto index : patchOp.modulators)
+		{
+			if (-1 != index)
+				return false;
+		}
+
+		return true;
+	}
+
 	// Initialize new voice
 	void Bison::InitializeVoice(const VoiceRequest &request, unsigned iVoice)
 	{
 		Voice &voice = m_voices[iVoice];
-
-		// FIXME: working on cross modulation
-		voice.Reset(m_sampleRate);
 
 		// No voice reset, this function should initialize all necessary components
 		// and be able to use previous values such as oscillator phase to enable/disable
@@ -804,10 +812,11 @@ namespace SFM
 				// Start envelope
 				voiceOp.envelope.Start(patchOp.envParams, m_sampleRate, patchOp.isCarrier, envKeyTracking, envAcousticScaling); 
 
-				// Modulation/Feedback sources
+				// Modulation sources
 				voiceOp.modulators[0] = patchOp.modulators[0];
 				voiceOp.modulators[1] = patchOp.modulators[1];
 				voiceOp.modulators[2] = patchOp.modulators[2];
+				voiceOp.noModulation  = OpHasNoModulation(patchOp);
 
 				// Feedback
 				voiceOp.iFeedback   = patchOp.feedback;
@@ -845,6 +854,9 @@ namespace SFM
 		// Store (new) index in key slot
 		SFM_ASSERT(-1 == GetVoice(key));
 		SetKey(key, iVoice);
+
+
+		voice.PostInitialize();
 	}
 
 	// Specialized function for monophonic voices
@@ -852,9 +864,6 @@ namespace SFM
 	void Bison::InitializeMonoVoice(const VoiceRequest &request)
 	{
 		Voice &voice = m_voices[0];
-
-		// FIXME: working on cross modulation
-		voice.Reset(m_sampleRate);
 
 		// No voice reset, this function should initialize all necessary components
 		// and be able to use previous values such as oscillator phase to enable/disable
@@ -978,10 +987,11 @@ namespace SFM
 
 				voiceOp.setFrequency = frequency;
 
-				// Modulation/Feedback sources
+				// Modulation sources
 				voiceOp.modulators[0] = patchOp.modulators[0];
 				voiceOp.modulators[1] = patchOp.modulators[1];
 				voiceOp.modulators[2] = patchOp.modulators[2];
+				voiceOp.noModulation  = OpHasNoModulation(patchOp);
 
 				// Feedback
 				voiceOp.iFeedback   = patchOp.feedback;
@@ -1022,6 +1032,9 @@ namespace SFM
 		// Store (new) index in key slot
 		SFM_ASSERT(-1 == GetVoice(key));
 		SetKey(key, 0);
+
+
+		voice.PostInitialize();
 	}
 
 	/* ----------------------------------------------------------------------------------------------------

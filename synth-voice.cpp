@@ -33,10 +33,6 @@ namespace SFM
 		m_state = kIdle;
 		m_sustained = false;
 
-		// Reset
-		for (float &modSample : m_modSamples)
-			modSample = 0.f;
-
 		// LFO
 		m_LFO1   = Oscillator(sampleRate);
 		m_LFO2   = Oscillator(sampleRate);
@@ -54,6 +50,15 @@ namespace SFM
 
 		// Def. glide
 		m_freqGlide = kDefPolyFreqGlide;
+
+		PostInitialize();
+	}
+
+	void Voice::PostInitialize()
+	{
+		// Clear modulation buffer
+		for (float &modSample : m_modSamples)
+			modSample = 0.f;
 	}
 
 	bool Voice::IsDone() /* const */
@@ -185,18 +190,11 @@ namespace SFM
 		pitchBend = powf(2.f, pitchBend*pitchRangeOct);
 
 		//
-		// Process all operators top-down
-		// This imposes the limitation that an operator can only be modulated by one below it
-		//
-		// FIXME: working on cross modulation
+		// Process all operators
 		//
         
-		// FIXME: working on cross modulation
-//		alignas(16) float modSamples[kNumOperators+1] = { 0.f }; // Samples for modulation (plus one for index -1)
 		float mixL = 0.f, mixR = 0.f; // Carrier mix
 
-		// FIXME: working on cross modulation
-//		for (int iOp = kNumOperators-1; iOp >= 0; --iOp)
 		for (int iOp = 0; iOp < kNumOperators; ++iOp)
 		{
 			Operator &voiceOp = m_operators[iOp];
@@ -227,15 +225,15 @@ namespace SFM
 					oscillator.GetSupersaw().SetFrequency(curFreq, curDetune, curMix);
 				}
 
-				// FIXME: working on cross modulation
 				// Get modulation from 3 sources
 				float phaseShift = 0.f;
-				for (int iModulator : voiceOp.modulators)
+				if (false == voiceOp.noModulation) // Passing zero phase shift saves us a relatively expensive (!) fmodf() in Oscillator::Sample()
 				{
-					SFM_ASSERT(-1 == iModulator || iModulator < kNumOperators);
-					if (-1 != iModulator)
-						phaseShift += 1.f+m_modSamples[iModulator+1];
-//						phaseShift += modSamples[iModulator+1];
+					for (int iModulator : voiceOp.modulators)
+					{
+						SFM_ASSERT(-1 == iModulator || iModulator < kNumOperators);
+						phaseShift += 1.f+m_modSamples[iModulator+1]; // Add one for positive in phase shift
+					}
 				}
 				
 				// Get feedback
@@ -258,7 +256,7 @@ namespace SFM
 				oscillator.PitchBend(vibrato);
 
 				// Calculate sample
-				float sample = oscillator.Sample(phaseShift+feedback);
+				float sample = oscillator.Sample(phaseShift);//+feedback);
 
 				// LFO tremolo
 				const float tremolo = 1.f - fabsf(LFO*voiceOp.ampMod);
@@ -305,8 +303,6 @@ namespace SFM
 					voiceOp.modFilter.tickMono(modSample);
 				}
 				
-				// FIXME: working on cross modulation
-//				modSamples[iOp+1] = modSample;
 				m_modSamples[iOp+1] = modSample;
 
 				// Apply (linear) amplitude to sample (including possible 'bend')

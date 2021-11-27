@@ -50,8 +50,8 @@ namespace SFM
 
 		// Can be true in all non-kIdle states
 		bool m_sustained;
-
-		// FIXME: working on cross modulation
+		
+		// Modulation buffer (1 sample delay, FIXME)
 		float m_modSamples[kNumOperators+1]; // First slot for index -1
 
 		struct Operator
@@ -76,6 +76,7 @@ namespace SFM
 
 			// Indices: -1 means none, modulator indices must be larger than operator index
 			int modulators[3], iFeedback;
+			bool noModulation; // Small optimization (see Voice::Render())
 
 			// Feedback (R)
 			// See: https://www.reddit.com/r/FMsynthesis/comments/85jfrb/dx7_feedback_implementation/
@@ -136,6 +137,7 @@ namespace SFM
 				modulators[0] = -1;
 				modulators[1] = -1;
 				modulators[2] = -1;
+				noModulation = true;
 
 				// No feedback input
 				iFeedback = -1;
@@ -200,6 +202,9 @@ namespace SFM
 
 	public:
 		void Reset(unsigned sampleRate);
+		
+		// Call after every initialization
+		void PostInitialize();
 
 		bool IsIdle()      const { return kIdle      == m_state; }
 		bool IsPlaying()   const { return kPlaying   == m_state; }
