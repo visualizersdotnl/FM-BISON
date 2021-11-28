@@ -61,8 +61,7 @@ namespace SFM
 ,		m_curDelayFeedbackCutoff(1.f, sampleRate, kDefParameterLatency)
 ,		m_curDelayTapeWow(0.f, sampleRate, kDefParameterLatency)
 		
-		// CP
-,		m_chorusOrPhaser(-1)
+		// Chorus/Phaser
 ,		m_chorusDL(sampleRate/10  /* 100MS max. chorus delay */)
 ,		m_chorusSweep(sampleRate), m_chorusSweepMod(sampleRate)
 ,		m_chorusSweepLPF1(kSweepCutoffHz/sampleRate), m_chorusSweepLPF2(kSweepCutoffHz/sampleRate)
@@ -94,8 +93,9 @@ namespace SFM
 ,		m_compressor(sampleRate)
 ,		m_compressorBiteLPF(kCompressorBiteCutHz/sampleRate)
 		
-		// CP wetness & master volume
-,		m_curEffectWet(0.f, sampleRate, kDefParameterLatency)
+		// Misc.
+,		m_curChorusWet(0.f, sampleRate, kDefParameterLatency)
+,		m_curPhaserWet(0.f, sampleRate, kDefParameterLatency)
 ,		m_curMasterVol(1.f, sampleRate, kDefParameterLatency)
 	{
 		// Allocate intermediate buffers
@@ -108,10 +108,9 @@ namespace SFM
 		// Set tape delay mod. frequency
 		m_tapeDelayLFO.Initialize(kTapeDelayHz, m_sampleRate);
 
-		// Set low kill/cut filter
+		// Set low kill (cut) filter
 		m_killLow.reset();
 		m_killLow.setBiquad(bq_type_highpass, kLowCutHz/sampleRate, kLowCutQ, 0.f);
-//		m_killLow.setBiquad(bq_type_highshelf, kLowCutHz/sampleRate, 0.f, kLowCutdB);
 	}
 
 	PostPass::~PostPass()
@@ -146,15 +145,14 @@ namespace SFM
 		SFM_ASSERT(nullptr != pLeftOut && nullptr != pRightOut);
 		SFM_ASSERT(numSamples > 0);
 		SFM_ASSERT(rateBPM >= 0.f);
-		SFM_ASSERT(cpRate >= 0.f && cpRate <= 1.f);
-		SFM_ASSERT(cpWet  >= 0.f && cpWet  <= 1.f);
+		SFM_ASSERT_NORM(cpRate);
+		SFM_ASSERT_NORM(cpWet);
 		SFM_ASSERT(delayInSec >= 0.f && delayInSec <= kMainDelayInSec);
 		SFM_ASSERT_NORM(delayWet);
 		SFM_ASSERT(delayDrivedB >= kMinDelayDrivedB && delayDrivedB <= kMaxDelayDrivedB);
 		SFM_ASSERT_NORM(delayFeedback);
 		SFM_ASSERT_NORM(delayTapeWow);
 		SFM_ASSERT_NORM(delayFeedbackCutoff);
-		// tapewow..
 		SFM_ASSERT_NORM(postCutoff);
 		SFM_ASSERT_NORM(postReso);
 		SFM_ASSERT(masterVoldB >= kMinVolumedB && masterVoldB <= kMaxVolumedB);
@@ -204,25 +202,17 @@ namespace SFM
 
 		 ------------------------------------------------------------------------------------------------------ */
 
-		// Effect type switch?
-		const bool effectSwitch = m_chorusOrPhaser != int(isChorus);
-
-		// Set effect wetness target
-		const auto curEffectWet = m_curEffectWet.Get(); // FIXME: necessary due to SetRate()
-		m_curEffectWet.SetRate(numSamples);
-
-		if (true == effectSwitch)
+		if (true == isChorus)
 		{
-			// Fade out FX before switching
-			m_curEffectWet.Set(curEffectWet);
-			m_curEffectWet.SetTarget(0.f);
+			m_curChorusWet.SetTarget(cpWet);
+			m_curPhaserWet.SetTarget(0.f);
 		}
 		else
 		{
-			m_curEffectWet.Set(curEffectWet);
-			m_curEffectWet.SetTarget(cpWet);
+			m_curChorusWet.SetTarget(0.f);
+			m_curPhaserWet.SetTarget(cpWet);
 		}
-	
+		
 		// Calculate delay & set delay mode
 		const float delay = (false == useBPM || true == overrideSyncDelay) ? delayInSec : 1.f/rateBPM;
 		SFM_ASSERT(delay >= 0.f && delay <= kMainDelayInSec);
@@ -249,12 +239,6 @@ namespace SFM
 			SetChorusRate(rateBPM, kMaxChorusRate/kMaxPhaserRate);
 			SetPhaserRate(rateBPM, 1.f);
 		}
-
-		// Set up function call to apply desired effect (chorus or phaser)
-		using namespace std::placeholders;
-		const std::function<void(float, float, float&, float&, float)> effectFunc((1 /* Chorus */ == m_chorusOrPhaser)
-			? std::bind(&PostPass::ApplyChorus, this, _1, _2, _3, _4, _5)
-			: std::bind(&PostPass::ApplyPhaser, this, _1, _2, _3, _4, _5));
 				
 		for (unsigned iSample = 0; iSample < numSamples; ++iSample)
 		{
@@ -268,13 +252,18 @@ namespace SFM
 			m_chorusDL.Write(left*0.5f + right*0.5f);
 			
 			//
-			// Apply effect
+			// Apply chorus & phaser
 			//
 
-			const float effectWet = m_curEffectWet.Sample();
+			const float chorusWet = m_curChorusWet.Sample();
+			const float phaserWet = m_curPhaserWet.Sample();
+
+			// Breaking my own 'execute the entire chain' rule here
+			if (chorusWet > 0.f) 
+				ApplyChorus(sampleL, sampleR, left, right, chorusWet);
 			
-			if (effectWet != 0.f)
-				effectFunc(sampleL, sampleR, left, right, effectWet); // Only if necessary
+			if (phaserWet > 0.f)
+				ApplyPhaser(left, right, left, right, phaserWet);
 
 			//
 			// Apply delay (always executed, for now, FIXME?)
@@ -508,6 +497,7 @@ namespace SFM
 
 #if !defined(SFM_DISABLE_FX)
 
+/*
 		// Reset Chorus/Phaser state
 		if (true == effectSwitch)
 		{
@@ -520,10 +510,9 @@ namespace SFM
 
 			// Chorus delay line is fed continously
 		}
+*/
 
 #endif
-
-		m_chorusOrPhaser = isChorus;
 	}
 
 	/* ----------------------------------------------------------------------------------------------------

@@ -107,9 +107,6 @@ namespace SFM
 		InterpolatedParameter<kLinInterpolate, true> m_curDelayFeedback;
 		InterpolatedParameter<kLinInterpolate, true> m_curDelayFeedbackCutoff;
 		InterpolatedParameter<kLinInterpolate, true> m_curDelayTapeWow;
-		
-		// FIXME: enum. type
-		int m_chorusOrPhaser;
 
 		// Chorus
 		DelayLine m_chorusDL;
@@ -152,7 +149,8 @@ namespace SFM
 		CascadedSinglePoleLPF m_compressorBiteLPF;
 
 		// Misc.
-		InterpolatedParameter<kLinInterpolate, true> m_curEffectWet;
+		InterpolatedParameter<kLinInterpolate, true> m_curChorusWet;
+		InterpolatedParameter<kLinInterpolate, true> m_curPhaserWet;
 		InterpolatedParameter<kLinInterpolate, false> m_curMasterVol;
 	};
 }
