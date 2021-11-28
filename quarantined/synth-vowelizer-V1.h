@@ -12,7 +12,6 @@
 	Improved:
 		- Smooth interpolation between vowels
 		- Stereo support
-		- Maybe try this: "Fantastic, it's all I can say! Done the linear blending and open blending matrix (a-e, a-i, a-o, a-u, e-i, e-o...etc..etc..). Too much fun!"
 
 	Important: 
 		- Do *not* call more often than than GetSampleRate() per second, the coefficients were designed for either 44.1KHz or 48KHz (can't be sure)

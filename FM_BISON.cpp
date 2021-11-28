@@ -1641,8 +1641,8 @@ namespace SFM
 
 				// SVF cutoff aftertouch (curved towards zero if pressed)
 				const float cutAfter = context.mainFilterAftertouch*sampAftertouch;
-				SFM_ASSERT(cutAfter >= 0.f && cutAfter <= 1.f);
-
+				SFM_ASSERT_NORM(cutAfter);
+			
 #if !defined(SFM_DISABLE_FX)						
 
 				// Apply & mix filter (FIXME: move to sequential loop?)
