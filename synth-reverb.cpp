@@ -44,7 +44,7 @@ namespace SFM
 	};
 
 	// FIXME: test variations (https://christianfloisand.wordpress.com/tag/all-pass-filter/ mentions slightly modulating the first pass)
-	constexpr float kAllPassDefFeedback = 0.5f; // Taken from ref. implementation
+	constexpr float kAllPassDefFeedback = 0.6f; // FIXME: this is a very interesting parameter to play with!
 	
 	constexpr float kDefaultRoomSize = 0.8f;
 	constexpr float kDefaultWidth = 2.f;
