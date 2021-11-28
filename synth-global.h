@@ -82,6 +82,7 @@ namespace SFM
 
 	// Max. fixed frequency (have fun with it!)
 	constexpr float kMaxFixedHz = 96000.f;
+	constexpr float kDefaultFixedHz = 440.f;
 
 	// Polyphony constraints
 	constexpr unsigned kMinPolyVoices = 1;
