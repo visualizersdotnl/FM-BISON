@@ -21,7 +21,6 @@ A clean-up pass will be done in the near future as a lot of things have been add
 - /patch: FM. BISON's patch headers, laying out the entire structure an instance uses to render an instrument
 - /promotion: Promotional material (graphics, audio renders et cetera)
 - /literature: PDFs et cetera
-- /amigaklang: top secret
 
 # (OLD) TRAILER (30/04/2020)
 
