@@ -494,25 +494,6 @@ namespace SFM
 			pLeftOut[iSample]  = Clamp(sampleL);
 			pRightOut[iSample] = Clamp(sampleR);
 		}
-
-#if !defined(SFM_DISABLE_FX)
-
-/*
-		// Reset Chorus/Phaser state
-		if (true == effectSwitch)
-		{
-			if (false == isChorus)
-			{
-				// Phaser
-				for (auto &filter : m_allpassFilters)
-					filter.resetState();
-			}
-
-			// Chorus delay line is fed continously
-		}
-*/
-
-#endif
 	}
 
 	/* ----------------------------------------------------------------------------------------------------
