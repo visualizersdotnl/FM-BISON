@@ -238,8 +238,14 @@ namespace SFM
 		if (true == voice.IsIdle())
 			return;
 
-		// Flag as stolen so next Render() call will handle it
+		// Flag as stolen
 		voice.m_state = Voice::kStolen;
+		
+		// Initiate fade out
+		const float curGlobalAmp = voice.m_globalAmp.Get();
+		voice.m_globalAmp.SetRate(m_sampleRate, kGlobalAmpCutTime);
+		voice.m_globalAmp.Set(curGlobalAmp);
+		voice.m_globalAmp.SetTarget(0.f);
 
 		// Free key (if not already done)
 		const int key = voice.m_key;
@@ -1409,10 +1415,8 @@ namespace SFM
 
 			if (false == voice.IsIdle())
 			{
-				const bool isDone   = voice.IsDone(); 
-				const bool isStolen = voice.IsStolen();
-
-				if (true == isDone || true == isStolen)
+				const bool stolenAndCut = true == voice.IsStolen() && 0.f == voice.m_globalAmp.Get();
+				if (true == stolenAndCut || true == voice.IsDone())
 				{
 					FreeVoice(iVoice);
 
@@ -1554,9 +1558,6 @@ namespace SFM
 			Voice &voice = const_cast<Voice&>(m_voices[iVoice]);
 			SFM_ASSERT(false == voice.IsIdle());
 
-			// Global per-voice gain
-			constexpr float voiceGain = 0.354813397f; // dBToGain(kVoiceGaindB);
-
 			// Update LFO frequencies
 			float frequency = m_globalLFO->GetFrequency(), modFrequency;
 			CalcLFOFreq(frequency, modFrequency, m_patch.LFOModSpeed);
@@ -1571,22 +1572,12 @@ namespace SFM
 			voice.m_LFO2.SetSampleAndHoldSlewRate(slewRate);
 			voice.m_modLFO.SetSampleAndHoldSlewRate(slewRate);
 
-			// Global amp. allows use to fade the voice in and out within this frame
-			InterpolatedParameter<kLinInterpolate, true> globalAmp(1.f, numSamples);
-
-			if (true == voice.IsStolen())
+			if (true == m_resetPhaseBPM)
 			{
-				// If stolen, fade out completely in this Render() pass
-				globalAmp.SetTarget(0.f);
-			}
-			else
-			{
-				if (true == m_resetPhaseBPM)
-				{
-					// If resetting BPM sync. phase, fade in in this Render() pass
-					globalAmp.Set(0.f);
-					globalAmp.SetTarget(1.f);
-				}
+				// If resetting BPM sync. phase initiate a fade in
+				voice.m_globalAmp.SetRate(m_sampleRate, kGlobalAmpCutTime);
+				voice.m_globalAmp.Set(0.f);
+				voice.m_globalAmp.SetTarget(kVoiceGain);
 			}
 	
 			if (true == context.resetFilter)
@@ -1610,9 +1601,6 @@ namespace SFM
 
 			// Reset to initial aftertouch
 			auto curAftertouch = m_curAftertouch;
-
-			// Reset to initial global amp.
-			auto curGlobalAmp = globalAmp;
 
 			const bool noFilter = SvfLinearTrapOptimised2::NO_FLT_TYPE == context.filterType;
 			auto& filterEG      = voice.m_filterEnvelope;
@@ -1666,14 +1654,9 @@ namespace SFM
 
 #endif
 
-				// Apply gain and add to mix
-				const float amplitude = curGlobalAmp.Sample() * voiceGain;
-
-				const float finalL = amplitude * left;
-				const float finalR = amplitude * right;
-
-				pDestL[iSample] += finalL;
-				pDestR[iSample] += finalR;
+				// Add to mix
+				pDestL[iSample] += left;
+				pDestR[iSample] += right;
 			}
 		}
 	}

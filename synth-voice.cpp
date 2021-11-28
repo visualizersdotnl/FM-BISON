@@ -10,6 +10,77 @@
 
 namespace SFM
 {
+	// This function is called by Voice::Reset()
+	void Voice::Operator::Reset(unsigned sampleRate)
+	{
+		// Disabled
+		enabled = false;
+
+		// Near-zero frequency
+		curFreq = { kEpsilon, sampleRate, kDefParameterLatency };
+
+		// No detune jitter
+		detuneOffs = 0.f;
+
+		// No key tracking
+		keyTracking = 0.f;
+
+		// Silent
+		amplitude = { 0.f, sampleRate, kDefParameterLatency };
+		index     = { 0.f, sampleRate, kDefParameterLatency };
+
+		// Void oscillator
+		oscillator = Oscillator(sampleRate);
+
+		// Idle envelope
+		envelope.Reset();
+
+		// No modulators
+		modulators[0] = -1;
+		modulators[1] = -1;
+		modulators[2] = -1;
+		noModulation = true;
+
+		// No feedback input
+		iFeedback = -1;
+
+		// No feedback
+		feedbackAmt = { 0.f, sampleRate, kDefParameterLatency };
+		feedback = 0.f;
+
+		// No modulation
+		ampMod   = 0.f;
+		pitchMod = 0.f;
+		panMod   = 0.f;
+
+		// No soft distortion
+		drive = { 0.f, sampleRate, kDefParameterLatency };
+
+		// No (manual) panning
+		panning = { 0.f, sampleRate, kDefParameterLatency };
+
+		// Not a carrier
+		isCarrier = false;
+
+		// Reset operator filter
+		filter.reset();
+
+		// Reset modulator filter
+		modFilter.updateNone();
+		modFilter.resetState();
+
+		// Re(set) gain envelope
+		envGain.Reset();
+		envGain.SetSampleRate(sampleRate);
+		envGain.SetAttack(12.f);   // In MS
+		envGain.SetRelease(240.f); //
+
+		// Default supersaw settings
+		supersawDetune = { kDefSupersawDetune, sampleRate, kDefParameterLatency };
+		supersawMix    = { kDefSupersawMix,    sampleRate, kDefParameterLatency };
+
+	}
+
 	void Voice::ResetOperators(unsigned sampleRate)
 	{
 		// NULL operators
@@ -75,6 +146,9 @@ namespace SFM
 				}
 			}
 		}
+
+		// Set global amplitude
+		m_globalAmp.Set(kVoiceGain);
 	}
 
 	bool Voice::IsDone() /* const */
@@ -136,9 +210,7 @@ namespace SFM
 	
 	/* ----------------------------------------------------------------------------------------------------
 
-		Voice render loop, this is the most essential part of the FM engine
-		
-		FIXME: optimize!
+		Voice render loop; this is the essential part of the FM tone generator
 			
 	 ------------------------------------------------------------------------------------------------------ */
 
@@ -344,9 +416,11 @@ namespace SFM
 					mixR += carrierR;
 				}
 			}
-		} 
-
-		left  = mixL;
-		right = mixR;
+		}
+		
+		// Apply global amp. & store result
+		const float amplitude = m_globalAmp.Sample();
+		left  = mixL*amplitude;
+		right = mixR*amplitude;
 	}
 }

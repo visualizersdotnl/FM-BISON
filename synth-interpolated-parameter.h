@@ -11,16 +11,13 @@
 	When using kMulInterpolate the target value may never be zero!
 
 	Do *always* call Set() and SetTarget() after calling SetRate() during interpolation to restore the current value
-	and set the new target. This is a small design flaw in juce::SmoothedValue I feel.
-	
-	So what you do is:
+	and set the new target. This is a small design flaw in juce::SmoothedValue if you ask me.
 
-	<>
+	Like so:
 		const float curValue = interpolator.Get();
 		interpolator.SetRate(sampleRate, timeInSec);
 		interpolator.Set(curValue);
 		interpolator.SetTarget(targetValue);
-	</>
 
 	I'm not fixing this as long as we use juce::SmoothedValue.
 

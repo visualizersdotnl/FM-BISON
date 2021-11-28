@@ -91,12 +91,17 @@ namespace SFM
 	constexpr unsigned kDefMaxPolyVoices = 32; // Safe and fast
 
 	// ----------------------------------------------------------------------------------------------
-	// Parameter latency & slew
+	// Default InterpolatedParameter latency (used for per-sample interpolation)
 	// ----------------------------------------------------------------------------------------------
 
-	// Default parameter latency (used for per-sample interpolation of parameters and controls)
 	constexpr float kDefParameterLatency = 0.01f; // 10MS
-	
+
+	// ----------------------------------------------------------------------------------------------
+	// Default InterpolatedParameter latency (used for per-sample interpolation)
+	// ----------------------------------------------------------------------------------------------
+
+	constexpr float kGlobalAmpCutTime = 0.01f; // 10MS;
+
 	// ----------------------------------------------------------------------------------------------
 	// Number of FM synthesis operators (changing this value requires a thorough check)
 	// ----------------------------------------------------------------------------------------------
@@ -221,6 +226,7 @@ namespace SFM
 	// ----------------------------------------------------------------------------------------------
 
 	constexpr float kVoiceGaindB = -9.f;
+	constexpr float kVoiceGain = 0.354813397f;
 
 	// ----------------------------------------------------------------------------------------------
 	// Chorus/Phaser

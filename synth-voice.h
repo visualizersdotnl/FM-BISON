@@ -55,6 +55,9 @@ namespace SFM
 
 		struct Operator
 		{
+			// This function is called by Voice::Reset()
+			void Reset(unsigned sampleRate);
+
 			bool enabled;
 			
 			// Frequency
@@ -107,77 +110,6 @@ namespace SFM
 			// Supersaw parameters (R)
 			InterpolatedParameter<kLinInterpolate, true> supersawDetune;
 			InterpolatedParameter<kLinInterpolate, true> supersawMix;
-
-			// This function is called by Voice::Reset()
-			void Reset(unsigned sampleRate)
-			{
-				// Disabled
-				enabled = false;
-				
-				// Near-zero frequency
-				curFreq = { kEpsilon, sampleRate, kDefParameterLatency };
-
-				// No detune jitter
-				detuneOffs = 0.f;
-
-				// No key tracking
-				keyTracking = 0.f;
-
-				// Silent
-				amplitude = { 0.f, sampleRate, kDefParameterLatency };
-				index     = { 0.f, sampleRate, kDefParameterLatency };
-
-				// Void oscillator
-				oscillator = Oscillator(sampleRate);
-
-				// Idle envelope
-				envelope.Reset();
-
-				// No modulators
-				modulators[0] = -1;
-				modulators[1] = -1;
-				modulators[2] = -1;
-				noModulation = true;
-
-				// No feedback input
-				iFeedback = -1;
-
-				// No feedback
-				feedbackAmt = { 0.f, sampleRate, kDefParameterLatency };
-				feedback = 0.f;
-				
-				// No modulation
-				ampMod   = 0.f;
-				pitchMod = 0.f;
-				panMod   = 0.f;
-
-				// No soft distortion
-				drive = { 0.f, sampleRate, kDefParameterLatency };
-				
-				// No (manual) panning
-				panning = { 0.f, sampleRate, kDefParameterLatency };
-
-				// Not a carrier
-				isCarrier = false;
-				
-				// Reset operator filter
-				filter.reset();
-
-				// Reset modulator filter
-				modFilter.updateNone();
-				modFilter.resetState();
-
-				// Re(set) gain envelope
-				envGain.Reset();
-				envGain.SetSampleRate(sampleRate);
-				envGain.SetAttack(12.f);   // In MS
-				envGain.SetRelease(240.f); //
-
-				// Default supersaw settings
-				supersawDetune = { kDefSupersawDetune, sampleRate, kDefParameterLatency };
-				supersawMix    = { kDefSupersawMix,    sampleRate, kDefParameterLatency };
-			}
-
 		} m_operators[kNumOperators];
 
 		// LFO oscillators
@@ -196,6 +128,9 @@ namespace SFM
 
 		// Freq. glide
 		float m_freqGlide;
+
+		// Global amplitude
+		InterpolatedParameter<kLinInterpolate, true> m_globalAmp;
 
 	private:
 		void ResetOperators(unsigned sampleRate);
