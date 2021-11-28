@@ -190,9 +190,9 @@ namespace SFM
 	}
 
 	// Hz to normalized cutoff
-	SFM_INLINE static float SVF_HzToCutoff(float Hz, unsigned Nyquist = SFM::kSVFMaxFilterCutoffHz, float minCutoff = SFM::kSVFMinFilterCutoffHz)
+	SFM_INLINE static float SVF_HzToCutoff(float Hz, unsigned MaxCutoffHz = SFM::kSVFMaxFilterCutoffHz, float minCutoff = SFM::kSVFMinFilterCutoffHz)
 	{
-		const float denominator = Nyquist-minCutoff;
+		const float denominator = MaxCutoffHz-minCutoff;
 		SFM_ASSERT(denominator > 0.f);
 		return (Hz-minCutoff)/denominator;
 	}

@@ -173,8 +173,8 @@ namespace SFM
 	constexpr float kMainCutoffAftertouchRange = 0.66f; // Limits aftertouch cutoff to avoid that low range of the cutoff that's not allowed (SVF, < 16.0), which may cause filter instability
 	constexpr float kDefMainFilterResonance    =   0.f; // Filter's default normalized resonance
 	
-	// Normalized resonance range can be limited of the main voice filter
-	constexpr float kDefMainFilterResonanceLimit = 0.33f;
+	// Normalized resonance range (can be) limited for main voice filter
+	constexpr float kDefMainFilterResonanceLimit = 0.5f;
 
 	// Default post-pass filter drive range & default (dB)	
 	constexpr float kMinPostFilterDrivedB = -3.f;
@@ -276,13 +276,16 @@ namespace SFM
 	// Reverb
 	// ----------------------------------------------------------------------------------------------
 
-	// Reverb effect sounds best until mixed to max. 50-60 percent (wetness)
+	// Effect sounds best until mixed to max. 50-60 percent (wetness)
 	constexpr float kMaxReverbWet = 0.55f;
 
-	// Reverb width range & default
+	// Stereo width range & default
 	constexpr float kMinReverbWidth = 0.f;
 	constexpr float kMaxReverbWidth = 2.f;
 	constexpr float kDefReverbWidth = 0.5f;
+
+	// Default dampening
+	constexpr float kDefReverbDampening = 0.5f;
 
 	// ----------------------------------------------------------------------------------------------
 	// Compressor range & defaults

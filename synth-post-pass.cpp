@@ -389,7 +389,7 @@ namespace SFM
 
 			{
 				// Apply tone filter (resonant LPF)
-				m_tubeToneFilter.updateLowpassCoeff(SVF_CutoffToHz(tone, m_sampleRate4X/2), toneQ, m_sampleRate4X);
+				m_tubeToneFilter.updateLowpassCoeff(SVF_CutoffToHz(tone, m_Nyquist), toneQ, m_sampleRate4X);
 				float feedL = postDistortedL, feedR = postDistortedR;
 				m_tubeToneFilter.tick(feedL, feedR);
 
@@ -401,8 +401,9 @@ namespace SFM
 				// Remove possible DC offset
 				m_tubeDCBlocker.Apply(distortedL, distortedR);
 
-				postDistortedL = lerpf<float>(sampleL, distortedL, amount);
-				postDistortedR = lerpf<float>(sampleR, distortedR, amount);
+				const float smoothstepped = smoothstepf(amount); // One of those "ideas" that I'll probably regret later in life
+				postDistortedL = lerpf<float>(sampleL, distortedL, smoothstepped);
+				postDistortedR = lerpf<float>(sampleR, distortedR, smoothstepped);
 			}
 
 			// Apply 24dB post filter

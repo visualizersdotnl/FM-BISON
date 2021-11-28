@@ -305,7 +305,7 @@ namespace SFM
 			// No reverb
 			reverbWet = 0.f;
 			reverbRoomSize = 0.f;
-			reverbDampening = 0.f;
+			reverbDampening = kDefReverbDampening;
 			reverbWidth = kDefReverbWidth;
 			reverbPreDelay = 0.f;
 
