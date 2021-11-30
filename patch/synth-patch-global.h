@@ -268,7 +268,7 @@ namespace SFM
 			// Zero deviation
 			jitter = 0.f;
 
-			// "Silent chorus"
+			// None (chorus, but silent)
 			cpIsPhaser = false;
 			cpWet = 0.f;
 			cpRate = 0.f;
