@@ -179,7 +179,7 @@ namespace SFM
 				patchOp.envParams.attackCurve = 0.f;
 				patchOp.envParams.decayCurve = 0.f;
 				patchOp.envParams.releaseCurve = 0.f;
-				patchOp.envParams.rateMul = 1.f; // 1 second
+				patchOp.envParams.globalMul = 1.f; // 1 second
 				
 				// No key tracking
 				patchOp.envKeyTrack = 0.f;

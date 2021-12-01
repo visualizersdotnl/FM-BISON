@@ -217,8 +217,8 @@ namespace SFM
 		bool tubeToneReso; // Adds resonance (more "color") to the tone LPF
 
 		// Piano pedal
-		float pianoPedalFalloff;
-		float pianoPedalReleaseMul;
+		float pianoPedalFalloff;    // Lower means longer
+		float pianoPedalReleaseMul; // [kPianoPedalMinReleaseMul..kPianoPedalMaxReleaseMul]
 
 		// Acoustic scaling (more velocity means longer decay phase; useful, mostly, for acoustic instruments)
 		float acousticScaling;
@@ -344,7 +344,7 @@ namespace SFM
 			filterEnvParams.attackCurve = 0.f;
 			filterEnvParams.decayCurve = 0.f;
 			filterEnvParams.releaseCurve = 0.f;
-			filterEnvParams.rateMul = 1.f; // 1 second
+			filterEnvParams.globalMul = 1.f; // 1 second
 
 			filterEnvInvert = false;
 

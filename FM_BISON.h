@@ -35,7 +35,7 @@
 	- 'SFM' is a legacy prefix & namespace name
 
 	Third party credits (public domain, please contact us if we're mistaken):
-	- ADSR & Biquad filter by Nigel Redmon (http://www.earlevel.com)
+	- Biquad filter by Nigel Redmon (http://www.earlevel.com)
 	- SvfLinearTrapOptimised2.hpp by Fred Anton Corvest (https://github.com/FredAntonCorvest/Common-DSP)
 	- MOOG-style ladder filter: https://github.com/ddiakopoulos/MoogLadders/blob/master/src/
 	- Reverb based on FreeVerb by Volker Böhm

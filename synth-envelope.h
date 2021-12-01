@@ -7,10 +7,8 @@
 
 #pragma once
 
-// Nice public domain implementation by Nigel Redmon (earlevel.com), adapted and modified
-#include "3rdparty/ADSR.h"
-
 #include "synth-global.h"
+#include "3rdparty/JUCE/ADSR.h"
 
 namespace SFM
 {
@@ -35,9 +33,9 @@ namespace SFM
 			float release;
 
 			// In seconds
-			float rateMul; // [kEnvMulMin..kEnvMulMin+kEnvMulRange] (synth-global.h or Arturia DX V manual)
+			float globalMul; // [kEnvMulMin..kEnvMulMin+kEnvMulRange] (synth-global.h or Arturia DX V manual)
 			
-			// Curvature (see https://www.earlevel.com/main/2013/06/23/envelope-generators-adsr-widget/ for a visualization of response)
+			// Curvature
 			float attackCurve;
 			float decayCurve;
 			float releaseCurve;
@@ -53,11 +51,13 @@ namespace SFM
 			if (false == m_isInfinite)
 			{
 				// Release
-				m_ADSR.gate(false, 0.f);
+				m_ADSR.noteOff();
 			}
 			else
+			{
 				// Sustain forever
 				m_ADSR.sustain();
+			}
 		}
 
 		SFM_INLINE void Reset()
@@ -74,32 +74,32 @@ namespace SFM
 				// Wait for it..
 				--m_preAttackSamples;
 
-				SFM_ASSERT(0.f == m_ADSR.getOutput());
+				SFM_ASSERT(0.f == m_ADSR.getSample());
 
 				return 0.f;
 			}
 			else
 			{
-				return m_ADSR.process();
+				return m_ADSR.getNextSample();
 			}
 		}
 
 		// Use to get value without sampling
 		SFM_INLINE float Get() const
 		{
-			return m_ADSR.getOutput();
+			return m_ADSR.getSample();
 		}
 
 		SFM_INLINE bool IsReleasing() const
 		{
-			const bool isReleasing = m_ADSR.getState() == ADSR::env_release;
+			const bool isReleasing = m_ADSR.isReleasing();
 			return isReleasing;
 		}
 
 		SFM_INLINE bool IsIdle() const
 		{
-			const bool isIdle = m_ADSR.getState() == ADSR::env_idle;
-			SFM_ASSERT(false == isIdle || (true == isIdle && 0.f == m_ADSR.getOutput()));
+			const bool isIdle = false == m_ADSR.isActive();
+			SFM_ASSERT(false == isIdle || (true == isIdle && 0.f == m_ADSR.getSample()));
 			return isIdle;
 		}
 
@@ -108,8 +108,8 @@ namespace SFM
 			return m_isInfinite;
 		}
 
-		// Used to emulate piano-style sustain pedal behaviour (see impl., FM_BISON.cpp & ADSR.h)
-		void OnPianoSustain(unsigned sampleRate, float falloff, float releaseRateMul);
+		// To emulate piano-style sustain pedal behaviour
+		void OnPianoSustain(float falloff, float pedalReleaseMul);
 
 	private:
 		unsigned m_preAttackSamples;

@@ -1499,12 +1499,12 @@ namespace SFM
 						voice.m_sustained = true;
 
 						// Pitch envelope is taken care of in Voice::Sample()
-						voice.m_filterEnvelope.OnPianoSustain(m_sampleRate, pedalFalloff, pedalReleaseMul);
+						voice.m_filterEnvelope.OnPianoSustain(pedalFalloff, pedalReleaseMul);
 
 						for (auto& voiceOp : voice.m_operators)
 							if (true == voiceOp.enabled && true == voiceOp.isCarrier)
 							{
-								voiceOp.envelope.OnPianoSustain(m_sampleRate, pedalFalloff, pedalReleaseMul);
+								voiceOp.envelope.OnPianoSustain(pedalFalloff, pedalReleaseMul);
 							}
 
 						Log("Voice sustained (CP): " + std::to_string(iVoice));

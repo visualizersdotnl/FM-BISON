@@ -15,7 +15,7 @@
 	FIXME:
  		- Let envelope hold at P3 (sustain), on release interpolate to P4
 		- Refactor code (duplication, ham-fisted approach, et cetera)
-		- Review interpolation (logarithmic seems more appropriate)
+		- Get rid of the lineairity?
 */
 
 #pragma once
@@ -30,7 +30,7 @@ namespace SFM
 		// In samples
 		SFM_INLINE unsigned CalcRate(float rate)
 		{
-			return unsigned(floorf(m_sampleRate*m_parameters.rateMul*rate));
+			return unsigned(m_sampleRate*m_parameters.globalMul*rate);
 		}
 
 	public:
@@ -39,7 +39,7 @@ namespace SFM
 			// FIXME: use arrays
 			float P1, P2, P3, P4; // [-1..1]
 			float R1, R2, R3, L4;
-			float rateMul;
+			float globalMul; // In seconds
 		};
 
 		void Start(const Parameters &parameters, unsigned sampleRate)
@@ -174,10 +174,8 @@ namespace SFM
 
 			float step = 1.f/numSamples;
 			step *= m_iSample;
-
-			// I don't really feel like curving this in a *too* pronounced fashion
-			// I should do some research into what the curvature (if any) of the DX7 envelope(s) is (FIXME)
-			return from + easeOutQuadf(step)*delta;
+			
+			return from + step*delta;
 		}
 	};
 }

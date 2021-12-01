@@ -216,10 +216,6 @@ namespace SFM
 	constexpr float kEnvMulMax = 60.f;
 	constexpr float kEnvMulRange = kEnvMulMax-kEnvMulMin;
 
-	// Multiplier on ADSR envelope ratio (release) for piano (CP) sustain pedal mode
-	// The higher the value, the more linear (and thus longer) the release phase will be
-	constexpr float	kEnvPianoSustainRatioMul = 1000.f;
-
 	// ----------------------------------------------------------------------------------------------
 	// Gain per voice (in dB)
 	// This keeps the voice mix nicely within acceptable range, approx. 8 voices, 
@@ -350,13 +346,15 @@ namespace SFM
 	constexpr float kDefDelayDrivedB =   0.f;
 
 	// ----------------------------------------------------------------------------------------------
-	// Default piano pedal settings & mul. range
+	// Default piano pedal settings
+	// Important: this feature relies on the envelope having non-zero decay
 	// ----------------------------------------------------------------------------------------------
 
-	constexpr float kDefPianoPedalFalloff = 0.f; // Slowest
-	constexpr float kPianoPedalMinReleaseMul = 1.f;
-	constexpr float kPianoPedalMaxReleaseMul = 10.f;                     // Rather arbitrary, in fact I'm not sure if this should be a feature at all! (FIXME)
-	constexpr float kDefPianoPedalReleaseMul = kPianoPedalMinReleaseMul; // So because of that, by default, the influence of this parameter is nil.
+	constexpr float kDefPianoPedalFalloff     = 0.f;                      // Slowest, meaning that it will lengthen the decay by kPianoPedalFalloffRange (max.)
+	constexpr float kPianoPedalFalloffRange   = 3.f;                      // 
+	constexpr float kPianoPedalMinReleaseMul  = 1.f;
+	constexpr float kPianoPedalMaxReleaseMul  = 3.f;                      // 
+	constexpr float kDefPianoPedalReleaseMul  = kPianoPedalMinReleaseMul; // So because of that, by default, the influence of this parameter is nil.
 	
 	// ----------------------------------------------------------------------------------------------
 	// Modulator input is low passed a little bit for certain waveforms to "take the top off", 

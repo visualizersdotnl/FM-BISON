@@ -374,6 +374,7 @@ namespace SFM
 		float *pOverL = outBlock.getChannelPointer(0);
 		float *pOverR = outBlock.getChannelPointer(1);
 
+#if 1
 		for (unsigned iSample = 0; iSample < numOversamples; ++iSample)
 		{
 			float sampleL = pOverL[iSample]; 
@@ -387,24 +388,22 @@ namespace SFM
 
 			float postDistortedL = sampleL, postDistortedR = sampleR;
 
-			{
-				// Apply tone filter (resonant LPF)
-				m_tubeToneFilter.updateLowpassCoeff(SVF_CutoffToHz(tone, m_Nyquist), toneQ, m_sampleRate4X);
-				float feedL = postDistortedL, feedR = postDistortedR;
-				m_tubeToneFilter.tick(feedL, feedR);
+			// Apply tone filter (resonant LPF)
+			m_tubeToneFilter.updateLowpassCoeff(SVF_CutoffToHz(tone, m_Nyquist), toneQ, m_sampleRate4X);
+			float feedL = postDistortedL, feedR = postDistortedR;
+			m_tubeToneFilter.tick(feedL, feedR);
 
-				// Apply (soft) clipping
-				const float driveAdj = drive/kMaxTubeDrive; // Normalized
-				float distortedL = Squarepusher(offset+feedL, driveAdj);
-				float distortedR = Squarepusher(offset+feedR, driveAdj);
+			// Apply (soft) clipping
+			const float driveAdj = drive/kMaxTubeDrive; // Normalized
+			float distortedL = Squarepusher(offset+feedL, driveAdj);
+			float distortedR = Squarepusher(offset+feedR, driveAdj);
 
-				// Remove possible DC offset
-				m_tubeDCBlocker.Apply(distortedL, distortedR);
+			// Remove possible DC offset
+			m_tubeDCBlocker.Apply(distortedL, distortedR);
 
-				const float smoothstepped = smoothstepf(amount); // One of those "ideas" that I'll probably regret later in life
-				postDistortedL = lerpf<float>(sampleL, distortedL, smoothstepped);
-				postDistortedR = lerpf<float>(sampleR, distortedR, smoothstepped);
-			}
+			const float smoothstepped = smoothstepf(amount); // One of those "ideas" that I'll probably regret later in life
+			postDistortedL = lerpf<float>(sampleL, distortedL, smoothstepped);
+			postDistortedR = lerpf<float>(sampleR, distortedR, smoothstepped);
 
 			// Apply 24dB post filter
 			const float curPostCutoff = m_curPostCutoff.Sample();
@@ -412,24 +411,70 @@ namespace SFM
 			const float curPostDrive  = m_curPostDrive.Sample();
 			const float curPostWet    = m_curPostWet.Sample();
 
-//			if (0.f == curPostWet)
-//				m_postFilter.Reset();
+			// Apply filter
+			float filteredL = postDistortedL, filteredR = postDistortedR;
+			m_postFilter.SetParameters(kMinPostFilterCutoffHz + curPostCutoff*kPostFilterCutoffRange, curPostReso /* [0..1] */, curPostDrive);
+			m_postFilter.Apply(filteredL, filteredR);
 
-			{				
-				// Apply filter
-				float filteredL = postDistortedL, filteredR = postDistortedR;
-				m_postFilter.SetParameters(kMinPostFilterCutoffHz + curPostCutoff*kPostFilterCutoffRange, curPostReso /* [0..1] */, curPostDrive);
-				m_postFilter.Apply(filteredL, filteredR);
-
-				// Blend
-				sampleL = lerpf<float>(postDistortedL, filteredL, curPostWet);
-				sampleR = lerpf<float>(postDistortedR, filteredR, curPostWet);
-			}
+			// Blend
+			sampleL = lerpf<float>(postDistortedL, filteredL, curPostWet);
+			sampleR = lerpf<float>(postDistortedR, filteredR, curPostWet);
 
 			// Write
 			pOverL[iSample] = sampleL;
 			pOverR[iSample] = sampleR;
 		}
+#else
+		for (unsigned iSample = 0; iSample < numOversamples; ++iSample)
+		{
+			float sampleL = pOverL[iSample]; 
+			float sampleR = pOverR[iSample];
+
+			// Apply 24dB post filter
+			const float curPostCutoff = m_curPostCutoff.Sample();
+			const float curPostReso   = m_curPostReso.Sample();
+			const float curPostDrive  = m_curPostDrive.Sample();
+			const float curPostWet    = m_curPostWet.Sample();
+
+			// Apply filter
+			float filteredL = sampleL, filteredR = sampleR;
+			m_postFilter.SetParameters(kMinPostFilterCutoffHz + curPostCutoff*kPostFilterCutoffRange, curPostReso /* [0..1] */, curPostDrive);
+			m_postFilter.Apply(filteredL, filteredR);
+
+			// Blend
+			float postFilteredL = lerpf<float>(sampleL, filteredL, curPostWet);
+			float postFilteredR = lerpf<float>(sampleR, filteredR, curPostWet);
+
+			// Apply (non-linear) distortion
+			const float amount = m_curTubeDist.Sample();
+			const float drive  = m_curTubeDrive.Sample();
+			const float offset = m_curTubeOffset.Sample();
+			const float tone   = m_curTubeTone.Sample();
+
+			float postDistortedL = postFilteredL, postDistortedR = postFilteredR;
+
+			// Apply tone filter (resonant LPF)
+			m_tubeToneFilter.updateLowpassCoeff(SVF_CutoffToHz(tone, m_Nyquist), toneQ, m_sampleRate4X);
+			float feedL = postDistortedL, feedR = postDistortedR;
+			m_tubeToneFilter.tick(feedL, feedR);
+
+			// Apply (soft) clipping
+			const float driveAdj = drive/kMaxTubeDrive; // Normalized
+			float distortedL = Squarepusher(offset+feedL, driveAdj);
+			float distortedR = Squarepusher(offset+feedR, driveAdj);
+
+			// Remove possible DC offset
+			m_tubeDCBlocker.Apply(distortedL, distortedR);
+
+			const float smoothstepped = smoothstepf(amount); // One of those "ideas" that I'll probably regret later in life
+			sampleL = lerpf<float>(postFilteredL, distortedL, smoothstepped);
+			sampleR = lerpf<float>(postFilteredR, distortedR, smoothstepped);
+
+			// Write
+			pOverL[iSample] = sampleL;
+			pOverR[iSample] = sampleR;
+		}
+#endif
 
 		// Downsample result
 		m_oversampling4X.processSamplesDown(inputBlock);
