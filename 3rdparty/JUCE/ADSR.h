@@ -70,17 +70,23 @@ namespace SFM // So that it will not collide with juce::ADSR
             Parameters() = default;
 
             Parameters (float attackTimeSeconds,
+                float attackCurve,
                 float decayTimeSeconds,
+                float decayCurve,
                 float sustainLevel,
-                float releaseTimeSeconds)
+                float releaseTimeSeconds,
+                float releaseCurveY)
                 : attack (attackTimeSeconds),
+                attackCurve (attackCurve),
                 decay (decayTimeSeconds),
+                decayCurve(decayCurve),
                 sustain (sustainLevel),
-                release (releaseTimeSeconds)
+                release (releaseTimeSeconds),
+                releaseCurve(releaseCurveY)
             {
             }
 
-            float attack = 0.1f, decay = 0.1f, sustain = 1.0f, release = 0.1f;
+            float attack = 0.1f, attackCurve = 0.5f, decay = 0.1f, decayCurve = 0.5f, sustain = 1.0f, release = 0.1f, releaseCurve = 0.5f;
         };
 
         enum class State { idle, attack, decay, sustain, pianosustain, release };
@@ -134,10 +140,12 @@ namespace SFM // So that it will not collide with juce::ADSR
         {
             if (attackRate > 0.0f)
             {
+                m_phase = 0.f;
                 state = State::attack;
             }
             else if (decayRate > 0.0f)
             {
+                m_phase = 1.f;
                 envelopeVal = 1.0f;
                 state = State::decay;
             }
@@ -212,24 +220,43 @@ namespace SFM // So that it will not collide with juce::ADSR
 
         @see applyEnvelopeToBuffer
         */
+        
+        // Quadratic Bézier curve
+        float getCurve(float controlPoint, float phase)
+        {
+            const float startPoint = 0.f;
+            const float endPoint = 1.f;
+
+            const float lerpStartControl = lerpf(startPoint, controlPoint, phase);
+            const float lerpControlEnd = lerpf(controlPoint, endPoint, phase);
+            
+            return lerpf(lerpStartControl, lerpControlEnd, phase);
+        }
+        
         float getNextSample() noexcept
         {
+
             if (state == State::idle)
                 return 0.0f;
 
             if (state == State::attack)
             {
-                envelopeVal += attackRate;
+                m_phase += attackRate;
 
+                envelopeVal = getCurve(attackCurve, m_phase);
+                
                 if (envelopeVal >= 1.0f)
                 {
+                    m_phase = 1.f;
                     envelopeVal = 1.0f;
                     goToNextState();
                 }
             }
             else if (state == State::decay)
             {
-                envelopeVal -= decayRate;
+                m_phase -= decayRate;
+
+                envelopeVal = getCurve(decayCurve, m_phase);
 
                 if (envelopeVal <= parameters.sustain)
                 {
@@ -276,6 +303,9 @@ namespace SFM // So that it will not collide with juce::ADSR
             attackRate  = getRate (1.0f, parameters.attack, sampleRate);
             decayRate   = getRate (1.0f - parameters.sustain, parameters.decay, sampleRate);
             releaseRate = getRate (parameters.sustain, parameters.release, sampleRate);
+            attackCurve = parameters.attackCurve;
+            decayCurve = parameters.decayCurve;
+            releaseCurve = parameters.releaseCurve;
 
             if ((state == State::attack && attackRate <= 0.0f)
                 || (state == State::decay && (decayRate <= 0.0f || envelopeVal <= parameters.sustain))
@@ -300,7 +330,9 @@ namespace SFM // So that it will not collide with juce::ADSR
         Parameters parameters;
 
         double sampleRate = 44100.0;
-        float envelopeVal = 0.0f, attackRate = 0.0f, decayRate = 0.0f, releaseRate = 0.0f, pianoSustainRate = 0.0f;
+        float envelopeVal = 0.0f, attackRate = 0.0f, decayRate = 0.0f, releaseRate = 0.0f, pianoSustainRate = 0.0f
+            , attackCurve = 0.5f, decayCurve = 0.5f, releaseCurve = 0.5f;
+        float m_phase;
     };
 
 } // namespace SFM

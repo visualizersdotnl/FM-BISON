@@ -33,9 +33,12 @@ namespace SFM
 
 		ADSR::Parameters implParams;
 		implParams.attack = parameters.attack*globalMul;
+		implParams.attackCurve = parameters.attackCurve;
 		implParams.decay = parameters.decay*globalMul*velScaling; // Velocity can lengthen the decay phase
+		implParams.decayCurve = parameters.decayCurve;
 		implParams.sustain = parameters.sustain;
 		implParams.release = parameters.release*globalMul;
+		implParams.releaseCurve = parameters.releaseCurve;
 
 		m_ADSR.setSampleRate(sampleRate);
 		m_ADSR.setParameters(implParams);
