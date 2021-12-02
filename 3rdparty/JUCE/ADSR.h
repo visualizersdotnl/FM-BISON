@@ -235,7 +235,6 @@ namespace SFM // So that it will not collide with juce::ADSR
         
         float getNextSample() noexcept
         {
-
             if (state == State::idle)
                 return 0.0f;
 
@@ -277,7 +276,8 @@ namespace SFM // So that it will not collide with juce::ADSR
             }
             else if (state == State::release)
             {
-                envelopeVal -= releaseRate;
+                m_phase -= releaseRate;
+                envelopeVal = getCurve(releaseCurve, m_phase);
 
                 if (envelopeVal <= 0.0f)
                     goToNextState();
