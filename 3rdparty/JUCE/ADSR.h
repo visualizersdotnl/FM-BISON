@@ -198,7 +198,7 @@ namespace SFM // So that it will not collide with juce::ADSR
             // Elongate decay phase
             const float decay = parameters.decay;
             const float invFalloff = 1.f-falloff;
-            pianoSustainRate = getRate(envelopeVal, 0.001f /* <- FIXME: use kEpsilon */ + decay + decay*(1.f-falloff), sampleRate);
+            pianoSustainRate = getRate(envelopeVal, SFM::kEpsilon + decay + decay*(1.f-falloff), sampleRate);
 
             // Set state
             state = State::pianosustain;
