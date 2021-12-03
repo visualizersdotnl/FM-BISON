@@ -310,6 +310,8 @@ namespace SFM
 						SFM_ASSERT(-1 == iModulator || iModulator < kNumOperators);
 						phaseShift += 1.f+m_modSamples[iModulator+1]; // Add one for positive in phase shift
 					}
+					// FIXME: more elegant solution 
+					phaseShift = std::max<float>(0.f, phaseShift);
 				}
 				
 				// Get feedback
