@@ -305,6 +305,8 @@ namespace SFM
 				float phaseShift = 0.f;
 				if (false == voiceOp.noModulation) // Passing zero phase shift saves us a relatively expensive (!) fmodf() in Oscillator::Sample()
 				{
+					SFM_ASSERT(Oscillator::Waveform::kSupersaw != oscillator.GetWaveform());
+
 					for (int iModulator : voiceOp.modulators)
 					{
 						SFM_ASSERT(-1 == iModulator || iModulator < kNumOperators);
