@@ -160,14 +160,13 @@ namespace SFM // So that it will not collide with juce::ADSR
         /** Starts the release phase of the envelope. */
         void noteOff() noexcept
         {
-
-            releaseLevel = envelopeVal;
             if (state != State::idle)
             {
                 if (parameters.release > 0.0f)
                 {
                     m_offset = 0.f;
-                    releaseRate = (float) (envelopeVal / (parameters.release * sampleRate));
+                    releaseRate = (float) (1.f / (parameters.release * sampleRate));
+                    releaseLevel = envelopeVal;
                     state = State::release;
                 }
                 else
@@ -244,10 +243,9 @@ namespace SFM // So that it will not collide with juce::ADSR
 
             if (state == State::attack)
             {
-                envelopeVal = getCurve(0.f, 1.f, attackCurve, m_offset);
-
                 m_offset += attackRate;
 
+                envelopeVal = getCurve(0.f, 1.f, attackCurve, m_offset);
 
                 if (m_offset >= 1.0f)
                 {
@@ -257,14 +255,15 @@ namespace SFM // So that it will not collide with juce::ADSR
             }
             else if (state == State::decay)
             {
-                if (m_offset >= 1.0f || envelopeVal <= parameters.sustain)
-                {
-                    goToNextState();
-                }
-
+                m_offset += decayRate;
+                
                 envelopeVal = getCurve(1.f, parameters.sustain, decayCurve, m_offset);
 
-                m_offset += decayRate;
+                if (m_offset >= 1.0f || envelopeVal <= parameters.sustain)
+                {
+                    envelopeVal = parameters.sustain;
+                    goToNextState();
+                }
 
             }
             else if (state == State::sustain)
@@ -285,7 +284,10 @@ namespace SFM // So that it will not collide with juce::ADSR
                 m_offset += releaseRate;
 
                 if (m_offset >= 1.0f || envelopeVal <= 0.f)
+                {
+                    envelopeVal = 0.f;
                     goToNextState();
+                }
             }
             return envelopeVal;
         }
