@@ -38,9 +38,9 @@
 #define SFM_ASSERT_NORM(variable)   SFM_ASSERT(variable >=  0.f && variable <= 1.f)
 #define SFM_ASSERT_BINORM(variable) SFM_ASSERT(variable >= -1.f && variable <= 1.f)
 
-// Use this for range checks (08/11/2020)
-#define SFM_ASSERT_RANGE(variable, range) SFM_ASSERT(variable >= -range && variable <= range)
-// #define SFM_ASSERT_RANGE_BI(variable, range) SFM_ASSERT(variable >= -range && variable <= range)
+// Use this for range checks (06/12 -> start using them!)
+#define SFM_ASSERT_RANGE(variable, minimum, maximum) SFM_ASSERT(variable >= minimum && variable <= maximum)
+#define SFM_ASSERT_RANGE_BI(variable, range) SFM_ASSERT(variable >= -range && variable <= range)
 
 // Set to 1 to kill all SFM log output
 #if defined(_DEBUG) && !defined(PROFILE_BUILD)
