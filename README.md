@@ -2,6 +2,9 @@
 
 FM. BISON - A hybrid FM synthesis engine.
 
+by bipolaraudio.nl
+in cooperation with njdewit technologies/visualizersdotnl
+
 # IMPORTANT
 
 - Basic documentation will be written at some point; for now just explore our code, it has it's share of comments
