@@ -1,7 +1,7 @@
 
 /*
 	FM. BISON hybrid FM synthesis -- Global includes, constants & utility functions: include on top of every header or autonomous CPP.
-	(C) visualizers.nl & bipolaraudio.nl
+	(C) njdewit technologies (visualizers.nl) & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 */
 
@@ -40,6 +40,7 @@
 
 // Use this for range checks (08/11/2020)
 #define SFM_ASSERT_RANGE(variable, range) SFM_ASSERT(variable >= -range && variable <= range)
+// #define SFM_ASSERT_RANGE_BI(variable, range) SFM_ASSERT(variable >= -range && variable <= range)
 
 // Set to 1 to kill all SFM log output
 #if defined(_DEBUG) && !defined(PROFILE_BUILD)
