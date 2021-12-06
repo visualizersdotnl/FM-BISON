@@ -1,7 +1,7 @@
 
 /*
-	FM. BISON hybrid FM synthesis -- 'Auto-wah' with "vox" (vowelizer) implementation (WIP).
-	(C) visualizers.nl & bipolaraudio.nl
+	FM. BISON hybrid FM synthesis -- 'auto-wah' plus 'vox' (vowelizer), stompbox style FX.
+	(C) njdewit technologies (visualizers.nl) & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 */
 

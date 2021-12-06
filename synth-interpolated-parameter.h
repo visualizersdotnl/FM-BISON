@@ -1,7 +1,7 @@
 
 /*
 	FM. BISON hybrid FM synthesis -- Interpolated (linear or multiplicative) parameter.
-	(C) visualizers.nl & bipolaraudio.nl
+	(C) njdewit technologies (visualizers.nl) & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	This object is used to interpolate parameters that need per-sample interpolation in the time domain so that it 

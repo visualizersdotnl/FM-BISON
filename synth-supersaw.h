@@ -1,13 +1,14 @@
 
 /*
 	FM. BISON hybrid FM synthesis -- Self-contained JP-8000 style supersaw oscillator.
-	(C) visualizers.nl & bipolaraudio.nl
+	(C) njdewit technologies (visualizers.nl) & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	- Ref.: https://pdfs.semanticscholar.org/1852/250068e864215dd7f12755cf00636868a251.pdf (copy in repository)
 	- Free running: all phases are updated by Bison::Render() if the oscillator is not being used
 	
 	FIXME:
+		- Not in [-1..1] - is this a problem?
 		- Minimize beating (especially at lower frequencies)
 		- Review filter
 		- SSE implementation

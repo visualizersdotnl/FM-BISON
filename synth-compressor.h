@@ -1,7 +1,7 @@
 
 /*
 	FM. BISON hybrid FM synthesis -- Basic compressor.
-	(C) visualizers.nl & bipolaraudio.nl
+	(C) njdewit technologies (visualizers.nl) & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	Lookahead is a tricky concept:

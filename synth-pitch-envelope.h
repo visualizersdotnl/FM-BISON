@@ -1,7 +1,7 @@
 
 /*
 	FM. BISON hybrid FM synthesis -- Simple exponential envelope with 4 control points intended to use as a pitch envelope.
-	(C) visualizers.nl & bipolaraudio.nl
+	(C) njdewit technologies (visualizers.nl) & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	This is a pretty standard envelope that remotely mimicks the Yamaha DX7's, just so I could get a little decent pitch
@@ -15,7 +15,7 @@
 	FIXME:
  		- Let envelope hold at P3 (sustain), on release interpolate to P4
 		- Refactor code (duplication, ham-fisted approach, et cetera)
-		- Get rid of the lineairity?
+		- Curves? Ask Paul!
 */
 
 #pragma once

@@ -25,7 +25,7 @@
 
 /*
 	FM. BISON hybrid FM synthesis
-	(C) visualizers.nl & bipolaraudio.nl
+	(C) njdewit technologies (visualizers.nl) & bipolaraudio.nl
 
 	- https://github.com/bipolaraudio/FM-BISON/issues
 	- Code is quite verbose and has not been optimized "to the bone" yet (we're still in R&D stage)

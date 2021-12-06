@@ -1,7 +1,7 @@
 
 /*
 	FM. BISON -- MIDI constants & note freq. LUT.
-	(C) visualizers.nl & bipolaraudio.nl
+	(C) njdewit technologies (visualizers.nl) & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 */
 

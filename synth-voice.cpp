@@ -1,7 +1,7 @@
 
 /*
 	FM. BISON hybrid FM synthesis -- FM voice render (stereo).
-	(C) visualizers.nl & bipolaraudio.nl
+	(C) njdewit technologies (visualizers.nl) & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 */
 
@@ -312,7 +312,8 @@ namespace SFM
 						SFM_ASSERT(-1 == iModulator || iModulator < kNumOperators);
 						phaseShift += 1.f+m_modSamples[iModulator+1]; // Add one for positive in phase shift
 					}
-					// FIXME: more elegant solution 
+
+					// FIXME (@Niels): more elegant solution 
 					phaseShift = std::max<float>(0.f, phaseShift);
 				}
 				

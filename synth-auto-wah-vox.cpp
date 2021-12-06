@@ -1,7 +1,7 @@
 
 /*
-	FM. BISON hybrid FM synthesis -- 'Auto-wah' with "vox" implementation (WIP).
-	(C) visualizers.nl & bipolaraudio.nl
+	FM. BISON hybrid FM synthesis -- 'auto-wah' plus 'vox' (vowelizer), stompbox style FX.
+	(C) njdewit technologies (visualizers.nl) & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 */
 
@@ -10,7 +10,7 @@
 
 namespace SFM
 {
-	// Local constant parameters (I've got enough paramaters as it is!)
+	// Local constant parameters (lots of hard tweaks, but I've got enough paramaters as it is!)
 	constexpr float kPreLowCutQ    = kSVFMinFilterQ; // Q (SVF range)
 	constexpr float kLPResoMin     = 0.01f;          // Q (normalized)
 	constexpr float kLPResoMax     =  0.6f;          //

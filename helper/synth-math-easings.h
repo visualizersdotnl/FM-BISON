@@ -1,16 +1,15 @@
 
 /*
 	FM. BISON hybrid FM synthesis -- Interpolation functions all copied from: https://easings.net/ (https://github.com/ai/easings.net/blob/master/src/easings.yml)
-	(C) visualizers.nl & bipolaraudio.nl
+	(C) njdewit technologies (visualizers.nl) & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
+	- All geared to work with single prec. (some functions also available in double prec.)
+	- Output domain is [0..1] unless commented it ain't so (scroll down!)
+	- They rely on constant 'kPI' (single prec.) declared in /helper/synth-math.h
+
 	FIXME:
-		- These have *not* been optimized yet and are all geared to work with single prec.
-		  *Some* functions are also available in double prec.
-		- Output domain is [0..1] unless commented it ain't so (scroll down!)
 		- No input range assertions
-	
-	They rely on constant 'kPI' (single prec.) declared in /helper/synth-math.h
 */
 
 #pragma once

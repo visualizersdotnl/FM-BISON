@@ -1,17 +1,18 @@
 
 /*
 	FM. BISON hybrid FM synthesis -- Post-processing pass.
-	(C) visualizers.nl & bipolaraudio.nl
+	(C) njdewit technologies (visualizers.nl) & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	- Copy
-	- Auto-wah
-	- Delay
+	- Auto-wah/Vox
 	- Yamaha Reface CP-style chorus & phaser
-	- Post filter (24dB) + Tube distortion (4X oversampling)
+	- Delay
+	- Tube distortion (4X oversampling)
+	- Post filter (24dB) (4X oversampling)
 	- Reverb
 	- Compressor
-	- Low cut, tuning, master volume & final clamp
+	- Low cut, 3-band tuning, master volume & final clamp
 
 	This grew into a huge function; that was of course not the intention but so far it's functional and quite well
 	documented so right now (01/07/2020) I see no reason to chop it up

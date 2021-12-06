@@ -1,7 +1,7 @@
 
 /*
-	FM. BISON hybrid FM synthesis -- All sorts of clip, distort & other wave shaping functions.
-	(C) 2018- visualizers.nl & bipolaraudio.nl
+	FM. BISON hybrid FM synthesis -- Clip, distort & misc. wave shaping functions.
+	(C) njdewit technologies (visualizers.nl) & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	- This is a collection, not all are used

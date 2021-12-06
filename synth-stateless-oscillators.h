@@ -1,7 +1,7 @@
 
 /*
 	FM. BISON hybrid FM synthesis -- Stateless oscillator functions.
-	(C) visualizers.nl & bipolaraudio.nl
+	(C) njdewit technologies (visualizers.nl) & bipolaraudio.nl
 	MIT license applies, please see https://en.wikipedia.org/wiki/MIT_License or LICENSE in the project root!
 
 	- Phase is [0..1], this range must be adhered to except for oscSine() and oscCos()
