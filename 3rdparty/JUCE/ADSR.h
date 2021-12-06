@@ -270,10 +270,10 @@ namespace SFM // So that it will not collide with juce::ADSR
             if (state == State::release)
             {
                 if (isOut && high > parameters.sustain)
-                    high = end;
+                    high = start;
 
                 if (isOut && low > parameters.sustain)
-                    low = end;
+                    low = start;
             }
 
             const float controlA = isOut ? high : low;
