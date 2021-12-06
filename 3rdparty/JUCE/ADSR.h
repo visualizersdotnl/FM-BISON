@@ -229,13 +229,57 @@ namespace SFM // So that it will not collide with juce::ADSR
         @see applyEnvelopeToBuffer
         */
         
-        // Quadratic B�zier curve
-        float getCurve(float start, float end, float control, float phase)
+        // Quadratic Bézier curve
+        float getQuadraticCurve(float start, float end, float control, float offset)
         {
-            const float startControl = lerpf(start, control, phase);
-            const float controlEnd = lerpf(control, end, phase);
+            const float startControl = lerpf(start, control, offset);
+            const float controlEnd = lerpf(control, end, offset);
             
-            return lerpf(startControl, controlEnd, phase);
+            return lerpf(startControl, controlEnd, offset);
+        }
+
+        // Cubic Bézier curve
+        float getCubicCurve(float start, float end, float controlA, float controlB, float offset)
+        {
+            const float a = lerpf(start, controlA, offset);
+            const float b = lerpf(controlA, controlB, offset);
+            const float c = lerpf(controlB, end, offset);
+
+            const float ab = lerpf(a, b, offset);
+            const float bc = lerpf(b, c, offset);
+
+            return lerpf(ab, bc, offset);
+        }
+
+        float getCurve(float start, float end, float control, float offset)
+        {
+            const bool isOut = start > end;
+            float high = sqrtf(control);
+            float low = control * control * control;
+
+            // Sustain limit
+            if (state == State::decay)
+            {
+                if (isOut && high < parameters.sustain)
+                    high = end;
+                
+                if (isOut && low < parameters.sustain)
+                    low = end;
+            }
+
+            if (state == State::release)
+            {
+                if (isOut && high > parameters.sustain)
+                    high = end;
+
+                if (isOut && low > parameters.sustain)
+                    low = end;
+            }
+
+            const float controlA = isOut ? high : low;
+            const float controlB = isOut ? low : high;
+
+            return getCubicCurve(start, end, controlA, controlB, offset);
         }
         
         float getNextSample() noexcept
