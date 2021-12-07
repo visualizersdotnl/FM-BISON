@@ -9,7 +9,7 @@
 // - No external dependencies
 // - Added various functions as used by SFM::Envelope (synth-envelope.h)
 // - Removed buffer processing function
-// - curves added by Paul (WIP?)
+// - Curves added by Paul
 // 
 // FIXME:
 //   - Uses 'jassert' (which happens to be available since FM. BISON uses it too
