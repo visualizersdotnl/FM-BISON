@@ -125,7 +125,7 @@ namespace SFM
 		// Max. voices for patch (polyphonic)
 		unsigned maxPolyVoices;
 
-		// Auto-wah settings (see synth-global.h & synth-auto-wah.h for non-normalized parameters)
+		// Auto-wah/Vox settings (see synth-global.h & synth-auto-wah.h for non-normalized parameters)
 		float wahResonance;
 		float wahAttack;
 		float wahHold;
@@ -195,7 +195,7 @@ namespace SFM
 			kSynthPedal, // Like the Yamaha DX7
 			kPianoPedal, // Like the Yamaha Reface CP
 			kNoPedal,    // No sustain
-			kWahPedal,   // Auto-wah pedal (binary)
+			kWahPedal,   // Auto-wah/Vox pedal (binary)
 			kNumPedalModes
 		} sustainType;
 
@@ -287,7 +287,7 @@ namespace SFM
 			// Def. max voices
 			maxPolyVoices = kDefMaxPolyVoices;
 
-			// Default 'auto-wah-vox', 100% dry
+			// Default: 100% dry
 			wahResonance = kDefWahResonance;
 			wahAttack = kDefWahAttack;
 			wahHold = kDefWahHold;

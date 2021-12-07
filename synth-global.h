@@ -310,7 +310,7 @@ namespace SFM
 	constexpr float kDefCompLookahead   =    1.f; // Set to max. it'll react immediately (feels counterintuitive, but basically 'lookahead' is implemented using a delay)
 
 	// ----------------------------------------------------------------------------------------------
-	// Auto-wah range & defaults
+	// Auto-wah/Vox range & defaults
 	// ----------------------------------------------------------------------------------------------
 
 	constexpr float kDefWahResonance     =   0.5f; // 50%
