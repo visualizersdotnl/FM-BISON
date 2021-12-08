@@ -31,19 +31,19 @@
 	- Code is quite verbose and has not been optimized "to the bone" yet (we're still in R&D stage)
 	- Currently fitted to play nice with the JUCE framework, needs significant work to work with other platforms (especially embedded)
 	- Synthesizer is stereo output *only*
-	- Parameters are not just interpolated by also filtered to alleviate crackle during automation or MIDI control (see 'ParameterSlew')
+	- Parameters are, give or take a few, all interpolated per sample or accounted for in a fitting way
 	- 'SFM' is a legacy prefix & namespace name
 
 	Third party credits (public domain, please contact us if we're mistaken):
 	- Biquad filter by Nigel Redmon (http://www.earlevel.com)
 	- SvfLinearTrapOptimised2.hpp by Fred Anton Corvest (https://github.com/FredAntonCorvest/Common-DSP)
-	- MOOG-style ladder filter: https://github.com/ddiakopoulos/MoogLadders/blob/master/src/
-	- Reverb based on FreeVerb by Volker Böhm
+	- MOOG-style ladder filter taken from: https://github.com/ddiakopoulos/MoogLadders/blob/master/src/
+	- Reverb is based on FreeVerb by Volker Böhm
 	- TinyMT Mersenne-Twister random generator by Makoto Matsumoto and Mutsuo Saito 
 	- Yamaha DX7 LFO rates (synth-DX7-LFO-table.h) taken from Sean Bolton's Hexter
 	- Fast cosine approximation supplied by Erik 'Kusma' Faye-Lund
 	- There are 2 dependencies on JUCE (currently these have little priority as we use JUCE for our product line)
-	- 'PolyBLEP'-based oscillators were lifted from https://github.com/martinfinke/PolyBLEP; by various authors (I keep a copy in /3rdparty/PolyBLEP (ref.))
+	- 'PolyBLEP'-based oscillators were lifted from https://github.com/martinfinke/PolyBLEP; by various authors (I keep a ref. copy in /3rdparty)
 	- I've ported a lot of interpolation functions from http://easings.net to single prec.
 	- *Big* thank you Adam Szabo for his thesis on the JP-8000 supersaw: https://pdfs.semanticscholar.org/1852/250068e864215dd7f12755cf00636868a251.pdf 
 	- A few bits and bytes left and right; these are all credited in or close to the implementation
@@ -189,7 +189,7 @@ namespace SFM
 			return int(latency);
 		}
 		
-		// Value can be used to visually represent compressor "bite" (when RMS falls below threshold dB)
+		// Value ([0..1]) can be used to visually represent compressor "bite" (when RMS falls below threshold dB)
 		// WARNING: not thread-safe!
 		float GetCompressorBite() const
 		{
@@ -199,7 +199,7 @@ namespace SFM
 				return 0.f;
 		}
 
-		// Value is operator normalized peak (not affected by amplitude (output level) if modulator only)
+		// Value follows approx. peak (normalized)
 		// WARNING: not thread-safe!
 		float GetOperatorPeak(unsigned iOp) const
 		{

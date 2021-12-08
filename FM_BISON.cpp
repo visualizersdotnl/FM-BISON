@@ -95,7 +95,7 @@ namespace SFM
 		m_polyVoiceReleaseReq.clear();
 
 		m_resetVoices = false;
-
+		 
 		// Reset BPM
 		m_BPM = 0.0;
 		m_resetPhaseBPM = true;
