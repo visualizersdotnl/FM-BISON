@@ -199,7 +199,7 @@ namespace SFM
 				return 0.f;
 		}
 
-		// Value follows approx. peak (normalized)
+		// Value follows approx. peak (modulator-only will be normalized, which makes for a nicer view as 'index' values tend to be low!)
 		// WARNING: not thread-safe!
 		float GetOperatorPeak(unsigned iOp) const
 		{
